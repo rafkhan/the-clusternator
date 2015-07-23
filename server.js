@@ -12,24 +12,33 @@ var app = koa();
 // Units contain everything needed to track down the git commit that generated
 // an image, and the image itself
 function getUnitController() {
-  //var UNIT_TYPE_PR = 'PR';
+  var UNIT_TYPE_PR = 'PR';
   //var UNIT_TYPE_SHA = 'SHA';
   //var UNIT_TYPE_TAG = 'TAG';
   //var UNIT_TYPE_BRANCH = 'BRANCH';
 
-  //var units = [
-    //{
-      //ref: '51',
-      //type: UNIT_TYPE_PR,
-      //sha: 'xyz',
-      //imageUrl: 'abc',
-      //imageTag: 'def',
-      //start: new Date()
-    //}
-  //];
+  var unitsDb = [
+    {
+      ref: '51',
+      type: UNIT_TYPE_PR,
+      sha: 'xyz',
+      imageUrl: 'abc',
+      imageTag: 'def',
+      start: new Date()
+    }
+  ];
 
-  //function addUnit(unit) {
-  //}
+  function addUnit(unit) {
+    function hasMatchingRef(a, b) {
+      return a.ref === b.ref;
+    }
+
+    var refMatchIndex = R.findIndex(hasMatchingRef, unit, unitsDb);
+
+    if(refMatchIndex > -1) {
+      unitsDb = R.update(refMatchIndex, unit, unitsDb);
+    }
+  }
 
   function* addUnitHandler() {
     var _this = this;
@@ -61,6 +70,8 @@ function getUnitController() {
     newUnit.startTime = new Date();
 
     this.state.responseData = newUnit;
+
+    addUnit(newUnit);
   }
 
   return {

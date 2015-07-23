@@ -10,6 +10,8 @@
   "rules": {
     "quotes": [1, "single"],
     "no-underscore-dangle": 0,
-    "no-multi-spaces": 0
+    "no-multi-spaces": 0,
+    "comma-dangle": 0,
+    "new-cap": 0
   }
 }
