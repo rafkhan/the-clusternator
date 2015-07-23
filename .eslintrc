@@ -3,7 +3,13 @@
     "node": true
   },
 
+  "ecmaFeatures": {
+    "generators": true
+  },
+
   "rules": {
-    "quotes": [1, "single"]
+    "quotes": [1, "single"],
+    "no-underscore-dangle": 0,
+    "no-multi-spaces": 0
   }
 }
