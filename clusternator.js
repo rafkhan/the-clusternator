@@ -48,10 +48,16 @@ var taskServiceManager = TaskServiceManager(ecs);
 function updateApp(clusterName, appDef) {
   console.log('Updating', appDef.name, 'on', clusterName, 'with',
               appDef);
+
+  function loadNewApp() {
+    return taskServiceManager.createAppOnCluter(clusterName, appDef);
+  }
+
   return clusterManager.describeCluster(clusterName)
                        .then(R.prop('clusterArn'), util.errLog)
-                       .then(taskServiceManager.deleteAllServices,
-                             util.errLog);
+                       .then(taskServiceManager.deleteAppOnCluster,
+                             util.errLog)
+                       .then(loadNewApp);
 }
 
 module.exports = {
