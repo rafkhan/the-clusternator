@@ -3,16 +3,16 @@
 var R = require('ramda');
 var AWS = require('aws-sdk');
 
-//var EC2Manager = require('./lib/ec2Manager');
 var util = require('./lib/util');
+var EC2Manager = require('./lib/ec2Manager');
 var ClusterManager = require('./lib/clusterManager');
 var TaskServiceManager = require('./lib/taskServiceManager');
 
 var AWS_REGION = 'us-east-1';
 AWS.config.region = AWS_REGION;
 
-//var ec2 = new AWS.EC2();
-//var ec2Manager = EC2Manager(ec2);
+var ec2 = new AWS.EC2();
+var ec2Manager = EC2Manager(ec2);
 
 //var instanceConfig = {
   //clusterName: 'CLUSTERNATOR',
@@ -55,5 +55,6 @@ function updateApp(clusterName, appDef) {
 }
 
 module.exports = {
-  updateApp: updateApp
+  updateApp: updateApp,
+  createEC2Instance: ec2Manager.createEC2Instance
 };

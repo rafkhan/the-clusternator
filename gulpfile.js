@@ -5,10 +5,8 @@ var argv = require('yargs').argv;
 
 var clusternatorCLI = require('./lib/cli');
 
-/*
- * Creates new version of app
- */
-gulp.task('clusternator:new-app',     function(){});
-gulp.task('clusternator:update-app',  clusternatorCLI.updateApp(argv));
-gulp.task('clusternator:destroy-app', function(){});
+gulp.task('clusternator:app:new',     function(){});
+gulp.task('clusternator:app:update',  clusternatorCLI.updateApp(argv));
+gulp.task('clusternator:app:destroy', function(){});
 
+gulp.task('clusternator:ec2:new', clusternatorCLI.newEC2Instance(argv));
