@@ -1,10 +1,12 @@
 'use strict';
 
+var R = require('ramda');
 var AWS = require('aws-sdk');
 
-
 //var EC2Manager = require('./lib/ec2Manager');
+var util = require('./lib/util');
 var ClusterManager = require('./lib/clusterManager');
+var TaskServiceManager = require('./lib/taskServiceManager');
 
 var AWS_REGION = 'us-east-1';
 AWS.config.region = AWS_REGION;
@@ -33,13 +35,7 @@ AWS.config.region = AWS_REGION;
 
 var ecs = new AWS.ECS();
 var clusterManager = ClusterManager(ecs);
-//clusterManager.createCluster()
-              //.then(function(data) {
-                //console.log(data);
-              //}, function(err) {
-                //console.log(err);
-              //});
-              //
+var taskServiceManager = TaskServiceManager(ecs);
 
 
 /**
@@ -49,8 +45,13 @@ var clusterManager = ClusterManager(ecs);
  * It does this by stopping all tasks and services running on the cluster.
  * Then rebuilds app by it's specification.
  */
-function updateApp(clusterName) {
-  return clusterManager.describeCluster(clusterName);
+function updateApp(clusterName, appDef) {
+  console.log('Updating', appDef.name, 'on', clusterName, 'with',
+              appDef);
+  return clusterManager.describeCluster(clusterName)
+                       .then(R.prop('clusterArn'), util.errLog)
+                       .then(taskServiceManager.deleteAllServices,
+                             util.errLog);
 }
 
 module.exports = {
