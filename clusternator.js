@@ -2,8 +2,9 @@
 
 var AWS = require('aws-sdk');
 
+
 //var EC2Manager = require('./lib/ec2Manager');
-//var ClusterManager = require('./lib/clusterManager');
+var ClusterManager = require('./lib/clusterManager');
 
 var AWS_REGION = 'us-east-1';
 AWS.config.region = AWS_REGION;
@@ -30,14 +31,28 @@ AWS.config.region = AWS_REGION;
               //});
 
 
-//var ecs = new AWS.ECS();
-//var clusterManager = ClusterManager(ecs);
+var ecs = new AWS.ECS();
+var clusterManager = ClusterManager(ecs);
 //clusterManager.createCluster()
               //.then(function(data) {
                 //console.log(data);
               //}, function(err) {
                 //console.log(err);
               //});
+              //
 
-setTimeout(function(){}, 1000);
 
+/**
+ * Updates app running on ECS cluster, this is used to prevent
+ * unnecessary creation/destruction of resources. Use with caution.
+ *
+ * It does this by stopping all tasks and services running on the cluster.
+ * Then rebuilds app by it's specification.
+ */
+function updateApp(clusterName) {
+  return clusterManager.describeCluster(clusterName);
+}
+
+module.exports = {
+  updateApp: updateApp
+};
