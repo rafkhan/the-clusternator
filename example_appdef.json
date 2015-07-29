@@ -1,0 +1,31 @@
+{
+  "name": "RangleApp",
+  "tasks": [
+    {
+      "containerDefinitions": [
+        {
+          "volumesFrom": [],
+          "portMappings": [
+            {
+              "hostPort": 80,
+              "containerPort": 80,
+              "protocol": "tcp"
+            }
+          ],
+          "command": [],
+          "environment": [],
+          "essential": true,
+          "entryPoint": [],
+          "links": [],
+          "mountPoints": [],
+          "memory": 16,
+          "name": "nginx-sample",
+          "cpu": 256,
+          "image": "library/nginx"
+        }
+      ],
+      "volumes": [],
+      "family": "rangle-frontend"
+    }
+  ]
+}
