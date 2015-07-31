@@ -18,7 +18,7 @@
           "entryPoint": [],
           "links": [],
           "mountPoints": [],
-          "memory": 16,
+          "memory": 256,
           "name": "nginx-sample",
           "cpu": 256,
           "image": "library/nginx"
