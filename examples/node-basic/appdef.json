@@ -19,13 +19,13 @@
           "links": [],
           "mountPoints": [],
           "memory": 16,
-          "name": "nginx-sample",
+          "name": "nodebasic",
           "cpu": 256,
-          "image": "rangle/nodebasic"
+          "image": "rangle/nodebasic:master"
         }
       ],
       "volumes": [],
-      "family": "rangle-frontend"
+      "family": "rangle-nodebasic"
     }
   ]
 }
