@@ -9,7 +9,7 @@ var collection;
 function errCheck(e) {
   if(e) {
     winston.error(e);
-    //throw e;
+    throw e;
   }
 }
 
@@ -26,7 +26,7 @@ MongoClient.connect('mongodb://' + MONGO_IP + ':27017/test', function(err, db) {
   }
     
   collection = db.collection('test_insert');
-  collection.insert({ theBest: 'Raf' }, function(err, docs) {
+  collection.insert({ theBest: 'Raf', count: 0 }, function(err, docs) {
     if(err) {
       winston.error(err);
       throw err;
@@ -38,10 +38,14 @@ MongoClient.connect('mongodb://' + MONGO_IP + ':27017/test', function(err, db) {
 
 app.get('/', function (req, res) {
   if(collection) {
-    collection.find().toArray(function(err, results) {
+    collection.updateOne({ theBest: 'Raf'}, { $inc : { count: 1 } }, function(err, results) {
       errCheck(err);
-      res.json(results);
-      return;
+
+      collection.find().toArray(function(err, results) {
+        errCheck(err);
+        res.json(results);
+        return;
+      });
     });
   } else {
     res.send('No mongo connection :(');
