@@ -41,7 +41,30 @@ function updateApp(clusterName, appDef) {
                        .then(loadNewApp);
 }
 
+
+function newApp(clusterName, appDef, ec2Config) {
+  if(!clusterName) { throw 'Requires clusterName'; }
+  if(!appDef)      { throw 'Requires appDef'; }
+  if(!ec2Config)   { throw 'Requires ec2Config'; }
+
+  var clusterParams = {
+    clusterName: clusterName
+  };
+
+  function buildEC2Instance() {
+    return ec2Manager.createEC2Instance(ec2Config);
+  }
+
+  return clusterManager.createCluster(clusterParams)
+                       .then(buildEC2Instance, util.errLog)
+                       .then(function(x) {
+                         return taskServiceManager.createAppOnCluster(clusterName, appDef);
+                       });
+}
+
+
 module.exports = {
+  newApp: newApp,
   updateApp: updateApp,
   createEC2Instance: ec2Manager.createEC2Instance
 };

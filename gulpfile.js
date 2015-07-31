@@ -5,7 +5,7 @@ var argv = require('yargs').argv;
 
 var clusternatorCLI = require('./lib/cli');
 
-gulp.task('clusternator:app:new',     function(){});
+gulp.task('clusternator:app:new',     clusternatorCLI.newApp(argv));
 gulp.task('clusternator:app:update',  clusternatorCLI.updateApp(argv));
 gulp.task('clusternator:app:destroy', function(){});
 
