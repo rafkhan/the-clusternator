@@ -21,7 +21,7 @@
           "memory": 16,
           "name": "nodebasic",
           "cpu": 256,
-          "image": "rangle/nodebasic:master"
+          "image": "rafkhan/nodebasic:master"
         }
       ],
       "volumes": [],
