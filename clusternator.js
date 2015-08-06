@@ -57,7 +57,7 @@ function newApp(clusterName, appDef, ec2Config) {
 
   return clusterManager.createCluster(clusterParams)
                        .then(buildEC2Instance, util.errLog)
-                       .then(function(x) {
+                       .then(function() {
                          return taskServiceManager.createAppOnCluster(clusterName, appDef);
                        });
 }
