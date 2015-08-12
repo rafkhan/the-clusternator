@@ -3,7 +3,8 @@
 var gulp = require('gulp');
 var argv = require('yargs').argv;
 
-var cli = require('./lib/cli');
+var clusternator = require('./clusternator');
+var cli = clusternator.cli;
 
 gulp.task('clusternator:app:new',     cli.newApp(argv));
 gulp.task('clusternator:app:update',  cli.updateApp(argv));
