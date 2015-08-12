@@ -1,0 +1,79 @@
+{
+  "name": "NodeMongo",
+  "tasks": [
+    {
+      "containerDefinitions": [
+        {
+          "volumesFrom": [],
+          "portMappings": [
+            {
+              "hostPort": 27017,
+              "containerPort": 27017,
+              "protocol": "tcp"
+            }
+          ],
+          "command": [],
+          "environment": [],
+          "essential": true,
+          "entryPoint": [],
+          "links": [],
+          "mountPoints": [
+            {
+              "sourceVolume": "mongo-volume",
+              "containerPath": "/data"
+            }
+          ],
+          "memory": 256,
+          "name": "mongoserver",
+          "cpu": 256,
+          "image": "library/mongo"
+        },
+
+        {
+          "volumesFrom": [],
+          "portMappings": [
+            {
+              "hostPort": 80,
+              "containerPort": 8080,
+              "protocol": "tcp"
+            }
+          ],
+          "command": [],
+          "environment": [],
+          "essential": true,
+          "entryPoint": [],
+          "links": ["mongoserver"],
+          "mountPoints": [
+            {
+              "sourceVolume": "node-volume",
+              "containerPath": "/nodelogs"
+            }
+          ],
+          "memory": 256,
+          "name": "nodemongo",
+          "cpu": 256,
+
+          "repo" : "hello/world",
+          "dockerFile": "Dockerfile"
+        }
+
+      ],
+      "volumes": [
+        {
+          "name": "mongo-volume",
+          "host": {
+            "sourcePath": "/ecs/mongo"
+          }
+        },
+
+        {
+          "name": "node-volume",
+          "host": {
+            "sourcePath": "/ecs/node"
+          }
+        }
+      ],
+      "family": "rangle-nodemongo"
+    }
+  ]
+}
