@@ -53,8 +53,8 @@
           "name": "nodemongo",
           "cpu": 256,
 
-          "repo" : "hello/world",
-          "dockerFile": "Dockerfile"
+          "repo" : "rafkhan/world",
+          "dockerFile": "app"
         }
 
       ],
