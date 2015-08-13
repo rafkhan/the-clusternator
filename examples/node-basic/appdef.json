@@ -21,11 +21,7 @@
           "memory": 256,
           "name": "nodebasic",
           "cpu": 256,
-          "image": "library/nginx",
-
-          "imageName": "",
-          "dockerFile": "",
-          "registry": ""
+          "image": "library/nginx"
         }
       ],
       "volumes": [],

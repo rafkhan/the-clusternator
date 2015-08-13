@@ -35,7 +35,12 @@ yargs.command('ci:circle:build',
                   app: {
                     demand: true,
                     describe: 'App definition file location'
-                  }
+                  },
+
+                  keypair: {
+                    demand: true,
+                    describe: 'Keypair name to be used for SSH access to EC2'
+                  },
                 };
 
                 y.options(R.merge(opts, dockerCredOpts))
