@@ -61,6 +61,28 @@ yargs.command('server:start',
                  .help('help');
               });
 
+yargs.command('app:new',
+              'Create a new cluster',
+              function(y) {
+                var opts = {
+                  cluster: {
+                    describe: 'Cluster name for your app',
+                    demand: true
+                  },
+
+                  app: {
+                    describe: 'App definition file',
+                    demand: true
+                  },
+
+                  keypair: {
+                    alias: 'k',
+                    describe: 'Name of keypair for SSHing into ECS agent'
+                  }
+                };
+                y.options(opts)
+                 .help('help');
+              });
 
 yargs.help('help');
 var argv = yargs.argv;
@@ -69,8 +91,14 @@ var command = argv._[0];
 if(command === 'ci:circle:build') {
   cli.circleCIBuild(argv)();
   setInterval(function(){}, 10000);
+
 } else if(command === 'server:start') {
   cli.startServer(argv)();
+
+} else if(command === 'app:new') {
+  cli.newApp(argv)();
+  setInterval(function(){}, 10000);
+
 } else {
   yargs.showHelp();
 }
