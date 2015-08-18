@@ -29,17 +29,20 @@ yargs.command('ci:circle:build',
               'Build your app on circleCI and triggers ECS build',
               function(y) {
                 var opts = {
-                  clusternatorHost: {
+                  host: {
+                    alias: 'h',
                     demand: true,
                     describe: 'Clusternator server IP addr / host name'
                   },
 
                   app: {
+                    alias: 'a',
                     demand: true,
                     describe: 'App definition file location'
                   },
 
                   keypair: {
+                    alias: 'k',
                     demand: true,
                     describe: 'Keypair name to be used for SSH access to EC2'
                   },
@@ -55,6 +58,7 @@ yargs.command('server:start',
               function(y) {
                 var opts = {
                   port: {
+                    alias: 'p',
                     describe: 'Port number to run server on',
                     default: DEFAULT_PORT
                   }
@@ -69,11 +73,13 @@ yargs.command('cluster:new',
               function(y) {
                 var opts = {
                   cluster: {
+                    alias: 'c',
                     describe: 'Cluster name for your app',
                     demand: true
                   },
 
                   app: {
+                    alias: 'a',
                     describe: 'App definition file',
                     demand: true
                   },
@@ -81,7 +87,17 @@ yargs.command('cluster:new',
                   keypair: {
                     alias: 'k',
                     describe: 'Name of keypair for SSHing into ECS agent'
-                  }
+                  },
+
+                  'subnet-id': {
+                    alias: 'n',
+                    describe: 'Subnet ID if you want to join existing subnet'
+                  },
+
+                  'security-group': {
+                    alias: 'g',
+                    describe: 'Security group ID you want your cluster to use'
+                  },
                 };
                 y.options(opts)
                  .help('help');
@@ -93,11 +109,13 @@ yargs.command('cluster:update',
               function(y) {
                  var opts = {
                   cluster: {
+                    alias: 'c',
                     describe: 'Cluster name',
                     demand: true
                   },
 
                   app: {
+                    alias: 'a',
                     describe: 'App definition file',
                     demand: true
                   }
