@@ -1,3 +1,5 @@
+#!/usr/bin/env node --harmony
+
 'use strict';
 
 var R = require('ramda');
@@ -61,7 +63,8 @@ yargs.command('server:start',
                  .help('help');
               });
 
-yargs.command('app:new',
+
+yargs.command('cluster:new',
               'Create a new cluster',
               function(y) {
                 var opts = {
@@ -84,6 +87,31 @@ yargs.command('app:new',
                  .help('help');
               });
 
+
+yargs.command('cluster:update',
+              'Update an existing cluster',
+              function(y) {
+                 var opts = {
+                  cluster: {
+                    describe: 'Cluster name',
+                    demand: true
+                  },
+
+                  app: {
+                    describe: 'App definition file',
+                    demand: true
+                  }
+                };
+                y.options(opts)
+                 .help('help');
+              });
+
+
+yargs.command('app:new',
+              'Creates a new app definition',
+              function(){});
+
+
 yargs.help('help');
 var argv = yargs.argv;
 var command = argv._[0];
@@ -95,9 +123,16 @@ if(command === 'ci:circle:build') {
 } else if(command === 'server:start') {
   cli.startServer(argv)();
 
-} else if(command === 'app:new') {
+} else if(command === 'cluster:new') {
   cli.newApp(argv)();
   setInterval(function(){}, 10000);
+
+} else if(command === 'cluster:update') {
+  cli.updateApp(argv)();
+  setInterval(function(){}, 10000);
+
+} else if(command === 'app:new') {
+  cli.createAppDefinition(argv)();
 
 } else {
   yargs.showHelp();
