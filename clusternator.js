@@ -42,6 +42,12 @@ function updateApp(clusterName, appDef) {
 }
 
 
+/**
+ * Creates:
+ *  - ECS cluster
+ *  - EC2 box with configured agent
+ *  - Tasks / services from appDef
+ */
 function newApp(clusterName, appDef, ec2Config) {
   if(!clusterName) { throw 'Requires clusterName'; }
   if(!appDef)      { throw 'Requires appDef'; }

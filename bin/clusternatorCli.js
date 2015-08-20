@@ -12,16 +12,24 @@ var DEFAULT_PORT = 3000;
 yargs.usage('Usage: $0 <command> [opts]');
 
 var dockerCredOpts = {
-  dockerEmail: {
+  'docker-email': {
+    alias: 'de',
     describe: 'Docker email'
   },
 
-  dockerUser: {
+  'docker-username': {
+    alias: 'du',
     describe: 'Docker username'
   },
 
-  dockerPass: {
+  'docker-password': {
+    alias: 'dp',
     describe: 'Docker password'
+  },
+
+  'docker-cfg': {
+    alias: 'dc',
+    describe: '.dockercfg auth'
   }
 };
 
@@ -99,7 +107,7 @@ yargs.command('cluster:new',
                     describe: 'Security group ID you want your cluster to use'
                   },
                 };
-                y.options(opts)
+                y.options(R.merge(opts, dockerCredOpts))
                  .help('help');
               });
 
