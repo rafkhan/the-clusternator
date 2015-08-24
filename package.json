@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "rangle.io",
-  "license": "MIT",
+  "license": "BSD",
   "dependencies": {
     "aws-sdk": "^2.1.39",
     "koa": "^0.21.0",
