@@ -5,9 +5,7 @@
 #### Install the `clusternator` CLI
 
 ```
-git clone https://github.com/rangle/the-clusternator.git
-cd the-clusternator
-npm install . -g
+npm install -g clusternator
 ```
 
 Check and see if it installed successfully
