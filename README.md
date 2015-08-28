@@ -37,15 +37,27 @@ clusternator app:new > YOUR_APP_DEFINITION.json
 #### Create VPC
 - https://console.aws.amazon.com/vpc/home
   - On the Step 1: Select a VPC Configuration page, ensure that VPC with a Single Public Subnet is selected, and choose Select.
-
 ![VPC page](scrots/vpc_setup_1.png)
 
 #### Create security group
 - Create a security group associated with the VPC you just made
+![Security Group](scrots/security_group_1.png)
 
 #### Create network interface
 - Create network interface associated with SG you just made
+![Network Interface](scrots/network_interface_1.png)
 
+
+#### On VPC page, create a subnet
+
+VPC Subnet page:
+![VPC Subnet page](scrots/subnet_1.png)
+
+Create subnet:
+![Create subnet](scrots/subnet_2.png)
+
+Et Voila
+![Create subnet](scrots/subnet_3.png)
 
 # License
 
