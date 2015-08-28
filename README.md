@@ -34,21 +34,31 @@ clusternator app:new > YOUR_APP_DEFINITION.json
 
 ### AWS console setup
 
+Before being able to launch clusters from the clusternator, you have to
+preconfigure the network.
+
 #### Create VPC
 - https://console.aws.amazon.com/vpc/home
-  - On the Step 1: Select a VPC Configuration page, ensure that VPC with a Single Public Subnet is selected, and choose Select.
+- https://aws.amazon.com/documentation/vpc/
+- On the Step 1: Select a VPC Configuration page, ensure that VPC with a Single Public Subnet is selected, and choose Select.
 ![VPC page](scrots/vpc_setup_1.png)
 
 #### Create security group
+- Replace `us-east-1` with your region https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#SecurityGroups
+- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
 - Create a security group associated with the VPC you just made
 ![Security Group](scrots/security_group_1.png)
 
 #### Create network interface
+- https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#NIC
+- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
 - Create network interface associated with SG you just made
 ![Network Interface](scrots/network_interface_1.png)
 
 
 #### On VPC page, create a subnet
+- https://console.aws.amazon.com/vpc/home?region=us-east-1#subnets
+- http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html
 
 VPC Subnet page:
 ![VPC Subnet page](scrots/subnet_1.png)
