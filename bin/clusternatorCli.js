@@ -154,8 +154,14 @@ if(command === 'ci:circle:build') {
   setInterval(function(){}, 10000);
 
 } else if(command === 'cluster:update') {
-  cli.updateApp(argv)();
-  setInterval(function(){}, 10000);
+  var x = setInterval(function(){}, 10000);
+  cli.updateApp(argv)()
+    .then((data) => {
+      console.log('Done.');
+      process.exit(0);
+    }, (err) => {
+      console.log('ERROR', err);
+    });
 
 } else if(command === 'app:new') {
   cli.createAppDefinition(argv)();

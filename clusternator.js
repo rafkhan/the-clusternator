@@ -1,5 +1,6 @@
 'use strict';
 
+var q = require('q');
 var R = require('ramda');
 var AWS = require('aws-sdk');
 
@@ -27,18 +28,34 @@ var taskServiceManager = TaskServiceManager(ecs);
  * Then rebuilds app by it's specification.
  */
 function updateApp(clusterName, appDef) {
-  console.log('Updating', appDef.name, 'on', clusterName, 'with',
-              appDef);
+  console.log('Updating', appDef.name, 'on', clusterName, 'with app definition',
+              '"' + appDef.name + '"');
 
   function loadNewApp() {
     return taskServiceManager.createAppOnCluster(clusterName, appDef);
   }
 
   return clusterManager.describeCluster(clusterName)
-                       .then(R.prop('clusterArn'), util.errLog)
-                       .then(taskServiceManager.deleteAppOnCluster,
-                             util.errLog)
-                       .then(loadNewApp);
+                       .then(R.prop('clusterArn'), q.reject)
+                       .then((clusterArn) => {
+                         console.log('Initiating cleanup on', clusterArn);
+                         return clusterArn;
+                       })
+
+                       .then(taskServiceManager.deleteAppOnCluster, q.reject)
+                       .then((args) => {
+                         var serviceNames = R.map(R.prop('serviceName'), args);
+                         console.log('Deleted services', serviceNames);
+                         return args;
+                       }, q.reject)
+
+                       .then(loadNewApp, q.reject)
+                       .then((services) => {
+                         var f = R.compose(R.prop('serviceName'), R.prop('service'));
+                         var serviceNames = R.map(f, services);
+                         console.log('Initialized services', serviceNames);
+                         return services;
+                       }, q.reject);
 }
 
 
