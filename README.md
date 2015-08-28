@@ -38,6 +38,8 @@ clusternator app:new > YOUR_APP_DEFINITION.json
 - https://console.aws.amazon.com/vpc/home
   - On the Step 1: Select a VPC Configuration page, ensure that VPC with a Single Public Subnet is selected, and choose Select.
 
+![VPC page](scrots/vpc_setup_1.png)
+
 #### Create security group
 - Create a security group associated with the VPC you just made
 
