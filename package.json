@@ -10,6 +10,7 @@
   "license": "BSD",
   "dependencies": {
     "aws-sdk": "^2.1.39",
+    "babel": "^5.8.23",
     "koa": "^0.21.0",
     "koa-bodyparser": "^2.0.0",
     "koa-route": "^2.4.2",
@@ -24,5 +25,7 @@
     "winston": "^1.0.1",
     "yargs": "^3.15.0"
   },
-  "bin": { "clusternator": "./bin/clusternator.sh" }
+  "bin": {
+    "clusternator": "./bin/clusternator.sh"
+  }
 }

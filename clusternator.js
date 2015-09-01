@@ -1,5 +1,7 @@
 'use strict';
 
+require('babel/register');
+
 var q = require('q');
 var R = require('ramda');
 var AWS = require('aws-sdk');

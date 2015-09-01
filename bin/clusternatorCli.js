@@ -1,6 +1,8 @@
-#!/usr/bin/env node --harmony
+#!/usr/bin/env node
 
 'use strict';
+
+require('babel/register');
 
 var R = require('ramda');
 var yargs = require('yargs');
@@ -154,12 +156,11 @@ if(command === 'ci:circle:build') {
   setInterval(function(){}, 10000);
 
 } else if(command === 'cluster:update') {
-  var x = setInterval(function(){}, 10000);
   cli.updateApp(argv)()
-    .then((data) => {
+    .then(function(data) { 
       console.log('Done.');
       process.exit(0);
-    }, (err) => {
+    }, function(err) {
       console.log('ERROR', err);
     });
 

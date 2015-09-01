@@ -1,1 +1,1 @@
-node --harmony ./bin/clusternatorCli.js $@
+node ./bin/clusternatorCli-es5.js $@
