@@ -2,8 +2,6 @@
 
 'use strict';
 
-require('babel/register');
-
 var R = require('ramda');
 var yargs = require('yargs');
 
