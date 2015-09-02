@@ -7,7 +7,7 @@ var log = require('winston');
 var util = require('./util');
 //var server = require('./server/main');
 var circleCIClient = require('./circleCIClient');
-var clusternator = require('../clusternator');
+var clusternator = require('./clusternator');
 
 
 function newApp(argv) {

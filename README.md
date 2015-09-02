@@ -17,6 +17,8 @@ clusternator --help
 
 #### Export AWS keys
 
+You have to create an Administrator AWS user first.
+
 ```
 export AWS_ACCESS_KEY_ID=...
 export AWS_SECRET_ACCESS_KEY=...
@@ -66,6 +68,32 @@ Create subnet:
 
 Et Voila
 ![Create subnet](scrots/subnet_3.png)
+
+
+
+## Developing Clusternator
+
+_yay contributions!_
+
+All code is in `src/`. The CLI entry point is `bin/clusternatorCli.js`,
+but includes from `lib/` (the compile destination).
+
+
+`bin/clusternatorCli-es5.js` is ultimately what gets run as the CLI
+from `bin/clusternator.sh`.
+
+
+#### Compile ES6
+
+TODO setup watchers
+
+`npm run build` will transform your ES6 source into ES5
+
+#### Running the clusternator CLI
+
+Run `./bin/clusternator.sh` from the root directory.
+
+
 
 # License
 
