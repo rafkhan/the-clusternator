@@ -70,6 +70,24 @@ Et Voila
 ![Create subnet](scrots/subnet_3.png)
 
 
+## App Definition File
+
+This is the _hard part_ (kinda, not really). The application definition file
+(which we will call `appdef.json`) is a JSON file which specifies the following
+details about how to run your application:
+
+- Docker images running
+- Environment variables
+- Links between containers
+- Physical -> virtual port mappings
+- Data volumes and their physical mount points
+  (hard drives, can share between containers)
+- CPU and RAM on the physical EC2 instance
+
+You can create an `appdef.json` by running `clusternator app:new > appdef.json`.
+More information about the parameters can be found at
+http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
+ 
 
 ## Developing Clusternator
 
