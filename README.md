@@ -70,6 +70,32 @@ Et Voila
 ![Create subnet](scrots/subnet_3.png)
 
 
+#### Create an IAM role for your instances
+
+Create an IAM role called `ecsInstanceRole` with the following:
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecs:CreateCluster",
+        "ecs:DeregisterContainerInstance",
+        "ecs:DiscoverPollEndpoint",
+        "ecs:Poll",
+        "ecs:RegisterContainerInstance",
+        "ecs:Submit*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+```
+
 ## App Definition File
 
 This is the _hard part_ (kinda, not really). The application definition file

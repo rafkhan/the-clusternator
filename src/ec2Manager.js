@@ -88,9 +88,9 @@ var DEFAULT_INSTANCE_PARAMS = {
       DeviceIndex: 0,
       //NetworkInterfaceId: NETWORK_INTERFACE_ID,
       AssociatePublicIpAddress: true,
-      SubnetId: 'subnet-e83a50c3',
+      SubnetId: 'SUBNET',
       DeleteOnTermination: true,
-      Groups: ['sg-836ab7e4']
+      Groups: ['SECURITY_GROUP']
     }
   ],
 
