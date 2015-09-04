@@ -72,29 +72,19 @@ Et Voila
 
 #### Create an IAM role for your instances
 
-Create an IAM role called `ecsInstanceRole` with the following:
+To create the `ecsInstanceRole` IAM role for your container instances
 
-```
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ecs:CreateCluster",
-        "ecs:DeregisterContainerInstance",
-        "ecs:DiscoverPollEndpoint",
-        "ecs:Poll",
-        "ecs:RegisterContainerInstance",
-        "ecs:Submit*"
-      ],
-      "Resource": [
-        "*"
-      ]
-    }
-  ]
-}
-```
+1. Open the IAM console at https://console.aws.amazon.com/iam/.
+
+2. In the navigation pane, choose Roles and then choose Create New Role.
+
+3. In the Role Name field, type `ecsInstanceRole` to name the role, and then choose Next Step.
+
+4. In the Select Role Type section, choose Select next to the Amazon EC2 Role for EC2 Container Service role.
+
+5. In the Attach Policy section, select the AmazonEC2ContainerServiceforEC2Role policy and then choose Next Step.
+
+6. Review your role information and then choose Create Role to finish.
 
 ## App Definition File
 
