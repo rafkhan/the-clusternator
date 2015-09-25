@@ -93,7 +93,7 @@ function destroyApp(clusterName) {
  *  - EC2 box with configured agent
  *  - Tasks / services from appDef
  *
- *  TODO clean up logs
+ *  TODO clean up logs (q.reject all the things)
  */
 function newApp(clusterName, appDef, ec2Config) {
   if(!clusterName) { throw 'Requires clusterName'; }
