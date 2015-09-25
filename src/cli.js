@@ -94,34 +94,14 @@ function updateApp(argv) {
   };
 }
 
-//function newEC2Instance(argv) {
 
-  //return function() {
-    //var apiConfig = {
-      //ClientToken: (new Date()).valueOf().toString()
-    //};
+function destroyApp(argv) {
+  return function() {
+    var clusterName = argv.cluster;
+    return clusternator.destroyApp(clusterName);
+  };
+}
 
-    //var clusterName = argv.name;
-    //if(!clusterName) {
-      //throw 'Requires --name';
-    //}
-
-    //var keyPairName = argv.keypair;
-    //if(!keyPairName) {
-      //console.log('Consider adding a --keypair');
-    //} else {
-      //apiConfig.KeyName = keyPairName;
-    //}
-
-    //var config = {
-      //clusterName: clusterName,
-      //apiConfig: apiConfig
-    //};
-
-    //return clusternator.createEC2Instance(config)
-                       //.then(util.plog, util.errlog);
-  //};
-//}
 
 function startServer(argv) {
   return function() {
@@ -166,7 +146,7 @@ function createAppDefinition() {
 module.exports = {
   newApp: newApp,
   updateApp: updateApp,
-  //newEC2Instance: newEC2Instance,
+  destroyApp: destroyApp,
   startServer: startServer,
   circleCIBuild: circleCIBuild,
   createAppDefinition: createAppDefinition
