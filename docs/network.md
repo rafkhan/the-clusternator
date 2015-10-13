@@ -37,6 +37,7 @@ Et Voila
 ![Create subnet](scrots/subnet_3.png)
 
 
+
 #### Create security group
 
 Security groups regulate the access to your EC2 instances by port and IP.
@@ -50,14 +51,6 @@ something like this: `sg-0f0f0f0f`.
 - http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
 - Create a security group associated with the VPC you just made
 ![Security Group](scrots/security_group_1.png)
-
-
-#### Create network interface
-- https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#NIC
-- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
-- Create network interface associated with SG you just made
-![Network Interface](scrots/network_interface_1.png)
-
 
 
 
