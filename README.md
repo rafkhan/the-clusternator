@@ -12,24 +12,10 @@ Check and see if it installed successfully
 clusternator --help
 ```
 
-## Setup
+## [Setup](https://github.com/rangle/the-clusternator/blob/master/docs/setup.md)
 
-#### Export AWS keys
 
-You have to create an Administrator AWS user first.
-
-```
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
-```
-
-#### Create app definition file
-
-In your project's root folder:
-
-```
-clusternator app:new > YOUR_APP_DEFINITION.json
-```
+## Network Setup
 
 ### AWS console setup
 
