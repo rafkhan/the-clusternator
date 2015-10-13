@@ -1,7 +1,5 @@
 # THE CLUSTERNATOR
 
-## Setup
-
 #### Install the `clusternator` CLI
 
 ```
@@ -14,6 +12,7 @@ Check and see if it installed successfully
 clusternator --help
 ```
 
+## Setup
 
 #### Export AWS keys
 
