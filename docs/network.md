@@ -4,7 +4,8 @@ Before being able to launch clusters from the clusternator, you have to
 preconfigure the network. **This is the hard part.**
 
 
-** rangle.io defaults to `us-east-1` **
+rangle.io defaults to `us-east-1` for local projects.
+
 
 #### Create VPC
 - https://console.aws.amazon.com/vpc/home
@@ -17,7 +18,9 @@ preconfigure the network. **This is the hard part.**
 
 You'll do this from the VPC page. Ensure that the VPC matches the one
 you created in the first step.
-**Take note of the subnet ID, you will need it** it should look
+
+
+**Take note of the subnet ID, you will need it.** it should look
 something like this: `subnet-0f0f0f0f`.
 
 
@@ -37,6 +40,8 @@ Et Voila
 #### Create security group
 
 Security groups regulate the access to your EC2 instances by port and IP.
+
+
 **Take note of the security group ID, you will need it** it should look
 something like this: `sg-0f0f0f0f`.
 
