@@ -36,6 +36,12 @@ export AWS_SECRET_ACCESS_KEY=...
 ## Create an app definition file
 
 An app definition file is what will describe your application to ECS.
+This includes information about CPU / RAM provisioning, mount points
+on the host file system, port mappings, and more. Every editable
+property can be found
+[here](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html)
+
+
 If your application doesn't have one already, you can create one with the
 following command.
 
