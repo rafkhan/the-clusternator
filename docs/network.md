@@ -4,17 +4,17 @@ Before being able to launch clusters from the clusternator, you have to
 preconfigure the network. This is the hard part.
 
 
-There are **4 major components** to setting up the network for clusternator.
+There are *4 major components* to setting up the network for clusternator.
 Documentation for the following steps are found below.
-- A *VPC*, this is essentially an isolated block in the AWS cloud, all resources
+- A **VPC**, this is essentially an isolated block in the AWS cloud, all resources
   will be associated with the VPC
-- A *subnet* within the VPC. All the boxes on your cluster will join this.
+- A **subnet** within the VPC. All the boxes on your cluster will join this.
   Unless you're scaling to several thousand boxes, or have very specific
   security related requirements, only one subnet will be needed.
-- A *security group* within the VPC. Each cluster / box can be configured
+- A **security group** within the VPC. Each cluster / box can be configured
   to use a different security group. This restricts network access to
   specified IPs, ports, and protocols.
-- An *IAM role*. This is a description of permissions the EC2 boxes will have.
+- An **IAM role**. This is a description of permissions the EC2 boxes will have.
 
 
 rangle.io defaults to `us-east-1` for local projects.
