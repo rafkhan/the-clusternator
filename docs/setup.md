@@ -18,11 +18,11 @@ clusternator --help
 First things first, you have to create an IAM user on your desired AWS account.
 The clusternator will make requests on behalf of this user, given their
 AWS credentials. You can find more information on creating an IAM user
-![here](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html)
+[here](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html)
 
 
 **Your IAM user will require administrator permissions for now**
-![Read more on that here](http://docs.aws.amazon.com/IAM/latest/UserGuide/access_permissions.html)
+[Read more on that here](http://docs.aws.amazon.com/IAM/latest/UserGuide/access_permissions.html)
 
 
 ```
