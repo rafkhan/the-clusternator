@@ -25,7 +25,20 @@ AWS credentials. You can find
 [Read more on that here](http://docs.aws.amazon.com/IAM/latest/UserGuide/access_permissions.html).
 
 
+Once you acquire credentials export the following environment variables.
+
 ```
 export AWS_ACCESS_KEY_ID=...
 export AWS_SECRET_ACCESS_KEY=...
+```
+
+
+#### Create an app definition file
+
+An app definition file is what will describe your application to ECS.
+If your application doesn't have one already, you can create one with the
+following command.
+
+```
+clusternator app:new > appdef.json
 ```
