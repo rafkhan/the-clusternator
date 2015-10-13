@@ -12,64 +12,9 @@ Check and see if it installed successfully
 clusternator --help
 ```
 
-## [Setup](https://github.com/rangle/the-clusternator/blob/master/docs/setup.md)
+### [Local Setup](https://github.com/rangle/the-clusternator/blob/master/docs/setup.md)
+### [Network configuration](https://github.com/rangle/the-clusternator/blob/master/docs/network.md)
 
-
-## Network Setup
-
-### AWS console setup
-
-Before being able to launch clusters from the clusternator, you have to
-preconfigure the network.
-
-#### Create VPC
-- https://console.aws.amazon.com/vpc/home
-- https://aws.amazon.com/documentation/vpc/
-- On the Step 1: Select a VPC Configuration page, ensure that VPC with a Single Public Subnet is selected, and choose Select.
-![VPC page](scrots/vpc_setup_1.png)
-
-#### Create security group
-- Replace `us-east-1` with your region https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#SecurityGroups
-- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
-- Create a security group associated with the VPC you just made
-![Security Group](scrots/security_group_1.png)
-
-#### Create network interface
-- https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#NIC
-- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
-- Create network interface associated with SG you just made
-![Network Interface](scrots/network_interface_1.png)
-
-
-#### On VPC page, create a subnet
-- https://console.aws.amazon.com/vpc/home?region=us-east-1#subnets
-- http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html
-
-VPC Subnet page:
-![VPC Subnet page](scrots/subnet_1.png)
-
-Create subnet:
-![Create subnet](scrots/subnet_2.png)
-
-Et Voila
-![Create subnet](scrots/subnet_3.png)
-
-
-#### Create an IAM role for your instances
-
-To create the `ecsInstanceRole` IAM role for your container instances
-
-1. Open the IAM console at https://console.aws.amazon.com/iam/.
-
-2. In the navigation pane, choose Roles and then choose Create New Role.
-
-3. In the Role Name field, type `ecsInstanceRole` to name the role, and then choose Next Step.
-
-4. In the Select Role Type section, choose Select next to the Amazon EC2 Role for EC2 Container Service role.
-
-5. In the Attach Policy section, select the AmazonEC2ContainerServiceforEC2Role policy and then choose Next Step.
-
-6. Review your role information and then choose Create Role to finish.
 
 ## App Definition File
 
