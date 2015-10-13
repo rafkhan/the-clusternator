@@ -1,9 +1,10 @@
 # NETWORK SETUP
 
-### AWS console setup
-
 Before being able to launch clusters from the clusternator, you have to
-preconfigure the network.
+preconfigure the network. **This is the hard part.**
+
+
+** rangle.io defaults to `us-east-1` **
 
 #### Create VPC
 - https://console.aws.amazon.com/vpc/home
@@ -11,20 +12,15 @@ preconfigure the network.
 - On the Step 1: Select a VPC Configuration page, ensure that VPC with a Single Public Subnet is selected, and choose Select.
 ![VPC page](scrots/vpc_setup_1.png)
 
-#### Create security group
-- Replace `us-east-1` with your region https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#SecurityGroups
-- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
-- Create a security group associated with the VPC you just made
-![Security Group](scrots/security_group_1.png)
 
-#### Create network interface
-- https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#NIC
-- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
-- Create network interface associated with SG you just made
-![Network Interface](scrots/network_interface_1.png)
+#### Create a subnet
+
+You'll do this from the VPC page. Ensure that the VPC matches the one
+you created in the first step.
+**Take note of the subnet ID, you will need it** it should look
+something like this: `subnet-0f0f0f0f`.
 
 
-#### On VPC page, create a subnet
 - https://console.aws.amazon.com/vpc/home?region=us-east-1#subnets
 - http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html
 
@@ -36,6 +32,28 @@ Create subnet:
 
 Et Voila
 ![Create subnet](scrots/subnet_3.png)
+
+
+#### Create security group
+
+Security groups regulate the access to your EC2 instances by port and IP.
+**Take note of the security group ID, you will need it** it should look
+something like this: `sg-0f0f0f0f`.
+
+
+- Replace `us-east-1` with your region https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#SecurityGroups
+- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html
+- Create a security group associated with the VPC you just made
+![Security Group](scrots/security_group_1.png)
+
+
+#### Create network interface
+- https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#NIC
+- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
+- Create network interface associated with SG you just made
+![Network Interface](scrots/network_interface_1.png)
+
+
 
 
 #### Create an IAM role for your instances
