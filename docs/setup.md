@@ -13,7 +13,7 @@ clusternator --help
 ```
 
 
-#### Export AWS keys
+## Export AWS keys
 
 First things first, you have to create an IAM user on your desired AWS account.
 The clusternator will make requests on behalf of this user, given their
@@ -33,7 +33,7 @@ export AWS_SECRET_ACCESS_KEY=...
 ```
 
 
-#### Create an app definition file
+## Create an app definition file
 
 An app definition file is what will describe your application to ECS.
 If your application doesn't have one already, you can create one with the
@@ -42,3 +42,19 @@ following command.
 ```
 clusternator app:new > appdef.json
 ```
+
+You'll revisit this file later, only after you've created the docker images
+to run your application.
+
+
+## Dockerize your app!
+
+It's pretty far out of the scope of this documentation, but you can read
+[the docker user guide](https://docs.docker.com/userguide/)
+to help get you started.
+
+
+#### Recommended images
+
+- [NodeJS](https://hub.docker.com/_/node/)
+- [nginx](https://hub.docker.com/_/nginx/) (we recommend this for the frontend)
