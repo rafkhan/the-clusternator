@@ -57,7 +57,7 @@ something like this: `sg-0f0f0f0f`.
 ## Create an IAM role for your instances
 
 When creating EC2 instances, the clusternator requests an instance role
-by name that *should already be created*, this name is hardcoded. It requests
+by name that **should already be created**, this name is hardcoded. It requests
 a role called `ecsInstanceRole`. To create the `ecsInstanceRole` IAM role for your container instances do the following:
 
 
