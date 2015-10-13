@@ -7,14 +7,14 @@ preconfigure the network. **This is the hard part.**
 rangle.io defaults to `us-east-1` for local projects.
 
 
-#### Create VPC
+## Create VPC
 - https://console.aws.amazon.com/vpc/home
 - https://aws.amazon.com/documentation/vpc/
 - On the Step 1: Select a VPC Configuration page, ensure that VPC with a Single Public Subnet is selected, and choose Select.
 ![VPC page](scrots/vpc_setup_1.png)
 
 
-#### Create a subnet
+## Create a subnet
 
 You'll do this from the VPC page. Ensure that the VPC matches the one
 you created in the first step.
@@ -38,7 +38,7 @@ Et Voila
 
 
 
-#### Create security group
+## Create security group
 
 Security groups regulate the access to your EC2 instances by port and IP.
 
@@ -54,9 +54,12 @@ something like this: `sg-0f0f0f0f`.
 
 
 
-#### Create an IAM role for your instances
+## Create an IAM role for your instances
 
-To create the `ecsInstanceRole` IAM role for your container instances
+When creating EC2 instances, the clusternator requests an instance role
+by name that *should already be created*, this name is hardcoded. It requests
+a role called `ecsInstanceRole`. To create the `ecsInstanceRole` IAM role for your container instances do the following:
+
 
 1. Open the IAM console at https://console.aws.amazon.com/iam/.
 
@@ -69,3 +72,7 @@ To create the `ecsInstanceRole` IAM role for your container instances
 5. In the Attach Policy section, select the AmazonEC2ContainerServiceforEC2Role policy and then choose Next Step.
 
 6. Review your role information and then choose Create Role to finish.
+
+
+You can find out more about IAM roles for EC2 instances
+[here](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html).
