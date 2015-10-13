@@ -40,7 +40,7 @@ function updateApp(clusterName, appDef) {
                        .then((clusterArn) => {
                          console.log('Initiating cleanup on', clusterArn);
                          return clusterArn;
-                       })
+                       }, q.reject)
 
                        .then(taskServiceManager.deleteAppOnCluster, q.reject)
                        .then((args) => {
@@ -60,10 +60,40 @@ function updateApp(clusterName, appDef) {
 
 
 /**
+ * Destroys app running on ECS cluster
+ *
+ * It does this by stopping all tasks and services running on the cluster.
+ * Then rebuilds app by it's specification.
+ */
+function destroyApp(clusterName) {
+  console.log('Destroying', clusterName);
+
+  return clusterManager.describeCluster(clusterName)
+                       .then(R.prop('clusterArn'), q.reject)
+                       .then((clusterArn) => {
+                         console.log('Initiating cleanup on', clusterArn);
+                         return clusterArn;
+                       }, q.reject)
+
+                       .then(taskServiceManager.deleteAppOnCluster, q.reject)
+                       .then((args) => {
+                         var serviceNames = R.map(R.prop('serviceName'), args);
+                         console.log('Deleted services', serviceNames);
+                         return args;
+                       }, q.reject);
+
+                       // TODO delete ECS cluster
+                       // TODO terminate EC2 container
+}
+
+
+/**
  * Creates:
  *  - ECS cluster
  *  - EC2 box with configured agent
  *  - Tasks / services from appDef
+ *
+ *  TODO clean up logs (q.reject all the things)
  */
 function newApp(clusterName, appDef, ec2Config) {
   if(!clusterName) { throw 'Requires clusterName'; }
@@ -89,5 +119,5 @@ function newApp(clusterName, appDef, ec2Config) {
 module.exports = {
   newApp: newApp,
   updateApp: updateApp,
-  createEC2Instance: ec2Manager.createEC2Instance
+  destroyApp: destroyApp
 };

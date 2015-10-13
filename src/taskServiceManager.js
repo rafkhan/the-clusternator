@@ -92,8 +92,6 @@ function getTaskServiceManager(ecs) {
 
   /**
    * This is the cool part.
-   *
-   * This function is responsible
    */
   function createTasksAndServicesOnCluster(clusterArn, appDef) {
 

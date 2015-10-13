@@ -15,9 +15,11 @@ var EC2_INSTANCE_TYPE = 't2.micro';
 function getECSContainerInstanceUserData(clusterName, auth) {
 
   var data = ['#!/bin/bash',
-             'echo ECS_CLUSTER=' + clusterName + ' >> /etc/ecs/ecs.config'];
+             'echo ECS_CLUSTER=' + clusterName + ' >> /etc/ecs/ecs.config;'];
 
   if(auth) {
+
+    console.log(auth);
 
     if(!auth.cfg && (!auth.username || !auth.password || !auth.email)) {
       throw 'Auth should contain a username, password, and email';
@@ -40,9 +42,9 @@ function getECSContainerInstanceUserData(clusterName, auth) {
     var authStr = JSON.stringify(authJson);
 
     var authType = 'echo ECS_ENGINE_AUTH_TYPE=' + cfgType +
-                   ' >> /etc/ecs/ecs.config';
+                   ' >> /etc/ecs/ecs.config;';
     var authData = 'echo ECS_ENGINE_AUTH_DATA=' + authStr +
-                   ' >> /etc/ecs/ecs.config';
+                   ' >> /etc/ecs/ecs.config;';
 
     data.push(authType);
     data.push(authData);

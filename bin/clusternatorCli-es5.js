@@ -118,6 +118,18 @@ yargs.command('cluster:update', 'Update an existing cluster', function (y) {
   y.options(opts).help('help');
 });
 
+yargs.command('cluster:delete', 'Delete an existing cluster', function (y) {
+  var opts = {
+    cluster: {
+      alias: 'c',
+      describe: 'Cluster name',
+      demand: true
+    }
+  };
+
+  y.options(opts).help('help');
+});
+
 yargs.command('app:new', 'Creates a new app definition', function () {});
 
 yargs.help('help');
@@ -134,6 +146,13 @@ if (command === 'ci:circle:build') {
   setInterval(function () {}, 10000);
 } else if (command === 'cluster:update') {
   cli.updateApp(argv)().then(function (data) {
+    console.log('Done.');
+    process.exit(0);
+  }, function (err) {
+    console.log('ERROR', err);
+  });
+} else if (command === 'cluster:delete') {
+  cli.destroyApp(argv)().then(function (data) {
     console.log('Done.');
     process.exit(0);
   }, function (err) {
