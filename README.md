@@ -12,8 +12,8 @@ Check and see if it installed successfully
 clusternator --help
 ```
 
-### [Local Setup](https://github.com/rangle/the-clusternator/blob/master/docs/setup.md)
-### [Network configuration](https://github.com/rangle/the-clusternator/blob/master/docs/network.md)
+### [Local Setup](docs/setup.md)
+### [Network configuration](docs/network.md)
 
 
 ## App Definition File
