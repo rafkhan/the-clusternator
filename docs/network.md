@@ -1,7 +1,9 @@
 # NETWORK SETUP
 
 Before being able to launch clusters from the clusternator, you have to
-preconfigure the network. This is the hard part.
+preconfigure the network. This is the hard part. A more in depth version
+of this page can be found
+[here](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/get-set-up-for-amazon-ecs.html)
 
 
 There are *4 major components* to setting up the network for clusternator.
