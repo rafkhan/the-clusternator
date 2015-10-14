@@ -12,8 +12,9 @@ Check and see if it installed successfully
 clusternator --help
 ```
 
-### [Local Setup](docs/setup.md)
-### [Network configuration](docs/network.md)
+#### [Local Setup](docs/setup.md)
+#### [Network Configuration](docs/network.md)
+#### [Deploying & Caveats](docs/deploy.md)
 
 
 ## App Definition File
