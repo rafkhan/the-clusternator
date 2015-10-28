@@ -7,17 +7,14 @@ describe('parser', function() {
     var rid = 'type-value';
     var segments = resourceId.parseRID(rid);
     
-    expect(segments[0].type).equal('type');
-    expect(segments[0].value).equal('value');
+    expect(segments.type).equal('value');
   })
 
   it('should separate multiple types and values in ID segments', function() {
     var rid = 'A-B--C-D';
     var segments = resourceId.parseRID(rid);
     
-    expect(segments[0].type).equal('A');
-    expect(segments[0].value).equal('B');
-    expect(segments[1].type).equal('C');
-    expect(segments[1].value).equal('D');
+    expect(segments['A']).equal('B');
+    expect(segments['C']).equal('D');
   })
 });
