@@ -17,7 +17,7 @@ typeA-([a-zA-Z0-9]*)--typeB([a-zA-Z0-9]*)
 
 example:
 pr-42--sha-2a88bd54--time-1446045609437
-project-theclusternator--pr-42--time-1446045609437
+proj-theclusternator--pr-42--time-1446045609437
 ```
 
 Each ID can contain all of the types, or a minimum of just a time
