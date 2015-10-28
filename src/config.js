@@ -6,7 +6,8 @@ check to see if they're present, _after_ the global check */
 var util = require('./util'),
 path = require('path');
 
-var fileName = 'credentials',
+var credFileName = 'credentials',
+configFileName = 'config',
 localPath = path.join(__dirname, '/../'),
 globalPath = '/etc/clusternator/';
 
@@ -24,9 +25,9 @@ function validateCreds(c) {
   return c;
 }
 
-function loadCreds(fullpath) {
+function loadJSON(fullpath) {
   try {
-    return validateCreds(require(fullpath));
+    return require(fullpath);
   } catch(err) {
     console.log('Error', err.message);
     return null;
@@ -34,31 +35,63 @@ function loadCreds(fullpath) {
 }
 
 function checkCreds() {
-  var fullpath = path.join(localPath, fileName + '.local.json'),
-  c = loadCreds(fullpath);
+  var fullpath = path.join(localPath, credFileName + '.local.json'),
+  c = validateCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
   util.plog('No "local" credentials found in ' + fullpath +
   ', checking project');
-  fullpath = localPath + fileName + '.json';
-  c = loadCreds(fullpath);
+  fullpath = localPath + credFileName + '.json';
+  c = validateCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
   util.plog('No "project" credentials found in ' + fullpath +
   ', checking global');
-  fullpath = path.join(globalPath, fileName + '.json');
-  c = loadCreds(fullpath);
-  util.plog('No "global" credentials found in ', fullpath);
+  fullpath = path.join(globalPath, credFileName + '.json');
+  c = validateCreds(loadJSON(fullpath));
+  if (c) {
+    return c;
+  }
+  util.plog('No "global" credentials found in ' + fullpath);
+}
+
+function checkConfig( ){
+  var fullpath = path.join(localPath, configFileName + '.local.json'),
+  c = loadJSON(fullpath);
+  if (c) {
+    return c;
+  }
+  util.plog('No "local" config found in ' + fullpath +
+  ', checking project');
+  fullpath = localPath + configFileName + '.json';
+  c = loadJSON(fullpath);
+  if (c) {
+    return c;
+  }
+  util.plog('No "project" config found in ' + fullpath +
+  ', checking global');
+  fullpath = path.join(globalPath, configFileName + '.json');
+  c = loadJSON(fullpath);
+  if (c) {
+    return c;
+  }
+  util.plog('No "global" config found in ' + fullpath);
+  return {};
 }
 
 function init() {
-  var creds = checkCreds();
+  var creds = checkCreds(),
+  config = checkConfig();
 
   if (!creds) {
     throw new Error('Clusternator requires configuration');
   }
+
+  Object.keys(config).forEach(function (attr) {
+      module.exports[attr] = config[attr];
+  });
 
   module.exports.credentials = creds;
 }
