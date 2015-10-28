@@ -1,15 +1,14 @@
 'use strict';
 
-var aws = require('aws-sdk'),
-Q = require('q');
+var Q = require('q'),
+constants = require('./constants');
 
-var ec2 = new aws.EC2({apiVersion: '2015-10-01'});
-
-function listClusterVPCs() {
+function listClusterVPCs(ec2) {
   var d = Q.defer();
   /** @todo add filter here for VPC name convention */
   ec2.describeVpcs({
-    DryRun: false
+    DryRun: false,
+    Filters: constants.AWS_FILTER_CTAG
   }, function (err, list) {
     if (err) {
       d.reject(err);

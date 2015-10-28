@@ -7,5 +7,5 @@ coverage
 
 # exclude config.local no keys in repos!
 # also @adam suggested moving away from ENV vars
-credentials.json.local
-*.local
+credentials.local.json
+*.local.json

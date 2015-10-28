@@ -7,22 +7,13 @@ var routeTable = rewire('../src/routeTableManager');
 require('./chai');
 
 
-/*global describe, it, expect, beforeEach, afterEach */
+/*global describe, it, expect */
 /*eslint no-unused-expressions: 0*/
 describe('routeTableManager', function () {
-  var oldEc2;
-  beforeEach(function () {
-    oldEc2 = routeTable.__get__('ec2');
-    routeTable.__set__('ec2', ec2Mock);
-  });
-
-  afterEach(function () {
-    routeTable.__set__('ec2', oldEc2);
-  });
 
   it('should asynchronously list routeTables', function (done) {
     ec2Mock.setDescribeRouteTables([1, 2, 3]);
-    routeTable.list().then(function (list) {
+    routeTable.list(ec2Mock, 'vpc-id').then(function (list) {
       expect(list).to.be.ok;
       done();
     }, function (err) {
@@ -34,7 +25,7 @@ describe('routeTableManager', function () {
 
   it('should reject its promise on fail', function (done) {
     ec2Mock.setDescribeRouteTables(new Error('test'));
-    routeTable.list().then(function (list) {
+    routeTable.list(ec2Mock, 'vpc-id').then(function (list) {
       // not this case
       expect(list).equal(undefined);
       done();

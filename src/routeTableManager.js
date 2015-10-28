@@ -1,19 +1,14 @@
 'use strict';
 
-var aws = require('aws-sdk'),
-constants = require('constants'),
+var constants = require('constants'),
 Q = require('q');
 
-var ec2 = new aws.EC2({apiVersion: '2015-10-01'});
-
-function listRouteTables(vpcId) {
+function listRouteTables(ec2, vpcId) {
   var d = Q.defer();
   ec2.describeRouteTables({
     DryRun: false,
     'vpc-id': vpcId,
-    Filters: [
-      { 'tag-key': constants.CLUSTERNATOR_TAG }
-    ]
+    Filters: constants.AWS_FILTER_CTAG
   }, function (err, list) {
     if (err) {
       d.reject(err);

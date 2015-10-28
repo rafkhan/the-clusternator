@@ -1,15 +1,14 @@
 'use strict';
 
-var aws = require('aws-sdk'),
-Q = require('q');
+var Q = require('q'),
+constants = require('./constants');
 
-var ec2 = new aws.EC2({apiVersion: '2015-10-01'});
-
-function listSubnets(vpcId) {
+function listSubnets(ec2, vpcId) {
   var d = Q.defer();
   ec2.describeSubnets({
     DryRun: false,
-    'vpc-id': vpcId
+    'vpc-id': vpcId,
+    Filters: constants.AWS_FILTER_CTAG
   }, function (err, list) {
     if (err) {
       d.reject(err);
