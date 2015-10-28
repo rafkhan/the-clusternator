@@ -3,7 +3,7 @@
 var rewire = require('rewire'),
 ec2Mock = require('./ec2-mock');
 
-var subnet = rewire('../src/subnetManager');
+var subnet = rewire('../src/aws/subnetManager');
 require('./chai');
 
 

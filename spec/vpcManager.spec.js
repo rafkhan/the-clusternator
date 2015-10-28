@@ -3,7 +3,7 @@
 var rewire = require('rewire'),
 ec2Mock = require('./ec2-mock');
 
-var vpc = rewire('../src/vpcManager');
+var vpc = rewire('../src/aws/vpcManager');
 require('./chai');
 
 

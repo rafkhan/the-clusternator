@@ -1,8 +1,8 @@
 'use strict';
 
 var Q = require('q'),
-constants = require('./constants'),
-util = require('./util');
+constants = require('../constants'),
+util = require('../util');
 
 function listRouteTables(ec2, vpcId) {
   var d = Q.defer();

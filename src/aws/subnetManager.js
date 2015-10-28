@@ -1,8 +1,8 @@
 'use strict';
 
 var Q = require('q'),
-util = require('./util'),
-constants = require('./constants');
+util = require('../util'),
+constants = require('../constants');
 
 function listSubnets(ec2, vpcId) {
   var d = Q.defer();
