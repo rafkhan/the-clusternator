@@ -1,14 +1,14 @@
 'use strict';
 
 var Q = require('q'),
+util = require('./util'),
 constants = require('./constants');
 
 function listSubnets(ec2, vpcId) {
   var d = Q.defer();
   ec2.describeSubnets({
     DryRun: false,
-    'vpc-id': vpcId,
-    Filters: constants.AWS_FILTER_CTAG
+    Filters: constants.AWS_FILTER_CTAG.concat(util.makeAWSVPCFilter(vpcId))
   }, function (err, list) {
     if (err) {
       d.reject(err);
