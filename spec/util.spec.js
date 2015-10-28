@@ -5,7 +5,7 @@ require('./chai');
 
 
 
-/*global describe, it */
+/*global describe, it, expect */
 describe('utility functions', function () {
   it('should have a function that quotes a supplied argument', function () {
     expect(util.quote('booya')).equal('"booya"');
