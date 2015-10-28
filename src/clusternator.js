@@ -5,9 +5,9 @@ var R = require('ramda');
 var AWS = require('aws-sdk');
 
 var util = require('./util');
-var EC2Manager = require('./ec2Manager');
-var ClusterManager = require('./clusterManager');
-var TaskServiceManager = require('./taskServiceManager');
+var EC2Manager = require('./aws/ec2Manager');
+var ClusterManager = require('./aws/clusterManager');
+var TaskServiceManager = require('./aws/taskServiceManager');
 
 var AWS_REGION = 'us-east-1';
 AWS.config.region = AWS_REGION;
