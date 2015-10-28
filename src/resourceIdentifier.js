@@ -44,9 +44,9 @@ function generateRID(params) {
   }, R.keys(idSegments));
 
   var rid = R.reduce((ridStr, segKey) => {
-    var idSeg = segKey + '-' + idSegments[segKey];
+    var idSeg = idSegments[segKey];
     return ridStr + idSeg + '--'
-  }, '', validSegmentsKeys);
+  }, '', validSegmentKeys);
 
   // Remove trailing --
   return rid.replace(/--$/g, '');
