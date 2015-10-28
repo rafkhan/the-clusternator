@@ -16,6 +16,7 @@
   "license": "BSD-2-Clause",
   "dependencies": {
     "aws-sdk": "^2.1.39",
+    "express": "^4.13.3",
     "q": "^1.4.1",
     "ramda": "^0.17.1",
     "request-promise": "^0.4.3",
