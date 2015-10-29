@@ -4,7 +4,7 @@ var Q = require('q'),
 constants = require('../constants');
 
 function getVpcManager(ec2) {
-  var describeClusterVPCs = Q.nfbind(ec2.describeVpcs, {
+  var describeClusterVPCs = Q.nfbind(ec2.describeVpcs.bind(ec2), {
       DryRun: false,
       Filters: constants.AWS_FILTER_CTAG
     });
