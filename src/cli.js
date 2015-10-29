@@ -5,7 +5,7 @@ var path = require('path');
 var log = require('winston');
 
 var util = require('./util');
-//var server = require('./server/main');
+var server = require('./server/main');
 var circleCIClient = require('./circleCIClient');
 var clusternator = require('./clusternator');
 
@@ -105,9 +105,9 @@ function destroyApp(argv) {
 
 function startServer(argv) {
   return function() {
-    //var config = {};
+    var config = {};
     //config.port = argv.port;
-    //server.startServer(config);
+    server.startServer(config);
   };
 }
 

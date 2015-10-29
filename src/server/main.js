@@ -1,16 +1,37 @@
 'use strict';
 
 var express = require('express');
+var bodyParser = require('body-parser')
+
+//var config= require('../config');
+//config.init();
 
 
-var app = express();
+function getServer(config) {
+  var app = express();
 
-app.get('/ping', function(req, res) {
-  res.send('Still alive.');
-});
+  // SSL
+  // Auth
+  //
 
-app.post('/clusternate', function(req, res) {
+  app.use(bodyParser.json());
 
-});
+  app.get('/ping', function(req, res) {
+    res.send('Still alive.');
+  });
 
-app.listen(8080);
+  app.post('/clusternate', function(req, res) {
+     
+  });
+
+  return app;
+}
+
+function startServer(config) {
+  getServer(config).listen(8080);
+}
+
+module.exports = {
+  getServer: getServer,
+  startServer: startServer
+};
