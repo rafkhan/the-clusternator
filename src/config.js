@@ -88,7 +88,7 @@ function checkConfig( ){
   return {};
 }
 
-function init() {
+function getConfig() {
   var creds = checkCreds(),
   config = checkConfig();
 
@@ -96,13 +96,9 @@ function init() {
     throw new Error('Clusternator requires configuration');
   }
 
-  Object.keys(config).forEach(function (attr) {
-      module.exports[attr] = config[attr];
-  });
+  config.credentials = creds;
 
-  module.exports.credentials = creds;
+  return config;
 }
 
-module.exports = {
-  init: init
-};
+module.exports = getConfig;
