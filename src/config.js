@@ -1,4 +1,8 @@
 'use strict';
+/**
+This file loads AWS credentials, and configuration for the server, or possibly
+a "local server".
+*/
 
 /** @todo even though we're moving away from environment variables we _should_
 check to see if they're present, _after_ the global check */
@@ -13,6 +17,9 @@ globalPath = '/etc/clusternator/';
 
 
 function validateCreds(c) {
+  if (!c) {
+    return null;
+  }
   if (!c.accessKeyId) {
     return null;
   }
@@ -81,7 +88,7 @@ function checkConfig( ){
   return {};
 }
 
-function init() {
+function getConfig() {
   var creds = checkCreds(),
   config = checkConfig();
 
@@ -89,13 +96,9 @@ function init() {
     throw new Error('Clusternator requires configuration');
   }
 
-  Object.keys(config).forEach(function (attr) {
-      module.exports[attr] = config[attr];
-  });
+  config.credentials = creds;
 
-  module.exports.credentials = creds;
+  return config;
 }
 
-module.exports = {
-  init: init
-};
+module.exports = getConfig;
