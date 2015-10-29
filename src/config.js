@@ -1,4 +1,8 @@
 'use strict';
+/**
+This file loads AWS credentials, and configuration for the server, or possibly
+a "local server".
+*/
 
 /** @todo even though we're moving away from environment variables we _should_
 check to see if they're present, _after_ the global check */
@@ -13,6 +17,9 @@ globalPath = '/etc/clusternator/';
 
 
 function validateCreds(c) {
+  if (!c) {
+    return null;
+  }
   if (!c.accessKeyId) {
     return null;
   }
