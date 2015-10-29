@@ -3,17 +3,21 @@
 var rewire = require('rewire'),
 ec2Mock = require('./ec2-mock');
 
-var routeTable = rewire('../src/aws/routeTableManager');
+var RouteTable = rewire('../src/aws/routeTableManager');
 require('./chai');
 
 
-/*global describe, it, expect */
+/*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions: 0*/
 describe('routeTableManager', function () {
+  var routeTable;
+  beforeEach(function () {
+      routeTable = RouteTable(ec2Mock, 'vpc-id');
+  });
 
   it('should asynchronously list routeTables', function (done) {
     ec2Mock.setDescribeRouteTables([1, 2, 3]);
-    routeTable.list(ec2Mock, 'vpc-id').then(function (list) {
+    routeTable.describe().then(function (list) {
       expect(list).to.be.ok;
       done();
     }, function (err) {
@@ -25,7 +29,7 @@ describe('routeTableManager', function () {
 
   it('should reject its promise on fail', function (done) {
     ec2Mock.setDescribeRouteTables(new Error('test'));
-    routeTable.list(ec2Mock, 'vpc-id').then(function (list) {
+    routeTable.describe().then(function (list) {
       // not this case
       expect(list).equal(undefined);
       done();

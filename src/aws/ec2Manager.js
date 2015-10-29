@@ -2,10 +2,11 @@
 
 var Q = require('q');
 var R = require('ramda');
+var constants = require('../constants');
 
 
-var AMI_ID = 'ami-8da458e6'; // amzn-ami-2015.03.d-amazon-ecs-optimized
-var EC2_INSTANCE_TYPE = 't2.micro';
+var AMI_ID = constants.AWS_DEFAULT_EC2_AMI; // amzn-ami-2015.03.d-amazon-ecs-optimized
+var EC2_INSTANCE_TYPE = constants.AWS_DEFAULT_EC2_TYPE;
 
 //var DEFAULT_SECURITY_GROUP = 'sg-356bb652'; // Default SG allows all traffic
 
