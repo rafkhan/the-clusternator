@@ -1,6 +1,7 @@
 'use strict';
 
-var R = require('ramda');
+var R = require('ramda'),
+constants = require('./constants');
 
 
 var VALID_ID_TYPES = ['pr', 'sha', 'time', 'ttl'];
@@ -10,6 +11,10 @@ var VALID_ID_TYPES = ['pr', 'sha', 'time', 'ttl'];
  * RID format: typeA-valueA--typeB-valueB
  */
 function parseRID(rid) {
+  if (rid.indexOf(constants.CLUSTERNATOR_PREFIX) !== 0) {
+    return null;
+  }
+  rid = rid.slice(constants.CLUSTERNATOR_PREFIX.length + 1);
   var doubleDashRegex = /--/g;
 
   var splits = rid.split(doubleDashRegex);
@@ -22,7 +27,7 @@ function parseRID(rid) {
     return {
       type: type,
       value: value
-    }
+    };
   }, splits);
 
   var result = R.reduce((memo, seg) => {
@@ -45,11 +50,11 @@ function generateRID(params) {
 
   var rid = R.reduce((ridStr, segKey) => {
     var idSeg = idSegments[segKey];
-    return ridStr + idSeg + '--'
+    return ridStr + idSeg + '--';
   }, '', validSegmentKeys);
 
   // Remove trailing --
-  return rid.replace(/--$/g, '');
+  return constants.CLUSTERNATOR_PREFIX + '-' + rid.replace(/--$/g, '');
 }
 
 
@@ -61,4 +66,4 @@ function generateRIDFromEnv() {
 module.exports = {
   parseRID: parseRID,
   generateRID: generateRID
-}
+};

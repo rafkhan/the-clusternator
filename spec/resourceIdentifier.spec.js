@@ -1,21 +1,32 @@
 'use strict';
 
-var resourceId = require('../src/resourceIdentifier');
+var resourceId = require('../src/resourceIdentifier'),
+cPrefix = 'clusternator-';
 
+/*global describe, it, expect */
+/*eslint no-unused-expressions: 0*/
 describe('parser', function() {
   it('should separate types and values in ID segment', function() {
-    var rid = 'type-value';
+    var rid = cPrefix + 'type-value';
     var segments = resourceId.parseRID(rid);
-    
+
     expect(segments.type).equal('value');
   });
 
   it('should separate multiple types and values in ID segments', function() {
-    var rid = 'A-B--C-D';
+    var rid = cPrefix + 'A-B--C-D';
     var segments = resourceId.parseRID(rid);
-    
+
     expect(segments['A']).equal('B');
     expect(segments['C']).equal('D');
+  });
+
+  it('should return null if given an id not generated (prefixed) by ' +
+  'clusternator', function () {
+    var rid = 'A-B--C-D';
+    var segments = resourceId.parseRID(rid);
+
+    expect(segments).equal(null);
   });
 });
 
@@ -25,7 +36,7 @@ describe('generator', function() {
       sha: '1234'
     });
 
-    expect(rid).equal('sha-1234');
+    expect(rid).equal(cPrefix + 'sha-1234');
   });
 
   it('should generate RID from multiple pieces of info', function() {
@@ -34,8 +45,8 @@ describe('generator', function() {
       time: '4321'
     });
 
-    var validRID = rid === 'sha-1234--time-4321' ||
-                   rid === 'time-4321--sha-1234';
+    var validRID = rid === cPrefix + 'sha-1234--time-4321' ||
+                   rid === cPrefix + 'time-4321--sha-1234';
 
     expect(validRID).to.be.true;
   });
@@ -46,6 +57,6 @@ describe('generator', function() {
       ignoreMe: 'please'
     });
 
-    expect(rid).equal('sha-1234');
+    expect(rid).equal(cPrefix + 'sha-1234');
   });
 });

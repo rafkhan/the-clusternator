@@ -2,6 +2,7 @@
 
 var Q = require('q');
 var R = require('ramda');
+var constants = require('../constants');
 
 var DEFAULT_CLUSTER_PARAMS = {
   clusterName: 'CLUSTERNATOR'
