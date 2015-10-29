@@ -6,15 +6,9 @@ var config = rewire('../src/config');
 require('./chai');
 
 /*global describe, it, expect */
+/*eslint no-unused-expressions:0*/
 describe('config provider', function () {
-  it('should start off with only an init function', function (){
-      var count = 0, name = '';
-      // (ramda.forEach does not work with this)
-      Object.keys(config).forEach(function (attr){
-        name = attr;
-        count += 1;
-      });
-      expect(count).equal(1);
-      expect(name).equal('init');
+  it('should return a config object', function (){
+    expect(config()).to.be;
   });
 });
