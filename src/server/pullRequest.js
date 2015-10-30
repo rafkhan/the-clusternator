@@ -1,5 +1,7 @@
 'use strict';
 
+var R = require('ramda');
+
 
 function onPrClose() {
 
@@ -16,8 +18,8 @@ function writeFailure(res, err) {
 function pullRequestRouteHandler(req, res) {
   var body = req.body;
 
-  var onSucess = R.curry(writeSuccess, res);
-  var onFail   = R.curry(writeFailure, res);
+  var onSucess = R.curry(writeSuccess)(res);
+  var onFail   = R.curry(writeFailure)(res);
 
   var ghAction = body.action;
   var ghEventType = req.header('X-Github-Event')
