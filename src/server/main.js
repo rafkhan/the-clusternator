@@ -11,7 +11,6 @@ function getServer(config) {
 
   // SSL
   // Auth
-  //
 
   app.use(bodyParser.json());
 
