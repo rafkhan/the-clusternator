@@ -73,5 +73,10 @@
       ],
       "family": "rangle-nodemongo"
     }
+  ],
+  "services": [
+  ],
+  "ec2s": [
+    
   ]
 }

@@ -3,7 +3,9 @@
 var descriptions = {
   vpcs: [],
   subnets: [],
-  routeTables: []
+  routeTables: [],
+  securityGroups: [],
+  networkAcls: []
 };
 
 function setDescription(id, val) {
@@ -16,6 +18,14 @@ function setDescribeVPCs(val) {
 
 function setDescribeSubnets(val) {
   setDescription('subnets', val);
+}
+
+function setDescribeNetworkAcls(val) {
+  setDescription('networkAcls', val);
+}
+
+function setDescribeSecurityGroups(val) {
+  setDescription('securityGroups', val);
 }
 
 function setDescribeRouteTables(val) {
@@ -42,11 +52,23 @@ function describeRouteTables(params, callback) {
   describe('routeTables', params, callback);
 }
 
+function describeSecurityGroups(params, callback) {
+  describe('securityGroups', params, callback);
+}
+
+function describeNetworkAcls(params, callback) {
+  describe('networkAcls', params, callback);
+}
+
 module.exports = {
   setDescribeVPCs: setDescribeVPCs,
   describeVpcs: describeVpcs,
   setDescribeSubnets: setDescribeSubnets,
   describeSubnets: describeSubnets,
   setDescribeRouteTables: setDescribeRouteTables,
-  describeRouteTables: describeRouteTables
+  describeRouteTables: describeRouteTables,
+  setDescribeNetworkAcls: setDescribeNetworkAcls,
+  describeNetworkAcls: describeNetworkAcls,
+  setDescribeSecurityGroups: setDescribeSecurityGroups,
+  describeSecurityGroups: describeSecurityGroups
 };

@@ -101,7 +101,8 @@ function newApp(clusterName, appDef, ec2Config) {
   if(!ec2Config)   { throw 'Requires ec2Config'; }
 
   var clusterParams = {
-    clusterName: clusterName
+    pr: 'test',
+    pid: 'ha'
   };
 
   function buildEC2Instance() {

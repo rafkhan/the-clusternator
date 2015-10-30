@@ -7,7 +7,7 @@ mocha = require('gulp-mocha'),
 istanbul = require('gulp-istanbul');
 
 var jsPaths = ['src/**/*.js'],
-specPaths = ['spec/**/*.spec.js'];
+specPaths = ['spec/unit/**/*.spec.js'];
 
 gulp.task('default', ['transpile']);
 gulp.task('test', ['test-unit']);
