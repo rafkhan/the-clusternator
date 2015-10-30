@@ -1,0 +1,31 @@
+{
+  "name": "NodeBasic",
+  "tasks": [
+    {
+      "containerDefinitions": [
+        {
+          "volumesFrom": [],
+          "portMappings": [
+            {
+              "hostPort": 80,
+              "containerPort": 9090,
+              "protocol": "tcp"
+            }
+          ],
+          "command": [],
+          "environment": [],
+          "essential": true,
+          "entryPoint": [],
+          "links": [],
+          "mountPoints": [],
+          "memory": 256,
+          "name": "nodebasic",
+          "cpu": 256,
+          "image": "rafkhan/clusternator-test"
+        }
+      ],
+      "volumes": [],
+      "family": "clusternator-test"
+    }
+  ]
+}

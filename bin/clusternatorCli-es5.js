@@ -1,7 +1,4 @@
-#!/usr/bin/env node
-
-
-'use strict';
+#!/usr/bin/env node'use strict';
 
 var R = require('ramda');
 var yargs = require('yargs');
@@ -63,7 +60,7 @@ yargs.command('server:start', 'Start a clusternator server', function (y) {
     port: {
       alias: 'p',
       describe: 'Port number to run server on',
-      'default': DEFAULT_PORT
+      default: DEFAULT_PORT
     }
   };
   y.options(R.merge(opts, dockerCredOpts)).help('help');
