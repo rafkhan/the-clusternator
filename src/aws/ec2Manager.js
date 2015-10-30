@@ -2,6 +2,7 @@
 
 var Q = require('q');
 var R = require('ramda');
+var util = require('../util');
 var constants = require('../constants');
 
 
@@ -108,14 +109,10 @@ var DEFAULT_INSTANCE_PARAMS = {
 function getEC2Manager(ec2) {
 
   function tagInstance(instance, pr, pid) {
-        return Q.nbind(ec2.createTags, ec2)({
-          Resources: [
-              instance.InstanceId
-          ],
-          Tags: [
+    return util.awsTagEc2(ec2, instance.InstaneId, [
             {
                 Key: constants.CLUSTERNATOR_TAG,
-                Value: true
+                Value: 'true'
             },
             {
               Key: constants.PR_TAG,
@@ -125,8 +122,7 @@ function getEC2Manager(ec2) {
               Key: constants.PROJECT_TAG,
               Value: pid
             }
-          ]
-        });
+    ]);
   }
 
   /**

@@ -7,6 +7,8 @@ const PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr';
 var constants = Object.freeze({
   AWS_DEFAULT_EC2_AMI: 'ami-8da458e6',
   AWS_DEFAULT_EC2_TYPE: 't2.micro',
+  AWS_DEFAULT_CIDR: '10.0.0.0/24',
+  AWS_DEFAULT_AZ: 'us-east-1a',
   AWS_FILTER_CTAG: [
     {
       Name: 'tag-key',
