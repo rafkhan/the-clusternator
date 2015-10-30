@@ -4,6 +4,7 @@
   "description": "",
   "main": "clusternator.js",
   "scripts": {
+    "start": "./bin/clusternator.sh server:start",
     "test": "gulp test",
     "build": "babel src --out-dir lib && babel bin/clusternatorCli.js > bin/clusternatorCli-es5.js",
     "prepublish": "npm run build"

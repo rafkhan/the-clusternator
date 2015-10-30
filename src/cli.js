@@ -4,6 +4,8 @@ var fs = require('fs');
 var path = require('path');
 var log = require('winston');
 
+var config = require('./config')();
+
 var util = require('./util');
 var server = require('./server/main');
 var circleCIClient = require('./circleCIClient');
@@ -105,11 +107,10 @@ function destroyApp(argv) {
 
 function startServer(argv) {
   return function() {
-    var config = {};
-    //config.port = argv.port;
     server.startServer(config);
   };
 }
+
 
 function circleCIBuild(argv) {
 

@@ -7,6 +7,8 @@ constants = require('./constants');
 var VALID_ID_TYPES = ['pr', 'sha', 'time', 'ttl', 'pid'];
 
 
+// TODO add clusternator prefix
+
 /**
  * RID format: typeA-valueA--typeB-valueB
  */
