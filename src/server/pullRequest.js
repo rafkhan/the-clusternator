@@ -4,7 +4,7 @@ var R = require('ramda');
 
 
 function onPrClose() {
-
+  return q.resolve();
 }
 
 function writeSuccess(res, result) {
