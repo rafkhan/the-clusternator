@@ -91,9 +91,9 @@ var DEFAULT_INSTANCE_PARAMS = {
       DeviceIndex: 0,
       //NetworkInterfaceId: NETWORK_INTERFACE_ID,
       AssociatePublicIpAddress: true,
-      SubnetId: 'SUBNET',
+      SubnetId: 'subnet-0b251420',
       DeleteOnTermination: true,
-      Groups: ['SECURITY_GROUP']
+      Groups: ['sg-692ee50e']
     }
   ],
 
@@ -106,6 +106,28 @@ var DEFAULT_INSTANCE_PARAMS = {
 };
 
 function getEC2Manager(ec2) {
+
+  function tagInstance(instance, pr, pid) {
+        return Q.nbind(ec2.createTags, ec2)({
+          Resources: [
+              instance.InstanceId
+          ],
+          Tags: [
+            {
+                Key: constants.CLUSTERNATOR_TAG,
+                Value: true
+            },
+            {
+              Key: constants.PR_TAG,
+              Value: pr
+            },
+            {
+              Key: constants.PROJECT_TAG,
+              Value: pid
+            }
+          ]
+        });
+  }
 
   /**
    * @param config Object
@@ -127,7 +149,13 @@ function getEC2Manager(ec2) {
 
     var params = R.merge(DEFAULT_INSTANCE_PARAMS, apiConfig);
 
-    return Q.nbind(ec2.runInstances, ec2)(params);
+    return Q.nbind(ec2.runInstances, ec2)(params).then(function (results) {
+      var tagPromises = [];
+      results.Instances.forEach(function (instance) {
+          tagPromises.push(tagInstance(instance, config.pr, config.pid));
+      });
+      return Q.all(tagPromises);
+    });
   }
 
 

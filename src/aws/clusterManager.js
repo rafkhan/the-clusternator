@@ -18,7 +18,7 @@ function getClusterManager(ecs) {
   function createCluster(config) {
     var name = rid.generateRID(config);
     if (!name) {
-      return Q.reject(new Error('missing, or invalid config'));
+      return Q.reject(new Error('createCluster: missing, or invalid config'));
     }
     var params = R.merge(DEFAULT_CLUSTER_PARAMS, {
       clusterName: name
@@ -28,6 +28,18 @@ function getClusterManager(ecs) {
     return Q.nbind(ecs.createCluster, ecs)(params);
   }
 
+function deleteCluster(config) {
+    var name = rid.generateRID(config);
+    if (!name) {
+      return Q.reject(new Error('deleteCluster: missing, or invalid config'));
+    }
+    var params = {
+      cluster: name
+    };
+
+    // must bind to ecs
+    return Q.nbind(ecs.deleteCluster, ecs)(params);
+}
   /**
   * List all clusters
   */
@@ -61,7 +73,8 @@ function getClusterManager(ecs) {
   return {
     createCluster: createCluster,
     listClusters: listClusters,
-    describeCluster: describeCluster
+    describeCluster: describeCluster,
+    deleteCluster: deleteCluster
   };
 }
 
