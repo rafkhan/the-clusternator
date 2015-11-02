@@ -58,3 +58,18 @@ property.
 - Image tags in task definition
 
 
+## Specific Configurations
+
+Some resources need more configuration than others:
+
+- VPC (automatic)
+- Subnet (automatic)
+- ACL (automatic) (all in/out)
+- Gateway (automatic)
+- Security Group (user specify ingress/egress, or default all in/out)
+- NIC (automatic)
+- EC2 (user configurable, but defaults/automatic)
+- ECS Cluster (automatic (double check))
+- ECS Tasks (user configurable, but defaults/automatic)
+- ECS Services (user configurable, but defaults/automatic)
+- Docker Image (user specific, or front end project)

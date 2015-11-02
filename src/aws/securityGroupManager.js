@@ -11,6 +11,19 @@ function getSecurityGroupManager(ec2, vpcId) {
     Filters: constants.AWS_FILTER_CTAG.concat(util.makeAWSVPCFilter(vpcId))
   });
 
+  function defaultInOutRules(groupId) {
+    var inbound = constants.AWS_DEFAULT_SG_INGRESS,
+        outbound = constants.AWS_DEFAULT_SG_EGRESS;
+
+    inbound.GroupId = groupId;
+    outbound.GroupId = groupId;
+
+    return Q.all([
+        Q.nfbind(ec2.authorizeSecurityGroupIngress.bind(ec2), inbound)(),
+        Q.nfbind(ec2.authorizeSecurityGroupEgress.bind(ec2), outbound)()
+    ]);
+  }
+
   function create(pid, pr) {
     var id = rid.generateRID({ pid: pid, pr: pr }),
     params = {
@@ -21,7 +34,8 @@ function getSecurityGroupManager(ec2, vpcId) {
 
     return Q.nfbind(ec2.createSecurityGroup.bind(ec2), params)().
     then(function (result) {
-      return util.awsTagEc2(ec2, result.GroupId, [
+      return Q.all([
+        util.awsTagEc2(ec2, result.GroupId, [
         {
           Key: constants.CLUSTERNATOR_TAG,
           Value: 'true'
@@ -34,7 +48,9 @@ function getSecurityGroupManager(ec2, vpcId) {
           Key: constants.PR_TAG,
           Value: pr
         }
-      ]).then(function () {
+      ]),
+      defaultInOutRules(result.GroupId)
+    ]).then(function () {
         return result;
       });
     });

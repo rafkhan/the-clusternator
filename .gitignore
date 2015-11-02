@@ -10,3 +10,5 @@ coverage
 credentials.local.json
 config.local.json
 *.local.json
+
+# exclude lib
