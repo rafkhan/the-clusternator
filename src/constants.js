@@ -20,7 +20,37 @@ var constants = Object.freeze({
   CLUSTERNATOR_PREFIX: CLUSTERNATOR_PREFIX,
   CLUSTERNATOR_TAG: CLUSTERNATOR_TAG,
   PROJECT_TAG: PROJECT_TAG,
-  PR_TAG: PR_TAG
+  PR_TAG: PR_TAG,
+  AWS_DEFAULT_SG_INGRESS: {
+      GroupId: '',
+      IpPermissions: [
+        {
+          FromPort: 1024,
+          ToPort: 65535,
+          IpProtocol: 'tcp',
+          IpRanges: [
+            {
+              CidrIp: '0.0.0.0/0'
+            }
+          ]
+        }
+      ]
+  },
+  AWS_DEFAULT_SG_EGRESS: {
+      GroupId: '',
+      IpPermissions: [
+        {
+          FromPort: 0,
+          ToPort: 65535,
+          IpProtocol: 'tcp',
+          IpRanges: [
+            {
+              CidrIp: '0.0.0.0/0'
+            }
+          ]
+        }
+      ]
+  },
 });
 
 module.exports = constants;
