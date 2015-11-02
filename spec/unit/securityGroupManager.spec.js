@@ -3,7 +3,7 @@
 var rewire = require('rewire'),
 ec2Mock = require('./ec2-mock');
 
-var SecurityGroup = rewire('../src/aws/securityGroupManager');
+var SecurityGroup = rewire('../../src/aws/securityGroupManager');
 require('./chai');
 
 

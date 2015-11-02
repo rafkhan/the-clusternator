@@ -3,7 +3,7 @@
 var rewire = require('rewire'),
 ec2Mock = require('./ec2-mock');
 
-var NetworkAcl = rewire('../src/aws/networkAclManager');
+var NetworkAcl = rewire('../../src/aws/networkAclManager');
 require('./chai');
 
 
