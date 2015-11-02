@@ -32,7 +32,7 @@ function parseRID(rid) {
     };
   }, splits);
 
-  var result = R.reduce((memo, seg) => {
+  var result = R.reduce(function (memo, seg) {
     memo[seg.type] = seg.value;
     return memo;
   }, {}, segments);
@@ -42,7 +42,7 @@ function parseRID(rid) {
 
 
 function generateRID(params) {
-  var idSegments = R.mapObjIndexed((val, key, obj) => {
+  var idSegments = R.mapObjIndexed(function (val, key, obj) {
     return key + '-' + val;
   }, params);
 
@@ -50,7 +50,7 @@ function generateRID(params) {
     return R.contains(key, VALID_ID_TYPES);
   }, R.keys(idSegments));
 
-  var rid = R.reduce((ridStr, segKey) => {
+  var rid = R.reduce(function (ridStr, segKey) {
     var idSeg = idSegments[segKey];
     return ridStr + idSeg + '--';
   }, '', validSegmentKeys);

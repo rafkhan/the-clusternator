@@ -2,7 +2,7 @@
 
 var rewire = require('rewire');
 
-var config = rewire('../src/config');
+var config = rewire('../../src/config');
 require('./chai');
 
 /*global describe, it, expect */
