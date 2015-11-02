@@ -1,16 +1,48 @@
 'use strict';
 
 var express = require('express');
+var bodyParser = require('body-parser');
+
+var prHandler = require('./pullRequest');
 
 
-var app = express();
+function getServer(config) {
+  var app = express();
 
-app.get('/ping', function(req, res) {
-  res.send('Still alive.');
-});
+  // SSL
+  // Auth
 
-app.post('/clusternate', function(req, res) {
+  app.use(bodyParser.json());
 
-});
+  app.get('/ping', (req, res) => {
+    res.send('Still alive.');
+  });
 
-app.listen(8080);
+  // 
+  app.post('/clusternate', (req, res) => {
+    var body = req.body;
+
+    var repo = body.repo;
+    var sha = body.sha;
+    var appdef = body.appdef;
+    var prNumber = body.pr;
+    
+    // Initiate building box
+  });
+
+  // Git hook
+  app.post('/github/pr', prHandler);
+
+  return app;
+}
+
+function startServer(config) {
+  // wtf
+  getServer(config).listen(config.port);
+  console.log('Clusternator listening on port', config.port)
+}
+
+module.exports = {
+  getServer: getServer,
+  startServer: startServer
+};
