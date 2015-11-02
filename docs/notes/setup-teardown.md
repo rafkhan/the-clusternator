@@ -23,9 +23,10 @@ Setup & Tear Down
 - bind nic to ec2
 - bind sg to ec2
 - create new ECS cluster
-- bind ec2(s) to ECS cluster
+- bind/register ec2(s) to ECS cluster
 - create new ECS task(s)
 - create new ECS service(s)
+- create new Route 53 entry to service
 - start system
 
 
@@ -39,6 +40,9 @@ a PR.
 - unbind (deregister) ec2 containers
 - delete the ecs cluster
 - delete the ec2 instances
+- delete security groups
+- delete network interfaces
+- delete route 53 entry
 
 
 ## Project Teardown
