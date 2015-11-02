@@ -14,11 +14,10 @@ function getServer(config) {
 
   app.use(bodyParser.json());
 
-  app.get('/ping', (req, res) => {
+  app.get('/ping', function (req, res) {
     res.send('Still alive.');
   });
 
-  // 
   app.post('/clusternate', (req, res) => {
     var body = req.body;
 

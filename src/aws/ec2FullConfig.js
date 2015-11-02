@@ -5,6 +5,8 @@
  * TODO put the docs link...
  */
 
+'use strict';
+
 var AMI_ID = 'ami-8da458e6'; // amzn-ami-2015.03.d-amazon-ecs-optimized
 var EC2_INSTANCE_TYPE = 't2.micro';
 

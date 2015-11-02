@@ -1,6 +1,6 @@
 'use strict';
 
-var util = require('../src/util');
+var util = require('../../src/util');
 require('./chai');
 
 
