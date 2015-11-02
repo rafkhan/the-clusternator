@@ -5,5 +5,6 @@ module.exports = {
   subnet: require('./subnet.spec'),
   securityGroups: require('./securityGroup.spec'),
   ec2: require('./ec2.spec'),
-  nic: require('./nic.spec')
+  nic: require('./nic.spec'),
+  acl: require('./acl.spec')
 };
