@@ -19,7 +19,7 @@ function writeFailure(res, err) {
 function pullRequestRouteHandler(req, res) {
   var body = req.body;
 
-  var onSucess = R.curry(writeSuccess)(res);
+  var onSuccess = R.curry(writeSuccess)(res);
   var onFail   = R.curry(writeFailure)(res);
 
   var ghEventType = req.header('X-Github-Event')
