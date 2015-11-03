@@ -3,6 +3,8 @@
 var Q = require('q')
 var R = require('ramda');
 
+var serverUtil = require('./util');
+
 
 function onPrClose() {
   return Q.resolve();
@@ -17,16 +19,17 @@ function writeFailure(res, err) {
 }
 
 function pullRequestRouteHandler(req, res) {
+  var error = R.curry(serverUtil.sendError)(res);
+
   var body = req.body;
 
-  var onSucess = R.curry(writeSuccess)(res);
+  var onSuccess = R.curry(writeSuccess)(res);
   var onFail   = R.curry(writeFailure)(res);
 
   var ghEventType = req.header('X-Github-Event')
 
   if(ghEventType !== 'pull_request') {
-    res.status(403)
-       .send('Pull requests only!');
+    error(403, 'Pull requests only!');
     return;
   }
 
@@ -36,8 +39,7 @@ function pullRequestRouteHandler(req, res) {
     onPrClose(body)
       .then(onSuccess, onFail);
   } else {
-    res.status(403)
-       .send('We only want "closed" PR events right now.');
+    error(403, 'We only want "closed" PR events right now.');
     return;
   }
 }
