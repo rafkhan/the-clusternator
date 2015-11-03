@@ -4,10 +4,12 @@ var Subnet = require('./aws/subnetManager'),
 Route = require('./aws/routeTableManager'),
 Vpc = require('./aws/vpcManager'),
 Acl = require('./aws/aclManager'),
+Pr = require('./prManager'),
 Q = require('q');
 
 function getProjectManager(ec2, ecs) {
   var vpcId = null,
+  pullRequest = Pr(ec2, ecs),
   vpc = Vpc(ec2),
   route,
   subnet,
@@ -28,6 +30,21 @@ function getProjectManager(ec2, ecs) {
         return subnet.create(pid, routeId, aclId);
     });
   }
+    function findOrCreateProject(pid) {
+        return create(pid).then(function (sDesc) {
+            return sDesc;
+        }, function () {
+            return subnet.findProject();
+        });
+    }
+
+    function createPR(pid, pr) {
+      return findOrCreateProject(pid).then(function (snDesc) {
+         return pullRequest.create(snDesc.Subnet.SubnetId, pid, pr);
+      });
+    }
+
+
 
   return vpc.findProject().then(function (vDesc) {
     vpcId = vDesc.VpcId;
@@ -36,6 +53,7 @@ function getProjectManager(ec2, ecs) {
     acl = Acl(ec2, vpcId);
     return {
       create: create,
+      createPR: createPR,
       destroy: destroy,
     };
   });
