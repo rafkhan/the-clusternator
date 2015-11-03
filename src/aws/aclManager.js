@@ -10,43 +10,6 @@ function getAclManager(ec2, vpcId) {
     Filters: constants.AWS_FILTER_CTAG.concat(util.makeAWSVPCFilter(vpcId))
   });
 
-  function describeDefault() {
-    // Trying to use a Filter on 'default', as per the docs didn't work
-    // AWS wants a boolean, but their code wants a string, nothing comes back
-    // filter default manually instead
-    return Q.nfbind(ec2.describeNetworkAcls.bind(ec2), {
-      DryRun: false,
-      Filters: util.makeAWSVPCFilter(vpcId) })().
-      then(function (results) {
-        return results.NetworkAcls.filter(function (a) {
-          return a.IsDefault;
-        });
-      });
-    }
-
-    function defaultAssoc(aclId) {
-      return describeDefault().then(function (list) {
-        if (!list.length) {
-          throw new Error('AclManager: Error expecting a default ACL');
-        }
-        console.log('word', list[0].Associations);
-        return list[0].Associations.filter(function (el) {
-          console.log('compare', aclId, el.NetworkAclId);
-          return el.NetworkAclId === aclId;
-        });
-      });
-    }
-
-    function defaultAssocId(aclId) {
-      return defaultAssoc(aclId).then(function (list) {
-        if (!list.length) {
-          throw new Error('AclManager: Error expecting a default ACL ' +
-          'Association');
-        }
-        return list[0].NetworkAclAssociationId;
-      });
-    }
-
     function defaultInOutRules(aclId) {
       var inbound = constants.AWS_DEFAULT_ACL_INGRESS,
       outbound = constants.AWS_DEFAULT_ACL_EGRESS;
@@ -60,7 +23,7 @@ function getAclManager(ec2, vpcId) {
       ]);
     }
 
-    function create(subnetId, pid) {
+    function create(pid) {
       var params = {
         VpcId: vpcId
       };
@@ -80,12 +43,6 @@ function getAclManager(ec2, vpcId) {
             }
           ]),
           defaultInOutRules(aclId),
-          defaultAssocId(aclId).then(function (assocId) {
-            return Q.nfbind(ec2.replaceNetworkAclAssociation({
-              AssociationId: assocId,
-              NetworkAclId: result.NetworkAcl.NetworkAclId
-            }));
-          })
         ]).then(function () {
           return result;
         });
@@ -122,8 +79,6 @@ function getAclManager(ec2, vpcId) {
 
     return {
       describe: describe,
-      describeDefault: describeDefault,
-      defaultAssocId: defaultAssocId,
       create: create,
       destroy: destroy
     };

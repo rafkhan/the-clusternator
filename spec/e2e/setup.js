@@ -1,5 +1,6 @@
 'use strict';
 const TEST_VPC = 'vpc-ab07b4cf';
+const TEST_ROUTE = 'rtb-79284a1d';
 
 var path = require('path');
 
