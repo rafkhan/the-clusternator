@@ -4,7 +4,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 
 var prHandler = require('./pullRequest');
-
+var pushHandler = require('./push');
 
 function getServer(config) {
   var app = express();
@@ -18,19 +18,8 @@ function getServer(config) {
     res.send('Still alive.');
   });
 
-  app.post('/clusternate', (req, res) => {
-    var body = req.body;
-
-    var repo = body.repo;
-    var sha = body.sha;
-    var appdef = body.appdef;
-    var prNumber = body.pr;
-    
-    // Initiate building box
-  });
-
-  // Git hook
-  app.post('/github/pr', prHandler);
+  app.post('/clusternate', pushHandler); // CI post-build hook
+  app.post('/github/pr', prHandler);     // github close PR hook
 
   return app;
 }

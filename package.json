@@ -7,7 +7,6 @@
     "start": "./bin/clusternator.sh server:start",
     "test": "gulp test",
     "build": "babel src --out-dir lib && babel bin/clusternatorCli.js > bin/clusternatorCli-es5.js",
-    "prepublish": "npm run build",
     "docker-build": "npm run build && docker build -t rafkhan/clusternator-test ."
   },
   "repository": {
