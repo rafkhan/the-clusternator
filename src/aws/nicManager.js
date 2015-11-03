@@ -10,8 +10,27 @@ function getNicManager(ec2) {
     Filters: constants.AWS_FILTER_CTAG
   });
 
+  function rejectIfExists(pid, pr) {
+    return describe().then(function (list) {
+      list.NetworkInterfaces.forEach(function (nicDesc) {
+        var isProject = false, isPR = false;
+        nicDesc.TagSet.forEach(function (tag) {
+          if ((tag.Key === constants.PROJECT_TAG) && (tag.Value === pid)) {
+            isProject = true;
+          }
+          if ((tag.Key === constants.PR_TAG) && (tag.Value === pr)) {
+            isPR = true;
+          }
+        });
+        if (isProject && isPR) {
+          throw new Error('NetworkInterface Exists For Project: ' + pid +
+          ' PR: ' + pr);
+        }
+      });
+    });
+  }
 
-  function create(subnetId, sgIds, pid, pr) {
+function createNic(subnetId, sgIds, pid, pr) {
     var params = {
       SubnetId: subnetId,
       Groups: sgIds,
@@ -36,6 +55,12 @@ function getNicManager(ec2) {
       ]) .then(function () {
         return result;
       });
+    });
+}
+
+  function create(subnetId, sgIds, pid, pr) {
+    return rejectIfExists(pid, pr).then(function () {
+        return createNic(subnetId, sgIds, pid, pr);
     });
   }
 
