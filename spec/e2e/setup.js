@@ -1,5 +1,5 @@
 'use strict';
-const TEST_VPC = 'vpc-1fe2487b';
+const TEST_VPC = 'vpc-ab07b4cf';
 
 var path = require('path');
 
