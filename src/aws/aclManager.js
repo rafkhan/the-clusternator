@@ -10,6 +10,21 @@ function getAclManager(ec2, vpcId) {
     Filters: constants.AWS_FILTER_CTAG.concat(util.makeAWSVPCFilter(vpcId))
   });
 
+  function findExistingPid(pid) {
+    return describe().then(function (result) {
+      result.NetworkAcls.forEach(function (acl) {
+        acl.Tags.forEach(function (tag) {
+          if (tag.Key === constants.PROJECT_TAG) {
+            if (tag.Value === pid) {
+              throw new Error('Create ACL Failed: Project: ' + pid +
+              ' exists: ' + acl);
+            }
+          }
+        });
+      });
+    });
+  }
+
     function defaultInOutRules(aclId) {
       var inbound = constants.AWS_DEFAULT_ACL_INGRESS,
       outbound = constants.AWS_DEFAULT_ACL_EGRESS;
@@ -23,11 +38,7 @@ function getAclManager(ec2, vpcId) {
       ]);
     }
 
-    function create(pid) {
-      var params = {
-        VpcId: vpcId
-      };
-
+    function createAcl(pid, params) {
       return Q.nfbind(ec2.createNetworkAcl.bind(ec2), params)().
       then(function (result) {
         var aclId = result.NetworkAcl.NetworkAclId;
@@ -46,6 +57,16 @@ function getAclManager(ec2, vpcId) {
         ]).then(function () {
           return result;
         });
+      });
+    }
+
+    function create(pid) {
+      var params = {
+        VpcId: vpcId
+      };
+
+      return findExistingPid(pid).then(function () {
+          return createAcl(pid, params);
       });
     }
 

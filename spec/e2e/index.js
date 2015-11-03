@@ -16,6 +16,9 @@ module.exports = {
   ec2: require('./ec2.spec'),
   nic: require('./nic.spec'),
   acl: require('./acl.spec'),
+  project: require('./project.spec'),
+  pr: require('./pr.spec'),
+  routes: require('./routes.spec'),
   log: logOutput,
   error: logError
 };

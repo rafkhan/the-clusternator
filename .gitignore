@@ -12,3 +12,4 @@ config.local.json
 *.local.json
 
 # exclude lib
+lib

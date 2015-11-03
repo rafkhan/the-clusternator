@@ -14,6 +14,11 @@ function getEc2() {
   return new a.EC2(config.credentials);
 }
 
+function getEcs() {
+  var config = c();
+  return new a.ECS(config.credentials);
+}
+
 function makePath() {
     var args = Array.prototype.slice.apply(arguments);
     args.unshift(sourcePath);
@@ -23,5 +28,7 @@ function makePath() {
 module.exports = {
   path: makePath,
   getEc2: getEc2,
-  testVPC: TEST_VPC
+  getEcs: getEcs,
+  testVPC: TEST_VPC,
+  testROUTE: TEST_ROUTE
 };
