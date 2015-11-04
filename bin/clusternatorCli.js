@@ -33,8 +33,8 @@ var dockerCredOpts = {
   }
 };
 
-yargs.command('ci:circle:build',
-              'Build your app on circleCI and triggers ECS build',
+yargs.command('circleci:push',
+              'Triggers ECS build from circleCI',
               function(y) {
                 var opts = {
                   host: {
@@ -49,29 +49,33 @@ yargs.command('ci:circle:build',
                     describe: 'App definition file location'
                   },
 
-                  keypair: {
-                    alias: 'k',
+                  tag: {
+                    alias: 't',
                     demand: true,
-                    describe: 'Keypair name to be used for SSH access to EC2'
-                  },
+                    describe: 'Unique tag for this build'
+                  }
                 };
 
                 y.options(R.merge(opts, dockerCredOpts))
                  .help('help');
               });
 
+yargs.command('circleci:tag',
+              'Generates tag for CircleCI PR',
+              function(y) {
+                var opts = {
+                };
+
+                y.options(opts)
+                 .help('help');
+              });
 
 yargs.command('server:start',
               'Start a clusternator server',
               function(y) {
-                var opts = {
-                  port: {
-                    alias: 'p',
-                    describe: 'Port number to run server on',
-                    default: DEFAULT_PORT
-                  }
-                };
-                y.options(R.merge(opts, dockerCredOpts))
+                var opts = {};
+
+                y.options(opts)
                  .help('help');
               });
 
@@ -158,9 +162,18 @@ yargs.help('help');
 var argv = yargs.argv;
 var command = argv._[0];
 
-if(command === 'ci:circle:build') {
-  cli.circleCIBuild(argv)();
-  setInterval(function(){}, 10000);
+if(command === 'circleci:push') {
+  cli.circleCIPush(argv)()
+    .then(() => {
+      console.log('Done.');
+      process.exit(0);
+    }, (err) => {
+      console.log('ERROR:') 
+      process.exit(-1);
+    });
+
+} else if(command === 'circleci:tag') {
+  cli.circleCITag(argv)();
 
 } else if(command === 'server:start') {
   cli.startServer(argv)();
