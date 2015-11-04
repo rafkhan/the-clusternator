@@ -2,6 +2,7 @@
 
 var Q = require('q'),
   common = require('./common'),
+  util = require('../util'),
   constants = require('../constants');
 
 function getAclManager(ec2, vpcId) {
@@ -47,6 +48,29 @@ function getAclManager(ec2, vpcId) {
       ]).then(function() {
         return result;
       });
+    });
+  }
+
+  function pruneDenyRules(aclDesc) {
+    var id = aclDesc.NetworkAcl.NetworkAclId,
+    num = '32767';
+    return Q.all([
+        Q.nfbind(ec2.deleteNetworkAclEntry.bind(ec2), {
+            NetworkAclId: id,
+            RuleNumber: num,
+            Egress: false
+        })(),
+        Q.nfbind(ec2.deleteNetworkAclEntry.bind(ec2), {
+            NetworkAclId: id,
+            RuleNumber: num,
+            Egress: true
+        })()
+    ]).then(function() {
+      return aclDesc;
+    }, function(err) {
+      util.plog('Create ACL: Warning No Default Rules To Prune: ',
+        err.message);
+      return aclDesc;
     });
   }
 

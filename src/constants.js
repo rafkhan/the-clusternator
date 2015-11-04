@@ -51,9 +51,9 @@ var constants = Object.freeze({
     GroupId: '',
     IpPermissions: [
       {
-        FromPort: 1024,
+        FromPort: 1,
         ToPort: 65535,
-        IpProtocol: 'tcp',
+        IpProtocol: '-1',
         IpRanges: [
           {
             CidrIp: '0.0.0.0/0'
@@ -68,7 +68,7 @@ var constants = Object.freeze({
       {
         FromPort: 0,
         ToPort: 65535,
-        IpProtocol: 'tcp',
+        IpProtocol: '-1',
         IpRanges: [
           {
             CidrIp: '0.0.0.0/0'

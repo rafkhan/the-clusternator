@@ -28,6 +28,7 @@ module.exports = {
   project: require('./project.spec'),
   routes: require('./routes.spec'),
   securityGroups: require('./securityGroup.spec'),
+  service: require('./service.spec'),
   setup: require('./setup'),
   subnet: require('./subnet.spec'),
   vpc: require('./vpc.spec'),

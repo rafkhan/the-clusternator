@@ -2,6 +2,7 @@
 
 var Q = require('q'),
   common = require('./common'),
+  util = require('../util'),
   rid = require('../resourceIdentifier'),
   constants = require('../constants');
 
@@ -21,7 +22,13 @@ function getSecurityGroupManager(ec2, vpcId) {
     return Q.all([
       Q.nfbind(ec2.authorizeSecurityGroupIngress.bind(ec2), inbound)(),
       Q.nfbind(ec2.authorizeSecurityGroupEgress.bind(ec2), outbound)()
-    ]);
+    ]).then(function() {
+      return groupId;
+    }, function(err) {
+      util.plog('SecurityGroup: Warning Could Not Add Custom Rules: ' +
+        err.message);
+        return groupId;
+    });
   }
 
   function rejectIfExists(pid, pr) {

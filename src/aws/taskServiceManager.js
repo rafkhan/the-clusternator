@@ -10,7 +10,7 @@ function getTaskServiceManager(ecs) {
   var taskDefinitionManager = TaskDefinitionManager(ecs);
 
   function listServices(clusterArn) {
-    if(!clusterArn) {
+    if (!clusterArn) {
       throw 'Requires cluster ARN';
     }
 
@@ -22,11 +22,11 @@ function getTaskServiceManager(ecs) {
   }
 
   function updateService(clusterArn, serviceArn, update) {
-    if(!clusterArn) {
+    if (!clusterArn) {
       throw 'Requires cluster ARN';
     }
 
-    if(!serviceArn) {
+    if (!serviceArn) {
       throw 'Requires service ARN';
     }
 
@@ -41,11 +41,11 @@ function getTaskServiceManager(ecs) {
   }
 
   function deleteService(clusterArn, serviceArn) {
-    if(!clusterArn) {
+    if (!clusterArn) {
       throw 'Requires cluster ARN';
     }
 
-    if(!serviceArn) {
+    if (!serviceArn) {
       throw 'Requires service ARN';
     }
 
@@ -63,8 +63,10 @@ function getTaskServiceManager(ecs) {
   function deleteAllServicesOnCluster(clusterArn) {
 
     function stopService(serviceArn) {
-      return updateService(clusterArn, serviceArn, { desiredCount: 0 })
-                 .then(R.prop('service'), q.reject);
+      return updateService(clusterArn, serviceArn, {
+          desiredCount: 0
+        })
+        .then(R.prop('service'), q.reject);
     }
 
     function stopAllServices(serviceArns) {
@@ -74,7 +76,7 @@ function getTaskServiceManager(ecs) {
 
     function destroyService(serviceArn) {
       return deleteService(clusterArn, serviceArn)
-                 .then(R.prop('service'), q.reject);
+        .then(R.prop('service'), q.reject);
     }
 
     function destroyAllServices(serviceArns) {
@@ -83,22 +85,20 @@ function getTaskServiceManager(ecs) {
     }
 
     return listServices(clusterArn)
-               .then(R.prop('serviceArns'), q.reject)
-               .then(stopAllServices, q.reject)
-               .then(R.map(R.prop('serviceArn')), q.reject)
-               .then(destroyAllServices, q.reject);
+      .then(R.prop('serviceArns'), q.reject)
+      .then(stopAllServices, q.reject)
+      .then(R.map(R.prop('serviceArn')), q.reject)
+      .then(destroyAllServices, q.reject);
   }
 
   /**
    * This is the cool part.
    */
-  function createTasksAndServicesOnCluster(clusterArn, appDef) {
+  function createTasksAndServicesOnCluster(clusterArn, serviceName, appDef) {
 
     // TODO refactor this to be elsewhere
     function createServiceFromTaskAndStart(taskDef) {
       var task = taskDef.taskDefinition;
-
-      var serviceName = task.family + '-' + task.revision + '-service';
 
       var params = {
         cluster: clusterArn,
@@ -111,24 +111,24 @@ function getTaskServiceManager(ecs) {
     }
 
     function createTaskAndService(task) {
-      return taskDefinitionManager.createTaskDefinition(task)
-                                  .then((t) => {
-                                    console.log('Created task',
-                                        t.taskDefinition.taskDefinitionArn);
-                                    return t;
-                                  })
-                                  .then(createServiceFromTaskAndStart, q.reject);
+      return taskDefinitionManager.create(task)
+        .then((t) => {
+          console.log('Created task',
+            t.taskDefinition.taskDefinitionArn);
+          return t;
+        })
+        .then(createServiceFromTaskAndStart, q.reject);
     }
 
     var taskDefPromises = R.map(createTaskAndService,
-                                appDef.tasks);
+      appDef.tasks);
 
     return q.all(taskDefPromises);
   }
 
   return {
-    deleteAppOnCluster: deleteAllServicesOnCluster,
-    createAppOnCluster: createTasksAndServicesOnCluster
+    destroy: deleteAllServicesOnCluster,
+    create: createTasksAndServicesOnCluster
   };
 }
 
