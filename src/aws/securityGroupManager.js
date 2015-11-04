@@ -76,7 +76,10 @@ function getSecurityGroupManager(ec2, vpcId) {
   }
 
   function create(pid, pr) {
-
+    if (!pid || !pr) {
+      throw new TypeError('Create SecurityGroup requires a projectId, and ' +
+        'pull request #');
+    }
     return rejectIfExists(pid, pr).then(function() {
       return createSecurityGroup(pid, pr);
     });

@@ -70,11 +70,21 @@ function deleteCluster(config) {
     });
   }
 
+  function register() {
+
+  }
+
+  function deregister() {
+    
+  }
+
   return {
-    createCluster: createCluster,
-    listClusters: listClusters,
-    describeCluster: describeCluster,
-    deleteCluster: deleteCluster
+    create: createCluster,
+    list: listClusters,
+    describe: describeCluster,
+    destroy: deleteCluster,
+    register: register,
+    deregister: deregister
   };
 }
 

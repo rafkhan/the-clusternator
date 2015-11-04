@@ -51,6 +51,9 @@ function getAclManager(ec2, vpcId) {
   }
 
   function create(pid) {
+    if (!pid) {
+      throw new TypeError('Create ACL requires a ProjectId');
+    }
     var params = {
       VpcId: vpcId
     };

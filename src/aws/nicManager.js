@@ -31,6 +31,9 @@ function getNicManager(ec2) {
   }
 
   function createNic(subnetId, sgIds, pid, pr) {
+    if (!pid || !pr) {
+      throw new TypeError('Create NIC Requires proejctId, and Pull Request #');
+    }
     var params = {
       SubnetId: subnetId,
       Groups: sgIds,

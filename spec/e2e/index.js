@@ -20,16 +20,17 @@ function logError(e) {
 }
 
 module.exports = {
-  setup: require('./setup'),
-  vpc: require('./vpc.spec'),
-  subnet: require('./subnet.spec'),
-  securityGroups: require('./securityGroup.spec'),
+  acl: require('./acl.spec'),
+  cluster: require('./cluster.spec'),
   ec2: require('./ec2.spec'),
   nic: require('./nic.spec'),
-  acl: require('./acl.spec'),
-  project: require('./project.spec'),
   pr: require('./pr.spec'),
+  project: require('./project.spec'),
   routes: require('./routes.spec'),
+  securityGroups: require('./securityGroup.spec'),
+  setup: require('./setup'),
+  subnet: require('./subnet.spec'),
+  vpc: require('./vpc.spec'),
   log: logOutput,
   error: logError
 };
