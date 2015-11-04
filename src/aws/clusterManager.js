@@ -15,13 +15,12 @@ function filterValidArns(arn) {
 
 function getClusterManager(ecs) {
 
-  function createCluster(config) {
-    var name = rid.generateRID(config);
-    if (!name) {
+  function createCluster(clusterName) {
+    if (!clusterName) {
       return Q.reject(new Error('createCluster: missing, or invalid config'));
     }
     var params = R.merge(DEFAULT_CLUSTER_PARAMS, {
-      clusterName: name
+      clusterName: clusterName
     });
 
     // must bind to ecs
@@ -70,12 +69,8 @@ function deleteCluster(config) {
     });
   }
 
-  function register() {
-
-  }
-
   function deregister() {
-    
+
   }
 
   return {
@@ -83,7 +78,6 @@ function deleteCluster(config) {
     list: listClusters,
     describe: describeCluster,
     destroy: deleteCluster,
-    register: register,
     deregister: deregister
   };
 }

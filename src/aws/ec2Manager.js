@@ -90,19 +90,19 @@ function getEC2Manager(ec2, vpcId) {
 
     var clusterName = config.clusterName;
     if (!config.clusterName) {
-      throw new Error('Instance requires cluster name');
+      throw new TypeError('Instance requires cluster name');
     }
     if (!config.sgId) {
-      throw new Error('Instance Requires sgId Group Id');
+      throw new TypeError('Instance Requires sgId Group Id');
     }
     if (!config.subnetId) {
-      throw new Error('Instance Requires subnetId Id');
+      throw new TypeError('Instance Requires subnetId Id');
     }
     if (!config.pid) {
-      throw new Error('Instance Requires a pid');
+      throw new TypeError('Instance Requires a pid');
     }
     if (!config.pr) {
-      throw new Error('Instance Requires a pr #');
+      throw new TypeError('Instance Requires a pr #');
     }
 
     var auth = config.auth;
