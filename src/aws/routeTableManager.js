@@ -2,12 +2,12 @@
 
 var Q = require('q'),
 constants = require('../constants'),
-util = require('../util');
+common = require('./common');
 
 function getRouteTableManager (ec2, vpcId) {
   var describeRouteTables = Q.nfbind(ec2.describeRouteTables.bind(ec2), {
     DryRun: false,
-    Filters: constants.AWS_FILTER_CTAG.concat(util.makeAWSVPCFilter(vpcId))
+    Filters: constants.AWS_FILTER_CTAG.concat(common.makeAWSVPCFilter(vpcId))
   });
 
   function findDefaultRoute() {

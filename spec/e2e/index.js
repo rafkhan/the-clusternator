@@ -1,7 +1,18 @@
 'use strict';
+var util = require('util');
 
 function logOutput() {
-    console.log.apply(console, arguments);
+  var output = '', i;
+
+  for (i = 0; i < arguments.length; i += 1) {
+    if (typeof arguments[i] === 'object') {
+      output += util.inspect(arguments[i], { depth: 5 });
+    } else {
+      output += arguments[i];
+    }
+    output += ' ';
+  }
+  console.log(output);
 }
 
 function logError(e) {

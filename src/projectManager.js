@@ -9,7 +9,7 @@ Q = require('q');
 
 function getProjectManager(ec2, ecs) {
   var vpcId = null,
-  pullRequest = Pr(ec2, ecs),
+  pullRequest,
   vpc = Vpc(ec2),
   route,
   subnet,
@@ -51,6 +51,7 @@ function getProjectManager(ec2, ecs) {
     route = Route(ec2, vpcId);
     subnet = Subnet(ec2, vpcId);
     acl = Acl(ec2, vpcId);
+    pullRequest = Pr(ec2, ecs, vpcId);
     return {
       create: create,
       createPR: createPR,

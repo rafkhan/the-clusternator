@@ -1,14 +1,14 @@
 'use strict';
 
 var Q = require('q'),
-util = require('../util'),
+R = require('ramda'),
+common = require('./common'),
 constants = require('../constants');
 
 function getNicManager(ec2) {
-  var describe = Q.nfbind(ec2.describeNetworkInterfaces.bind(ec2), {
-    DryRun: false,
-    Filters: constants.AWS_FILTER_CTAG
-  });
+  var baseFilters = constants.AWS_FILTER_CTAG,
+    describe = common.makeEc2DescribeFn(
+      ec2, 'describeNetworkInterfaces', 'NetworkInterfaces', baseFilters);
 
   function rejectIfExists(pid, pr) {
     return describe().then(function (list) {
@@ -30,7 +30,7 @@ function getNicManager(ec2) {
     });
   }
 
-function createNic(subnetId, sgIds, pid, pr) {
+  function createNic(subnetId, sgIds, pid, pr) {
     var params = {
       SubnetId: subnetId,
       Groups: sgIds,
@@ -39,7 +39,7 @@ function createNic(subnetId, sgIds, pid, pr) {
 
     return Q.nfbind(ec2.createNetworkInterface.bind(ec2), params)().
     then(function (result) {
-      return util.awsTagEc2(ec2, result.NetworkInterface.NetworkInterfaceId, [
+      return common.awsTagEc2(ec2, result.NetworkInterface.NetworkInterfaceId, [
         {
           Key: constants.CLUSTERNATOR_TAG,
           Value: 'true'
@@ -52,48 +52,29 @@ function createNic(subnetId, sgIds, pid, pr) {
           Key: constants.PR_TAG,
           Value: pr
         }
-      ]) .then(function () {
+      ]).then(function () {
         return result;
       });
     });
-}
+  }
 
   function create(subnetId, sgIds, pid, pr) {
     return rejectIfExists(pid, pr).then(function () {
-        return createNic(subnetId, sgIds, pid, pr);
+      return createNic(subnetId, sgIds, pid, pr);
     });
   }
 
-  function destroy(nicId, pid, pr) {
-    return describe().then(function (list) {
-      var nic, isValidPid = false, isValidPr = false;
-      list.NetworkInterfaces.forEach(function (g){
-        if (g.NetworkInterfaceId === nicId) {
-          nic = g;
-        }
-      });
-
-      nic.TagSet.forEach(function (tag) {
-        if (tag.Key === constants.PROJECT_TAG) {
-          if (tag.Value === pid) {
-            isValidPid = true;
-          }
-        }
-        if (tag.Key === constants.PR_TAG) {
-          if (tag.Value === pr) {
-            isValidPr = true;
-          }
-        }
-      });
-
-      if (!(isValidPid && isValidPr)) {
-        throw new Error('No Clusternator Tagged NetworkInterfaces Available ' +
-        'For Destruction With GroupId: ' + nicId + ' ProjectId: ' + pid +
-        ' and PR: ' + pr);
+  function destroy(pid, pr) {
+    if (!pid || !pr) {
+      throw new Error('Destroy NIC Requires projectId, and Pull Request #');
+    }
+    return describe(pid, pr).then(function (list) {
+      if (!list.length) {
+        common.throwInvalidPidPrTag(pid, pr, 'looking', 'NetworkInterface');
       }
 
       return Q.nfbind(ec2.deleteNetworkInterface.bind(ec2), {
-        NetworkInterfaceId: nicId
+        NetworkInterfaceId: list[0].NetworkInterfaceId
       })();
     });
   }
