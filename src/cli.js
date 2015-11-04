@@ -4,11 +4,10 @@ var fs = require('fs');
 var path = require('path');
 var log = require('winston');
 
-var config = require('./config')();
 
 var util = require('./util');
 var server = require('./server/main');
-var circleCIClient = require('./circleCIClient');
+var circleCIClient = require('./client/circleCIClient');
 var clusternator = require('./clusternator');
 
 
@@ -106,28 +105,24 @@ function destroyApp(argv) {
 
 
 function startServer(argv) {
+  var config = require('./config')();
   return function() {
     server.startServer(config);
   };
 }
 
 
-function circleCIBuild(argv) {
-
+function circleCIPush(argv) {
   return function() {
-    var config = {};
+    return circleCIClient.push(argv.host, argv.appdef, argv.tag);
+  };
+}
 
-    config.dockerEmail = argv.dockerEmail;
-    config.dockerUser = argv.dockerUser;
-    config.dockerPass = argv.dockerPass;
-    config.appDef = argv.app;
-    config.clusternatorHost = argv.clusternatorHost;
-    config.keypair = argv.keypair;
-
-    return circleCIClient.clusternate(config)
-                          .then(function(resp) {
-                            console.log(resp);
-                          }, log.error);
+function circleCITag(argv) {
+  return function() {
+    var ridData = circleCIClient.generateTagFromEnv();
+    console.log(ridData.tag);
+    return;
   };
 }
 
@@ -149,6 +144,9 @@ module.exports = {
   updateApp: updateApp,
   destroyApp: destroyApp,
   startServer: startServer,
-  circleCIBuild: circleCIBuild,
+
+  circleCIPush: circleCIPush,
+  circleCITag: circleCITag,
+
   createAppDefinition: createAppDefinition
 };
