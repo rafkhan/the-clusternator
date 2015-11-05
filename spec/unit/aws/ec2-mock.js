@@ -5,7 +5,8 @@ var descriptions = {
   subnets: [],
   routeTables: [],
   securityGroups: [],
-  networkAcls: []
+  networkAcls: [],
+  createTags: []
 };
 
 function setDescription(id, val) {
@@ -60,7 +61,21 @@ function describeNetworkAcls(params, callback) {
   describe('networkAcls', params, callback);
 }
 
+function setCreateTags(val) {
+  setDescription('createTags', val);
+}
+
+function createTags(params, callback) {
+  if (descriptions.createTag instanceof Error) {
+    callback(descriptions.createTag);
+  } else {
+    callback(null);
+  }
+}
+
 module.exports = {
+  setCreateTags: setCreateTags,
+  createTgs: createTags,
   setDescribeVPCs: setDescribeVPCs,
   describeVpcs: describeVpcs,
   setDescribeSubnets: setDescribeSubnets,

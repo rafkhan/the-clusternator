@@ -18,7 +18,7 @@ function throwInvalidPidTag(pid, id, label) {
 @param {Tag[]} collection
 */
 function areTagsPidValid(pid, collection) {
-  var isValid;
+  var isValid = false;
   collection.forEach(function(tag) {
     if (tag.Key !== constants.PROJECT_TAG) {
       return;
@@ -41,9 +41,6 @@ function areTagsPidPrValid(pid, pr, collection) {
     isValidPr = false;
 
   collection.forEach(function(tag) {
-    if (tag.Key !== constants.PROJECT_TAG) {
-      return;
-    }
     if (tag.Key === constants.PROJECT_TAG) {
       if (tag.Value === pid) {
         isValidPid = true;
