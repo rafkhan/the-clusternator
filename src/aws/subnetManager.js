@@ -3,6 +3,7 @@
 var Q = require('q'),
   Vpc = require('./vpcManager'),
   common = require('./common'),
+  util = require('../util'),
   constants = require('../constants');
 
 function getSubnetManager(ec2, vpcId) {
@@ -12,29 +13,43 @@ function getSubnetManager(ec2, vpcId) {
     describe = common.makeEc2DescribeFn(
       ec2, 'describeSubnets', 'Subnets', baseFilters);
 
+  /**
+  @param {string} pid
+  @return {Q.Promise}
+  */
   function getCidrPrefix(pid) {
     return vpc.findProject(pid).then(function(v) {
-      var classes = v.CidrBlock.split('.');
-      return classes[0] + '.' + classes[1];
+      return util.getCidrPrefixFromIPString(v.CidrBlock);
     });
   }
 
-  function getCidrPostfix() {
-    return describe().then(function(list) {
-      var highest = -1;
-      list.forEach(function(r) {
-        var cidr = r.CidrBlock,
-          classes = cidr.split('.'),
-          c;
-        classes.pop();
-        c = +classes.pop();
-        if (c > highest) {
-          highest = c;
-        }
-      });
-      highest += 1;
-      return highest + '.0/24';
+  /**
+  @param {CIDR[]} list
+  @return {number}
+  */
+  function findHighestCidr(list) {
+    var highest = -1;
+    list.forEach(function(r) {
+      var cidr = r.CidrBlock,
+        classes = cidr.split('.'),
+        c;
+      classes.pop();
+      c = +classes.pop();
+      if (c > highest) {
+        highest = c;
+      }
     });
+    return +highest;
+  }
+
+  function incrementHighestCidr(list) {
+    var highest = findHighestCidr(list);
+    highest += 1;
+    return highest + '.0/24';
+  }
+
+  function getCidrPostfix() {
+    return describe().then(incrementHighestCidr);
   }
 
   function getNextSubnet(pid) {
@@ -54,18 +69,26 @@ function getSubnetManager(ec2, vpcId) {
     })();
   }
 
+  function isPidInSubnetList(pid, list) {
+    var found = false;
+    list.forEach(function(sn) {
+      sn.Tags.forEach(function(tag) {
+        if (tag.Key === constants.PROJECT_TAG) {
+          if (tag.Value === pid) {
+            found = true;
+          }
+        }
+      });
+    });
+    return found;
+  }
+
   function findExistingPid(pid) {
     return describe().then(function(list) {
-      list.forEach(function(sn) {
-        sn.Tags.forEach(function(tag) {
-          if (tag.Key === constants.PROJECT_TAG) {
-            if (tag.Value === pid) {
-              throw new Error('Create Subnet Failed: Project: ' + pid +
-                ' exists: ' + sn);
-            }
-          }
-        });
-      });
+      if (isPidInSubnetList(pid, list)) {
+        throw new Error('Create Subnet Failed: Project: ' + pid +
+          ' exists: ' + sn);
+      }
     });
   }
 
@@ -115,14 +138,18 @@ function getSubnetManager(ec2, vpcId) {
     });
   }
 
+  function getFilteredAssociations(subnetId, list) {
+    if (!list.length) {
+      throw new Error('AclManager: Error expecting a default ACL');
+    }
+    return list[0].Associations.filter(function(el) {
+      return el.SubnetId === subnetId;
+    });
+  }
+
   function defaultAssoc(subnetId) {
     return describeDefault().then(function(list) {
-      if (!list.length) {
-        throw new Error('AclManager: Error expecting a default ACL');
-      }
-      return list[0].Associations.filter(function(el) {
-        return el.SubnetId === subnetId;
-      });
+      return getFilteredAssociations(subnetId, list);
     });
   }
 
@@ -142,21 +169,6 @@ function getSubnetManager(ec2, vpcId) {
       return Q.nfbind(ec2.replaceNetworkAclAssociation.bind(ec2), {
         AssociationId: assocId,
         NetworkAclId: aclId
-      })();
-    });
-  }
-
-  function destroySubnet(subnetId, pid) {
-    if (!pid) {
-      throw new TypeError('Destroy subnet requires a project id');
-    }
-    return describe(pid).then(function(list) {
-      if (!list.length) {
-        common.throwInvalidPidTag(pid, subnetId, 'Subnet');
-      }
-
-      return Q.nfbind(ec2.deleteSubnet.bind(ec2), {
-        SubnetId: subnetId
       })();
     });
   }
@@ -234,6 +246,11 @@ function getSubnetManager(ec2, vpcId) {
     create: create,
     destroy: destroy,
     findProject: findProjectSubnet,
+    findProjectTag: findProjectTag,
+    findHighestCidr: findHighestCidr,
+    incrementHighestCidr: incrementHighestCidr,
+    getFilteredAssociations: getFilteredAssociations,
+    isPidInSubnetList: isPidInSubnetList,
     next: getNextSubnet,
     cidrPrefix: getCidrPrefix
   };

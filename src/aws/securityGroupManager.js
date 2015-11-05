@@ -27,28 +27,36 @@ function getSecurityGroupManager(ec2, vpcId) {
     }, function(err) {
       util.plog('SecurityGroup: Warning Could Not Add Custom Rules: ' +
         err.message);
-        return groupId;
+      return groupId;
     });
+  }
+
+  function sgHasPidPr(pid, pr, list) {
+    var result = false;
+    list.forEach(function(sgDesc) {
+      var isProject = false,
+        isPR = false;
+      sgDesc.Tags.forEach(function(tag) {
+        if ((tag.Key === constants.PROJECT_TAG) && (tag.Value === pid)) {
+          isProject = true;
+        }
+        if ((tag.Key === constants.PR_TAG) && (tag.Value === pr)) {
+          isPR = true;
+        }
+      });
+      if (isProject && isPR) {
+        result = true;
+      }
+    });
+    return result;
   }
 
   function rejectIfExists(pid, pr) {
     return describe().then(function(list) {
-      list.forEach(function(sgDesc) {
-        var isProject = false,
-          isPR = false;
-        sgDesc.Tags.forEach(function(tag) {
-          if ((tag.Key === constants.PROJECT_TAG) && (tag.Value === pid)) {
-            isProject = true;
-          }
-          if ((tag.Key === constants.PR_TAG) && (tag.Value === pr)) {
-            isPR = true;
-          }
-        });
-        if (isProject && isPR) {
-          throw new Error('SecurityGroup Exists For Project: ' + pid +
-            ' PR: ' + pr);
-        }
-      });
+      if (sgHasPidPr(pid, pr, list)) {
+        throw new Error('SecurityGroup Exists For Project: ' + pid +
+          ' PR: ' + pr);
+      }
     });
   }
 
@@ -112,7 +120,8 @@ function getSecurityGroupManager(ec2, vpcId) {
   return {
     describe: describe,
     create: create,
-    destroy: destroy
+    destroy: destroy,
+    hasPidPr: sgHasPidPr
   };
 }
 

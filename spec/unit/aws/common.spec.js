@@ -1,7 +1,7 @@
 'use strict';
 
 var common = require('../../../src/aws/common'),
-ec2 = require('./ec2-mock'),
+  ec2 = require('./ec2-mock'),
   constants = require('../../../src/constants');
 require('../chai');
 
@@ -21,15 +21,21 @@ describe('common AWS functions', function() {
     });
 
   it('throwInvalidPidTag should throw', function() {
-    expect(function() {
+    try {
       common.throwInvalidPidTag();
-    }).to.throw;
+      expect('this should not happen').to.be(undefined);
+    } catch (err) {
+      expect(err instanceof Error).to.be.true;
+    }
   });
 
   it('throwInvalidPidPrTag should throw', function() {
-    expect(function() {
+    try {
       common.throwInvalidPidPrTag();
-    }).to.throw;
+      expect('this should not happen').to.be(undefined);
+    } catch (err) {
+      expect(err instanceof Error).to.be.true;
+    }
   });
 
   it('areTagsPidValid should return true if pid tags match given pid',
