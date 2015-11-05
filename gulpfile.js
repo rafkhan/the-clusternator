@@ -30,7 +30,14 @@ gulp.task('pre-test-unit', ['lint'], function preUnitTest() {
 gulp.task('test-unit', ['pre-test-unit'], function testUnit() {
     return gulp.src(specPaths).
     pipe(mocha()).
-    pipe(istanbul.writeReports());
+    pipe(istanbul.writeReports({
+      reporters: [ 'text', 'lcovonly', 'html', 'json', 'text-summary'],
+      reportOpts: {
+        lcov: { dir: 'coverage/lcovonly', file: 'lcov.info' },
+        html: { dir: 'coverage/html' },
+        json: { dir: 'coverage/json' }
+      }
+    }));
 });
 
 gulp.task('lint', function lint() {
