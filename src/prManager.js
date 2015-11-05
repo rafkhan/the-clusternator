@@ -5,15 +5,18 @@ var Q = require('q'),
   Ec2 = require('./aws/ec2Manager'),
   rid = require('./resourceIdentifier'),
   Cluster = require('./aws/clusterManager'),
+  Route53 = require('./aws/route53Manager'),
   Task = require('./aws/taskServicemanager');
 
-function getPRManager(ec2, ecs, vpcId) {
+function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
   var subnet = Subnet(ec2, vpcId),
     securityGroup = SG(ec2, vpcId),
     cluster = Cluster(ecs),
-    ec2mgr = Ec2(ec2, vpcId);
+    route53 = Route53(r53, zoneId),
+    ec2mgr = Ec2(ec2, vpcId),
+    task = Task(ecs);
 
-  function createCluster(subnetId, pid, pr) {
+  function createCluster(subnetId, pid, pr, appDef) {
     var clusterName = rid.generateRID({
       pid: pid,
       pr: pr
@@ -24,36 +27,51 @@ function getPRManager(ec2, ecs, vpcId) {
       cluster.create(clusterName)
     ]).
     then(function(results) {
-      var sDesc = results[0];
+      var sgDesc = results[0];
 
       return ec2mgr.create({
         clusterName: clusterName,
         pid: pid,
         pr: pr,
-        sgId: sDesc.GroupId,
+        sgId: sgDesc.GroupId,
         subnetId: subnetId,
         apiConfig: {}
       });
-      //- create new ECS task(s)
-      //- create new ECS service(s)
-      //- create new Route 53 entry to service
-      //- start system
+    }).
+    then(function() {
+      return task.create(clusterName, clusterName, appDef);
+    }).then(function() {
+      return route53.create(pid, pr);
     });
+    //- start system
   }
 
-  function create(pid, pr) {
+  function create(pid, pr, appDef) {
 
     return subnet.describe().then(function(list) {
       if (!list.length) {
         throw new Error('Create Pull Request failed, no subnet found for ' +
-        'Project: ' + pid + ' PulL Request # ' + pr);
+          'Project: ' + pid + ' PulL Request # ' + pr);
       }
-      return createCluster(list[0].SubnetId, pid, pr);
+      return createCluster(list[0].SubnetId, pid, pr, appDef);
     });
   }
 
   function destroy(pid, pr) {
-
+    var clusterName = rid.generateRID({
+      pid: pid,
+      pr: pr
+    });
+    return route53.destroy(pid, pr).
+    then(function() {
+      return ec2mgr.destroy(pid, pr);
+    }).then(function () {
+      return task.destroy();
+    }).then(function () {
+      return securityGroup.destroy(pid, pr);
+    });
+    // destroy domain
+    // destroy ecs
   }
 
   return {

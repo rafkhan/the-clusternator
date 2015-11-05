@@ -26,6 +26,7 @@ module.exports = {
   nic: require('./nic.spec'),
   pr: require('./pr.spec'),
   project: require('./project.spec'),
+  r53: require('./route53.spec'),
   routes: require('./routes.spec'),
   securityGroups: require('./securityGroup.spec'),
   service: require('./service.spec'),
