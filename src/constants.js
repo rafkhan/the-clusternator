@@ -9,6 +9,8 @@ const AWS_DEFAULT_EC2_TYPE = 't2.micro';
 var constants = Object.freeze({
   AWS_DEFAULT_EC2_AMI: AWS_DEFAULT_EC2_AMI,
   AWS_DEFAULT_EC2_TYPE: AWS_DEFAULT_EC2_TYPE,
+  AWS_EC2_POLL_INTERVAL: 15000, // ms to wait between polling EC2 statuses
+  AWS_EC2_POLL_MAX: 40, // times to retry EC2 polls (create/terminate)
   AWS_DEFAULT_CIDR: '10.0.0.0/24',
   AWS_DEFAULT_AZ: 'us-east-1a',
   AWS_FILTER_CTAG: [
