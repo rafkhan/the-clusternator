@@ -1,6 +1,6 @@
 {
   "name": "clusternator",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "",
   "main": "clusternator.js",
   "scripts": {
@@ -22,6 +22,7 @@
     "q": "^1.4.1",
     "ramda": "^0.17.1",
     "request-promise": "^0.4.3",
+    "superagent": "^1.4.0",
     "winston": "^1.1.1",
     "yargs": "^3.29.0"
   },
