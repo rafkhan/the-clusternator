@@ -33,6 +33,7 @@ gulp.task('test-unit', ['pre-test-unit'], function testUnit() {
     pipe(istanbul.writeReports({
       reporters: [ 'text', 'lcovonly', 'html', 'json', 'text-summary'],
       reportOpts: {
+        dir: './coverage',
         lcov: { dir: 'coverage/lcovonly', file: 'lcov.info' },
         html: { dir: 'coverage/html' },
         json: { dir: 'coverage/json' }

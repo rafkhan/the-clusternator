@@ -1,4 +1,4 @@
 {
-   "description":"Update this with production values",
+   "description":"Update this with production values, or use a config.local.json (same structure as this file)",
     "port":8080
 }
