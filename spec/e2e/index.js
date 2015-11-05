@@ -32,7 +32,9 @@ module.exports = {
   service: require('./service.spec'),
   setup: require('./setup'),
   subnet: require('./subnet.spec'),
+  task: require('./task.spec'),
   vpc: require('./vpc.spec'),
   log: logOutput,
-  error: logError
+  error: logError,
+  appDef: require('../../examples/node-mongo/appdef.json')
 };

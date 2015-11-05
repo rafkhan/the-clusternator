@@ -3,8 +3,8 @@
 var rewire = require('rewire'),
 ec2Mock = require('./ec2-mock');
 
-var RouteTable = rewire('../../src/aws/routeTableManager');
-require('./chai');
+var RouteTable = rewire('../../../src/aws/routeTableManager');
+require('../chai');
 
 
 /*global describe, it, expect, beforeEach */

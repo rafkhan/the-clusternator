@@ -62,7 +62,7 @@ function deleteCluster(config) {
       }, results.clusters);
 
       if(!result[0]) {
-        throw 'Cluster does not exist';
+        throw new Error('Cluster does not exist');
       }
 
       return result[0];

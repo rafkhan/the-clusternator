@@ -6,7 +6,8 @@ var Q = require('q'),
   rid = require('./resourceIdentifier'),
   Cluster = require('./aws/clusterManager'),
   Route53 = require('./aws/route53Manager'),
-  Task = require('./aws/taskServicemanager');
+  Task = require('./aws/taskServicemanager'),
+  util = require('./util');
 
 function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
   var subnet = Subnet(ec2, vpcId),
@@ -64,9 +65,15 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     });
     return route53.destroy(pid, pr).
     then(function() {
-      return ec2mgr.destroy(pid, pr);
-    }).then(function () {
-      return task.destroy();
+      return ec2mgr.destroy(pid, pr).fail(function (err) {
+        util.plog('PR Destruction Problem Destroying Ec2: ' + err.message);
+
+      });
+    }).then(function (r) {
+      return task.destroy(clusterName).fail(function (err) {
+        util.plog('PR Destruction Problem Destroying Task: ' + err.message);
+        return r;
+      });
     }).then(function () {
       return securityGroup.destroy(pid, pr);
     });

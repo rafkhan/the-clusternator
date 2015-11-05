@@ -3,22 +3,22 @@
 var rewire = require('rewire'),
 ec2Mock = require('./ec2-mock');
 
-var Subnet = rewire('../../src/aws/subnetManager');
-require('./chai');
+var Vpc = rewire('../../../src/aws/vpcManager');
+require('../chai');
 
 
 /*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions: 0*/
-describe('subnetManager', function () {
-  var subnet;
+describe('vpcManager', function () {
+  var vpc;
 
   beforeEach(function () {
-      subnet = Subnet(ec2Mock, 'vpc-id');
+      vpc = Vpc(ec2Mock);
   });
 
-  it('should asynchronously list subnets', function (done) {
-    ec2Mock.setDescribeSubnets([1, 2, 3]);
-    subnet.describe().then(function (list) {
+  it('should asynchronously list vpcs', function (done) {
+    ec2Mock.setDescribeVPCs([1, 2, 3]);
+    vpc.describe().then(function (list) {
       expect(list).to.be.ok;
       done();
     }, function (err) {
@@ -29,8 +29,8 @@ describe('subnetManager', function () {
   });
 
   it('should reject its promise on fail', function (done) {
-    ec2Mock.setDescribeSubnets(new Error('test'));
-    subnet.describe().then(function (list) {
+    ec2Mock.setDescribeVPCs(new Error('test'));
+    vpc.describe().then(function (list) {
       // not this case
       expect(list).equal(undefined);
       done();
