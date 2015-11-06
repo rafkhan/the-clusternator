@@ -131,6 +131,10 @@ yargs.command('cluster:delete', 'Delete an existing cluster', function (y) {
 
 yargs.command('app:new', 'Creates a new app definition', function () {});
 
+yargs.command('init', 'Requires the Current Working Directory to be a git repository, or a ' + 'subfolder within a git repository.  The command will interactively create ' + 'a `.clusternator` file in the project\'s root directory, and will provision ' + 'the *networking* infrastructure for a project on AWS.  This currently ' + 'requires an existing VPC, and Route (AWS bootstrapping coming soon!)', function () {
+  console.log('word');
+});
+
 yargs.help('help');
 var argv = yargs.argv;
 var command = argv._[0];

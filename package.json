@@ -1,7 +1,7 @@
 {
   "name": "clusternator",
   "version": "0.0.11",
-  "description": "",
+  "description": "Program to deploy docker containers on cloud service platforms with minimal user input, and/or configuration",
   "main": "clusternator.js",
   "preferGlobal": true,
   "keywords": [
@@ -9,11 +9,11 @@
     "virtual machine", "container"
   ],
   "bugs": {
-      "url":"https://github.com/rangle/the-clusternator/issues"
+    "url": "https://github.com/rangle/the-clusternator/issues"
   },
   "scripts": {
     "start": "./bin/clusternator.sh server:start",
-    "test": "gulp test",
+    "test": "gulp test-unit",
     "build": "babel src --out-dir lib && babel bin/clusternatorCli.js > bin/clusternatorCli-es5.js",
     "prepublish": "npm run build",
     "docker-build": "npm run build && docker build -t rafkhan/clusternator-test ."
