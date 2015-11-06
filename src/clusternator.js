@@ -29,33 +29,33 @@ var taskServiceManager = TaskServiceManager(ecs);
  */
 function updateApp(clusterName, appDef) {
   console.log('Updating', appDef.name, 'on', clusterName, 'with app definition',
-              '"' + appDef.name + '"');
+    '"' + appDef.name + '"');
 
   function loadNewApp() {
     return taskServiceManager.create(clusterName, appDef);
   }
 
   return clusterManager.describe(clusterName)
-                       .then(R.prop('clusterArn'), q.reject)
-                       .then((clusterArn) => {
-                         console.log('Initiating cleanup on', clusterArn);
-                         return clusterArn;
-                       }, q.reject)
+    .then(R.prop('clusterArn'), q.reject)
+    .then((clusterArn) => {
+      console.log('Initiating cleanup on', clusterArn);
+      return clusterArn;
+    }, q.reject)
 
-                       .then(taskServiceManager.destroy, q.reject)
-                       .then((args) => {
-                         var serviceNames = R.map(R.prop('serviceName'), args);
-                         console.log('Deleted services', serviceNames);
-                         return args;
-                       }, q.reject)
+  .then(taskServiceManager.destroy, q.reject)
+    .then((args) => {
+      var serviceNames = R.map(R.prop('serviceName'), args);
+      console.log('Deleted services', serviceNames);
+      return args;
+    }, q.reject)
 
-                       .then(loadNewApp, q.reject)
-                       .then((services) => {
-                         var f = R.compose(R.prop('serviceName'), R.prop('service'));
-                         var serviceNames = R.map(f, services);
-                         console.log('Initialized services', serviceNames);
-                         return services;
-                       }, q.reject);
+  .then(loadNewApp, q.reject)
+    .then((services) => {
+      var f = R.compose(R.prop('serviceName'), R.prop('service'));
+      var serviceNames = R.map(f, services);
+      console.log('Initialized services', serviceNames);
+      return services;
+    }, q.reject);
 }
 
 
@@ -69,21 +69,21 @@ function destroyApp(clusterName) {
   console.log('Destroying', clusterName);
 
   return clusterManager.describe(clusterName)
-                       .then(R.prop('clusterArn'), q.reject)
-                       .then((clusterArn) => {
-                         console.log('Initiating cleanup on', clusterArn);
-                         return clusterArn;
-                       }, q.reject)
+    .then(R.prop('clusterArn'), q.reject)
+    .then((clusterArn) => {
+      console.log('Initiating cleanup on', clusterArn);
+      return clusterArn;
+    }, q.reject)
 
-                       .then(taskServiceManager.destroy, q.reject)
-                       .then((args) => {
-                         var serviceNames = R.map(R.prop('serviceName'), args);
-                         console.log('Deleted services', serviceNames);
-                         return args;
-                       }, q.reject);
+  .then(taskServiceManager.destroy, q.reject)
+    .then((args) => {
+      var serviceNames = R.map(R.prop('serviceName'), args);
+      console.log('Deleted services', serviceNames);
+      return args;
+    }, q.reject);
 
-                       // TODO delete ECS cluster
-                       // TODO terminate EC2 container
+  // TODO delete ECS cluster
+  // TODO terminate EC2 container
 }
 
 
@@ -96,9 +96,15 @@ function destroyApp(clusterName) {
  *  TODO clean up logs (q.reject all the things)
  */
 function newApp(clusterName, appDef, ec2Config) {
-  if(!clusterName) { throw 'Requires clusterName'; }
-  if(!appDef)      { throw 'Requires appDef'; }
-  if(!ec2Config)   { throw 'Requires ec2Config'; }
+  if (!clusterName) {
+    throw 'Requires clusterName';
+  }
+  if (!appDef) {
+    throw 'Requires appDef';
+  }
+  if (!ec2Config) {
+    throw 'Requires ec2Config';
+  }
 
   var clusterParams = {
     pr: 'test',
@@ -110,10 +116,10 @@ function newApp(clusterName, appDef, ec2Config) {
   }
 
   return clusterManager.create(clusterParams)
-                       .then(buildEC2Instance, util.errLog)
-                       .then(function() {
-                         return taskServiceManager.create(clusterName, appDef);
-                       });
+    .then(buildEC2Instance, util.errLog)
+    .then(function() {
+      return taskServiceManager.create(clusterName, appDef);
+    });
 }
 
 
