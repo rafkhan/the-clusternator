@@ -3,6 +3,14 @@
   "version": "0.0.11",
   "description": "",
   "main": "clusternator.js",
+  "preferGlobal": true,
+  "keywords": [
+    "docker", "aws", "amazon", "cluster", "cloud", "heroku", "vm",
+    "virtual machine", "container"
+  ],
+  "bugs": {
+      "url":"https://github.com/rangle/the-clusternator/issues"
+  },
   "scripts": {
     "start": "./bin/clusternator.sh server:start",
     "test": "gulp test",
