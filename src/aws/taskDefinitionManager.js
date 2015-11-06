@@ -13,10 +13,9 @@ function getTaskDefinitionManager(ecs) {
   }
 
   return {
-    createTaskDefinition: createTaskDefinition
+    create: createTaskDefinition
   };
 }
 
 
 module.exports = getTaskDefinitionManager;
-

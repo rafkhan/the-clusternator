@@ -4,7 +4,7 @@ var q = require('q');
 
 function errLog(x) {
   console.log('ERROR', x);
-  return q.reject(x);
+  return q.reject(new Error(x));
 }
 
 function plog() {
@@ -16,34 +16,18 @@ function quote(str) {
   return '"' + str + '"';
 }
 
-function makeAWSFilter(key, value) {
-  /** @todo make this actually flexible wrt plural values */
-  return [
-    {
-      Name: key,
-      Values: [value]
-    }
-  ];
-}
-
-function makeAWSVPCFilter(value) {
-  return makeAWSFilter('vpc-id', value);
-}
-
-function awsTagEc2(ec2, resourceId, tags) {
-  return q.nbind(ec2.createTags, ec2)({
-    Resources: [
-      resourceId
-    ],
-    Tags: tags
-  });
+/**
+@param {string} ip '1.2.3.0/24'
+@return {string} '1.2'
+*/
+function getCidrPrefixFromIPString(ip) {
+  var classes = ip.split('.');
+  return classes[0] + '.' + classes[1];
 }
 
 module.exports = {
   errLog: errLog,
   plog: plog,
   quote: quote,
-  awsTagEc2: awsTagEc2,
-  makeAWSFilter: makeAWSFilter,
-  makeAWSVPCFilter: makeAWSVPCFilter
+  getCidrPrefixFromIPString
 };

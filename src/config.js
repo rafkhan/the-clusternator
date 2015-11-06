@@ -4,16 +4,16 @@ This file loads AWS credentials, and configuration for the server, or possibly
 a "local server".
 */
 
-/** @todo even though we're moving away from environment variables we _should_
-check to see if they're present, _after_ the global check */
+const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID';
+const AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY';
 
 var util = require('./util'),
-path = require('path');
+  path = require('path');
 
 var credFileName = 'credentials',
-configFileName = 'config',
-localPath = path.join(__dirname, '/../'),
-globalPath = '/etc/clusternator/';
+  configFileName = 'config',
+  localPath = path.join(__dirname, '/../'),
+  globalPath = '/etc/clusternator/';
 
 
 function validateCreds(c) {
@@ -35,50 +35,62 @@ function validateCreds(c) {
 function loadJSON(fullpath) {
   try {
     return require(fullpath);
-  } catch(err) {
+  } catch (err) {
     console.log('Error', err.message);
     return null;
   }
 }
 
+function getCredsFromProc() {
+  if (process.env[AWS_ENV_KEY] && process.env[AWS_ENV_SECRET]) {
+    return {
+      accessKeyId: process.env[AWS_ENV_KEY],
+      secretAccessKey: process.env[AWS_ENV_SECRET],
+    }
+  }
+  return null;
+}
+
 function checkCreds() {
   var fullpath = path.join(localPath, credFileName + '.local.json'),
-  c = validateCreds(loadJSON(fullpath));
+    c = validateCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
   util.plog('No "local" credentials found in ' + fullpath +
-  ', checking project');
+    ', checking project');
   fullpath = localPath + credFileName + '.json';
   c = validateCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
   util.plog('No "project" credentials found in ' + fullpath +
-  ', checking global');
+    ', checking global');
   fullpath = path.join(globalPath, credFileName + '.json');
   c = validateCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
-  util.plog('No "global" credentials found in ' + fullpath);
+  util.plog('No "global" credentials found in ' + fullpath +
+    ', checking environment variables');
+  return getCredsFromProc();
 }
 
-function checkConfig( ){
+function checkConfig() {
   var fullpath = path.join(localPath, configFileName + '.local.json'),
-  c = loadJSON(fullpath);
+    c = loadJSON(fullpath);
   if (c) {
     return c;
   }
   util.plog('No "local" config found in ' + fullpath +
-  ', checking project');
+    ', checking project');
   fullpath = localPath + configFileName + '.json';
   c = loadJSON(fullpath);
   if (c) {
     return c;
   }
   util.plog('No "project" config found in ' + fullpath +
-  ', checking global');
+    ', checking global');
   fullpath = path.join(globalPath, configFileName + '.json');
   c = loadJSON(fullpath);
   if (c) {
@@ -90,7 +102,7 @@ function checkConfig( ){
 
 function getConfig() {
   var creds = checkCreds(),
-  config = checkConfig();
+    config = checkConfig();
 
   if (!creds) {
     throw new Error('Clusternator requires configuration');

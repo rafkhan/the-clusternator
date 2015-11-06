@@ -68,7 +68,10 @@ function getVpcManager(ec2) {
 
   return {
     describe: describeClusterVPCs,
-    findProject: findProjectVPC
+    findProject: findProjectVPC,
+    findProjectTag: findProjectTag,
+    findProjectVPC: findProjectVPC,
+    findMasterVPC: findMasterVPC
   };
 }
 

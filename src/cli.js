@@ -4,7 +4,6 @@ var fs = require('fs');
 var path = require('path');
 var log = require('winston');
 
-
 var util = require('./util');
 var server = require('./server/main');
 var circleCIClient = require('./client/circleCIClient');
@@ -21,7 +20,7 @@ function newApp(argv) {
     };
 
     var keyPairName = argv.keypair;
-    if(!keyPairName) {
+    if (!keyPairName) {
       console.log('Consider adding a --keypair');
     } else {
       EC2APIConfig.KeyName = keyPairName;
@@ -29,20 +28,18 @@ function newApp(argv) {
 
     var subnetId = argv['subnet-id'];
     var securityGroup = argv['security-group'];
-    if((subnetId && !securityGroup) || (!subnetId && securityGroup)) {
+    if ((subnetId && !securityGroup) || (!subnetId && securityGroup)) {
       log.info('You must include both a subnet ID and a security group ID');
 
-    } else if(subnetId && securityGroup) {
-      var networkInterfaces = [
-        {
-          DeviceIndex: 0,
-          //NetworkInterfaceId: NETWORK_INTERFACE_ID,
-          AssociatePublicIpAddress: true,
-          SubnetId: subnetId,
-          DeleteOnTermination: true,
-          Groups: [securityGroup]
-        }
-      ];
+    } else if (subnetId && securityGroup) {
+      var networkInterfaces = [{
+        DeviceIndex: 0,
+        //NetworkInterfaceId: NETWORK_INTERFACE_ID,
+        AssociatePublicIpAddress: true,
+        SubnetId: subnetId,
+        DeleteOnTermination: true,
+        Groups: [securityGroup]
+      }];
 
       EC2APIConfig.NetworkInterfaces = networkInterfaces;
     }
@@ -55,8 +52,8 @@ function newApp(argv) {
     var dockerPassword = argv['docker-password'];
     var dockerUsername = argv['docker-username'];
 
-    if(dockerCfg || dockerEmail || dockerPassword || dockerUsername) {
-       dockerAuth = {
+    if (dockerCfg || dockerEmail || dockerPassword || dockerUsername) {
+      dockerAuth = {
         cfg: dockerCfg,
         email: dockerEmail,
         password: dockerPassword,
@@ -74,11 +71,11 @@ function newApp(argv) {
     var app = JSON.parse(fs.readFileSync(appDefPath, 'utf8'));
 
     return clusternator.newApp(clusterName, app, ec2Config)
-                .then(function(data) {
-                  console.log(data);
-                }, util.errLog)
-                .then(null, util.errLog);
-                //TODO REMOVE THAT
+      .then(function(data) {
+        console.log(data);
+      }, util.errLog)
+      .then(null, util.errLog);
+    //TODO REMOVE THAT
   };
 }
 
@@ -130,13 +127,51 @@ function createAppDefinition() {
 
   return function() {
     var defaultAppPath = path.resolve(__dirname,
-                                      '../examples/DEFAULT.json');
+      '../examples/DEFAULT.json');
     var defaultApp = JSON.parse(
-        fs.readFileSync(defaultAppPath, 'utf8'));
+      fs.readFileSync(defaultAppPath, 'utf8'));
 
     var prettyString = JSON.stringify(defaultApp, null, 2);
     console.log(prettyString);
   };
+}
+
+function bootstrapAWS() {
+  console.log('bootstrap an AWS environment');
+}
+
+function initializeProject() {
+  console.log('init a project');
+}
+
+function pullRequest(y) {
+  console.log('Initializing new pull request: #' + y.argv._[1]);
+}
+
+function create(y) {
+
+}
+
+function destroy(y) {
+
+}
+
+function describe(y) {
+  y.demand('p').
+  alias('p', 'pull-request').
+  default('p', 'all', 'All pull requests').
+  describe('p', 'Limits the description to a pull request').
+  demand('r').
+  alias('r', 'resource').
+  default('r', 'all', 'All resource types').
+  choices('r', ['all', 'securityGroups', 'instances', 'services']).
+  describe('r', 'Limits the description to a resource type');
+
+  if (y.argv.p !== 'all') {
+    console.log('Describing resources associated to pr #' + y.argv.p);
+  } else {
+    console.log('Describing *all* resources in use');
+  }
 }
 
 module.exports = {
@@ -148,5 +183,12 @@ module.exports = {
   circleCIPush: circleCIPush,
   circleCITag: circleCITag,
 
-  createAppDefinition: createAppDefinition
+  createAppDefinition: createAppDefinition,
+
+  bootstrap: bootstrapAWS,
+  init: initializeProject,
+  pullRequest: pullRequest,
+  describe: describe,
+  create: create,
+  destroy: destroy
 };

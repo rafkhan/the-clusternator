@@ -1,5 +1,7 @@
 'use strict';
-const TEST_VPC = 'vpc-1fe2487b';
+const TEST_VPC = 'vpc-ab07b4cf';
+const TEST_ROUTE = 'rtb-79284a1d';
+const TEST_R53 = '/hostedzone/Z31OFS3W2ZKMA0';
 
 var path = require('path');
 
@@ -13,6 +15,16 @@ function getEc2() {
   return new a.EC2(config.credentials);
 }
 
+function getEcs() {
+  var config = c();
+  return new a.ECS(config.credentials);
+}
+
+function getRoute53() {
+  var config = c();
+  return new a.Route53(config.credentials);
+}
+
 function makePath() {
     var args = Array.prototype.slice.apply(arguments);
     args.unshift(sourcePath);
@@ -22,5 +34,9 @@ function makePath() {
 module.exports = {
   path: makePath,
   getEc2: getEc2,
-  testVPC: TEST_VPC
+  getEcs: getEcs,
+  getRoute53: getRoute53,
+  testVPC: TEST_VPC,
+  testROUTE: TEST_ROUTE,
+  testR53: TEST_R53
 };

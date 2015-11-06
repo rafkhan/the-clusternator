@@ -2,6 +2,9 @@ node_modules/
 .DS_Store
 npm-debug.log
 
+# exclude ~ temp files
+*~
+
 # exclude test coverage
 coverage
 
@@ -13,3 +16,6 @@ config.local.json
 
 # exclude lib
 lib
+
+# exclude generated "binaries"
+bin/*.js
