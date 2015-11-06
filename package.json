@@ -14,9 +14,10 @@
   "scripts": {
     "start": "./bin/clusternator.sh server:start",
     "test": "gulp test-unit",
-    "build": "babel src --out-dir lib && babel bin/clusternatorCli.js > bin/clusternatorCli-es5.js",
+    "build": "gulp transpile",
     "prepublish": "npm run build",
-    "docker-build": "npm run build && docker build -t rafkhan/clusternator-test ."
+    "docker-build": "npm run build && docker build -t rafkhan/clusternator-test .",
+    "postinstall": "npm run build"
   },
   "repository": {
     "type": "git",
