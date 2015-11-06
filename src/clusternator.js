@@ -6,6 +6,7 @@ var AWS = require('aws-sdk');
 
 var util = require('./util');
 var EC2Manager = require('./aws/ec2Manager');
+var VpcManager = require('./aws/vpcManager');
 var ClusterManager = require('./aws/clusterManager');
 var TaskServiceManager = require('./aws/taskServiceManager');
 
@@ -122,9 +123,24 @@ function newApp(clusterName, appDef, ec2Config) {
     });
 }
 
+function createAWSObjects() {
+  var config = require('./config'),
+  c = config();
+  return {
+    route53: new AWS.Route53(c),
+    ec2: new AWS.EC2(c),
+    ecs: new AWS.ECS(c)
+  };
+}
+
+
+function describe(pr, type) {
+  var a = createAWSObjects();
+}
 
 module.exports = {
   newApp: newApp,
   updateApp: updateApp,
-  destroyApp: destroyApp
+  destroyApp: destroyApp,
+  describe: describe
 };

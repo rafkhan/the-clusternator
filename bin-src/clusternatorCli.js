@@ -156,11 +156,22 @@ yargs.command('app:new',
   'Creates a new app definition',
   function() {});
 
+
 yargs.command('init', 'Initializes a `.clusternator` file in the project ' +
   'repo, and provisions AWS networkign resources.  Requires AWS credentials',
-  function() {
-    console.log('word');
-  });
+  cli.init);
+
+yargs.command('bootstrap', 'Bootstraps an AWS environment so that projects ' +
+  'can be launched into it', cli.bootstrap);
+
+yargs.command('pull-request', 'Manually Execute a Pull Request',
+  cli.pullRequest);
+
+yargs.command('describe', 'Describe a resource', cli.describe);
+
+yargs.command('create', 'Create a resource', cli.create);
+
+yargs.command('destroy', 'Destroy a resource', cli.destroy);
 
 
 
