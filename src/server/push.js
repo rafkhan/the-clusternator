@@ -10,15 +10,12 @@ function pushHandler(req, res) {
   var body = req.body;
 
   // essential
-  var repo = body.repo;
   var appdef = body.appdef;
-  // non essential
-  var sha = body.sha;
-  var prNumber = body.pr;
+  var tag = body.tag;
 
-  if(!repo) {
+  if(!tag) {
     error(missingPropertyStatus,
-          '"repo" required for project identification.');
+          '"tag" required for project identification.');
   }
 
   if(!appdef) {
@@ -26,7 +23,10 @@ function pushHandler(req, res) {
           '"appdef" required to instantiate cluster.');
   }
   
-  // Initiate building box
+  res.send(JSON.stringify({
+    appdef: appdef,
+    tag: tag
+  }, null, 2));
 }
 
 module.exports = pushHandler;

@@ -1,10 +1,12 @@
 'use strict';
 
 var q = require('q');
+var request = require('superagent');
 var resourceId = require('../resourceIdentifier');
 
-var isCircleCI = process.env.CIRCLECI === 'true';
+var clusternateEndpoint = '/clusternate';
 
+var isCircleCI = process.env.CIRCLECI === 'true';
 
 function push(host, appdef, tag) {
   if(!isCircleCI) {
@@ -15,8 +17,30 @@ function push(host, appdef, tag) {
     return q.reject();
   }
 
-  // TODO complete this
-  return q.resolve();
+  var reqBody = {
+    appdef: appdef,
+    tag: tag
+  };
+
+  // Strip ending / from host string
+  var strippedHost = host.replace(/\/$/,'');
+  var apiEndpoint = strippedHost + clusternatorEndpoint;
+
+  var d = q.defer();
+
+
+  request
+    .post(apiEndpoint)
+    .send(reqBody)
+    .end((err, res) => { // TODO q short syntax
+      if(err) {
+        d.reject(err);
+      } else {
+        d.resolve(res);
+      }
+    });
+
+  return d.promise;
 }
 
 function generateTagFromEnv() {
@@ -33,8 +57,6 @@ function generateTagFromEnv() {
 
   var time = Date.now();
   tagOpts.time = time;
-
-  console.log(tagOpts);
 
   var rid = resourceId.generateRID(tagOpts);
 
