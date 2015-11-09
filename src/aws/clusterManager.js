@@ -69,13 +69,28 @@ function deleteCluster(config) {
     });
   }
 
-  function deregister() {
+  function deregister(instanceArn, clusterId) {
+    return Q.nfbind(ecs.deregisterContainerInstance.bind(ecs), {
+        cluster: clusterId,
+        containerInstance: instanceArn
+    })();
+  }
 
+  function listContainers(clusterId) {
+    return Q.nbind(ecs.listContainerInstances, ecs)({
+      cluster: clusterId
+    }).then(function (result) {
+        if (result.containerInstanceArns) {
+          return result.containerInstanceArns;
+        }
+        throw new Error('Cluster: listContainers: unexpected data');
+    });
   }
 
   return {
     create: createCluster,
     list: listClusters,
+    listContainers: listContainers,
     describe: describeCluster,
     destroy: deleteCluster,
     deregister: deregister

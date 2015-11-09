@@ -58,6 +58,31 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     });
   }
 
+  function destroyEc2(pid, pr, clusterName) {
+    if (!clusterName) {
+      throw new Error('destroyEc2: requires valid clusterName');
+    }
+    return cluster.listContainers(clusterName).then(function(result) {
+      var deregisterPromises = [];
+      result.forEach(function(arn) {
+        deregisterPromises.push(cluster.deregister(
+          instance.InstanceId, arn
+        ).fail(function(err) {
+          util.plog('PR: destroy EC2: Warning, Deregistration for instance ' +
+            instance.InstanceId + ' failed, project: ' + pid + ' pr #' + pr +
+          ' error: ' + err.message);
+          // do nothing on failure, deregistration _should_ actually work
+          // automagically
+        }));
+      });
+      return Q.all(deregisterPromises).then(function() {
+        return ec2mgr.destroy(pid, pr).fail(function(err) {
+          util.plog('PR Destruction Problem Destroying Ec2: ' + err.message);
+        });
+      });
+    });
+  }
+
   function destroy(pid, pr) {
     var clusterName = rid.generateRID({
       pid: pid,
@@ -65,19 +90,20 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     });
     return route53.destroy(pid, pr).
     then(function() {
-      return ec2mgr.destroy(pid, pr).fail(function (err) {
-        util.plog('PR Destruction Problem Destroying Ec2: ' + err.message);
-      });
-    }).then(function (r) {
-      return task.destroy(clusterName).fail(function (err) {
+      return destroyEc2(pid, pr, clusterName);
+    }).then(function(r) {
+      return task.destroy(clusterName).fail(function(err) {
         util.plog('PR Destruction Problem Destroying Task: ' + err.message);
         return r;
       });
-    }).then(function () {
-        return cluster.destroy({ pid: pid, pr: pr });
-    }).then(function () {
+    }).then(function() {
+      return cluster.destroy({
+        pid: pid,
+        pr: pr
+      });
+    }).then(function() {
       return securityGroup.destroy(pid, pr);
-    }).done();
+    });
   }
 
   return {
