@@ -42,7 +42,7 @@ yargs.command('circleci:push', 'Triggers ECS build from circleCI', function (y) 
       describe: 'Clusternator server IP addr / host name'
     },
 
-    app: {
+    appdef: {
       alias: 'a',
       demand: true,
       describe: 'App definition file location'
@@ -154,7 +154,7 @@ if (command === 'circleci:push') {
     console.log('Done.');
     process.exit(0);
   }, function (err) {
-    console.log('ERROR:');
+    console.log('ERROR', err);
     process.exit(-1);
   });
 } else if (command === 'circleci:tag') {
