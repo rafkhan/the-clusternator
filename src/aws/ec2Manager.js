@@ -65,9 +65,7 @@ function getEC2Manager(ec2, vpcId) {
   var baseFilters = constants.AWS_FILTER_CTAG.concat(
       common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(
-      ec2, 'describeInstances', 'Reservations', baseFilters),
-    terminateAttemptCount = 0,
-    createAttemptCount = 0;
+      ec2, 'describeInstances', 'Reservations', baseFilters);
 
   function tagInstance(instance, pr, pid) {
     return common.awsTagEc2(ec2, instance.InstanceId, [{
@@ -114,36 +112,50 @@ function getEC2Manager(ec2, vpcId) {
     });
   }
 
+  function makeTerminatedPredicate(instanceIds) {
+    function predicate() {
+      return checkInstanceStatuses(instanceIds).then(function(list) {
+        if (!list.length) {
+          throw new Error('Ec2 Could not wait for ' + instanceIds.join(', ') +
+            ' to terminate, they were not found');
+        }
+        if (list[0].State.Name === 'terminated') {
+          util.plog('Ec2: Instances ' + instanceIds.join(', ') + ' Terminated');
+          return true;
+        } else {
+          throw new Error('Ec2: Not Yet Terminated');
+        }
+      });
+    }
+    return predicate;
+  }
+
+  function makeReadyPredicate(instanceId) {
+    function predicate() {
+      return checkInstanceStatuses([instanceId]).then(function(list) {
+        var d;
+        if (!list.length) {
+          throw new Error('Ec2 No Instances Awaiting Readiness');
+        }
+        if (list[0].State.Name === 'running') {
+          util.plog('Ec2 Is Ready');
+          return true;
+        } else {
+          throw new Error('Ec2: Wait For Readiness');
+        }
+      });
+    }
+    return predicate;
+  }
+
   /**
   @param {string} instanceId
   */
   function waitForReady(instanceId) {
-    return checkInstanceStatuses([instanceId]).then(function(list) {
-      var d;
-      if (!list.length) {
-        createAttemptCount = 0;
-        throw new Error('Ec2 No Instances Awaiting Readiness');
-      }
-      if (list[0].State.Name === 'running') {
-        util.plog('Ec2 Is Ready');
-        return true;
-      }
-      d = Q.defer();
-      setTimeout(function() {
-        if (createAttemptCount > constants.AWS_EC2_POLL_MAX) {
-          createAttemptCount = 0;
-          d.reject(new Error('Ec2 Waited To Long For Ec2: ' + instanceId +
-            ' to become ready'));
-          return;
-        }
-        waitForReady(instanceId).then(d.resolve, d.reject);
-      }, constants.AWS_EC2_POLL_INTERVAL);
-      createAttemptCount += 1;
-      return d.promise;
-    }, function(err) {
-      createAttemptCount = 0;
-      throw err;
-    });
+    var fn = makeReadyPredicate(instanceId);
+
+    return util.waitFor(fn, constants.AWS_EC2_POLL_INTERVAL,
+      constants.AWS_EC2_POLL_MAX);
   }
 
   /**
@@ -152,7 +164,7 @@ function getEC2Manager(ec2, vpcId) {
    */
   function buildEc2Box(config) {
     if (!config) {
-      throw 'This function requires a configuration object';
+      throw new TypeError('This function requires a configuration object');
     }
 
     var clusterName = config.clusterName;
@@ -203,34 +215,10 @@ function getEC2Manager(ec2, vpcId) {
   @param {string[]} instanceIds
   */
   function waitForTermination(instanceIds) {
-    return checkInstanceStatuses(instanceIds).then(function(list) {
-      var d;
-      if (!list.length) {
-        terminateAttemptCount = 0;
-        throw new Error('Ec2 Could not wait for ' + instanceIds.join(', ') +
-          ' to terminate, they were not found');
-      }
-      if (list[0].State.Name === 'terminated') {
-        util.plog('Ec2: Instances ' + instanceIds.join(', ') + ' Terminated');
-        terminateAttemptCount = 0;
-        return true;
-      }
-      d = Q.defer();
-      setTimeout(function() {
-        if (terminateAttemptCount > constants.AWS_EC2_POLL_MAX) {
-          terminateAttemptCount = 0;
-          d.reject(new Error('EC2 Waiting Too Long To Terminate ' +
-            instanceIds.join(', ')));
-          return;
-        }
-        waitForTermination(instanceIds).then(d.resolve, d.reject);
-      }, constants.AWS_EC2_POLL_INTERVAL);
-      terminateAttemptCount += 1;
-      return d.promise;
-    }, function onError(err) {
-      terminateAttemptCount = 0;
-      throw err;
-    });
+    var fn = makeTerminatedPredicate(instanceIds);
+
+    return util.waitFor(fn, constants.AWS_EC2_POLL_INTERVAL,
+      constants.AWS_EC2_POLL_MAX);
   }
 
   /**

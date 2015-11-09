@@ -1,6 +1,6 @@
 'use strict';
-
-var util = require('../../src/util');
+var util = require('../../src/util'),
+  Q = require('q');
 require('./chai');
 
 
@@ -31,5 +31,59 @@ describe('utility functions', function() {
       expect(err.message).to.equal(output);
       done();
     });
+  });
+
+  describe('waitFor tests', function() {
+    it('waitFor should resolve if its predicate resolves', function(done) {
+      function predicate() {
+        return Q.resolve();
+      }
+      util.waitFor(predicate, 1, 1, 'test').then(function() {
+        expect(true).to.be;
+        done();
+      }, function(err) {
+        expect(err).to.not.be;
+        done();
+      });
+    });
+
+
+    it('waitFor should reject if its predicate rejects, *and* max retries ' +
+      ' exceeded',
+      function(done) {
+        function predicate() {
+          return Q.reject(new Error('test'));
+        }
+        util.waitFor(predicate, 1, 1, 'test').then(function() {
+          expect('not this case').to.not.be;
+          done();
+        }, function(err) {
+          expect(err instanceof Error).to.be;
+          done();
+        });
+      });
+
+
+    it('waitFor should reseolve if its predicate resolves, *and* max retries ' +
+      ' is *not* exceeded',
+      function(done) {
+        var count = 0;
+
+        function predicate() {
+          count += 1;
+          if (count < 5) {
+            return Q.reject(new Error('test'));
+          } else {
+            return Q.resolve();
+          }
+        }
+        util.waitFor(predicate, 1, 6, 'test').then(function() {
+          expect(true).to.be;
+          done();
+        }, function(err) {
+          expect(err).to.not.be;
+          done();
+        });
+      });
   });
 });

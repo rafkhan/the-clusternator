@@ -67,7 +67,6 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     then(function() {
       return ec2mgr.destroy(pid, pr).fail(function (err) {
         util.plog('PR Destruction Problem Destroying Ec2: ' + err.message);
-
       });
     }).then(function (r) {
       return task.destroy(clusterName).fail(function (err) {
@@ -75,10 +74,10 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         return r;
       });
     }).then(function () {
+        return cluster.destroy({ pid: pid, pr: pr });
+    }).then(function () {
       return securityGroup.destroy(pid, pr);
-    });
-    // destroy domain
-    // destroy ecs
+    }).done();
   }
 
   return {
