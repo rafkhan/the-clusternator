@@ -13,8 +13,8 @@ function push(host, appdef, tag) {
     return q.reject('Not running on circle CI.');
   }
 
-  if(!host || !appdef || tag) {
-    return q.reject();
+  if(!host || !appdef || !tag) {
+    return q.reject('Missing arguments');
   }
 
   var reqBody = {
@@ -24,7 +24,7 @@ function push(host, appdef, tag) {
 
   // Strip ending / from host string
   var strippedHost = host.replace(/\/$/,'');
-  var apiEndpoint = strippedHost + clusternatorEndpoint;
+  var apiEndpoint = strippedHost + clusternateEndpoint;
 
   var d = q.defer();
 
@@ -34,6 +34,7 @@ function push(host, appdef, tag) {
     .send(reqBody)
     .end((err, res) => { // TODO q short syntax
       if(err) {
+        // Clean up error response
         d.reject(err);
       } else {
         d.resolve(res);

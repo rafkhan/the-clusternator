@@ -1,5 +1,7 @@
 'use strict';
 
+var R = require('ramda');
+
 var serverUtil = require('./util');
 
 var missingPropertyStatus = 400;
