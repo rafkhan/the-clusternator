@@ -30,8 +30,6 @@ function pushHandler(req, res) {
     tag: tag
   }, null, 2);
 
-  console.log(resp);
-
   res.send(resp);
 }
 
