@@ -1,5 +1,6 @@
 'use strict';
 
+var fs = require('fs');
 var q = require('q');
 var request = require('superagent');
 var resourceId = require('../resourceIdentifier');
@@ -17,10 +18,6 @@ function push(host, appdef, tag) {
     return q.reject('Missing arguments');
   }
 
-  var reqBody = {
-    appdef: appdef,
-    tag: tag
-  };
 
   // Strip ending / from host string
   var strippedHost = host.replace(/\/$/,'');
@@ -28,18 +25,38 @@ function push(host, appdef, tag) {
 
   var d = q.defer();
 
+  var readFile = q.nfbind(fs.readFile);
+  readFile(appdef, "utf-8")
+    .then((appdefText) => {
+      return {
+        appdef: appdefText,
+        tag: tag
+      };
+    }, (err) => {
+      var msg = 'Can not read appdef from ' + appdef;
+      return msg;
+    })
 
-  request
-    .post(apiEndpoint)
-    .send(reqBody)
-    .end((err, res) => { // TODO q short syntax
-      if(err) {
-        // Clean up error response
-        d.reject(err);
-      } else {
-        d.resolve(res);
-      }
+    .then((reqBody) => {
+      request
+        .post(apiEndpoint)
+        .send(reqBody)
+        .end((err, res) => { // TODO q short syntax
+          if(err) {
+            // Clean up error response
+            d.reject(err);
+          } else {
+            var parsedRes = JSON.parse(res.text);
+            var data = {};
+            data.tag = parsedRes.tag;
+            data.appdef = JSON.parse(parsedRes.appdef);
+            d.resolve(data);
+          }
+        });
+    }, (err) => {
+      d.reject(err);
     });
+
 
   return d.promise;
 }

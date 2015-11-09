@@ -24,11 +24,15 @@ function pushHandler(req, res) {
     error(missingPropertyStatus,
           '"appdef" required to instantiate cluster.');
   }
-  
-  res.send(JSON.stringify({
+
+  var resp = JSON.stringify({
     appdef: appdef,
     tag: tag
-  }, null, 2));
+  }, null, 2);
+
+  console.log(resp);
+
+  res.send(resp);
 }
 
 module.exports = pushHandler;
