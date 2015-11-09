@@ -2,50 +2,28 @@
 
 var express = require('express');
 var bodyParser = require('body-parser');
-var winston = require('winston');
-var expressWinston = require('express-winston');
 
 var prHandler = require('./pullRequest');
 var pushHandler = require('./push');
+var loggers = require('./loggers');
 
 function getServer(config) {
   var app = express();
+
+  function ping(req, res) {
+    res.send('Still alive.');
+  }
 
   // SSL
   // Auth
 
   app.use(bodyParser.json());
-
-  app.use(expressWinston.logger({
-    transports: [
-      new winston.transports.Console({
-        json: true,
-        colorize: true
-      })
-    ],
-    meta: true,
-    msg: 'HTTP {{req.method}} {{req.url}}',
-    expressFormat: true,
-    colorStatus: true
-  }));
-
-
-  app.get('/ping', function (req, res) {
-    res.send('Still alive.');
-  });
+  app.use(loggers.request);
 
   app.post('/clusternate', pushHandler); // CI post-build hook
   app.post('/github/pr', prHandler);     // github close PR hook
 
-
-  app.use(expressWinston.errorLogger({
-    transports: [
-      new winston.transports.Console({
-        json: true,
-        colorize: true
-      })
-    ]
-  }));
+  app.use(loggers.error);
 
   return app;
 }
