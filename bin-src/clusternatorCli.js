@@ -43,7 +43,7 @@ yargs.command('circleci:push',
         describe: 'Clusternator server IP addr / host name'
       },
 
-      app: {
+      appdef: {
         alias: 'a',
         demand: true,
         describe: 'App definition file location'
@@ -186,7 +186,7 @@ if (command === 'circleci:push') {
       console.log('Done.');
       process.exit(0);
     }, (err) => {
-      console.log('ERROR:')
+      console.log('ERROR', err)
       process.exit(-1);
     });
 

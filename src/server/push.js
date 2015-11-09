@@ -1,5 +1,7 @@
 'use strict';
 
+var R = require('ramda');
+
 var serverUtil = require('./util');
 
 var missingPropertyStatus = 400;
@@ -10,23 +12,27 @@ function pushHandler(req, res) {
   var body = req.body;
 
   // essential
-  var repo = body.repo;
   var appdef = body.appdef;
-  // non essential
-  var sha = body.sha;
-  var prNumber = body.pr;
+  var tag = body.tag;
 
-  if(!repo) {
+  if(!tag) {
     error(missingPropertyStatus,
-          '"repo" required for project identification.');
+          '"tag" required for project identification.');
   }
 
   if(!appdef) {
     error(missingPropertyStatus,
           '"appdef" required to instantiate cluster.');
   }
-  
-  // Initiate building box
+
+  var resp = JSON.stringify({
+    appdef: appdef,
+    tag: tag
+  }, null, 2);
+
+  console.log(resp);
+
+  res.send(resp);
 }
 
 module.exports = pushHandler;
