@@ -19,8 +19,8 @@ function quote(str) {
 }
 
 /**
-@param {string} ip '1.2.3.0/24'
-@return {string} '1.2'
+  @param {string} ip '1.2.3.0/24'
+  @return {string} '1.2'
 */
 function getCidrPrefixFromIPString(ip) {
   var classes = ip.split('.');
@@ -28,11 +28,11 @@ function getCidrPrefixFromIPString(ip) {
 }
 
 /**
-@param {function(...):Q.Promise} asyncPredicateFunction
-@param {number} interval ms to retry (defaults to 10000)
-@param {number=} max maximum number of retries (default 0 for infinity)
-@param {string=} label label for debugging
-@return {Q.Promise}
+  @param {function(...):Q.Promise} asyncPredicateFunction
+  @param {number} interval ms to retry (defaults to 10000)
+  @param {number=} max maximum number of retries (default 0 for infinity)
+  @param {string=} label label for debugging
+  @return {Q.Promise}
 */
 function waitFor(asyncPredicateFunction, interval, max, label) {
   max = Math.abs(+max) || 0;
@@ -46,8 +46,7 @@ function waitFor(asyncPredicateFunction, interval, max, label) {
       defer.resolve();
     }, function(err) {
       if (count > max && max > 0) {
-        defer.reject(new Error('waitFor: poll: ' + label + ' too many failures: '
-        + count));
+        defer.reject(new Error('waitFor: poll: ' + label + ' too many failures: ' + count));
         return;
       }
       count += 1;
@@ -58,10 +57,35 @@ function waitFor(asyncPredicateFunction, interval, max, label) {
   return defer.promise;
 }
 
+/**
+  @param {*} something to test
+  @return {boolean}
+*/
+function isFunction(fn) {
+  return typeof fn === 'function';
+}
+
+/**
+  @param {Object} api some collection/object of nodejs style functions
+  @return {Object} a new object with promisified functions
+*/
+function makePromiseApi(api) {
+  var promiseApi = {},
+    attr;
+  // wrap *all* the functions !!!
+  for (attr in api)
+    if (isFunction(api[attr])) {
+      promiseApi[attr] = Q.nbind(api[attr], api);
+    }
+  return promiseApi;
+}
+
 module.exports = {
   errLog: errLog,
   plog: plog,
+  isFunction: isFunction,
   quote: quote,
   getCidrPrefixFromIPString,
-  waitFor: waitFor
+  waitFor: waitFor,
+  makePromiseApi
 };

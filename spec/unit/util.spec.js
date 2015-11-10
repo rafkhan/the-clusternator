@@ -86,4 +86,59 @@ describe('utility functions', function() {
         });
       });
   });
+
+  describe('makePromiseApi tests', function() {
+    var api;
+
+    // AWS's is a constructor so our mock should be too
+    MockApi.prototype.oneParam = function oneParam(param, callback) {
+      callback();
+    };
+    MockApi.prototype.twoParams = function twoParams(p1, p2, callback) {
+      callback(p2);
+    };
+    MockApi.prototype.errorOut = function errorOut(param, callback) {
+      callback(new Error('test'));
+    };
+
+    beforeEach(function() {
+      api = util.makePromiseApi(new MockApi());
+    });
+
+    it('should turn oneParam into a promise', function(done) {
+      api.oneParam(1).then(function() {
+        expect(true).to.be;
+        done();
+      }, function(err) {
+        expect(err).to.not.be;
+        done();
+      });
+    });
+
+    it('should turn twoParams into a promise, and resolve the expected param (2)',
+      function(done) {
+        api.twoParams(1, 2).then(function(result) {
+          expect(result).to.equal(2);
+          done();
+        }, function(err) {
+          expect(err).to.not.be;
+          done();
+        });
+      });
+
+    it('should reject errorOut', function(done) {
+      api.errorOut(1).then(function() {
+        expect('this case should not happen').to.not.be;
+        done();
+      }, function(err) {
+        expect(err instanceof Error).to.be;
+        done();
+      });
+    });
+
+    function MockApi() {
+
+    }
+  });
+
 });
