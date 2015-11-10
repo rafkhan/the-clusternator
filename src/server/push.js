@@ -3,10 +3,11 @@
 var R = require('ramda');
 
 var serverUtil = require('./util');
+var resourceId = require('../resourceIdentifier');
 
 var missingPropertyStatus = 400;
 
-function pushHandler(req, res) {
+function pushHandler(prManager, req, res) {
   var error = R.curry(serverUtil.sendError)(res);
 
   var body = req.body;
@@ -24,6 +25,11 @@ function pushHandler(req, res) {
     error(missingPropertyStatus,
           '"appdef" required to instantiate cluster.');
   }
+
+  var parsedTag = resourceId.parseRID(tag);
+  prManager.create(parsedTag.pid, parsedTag.pr, appdef)
+    .then((res) => { console.log('PR manager created build successfully', res); },
+          (err) => { console.log('Error creating PR build:', err); });
 
   var resp = JSON.stringify({
     appdef: appdef,

@@ -160,7 +160,12 @@ if (command === 'circleci:push') {
 } else if (command === 'circleci:tag') {
   cli.circleCITag(argv)();
 } else if (command === 'server:start') {
-  cli.startServer(argv)();
+  cli.startServer(argv)().then(function () {
+    console.log('Successfully started server.');
+  }, function (err) {
+    console.log('Error starting server:', err);
+    process.exit(-1);
+  });
 } else if (command === 'cluster:new') {
   cli.newApp(argv)();
   setInterval(function () {}, 10000);

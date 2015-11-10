@@ -194,7 +194,13 @@ if (command === 'circleci:push') {
   cli.circleCITag(argv)();
 
 } else if (command === 'server:start') {
-  cli.startServer(argv)();
+  cli.startServer(argv)()
+    .then(() => {
+      console.log('Successfully started server.');
+    }, (err) => {
+      console.log('Error starting server:', err)
+      process.exit(-1);
+    });
 
 } else if (command === 'cluster:new') {
   cli.newApp(argv)();

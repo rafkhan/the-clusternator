@@ -3,6 +3,7 @@
 const TEST_VPC = 'vpc-ab07b4cf';
 const TEST_ZONE = 'us-east-1';
 
+var R = require('ramda');
 var q = require('q');
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -23,11 +24,14 @@ function createServer(prManager) {
 
   // SSL
   // Auth
+  //
+  var curriedPushHandler = R.curry(pushHandler)(prManager)
 
   app.use(bodyParser.json());
   app.use(loggers.request);
 
-  app.post('/clusternate', pushHandler); // CI post-build hook
+  app.get('/ping', ping);
+  app.post('/clusternate', curriedPushHandler); // CI post-build hook
   app.post('/github/pr', prHandler);     // github close PR hook
 
   app.use(loggers.error);
@@ -50,17 +54,19 @@ function loadPRManagerAsync(config) {
 
 function getServer(config) {
   return loadPRManagerAsync(config)
-          .then(createServer, (err) => {
-            return q.reject(err);
-          });
+    .then(createServer, (err) => {
+      return q.reject(err);
+    });
 }
 
 function startServer(config) {
   // wtf
-  getServer(config)
+  return getServer(config)
     .then((server) => {
       server.listen(config.port); 
       console.log('Clusternator listening on port', config.port)
+    }, (err) => {
+      
     });
 }
 
