@@ -66,11 +66,11 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
       var deregisterPromises = [];
       result.forEach(function(arn) {
         deregisterPromises.push(cluster.deregister(
-          instance.InstanceId, arn
+          arn, clusterName
         ).fail(function(err) {
           util.plog('PR: destroy EC2: Warning, Deregistration for instance ' +
-            instance.InstanceId + ' failed, project: ' + pid + ' pr #' + pr +
-          ' error: ' + err.message);
+            arn + ' failed, project: ' + pid + ' pr #' + pr +
+            ' error: ' + err.message);
           // do nothing on failure, deregistration _should_ actually work
           // automagically
         }));

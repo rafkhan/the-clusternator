@@ -8,7 +8,7 @@ var Vpc = rewire('../../../src/aws/vpcManager');
 require('../chai');
 
 
-/*global describe, it, expect, beforeEach */
+/*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
 describe('vpcManager', function() {
   var vpc;

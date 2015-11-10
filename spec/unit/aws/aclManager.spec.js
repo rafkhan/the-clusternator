@@ -8,7 +8,7 @@ var Acl = rewire('../../../src/aws/aclManager');
 require('../chai');
 
 
-/*global describe, it, expect, beforeEach */
+/*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
 describe('aclManager', function() {
   var acl;

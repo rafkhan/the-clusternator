@@ -12,7 +12,11 @@
     "quotes": [1, "single"],
     "no-underscore-dangle": 0,
     "no-multi-spaces": 0,
+    "no-undef": 2,
+    "no-unreachable": 2,
+    "no-func-assign": 2,
     "comma-dangle": 0,
-    "new-cap": 0
+    "new-cap": 0,
+    "valid-typeof": 2
   }
 }

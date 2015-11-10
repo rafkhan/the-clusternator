@@ -5,7 +5,7 @@ require('./chai');
 
 
 
-/*global describe, it, expect */
+/*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions:0*/
 describe('utility functions', function() {
   it('should have a function that quotes a supplied argument', function() {

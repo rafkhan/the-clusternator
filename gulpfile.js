@@ -31,6 +31,10 @@ gulp.task('watch', function watch() {
   gulp.watch(jsPaths, ['transpile']);
 });
 
+gulp.task('watch-tests', function watch() {
+  gulp.watch(jsPaths.concat(specPaths), ['test-unit']);
+});
+
 gulp.task('pre-test-unit', ['lint'], function preUnitTest() {
   return gulp.src(jsPaths).pipe(istanbul()).
   pipe(istanbul.hookRequire());
