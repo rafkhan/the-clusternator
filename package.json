@@ -5,8 +5,15 @@
   "main": "clusternator.js",
   "preferGlobal": true,
   "keywords": [
-    "docker", "aws", "amazon", "cluster", "cloud", "heroku", "vm",
-    "virtual machine", "container"
+    "docker",
+    "aws",
+    "amazon",
+    "cluster",
+    "cloud",
+    "heroku",
+    "vm",
+    "virtual machine",
+    "container"
   ],
   "bugs": {
     "url": "https://github.com/rangle/the-clusternator/issues"
@@ -29,11 +36,12 @@
     "aws-sdk": "^2.2.12",
     "body-parser": "^1.14.1",
     "express": "^4.13.3",
+    "express-winston": "^0.4.1",
     "q": "^1.4.1",
     "ramda": "^0.17.1",
     "request-promise": "^0.4.3",
     "superagent": "^1.4.0",
-    "winston": "^1.1.1",
+    "winston": "^1.1.2",
     "yargs": "^3.29.0"
   },
   "bin": {
