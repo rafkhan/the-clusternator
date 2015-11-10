@@ -103,7 +103,7 @@ function getEC2Manager(ec2, vpcId) {
         return [];
       }
 
-      var res = list.Reservations[0].Instanc;s;
+      var res = list.Reservations[0].Instances;
       console.log(require('util').inspect(res));
       return res.map(function(reservation) {
         return {
