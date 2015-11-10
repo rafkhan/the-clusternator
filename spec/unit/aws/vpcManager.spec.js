@@ -44,7 +44,7 @@ describe('vpcManager', function() {
   it('findProjectTag should return null if given a list without a ' +
     'clusternator project tag',
     function() {
-      expect(vpc.findProjectTag('id', {
+      expect(vpc.helpers.findProjectTag('id', {
         Vpcs: [{
           Tags: [{
             Key: 'hahah',
@@ -57,7 +57,7 @@ describe('vpcManager', function() {
   it('findProjectTag should return truthy if given a list with a ' +
     'clusternator project tag',
     function() {
-      expect(vpc.findProjectTag('id', {
+      expect(vpc.helpers.findProjectTag('id', {
         Vpcs: [{
           Tags: [{
             Key: constants.PROJECT_TAG,
@@ -70,7 +70,7 @@ describe('vpcManager', function() {
   it('findMasterVPC should return truthy if given a list without a ' +
     'clusternator project tag',
     function() {
-      expect(vpc.findMasterVPC({
+      expect(vpc.helpers.findMasterVPC({
         Vpcs: [{
           Tags: [{
             Key: 'I have no tags',
@@ -83,7 +83,7 @@ describe('vpcManager', function() {
   it('findMasterVPC should return null if given a list with a ' +
     'clusternator project tag',
     function() {
-      expect(vpc.findMasterVPC({
+      expect(vpc.helpers.findMasterVPC({
         Vpcs: [{
           Tags: [{
             Key: constants.PROJECT_TAG,
@@ -120,7 +120,7 @@ describe('vpcManager', function() {
             }]
           }]
         };
-        vpc.findProjectVPC('id').then(function(r) {
+        vpc.helpers.findProjectVPC('id').then(function(r) {
           expect(r.Tags[0].Value).to.equal('id');
           done();
         }, function(err) {
@@ -140,7 +140,7 @@ describe('vpcManager', function() {
             }]
           }]
         };
-        vpc.findProjectVPC('id').then(function(r) {
+        vpc.helpers.findProjectVPC('id').then(function(r) {
           expect(r.Tags[0].Value).to.equal('other');
           done();
         }, function(err) {
@@ -154,7 +154,7 @@ describe('vpcManager', function() {
         list = {
           Vpcs: []
         };
-        vpc.findProjectVPC('id').then(function(r) {
+        vpc.helpers.findProjectVPC('id').then(function(r) {
           expect('this case should not happen').to.not.be;
           done();
         }, function(err) {
