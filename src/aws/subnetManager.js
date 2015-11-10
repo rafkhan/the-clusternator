@@ -87,7 +87,7 @@ function getSubnetManager(ec2, vpcId) {
     return describe().then(function(list) {
       if (isPidInSubnetList(pid, list)) {
         throw new Error('Create Subnet Failed: Project: ' + pid +
-          ' exists: ' + sn);
+          ' exists');
       }
     });
   }

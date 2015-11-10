@@ -6,7 +6,8 @@ var descriptions = {
   routeTables: [],
   securityGroups: [],
   networkAcls: [],
-  createTags: []
+  createTags: [],
+  networkAclEntries: []
 };
 
 function setDescription(id, val) {
@@ -23,6 +24,10 @@ function setDescribeSubnets(val) {
 
 function setDescribeNetworkAcls(val) {
   setDescription('networkAcls', val);
+}
+
+function setCreateNetworkAclEntry(val) {
+  setDescription('networkAclEntries', val);
 }
 
 function setDescribeSecurityGroups(val) {
@@ -73,6 +78,14 @@ function createTags(params, callback) {
   }
 }
 
+function createNetworkAclEntry(rule, callback) {
+  if (descriptions.networkAclsEntries instanceof Error) {
+    callback(descriptions.networkAclsEntries);
+  } else {
+    callback(null);
+  }
+}
+
 module.exports = {
   setCreateTags: setCreateTags,
   createTgs: createTags,
@@ -85,5 +98,7 @@ module.exports = {
   setDescribeNetworkAcls: setDescribeNetworkAcls,
   describeNetworkAcls: describeNetworkAcls,
   setDescribeSecurityGroups: setDescribeSecurityGroups,
-  describeSecurityGroups: describeSecurityGroups
+  describeSecurityGroups: describeSecurityGroups,
+  setCreateNetworkAclEntry: setCreateNetworkAclEntry,
+  createNetworkAclEntry: createNetworkAclEntry
 };

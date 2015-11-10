@@ -112,29 +112,6 @@ var constants = Object.freeze({
 
     // TODO INSTALL ECS AGENT HERE
     //UserData: 'STRING_VALUE'
-  },
-  AWS_R53_SUBDOMAIN: {
-    'HostedZoneId': '',
-    'ChangeBatch': {
-      'Comment': 'Clusternator Created',
-      'Changes': [{
-        'Action': '',               // CREATE | DELETE | UPSERT
-        'ResourceRecordSet': {
-          'Name': '',               // Subdomain Name
-          'Type': '',               // SOA | A | TXT | NS | CNAME | MX | PTR | SRV | SPF | AAAA
-          'TTL': 300,
-          'ResourceRecords': [{
-            'Value': ''
-          }],
-          'AliasTarget': {
-            'HostedZoneId': '',
-            'DNSName': '',
-            'EvaluateTargetHealth': true
-          },
-          'HealthCheckId': ''
-        }
-      }]
-    }
   }
 });
 

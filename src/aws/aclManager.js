@@ -51,29 +51,6 @@ function getAclManager(ec2, vpcId) {
     });
   }
 
-  function pruneDenyRules(aclDesc) {
-    var id = aclDesc.NetworkAcl.NetworkAclId,
-    num = '32767';
-    return Q.all([
-        Q.nfbind(ec2.deleteNetworkAclEntry.bind(ec2), {
-            NetworkAclId: id,
-            RuleNumber: num,
-            Egress: false
-        })(),
-        Q.nfbind(ec2.deleteNetworkAclEntry.bind(ec2), {
-            NetworkAclId: id,
-            RuleNumber: num,
-            Egress: true
-        })()
-    ]).then(function() {
-      return aclDesc;
-    }, function(err) {
-      util.plog('Create ACL: Warning No Default Rules To Prune: ',
-        err.message);
-      return aclDesc;
-    });
-  }
-
   function create(pid) {
     if (!pid) {
       throw new TypeError('Create ACL requires a ProjectId');
@@ -105,7 +82,8 @@ function getAclManager(ec2, vpcId) {
   return {
     describe: describe,
     create: create,
-    destroy: destroy
+    destroy: destroy,
+    defaultInOutRules
   };
 }
 

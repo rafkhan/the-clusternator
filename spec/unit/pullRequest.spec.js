@@ -10,6 +10,8 @@ app.use(bodyParser.json());
 app.post('/test', prHandler);
 
 
+/*global describe, it, expect, beforeEach */
+/*eslint no-unused-expressions: 0*/
 describe('pull request close handler', function() {
   it('should forbid non-PR events', function(done) {
     supertest(app)

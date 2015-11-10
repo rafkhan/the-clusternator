@@ -1,13 +1,18 @@
 'use strict';
 
 var Q = require('q'),
-constants = require('../constants');
+  util = require('../util'),
+  constants = require('../constants');
 
 function getVpcManager(ec2) {
-  var describeClusterVPCs = Q.nfbind(ec2.describeVpcs.bind(ec2), {
-    DryRun: false,
-    Filters: constants.AWS_FILTER_CTAG
-  });
+  ec2 = util.makePromiseApi(ec2);
+
+  function describe() {
+    return ec2.describeVpcs({
+      DryRun: false,
+      Filters: constants.AWS_FILTER_CTAG
+    });
+  }
 
   /**
     finds a vpc from a project
@@ -16,18 +21,18 @@ function getVpcManager(ec2) {
     http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeVpcs-property
   */
   function findProjectTag(projectId, list) {
-      var vpc = null;
-      list.Vpcs.forEach(function (vDesc) {
-        vDesc.Tags.forEach(function (tag) {
-          if (tag.Key !== constants.PROJECT_TAG) {
-            return;
-          }
-          if (tag.Value === projectId) {
-            vpc = vDesc;
-          }
-        });
+    var vpc = null;
+    list.Vpcs.forEach(function(vDesc) {
+      vDesc.Tags.forEach(function(tag) {
+        if (tag.Key !== constants.PROJECT_TAG) {
+          return;
+        }
+        if (tag.Value === projectId) {
+          vpc = vDesc;
+        }
       });
-      return vpc;
+    });
+    return vpc;
   }
 
 
@@ -37,26 +42,26 @@ function getVpcManager(ec2) {
     http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeVpcs-property
   */
   function findMasterVPC(list) {
-      var vpc = null;
-      list.Vpcs.forEach(function (vDesc) {
-        var foundTag = false;
-        vDesc.Tags.forEach(function (tag) {
-          if (tag.Key === constants.PROJECT_TAG) {
-            foundTag = true;
-          }
-        });
-        if (!foundTag) {
-            vpc = vDesc;
+    var vpc = null;
+    list.Vpcs.forEach(function(vDesc) {
+      var foundTag = false;
+      vDesc.Tags.forEach(function(tag) {
+        if (tag.Key === constants.PROJECT_TAG) {
+          foundTag = true;
         }
       });
-      return vpc;
+      if (!foundTag) {
+        vpc = vDesc;
+      }
+    });
+    return vpc;
   }
 
   function findProjectVPC(projectId) {
-    return describeClusterVPCs().then(function (list) {
+    return describe().then(function(list) {
       var vpc = findProjectTag(projectId, list);
       if (vpc) {
-          return vpc;
+        return vpc;
       }
       vpc = findMasterVPC(list);
       if (vpc) {
@@ -67,11 +72,13 @@ function getVpcManager(ec2) {
   }
 
   return {
-    describe: describeClusterVPCs,
+    describe,
     findProject: findProjectVPC,
-    findProjectTag: findProjectTag,
-    findProjectVPC: findProjectVPC,
-    findMasterVPC: findMasterVPC
+    helpers: {
+      findProjectTag,
+      findProjectVPC,
+      findMasterVPC,
+    }
   };
 }
 

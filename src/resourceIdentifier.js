@@ -62,13 +62,31 @@ if (!rid) {
   return constants.CLUSTERNATOR_PREFIX + '-' + rid.replace(/--$/g, '');
 }
 
-
-function generateRIDFromEnv() {
-
+/**
+  @param {string} projectId
+  @param {string} pr
+*/
+function generatePRSubdomain(projectId, pr) {
+  if (!projectId || !pr) {
+    throw new TypeError('generateSubdomain requires a projectId, and pr');
+  }
+  return projectId + '-pr-' + pr;
 }
 
+/**
+  @param {string} projectId
+  @param {string} label
+*/
+function generateSubdomain(projectId, label) {
+  if (!projectId || !label) {
+    throw new TypeError('generateSubdomain requires a projectId, and label');
+  }
+  return projectId + '-' + label;
+}
 
 module.exports = {
-  parseRID: parseRID,
-  generateRID: generateRID
+  parseRID,
+  generateRID,
+  generatePRSubdomain,
+  generateSubdomain
 };

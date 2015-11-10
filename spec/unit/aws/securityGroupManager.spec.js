@@ -43,7 +43,7 @@ describe('securityGroupManager', function () {
 
   it('create should throw without a pid', function () {
     try {
-      securityGroups.create();
+      securityGroup.create();
       expect('this case should not happen').to.not.be;
     } catch (err) {
       expect(err instanceof Error).to.be.true;
@@ -52,7 +52,7 @@ describe('securityGroupManager', function () {
 
   it('create should throw without a pr', function () {
     try {
-      securityGroups.create('test-project');
+      securityGroup.create('test-project');
       expect('this case should not happen').to.not.be;
     } catch (err) {
       expect(err instanceof Error).to.be.true;
@@ -66,7 +66,7 @@ describe('securityGroupManager', function () {
 
   it('destroy should throw without a pid', function () {
     try {
-      securityGroups.destroy();
+      securityGroup.destroy();
       expect('this case should not happen').to.not.be;
     } catch (err) {
       expect(err instanceof Error).to.be.true;
@@ -75,7 +75,7 @@ describe('securityGroupManager', function () {
 
   it('destroy should throw without a pr', function () {
     try {
-      securityGroups.destroy('test-project');
+      securityGroup.destroy('test-project');
       expect('this case should not happen').to.not.be;
     } catch (err) {
       expect(err instanceof Error).to.be.true;

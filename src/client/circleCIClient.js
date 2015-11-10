@@ -62,7 +62,7 @@ function push(host, appdef, tag) {
 }
 
 function generateTagFromEnv() {
-  var env = process.env; 
+  var env = process.env;
   var tagOpts = {};
 
   if(env.CIRCLECI_PULL_REQUEST) {

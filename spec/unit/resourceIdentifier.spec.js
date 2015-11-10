@@ -59,4 +59,48 @@ describe('generator', function() {
 
     expect(rid).equal(cPrefix + 'sha-1234');
   });
+
+  it('generatePRSubdomain should throw without a pr', function () {
+    try {
+        resourceId.generatePRSubdomain('proj');
+        expect('this should not happen').to.not.be;
+    } catch(err) {
+        expect(err instanceof Error).to.be;
+    }
+  });
+
+  it('generatePRSubdomain should throw without a projectId', function () {
+    try {
+        resourceId.generatePRSubdomain();
+        expect('this should not happen').to.not.be;
+    } catch(err) {
+        expect(err instanceof Error).to.be;
+    }
+  });
+
+  it('generateSubdomain should throw without a label', function () {
+    try {
+        resourceId.generateSubdomain('whoa');
+        expect('this should not happen').to.not.be;
+    } catch(err) {
+        expect(err instanceof Error).to.be;
+    }
+  });
+
+  it('generateSubdomain should throw without a projectId', function () {
+    try {
+        resourceId.generateSubdomain();
+        expect('this should not happen').to.not.be;
+    } catch(err) {
+        expect(err instanceof Error).to.be;
+    }
+  });
+
+  it('generatePRSubdomain should return projectId-pr-pr#', function () {
+    expect(resourceId.generatePRSubdomain('test', '1')).to.equal('test-pr-1');
+  });
+
+  it('generateSubdomain should return projectId-label', function () {
+    expect(resourceId.generateSubdomain('test', 'me')).to.equal('test-me');
+  });
 });
