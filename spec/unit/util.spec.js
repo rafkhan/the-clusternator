@@ -12,6 +12,14 @@ describe('utility functions', function() {
     expect(util.quote('booya')).equal('"booya"');
   });
 
+  it('clone should return a copy of an object', function () {
+    var testObj = { a: 5, b: { ba: 10 }},
+    copy = util.clone(testObj);
+    expect(copy).to.not.equal(testObj);
+    expect(copy.b).to.not.equal(testObj.b);
+    expect(copy.b.ba).to.equal(testObj.b.ba);
+  });
+
   it('getCidrPrefixFromIPString should return the first two classes of an ' +
     ' ip address',
     function() {

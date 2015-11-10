@@ -1,7 +1,7 @@
 'use strict';
 
-var R = require('ramda'),
-  Q = require('q'),
+var Q = require('q'),
+  R = require('ramda'),
   util = require('../util'),
   rid = require('../resourceIdentifier'),
   skeletons = require('./route53Skeletons'),
@@ -37,14 +37,15 @@ function getRoute53(route53, zoneId) {
     @return {Change}
   */
   function createChange(action) {
-    var actionIndex = skeletons.CHANGE_ACTIONS.indexOf(action);
+    var actionIndex = skeletons.CHANGE_ACTIONS.indexOf(action),
+      change;
     if (actionIndex === -1) {
       throw new TypeError('route53: invalid change action: ' + action +
         ' MUST be one of ' + skeletons.CHANGE_ACTIONS.join(', '));
     }
-    return R.merge(skeletons.CHANGE, {
-      Action: action
-    });
+    change = util.clone(skeletons.CHANGE);
+    change.Action = action;
+    return change;
   }
 
   /**
@@ -52,9 +53,11 @@ function getRoute53(route53, zoneId) {
     @return {ChangeBatch}
   */
   function createChangeBatch(comment) {
-    return R.merge(skeletons.CHANGE_BATCH, {
-      Comment: comment
-    });
+    var changeBatch = util.clone(skeletons.CHANGE_BATCH);
+    if (comment) {
+      changeBatch.Comment = comment;
+    }
+    return changeBatch;
   }
 
   /**
@@ -66,9 +69,9 @@ function getRoute53(route53, zoneId) {
       throw new TypeError('route53: createResourceRecord expecting value ' +
         'parameter');
     }
-    return R.merge(skeletons.RESOURCE_RECORD, {
-      Value: value
-    });
+    var resourceRecord = util.clone(skeletons.RESOURCE_RECORD);
+    resourceRecord.Value = value;
+    return resourceRecord;
   }
 
   /**
@@ -94,13 +97,13 @@ function getRoute53(route53, zoneId) {
       throw new TypeError('route53: createResourceRecordSet expecting ' +
         '"name" parameter');
     }
-    return R.merge(skeletons.RESOURCE_RECORD_SET, {
-      Name: name,
-      Type: type,
-      ResourceRecords: [
-        createResourceRecord(resourceValue)
-      ]
-    });
+    var resourceRecordSet = util.clone(skeletons.RESOURCE_RECORD_SET);
+    resourceRecordSet.Name = name;
+    resourceRecordSet.Type = type;
+    resourceRecordSet.ResourceRecords.push(
+      createResourceRecord(resourceValue)
+    );
+    return resourceRecordSet;
   }
 
   /**

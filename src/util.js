@@ -84,12 +84,27 @@ function makePromiseApi(api) {
   return promiseApi;
 }
 
+/**
+  Quick/dirty deep copy.  Will break on circular structures.
+  @param {*} obj
+  @return {*} copy
+*/
+function clone(obj) {
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch(err) {
+    plog('Clone Warning: ', err.message);
+    return null;
+  }
+}
+
 module.exports = {
   errLog: errLog,
   plog: plog,
-  isFunction: isFunction,
+  isFunction,
   quote: quote,
   getCidrPrefixFromIPString,
-  waitFor: waitFor,
-  makePromiseApi
+  waitFor,
+  makePromiseApi,
+  clone
 };
