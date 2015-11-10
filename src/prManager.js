@@ -69,7 +69,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     return subnet.describe().then(function(list) {
       if (!list.length) {
         throw new Error('Create Pull Request failed, no subnet found for ' +
-          'Project: ' + pid + ' PulL Request # ' + pr);
+          'Project: ' + pid + ' Pull Request # ' + pr);
       }
       return createCluster(list[0].SubnetId, pid, pr, appDef);
     });
