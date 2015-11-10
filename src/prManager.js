@@ -17,6 +17,22 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     ec2mgr = Ec2(ec2, vpcId),
     task = Task(ecs);
 
+  function findIpFromEc2Describe(results) {
+    /** @todo in the future this might be plural, or more likely it will
+    be going through an ELB */
+    var ip;
+    if (!results[0]) {
+      throw new Error('createPR: unexpected EC2 create results');
+    }
+    results[0].Instances.forEach(function(inst) {
+      ip = inst.PublicIpAddress;
+    });
+    if (!ip) {
+      throw new Error('createPR: expecting a public IP address');
+    }
+    return ip;
+  }
+
   function createCluster(subnetId, pid, pr, appDef) {
     var clusterName = rid.generateRID({
       pid: pid,
@@ -37,12 +53,13 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         sgId: sgDesc.GroupId,
         subnetId: subnetId,
         apiConfig: {}
+      }).then(function(ec2Results) {
+        var ip = findIpFromEc2Describe(ec2Results);
+        return route53.createPRARecord(pid, pr, ip);
       });
     }).
     then(function() {
       return task.create(clusterName, clusterName, appDef);
-    }).then(function() {
-      return route53.create(pid, pr);
     });
     //- start system
   }
@@ -83,12 +100,19 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     });
   }
 
+  function destroyRoutes(pid, pr) {
+    return ec2mgr.describe(pid, pr).then(function(results) {
+      var ip = findIpFromEc2Describe(results);
+      return route53.destroyPRARecord(pid, pr, ip);
+    });
+  }
+
   function destroy(pid, pr) {
     var clusterName = rid.generateRID({
       pid: pid,
       pr: pr
     });
-    return route53.destroy(pid, pr).
+    return destroyRoutes(pid, pr).
     then(function() {
       return destroyEc2(pid, pr, clusterName);
     }).then(function(r) {

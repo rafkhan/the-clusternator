@@ -120,7 +120,7 @@ function getRoute53(route53, zoneId) {
         ChangeBatch: changeBatch,
         HostedZoneId: zoneId
       };
-      changeBatch.Changes.push(change);
+    changeBatch.Changes.push(change);
 
     params.ChangeBatch.Changes[0].ResourceRecordSet =
       createResourceRecordSet(domainName + '.' + tld, 'A', ip);
@@ -136,7 +136,7 @@ function getRoute53(route53, zoneId) {
     @param {Object=} config
   */
   function createAParams(pid, pr, ip, tld, config) {
-      return changeAParams('CREATE', pid, pr, ip, tld, config);
+    return changeAParams('CREATE', pid, pr, ip, tld, config);
   }
 
   /**
@@ -165,6 +165,13 @@ function getRoute53(route53, zoneId) {
     });
   }
 
+  /**
+    @param {string} pid
+    @param {string} pr
+    @param {string} ip
+    @param {Object=} Route53 config object (optional)
+    @return {Q.Promise}
+  */
   function destroyPRARecord(pid, pr, ip, config) {
     return findTld().then(function(tld) {
       return route53.changeResourceRecordSets(

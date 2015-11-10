@@ -1,7 +1,7 @@
 'use strict';
 const TEST_VPC = 'vpc-ab07b4cf';
 const TEST_ROUTE = 'rtb-79284a1d';
-const TEST_R53 = "/hostedzone/Z1K98SX385PNRP";
+const TEST_R53 = '/hostedzone/Z1K98SX385PNRP';
 
 var path = require('path');
 

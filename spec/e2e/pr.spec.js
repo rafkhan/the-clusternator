@@ -1,6 +1,7 @@
 var setup = require('./setup'),
-PR = require(setup.path('prManager.js'));
+  PR = require(setup.path('prManager.js'));
 
 module.exports = PR(
-  setup.getEc2(), setup.getEcs(), setup.getRoute53(), setup.testVPC
+  setup.getEc2(), setup.getEcs(), setup.getRoute53(),
+  setup.testVPC, setup.testR53
 );

@@ -206,7 +206,7 @@ function getEC2Manager(ec2, vpcId) {
         readyPromises.push(waitForReady(instance.InstanceId));
       });
       return Q.all(tagPromises.concat(readyPromises)).then(function() {
-        return results;
+        return describe(config.pid, config.pr);
       });
     });
   }
