@@ -105,6 +105,10 @@ function replaceNetworkAclAssociation() {
   return Q.resolve();
 }
 
+function createNetworkAcl(p, cb) {
+  cb(null, { NetworkAcl: { NetworkAclId: 'test' }});
+}
+
 module.exports = {
   setCreateTags,
   createTags,
@@ -122,5 +126,6 @@ module.exports = {
   createNetworkAclEntry,
   setAssociateRouteTable,
   associateRouteTable,
-  replaceNetworkAclAssociation
+  replaceNetworkAclAssociation,
+  createNetworkAcl
 };
