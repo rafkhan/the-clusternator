@@ -24,7 +24,7 @@ function getServer(config) {
       })
     ],
     meta: true,
-    msg: "HTTP {{req.method}} {{req.url}}",
+    msg: 'HTTP {{req.method}} {{req.url}}',
     expressFormat: true,
     colorStatus: true
   }));

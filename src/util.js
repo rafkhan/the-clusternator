@@ -14,6 +14,10 @@ function plog() {
   return arguments[0];
 }
 
+/**
+  @param {string}
+  @return {string} (double) quoted version
+*/
 function quote(str) {
   return '"' + str + '"';
 }

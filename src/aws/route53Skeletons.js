@@ -1,4 +1,10 @@
 module.exports = Object.freeze({
+  RECORD_TYPES: [
+    'SOA', 'A', 'TXT', 'NS', 'CNAME', 'MX', 'PTR', 'SRV', 'SPF', 'AAAA'
+  ],
+  CHANGE_ACTIONS: [
+      'CREATE', 'DELETE', 'UPSERT'
+  ],
   RESOURCE_RECORD: {
     Value: ''
   },
@@ -6,22 +12,19 @@ module.exports = Object.freeze({
     'Name': '', // Subdomain Name
     'Type': '', // SOA | A | TXT | NS | CNAME | MX | PTR | SRV | SPF | AAAA
     'TTL': 300,
-    'ResourceRecords': [{
-      'Value': ''
-    }],
-    'HealthCheckId': ''
+    'ResourceRecords': []
   },
   ALIAS_TARGET: {
-      'HostedZoneId': '',
-      'DNSName': '',
-      'EvaluateTargetHealth': true
+    'HostedZoneId': '',
+    'DNSName': '',
+    'EvaluateTargetHealth': true
   },
   CHANGE: {
     'Action': '', // CREATE | DELETE | UPSERT
   },
   CHANGE_BATCH: {
-      'Comment': 'Clusternator Created',
-      'Changes': []
+    'Comment': 'Clusternator Created',
+    'Changes': []
   },
   CHANGE_PARAMS: {
     'HostedZoneId': ''
