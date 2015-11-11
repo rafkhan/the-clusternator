@@ -26,10 +26,12 @@ function pushHandler(prManager, req, res) {
           '"appdef" required to instantiate cluster.');
   }
 
+  var parsedAppdef = JSON.parse(appdef);
   var parsedTag = resourceId.parseRID(tag);
-  prManager.create(parsedTag.pid, parsedTag.pr, appdef)
+
+  prManager.create(parsedTag.pid, parsedTag.pr, parsedAppdef)
     .then((res) => { console.log('PR manager created build successfully', res); },
-          (err) => { console.log('Error creating PR build:', err); });
+          (err) => { console.log('Error creating PR build:', err.stack); });
 
   var resp = JSON.stringify({
     appdef: appdef,

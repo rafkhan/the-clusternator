@@ -1,7 +1,7 @@
 'use strict';
 
 const TEST_VPC = 'vpc-ab07b4cf';
-const TEST_ZONE = '/hostedzone/Z31OFS3W2ZKMA0';
+const TEST_ZONE = '/hostedzone/Z1K98SX385PNRP';
 
 var R = require('ramda');
 var q = require('q');
