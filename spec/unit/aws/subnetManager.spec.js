@@ -1,17 +1,19 @@
 'use strict';
 
 var rewire = require('rewire'),
+  Q = require('q'),
   constants = require('../../../src/constants'),
+  common = require('../../../src/aws/common'),
   VpcMock = require('./vpc-mock'),
   ec2Mock = require('./ec2-mock');
 
-var Subnet = rewire('../../../src/aws/subnetManager');
-require('../chai');
+var Subnet = rewire('../../../src/aws/subnetManager'),
+  C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
-describe('subnetManager', function() {
+describe('subnetManager', () => {
   var subnet,
     cidrList = [{
       CidrBlock: '1.2.3.4'
@@ -22,59 +24,104 @@ describe('subnetManager', function() {
     }],
     origVPC;
 
-  beforeEach(function() {
+  beforeEach(() => {
     origVPC = Subnet.__get__('Vpc');
     Subnet.__set__('Vpc', VpcMock);
     subnet = Subnet(ec2Mock, 'vpc-id');
   });
 
-  afterEach(function() {
+  afterEach(() => {
     Subnet.__set__('Vpc', origVPC);
   });
 
-  it('should asynchronously list subnets', function(done) {
-    ec2Mock.setDescribeSubnets([1, 2, 3]);
-    subnet.describe().then(function(list) {
-      expect(list).to.be.ok;
-      done();
-    }, function(err) {
-      // not this case
-      expect(err).equal(undefined);
-      done();
+  describe('async describe with valid list', () => {
+    var oldDesc;
+    beforeEach(() => {
+      oldDesc = common.makeEc2DescribeFn;
+      common.makeEc2DescribeFn = () => {
+        return () => {
+          return Q.resolve([{
+            CidrBlock: '192.168.0.0'
+          }]);
+        }
+      };
+      Subnet.__set__('common', common);
+      subnet = Subnet(ec2Mock, 'vpc-id');
     });
+
+    afterEach(() => {
+      common.makeEc2DescribeFn = oldDesc;
+      Subnet.__set__('common', common);
+    });
+
+    it('should asynchronously list subnets', (done) => {
+      subnet.describe().then((list) => {
+        C.check(done, () => {
+          expect(list).to.be.ok;
+        });
+      }, C.getFail(done));
+    });
+
+    it('getCidrPostfix should return the *incremented* C/D class, *and* the ' +
+      '/N netmask of the mock IP data', (done) => {
+        subnet.helpers.getCidrPostfix().then((result) => {
+          C.check(done, () => {
+            expect(result).to.equal('1.0/24');
+          });
+        }, C.getFail(done));
+      });
+
+    it('getNextSubnet should return a complete subnet string for the next ' +
+      'highest subnet', (done) => {
+        subnet.helpers.getNextSubnet().then((result) => {
+          C.check(done, () => {
+            expect(result).to.equal('192.168.1.0/24');
+          });
+        }, C.getFail(done));
+      });
+
   });
 
-  it('should reject its promise on fail', function(done) {
-    ec2Mock.setDescribeSubnets(new Error('test'));
-    subnet.describe().then(function(list) {
-      // not this case
-      expect(list).equal(undefined);
-      done();
-    }, function(err) {
-      expect(err instanceof Error).to.be.true;
-      done();
+  describe('describe failing test', () => {
+    beforeEach(() => {
+      ec2Mock.setDescribeSubnets(new Error('test'));
+    });
+
+    afterEach(() => {
+      ec2Mock.setDescribeSubnets([1, 2, 3]);
+    });
+
+    it('should reject its promise on fail', (done) => {
+      subnet.describe().then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.true;
+        });
+      });
     });
   });
 
   it('findHighestCidr should return the "highest" subnet in a collection ' +
-    'of CIDR Blocks',
-    function() {
+    'of CIDR Blocks', () => {
       expect(
         subnet.helpers.findHighestCidr(cidrList)
       ).to.equal(200);
     });
 
+  it('findHighestCidr should throw with an empty list', () => {
+    expect(() => {
+      subnet.helpers.findHighestCidr([])
+    }).to.throw(Error);
+  });
+
   it('incrementHighestCidr should return the C/D classes of the highest ' +
-    ' /24 block + 1',
-    function() {
+    ' /24 block + 1', () => {
       expect(
         subnet.helpers.incrementHighestCidr(cidrList)
       ).to.equal('201.0/24');
     });
 
   it('isPidInSubnetList should return true if a matching pid is found in ' +
-    ' a list of subnets',
-    function() {
+    ' a list of subnets', () => {
       expect(subnet.helpers.isPidInSubnetList('test', [{
         Tags: [{
           Key: constants.PROJECT_TAG,
@@ -84,8 +131,7 @@ describe('subnetManager', function() {
     });
 
   it('isPidInSubnetList should return false if no match is found in a list ' +
-    ' of subnets',
-    function() {
+    ' of subnets', () => {
       expect(subnet.helpers.isPidInSubnetList('test', [{
         Tags: [{
           Key: constants.PROJECT_TAG,
@@ -94,45 +140,32 @@ describe('subnetManager', function() {
       }])).to.be.false;
     });
 
-  it('destroy should throw without a pid', function() {
-    try {
+  it('destroy should throw without a pid', () => {
+    expect(() => {
       subnet.destroy();
-      expect('this should not happen').to.be(undefined);
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   });
 
-  it('create should throw without a pid', function() {
-    try {
+  it('create should throw without a pid', () => {
+    expect(() => {
       subnet.create();
-      expect('this should not happen').to.be(undefined);
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   });
 
-  it('create should throw without a routeId', function() {
-    try {
+  it('create should throw without a routeId', () => {
+    expect(() => {
       subnet.create('test-proj');
-      expect('this should not happen').to.be(undefined);
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   });
 
-  it('create should throw without an aclId', function() {
-    try {
+  it('create should throw without an aclId', () => {
+    expect(() => {
       subnet.create('test-proj', 'some-route');
-      expect('this should not happen').to.be(undefined);
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   });
 
   it('findProjectTag should return null if given a list without a ' +
-    'clusternator project tag',
-    function() {
+    'clusternator project tag', () => {
       expect(subnet.helpers.findProjectTag('id', [{
         Tags: [{
           Key: 'hahah',
@@ -142,8 +175,7 @@ describe('subnetManager', function() {
     });
 
   it('findProjectTag should return truthy if given a list with a ' +
-    'clusternator project tag',
-    function() {
+    'clusternator project tag', () => {
       expect(subnet.helpers.findProjectTag('id', [{
         Tags: [{
           Key: constants.PROJECT_TAG,
@@ -152,19 +184,14 @@ describe('subnetManager', function() {
       }])).to.be.ok;
     });
 
-  it('getFilteredAssociations should throw if given an empty list',
-    function() {
-      try {
-        subnet.helpers.getFilteredAssociations('blah', []);
-        expect('this should not happen').to.equal(undefined);
-      } catch (err) {
-        expect(err instanceof Error).to.be.true;
-      }
-    });
+  it('getFilteredAssociations should throw if given an empty list', () => {
+    expect(() => {
+      subnet.helpers.getFilteredAssociations('blah', []);
+    }).to.throw(Error);
+  });
 
   it('getFilteredAssociations should return a list of ACL associations ' +
-    'matching the subnetId if the subnet is in the first list',
-    function() {
+    'matching the subnetId if the subnet is in the first list', () => {
       expect(subnet.helpers.getFilteredAssociations('test', [{
         Associations: [{
           SubnetId: '1'
@@ -176,112 +203,75 @@ describe('subnetManager', function() {
       }]).length).to.equal(1);
     });
 
-  it('getCidrPrefix should return the A/B class of the mock ip data',
-    function(done) {
-      subnet.helpers.getCidrPrefix().then(function(result) {
+  it('getCidrPrefix should return the A/B class of mock ip data', (done) => {
+    subnet.helpers.getCidrPrefix().then((result) => {
+      C.check(done, () => {
         expect(result).to.equal('192.168');
-        done();
-      }, function(err) {
-        expect(err instanceof Error).to.not.be;
-        done();
       });
-    })
+    }, C.getFail(done));
+  })
 
-  it('getCidrPostfix should return the *incremented* C/D class, *and* the ' +
-    '/N netmask of the mock IP data',
-    function(done) {
-      subnet.helpers.getCidrPostfix().then(function(result) {
-        expect(result).to.equal('1.0/24');
-        done();
-      }, function(err) {
-        expect(err instanceof Error).to.not.be;
-        done();
-      })
-    });
-
-  it('concatSubnetComponents should join an string array with a "."',
-    function() {
-      expect(subnet.helpers.concatSubnetComponents(['a', 'b'])).to.equal('a.b');
-    });
-
-  it('getNextSubnet should return a complete subnet string for the next ' +
-    'highest subnet',
-    function(done) {
-      subnet.helpers.getNextSubnet().then(function(result) {
-        expect(result).to.equal('192.168.1.0/24');
-        done();
-      }, function(err) {
-        expect(err instanceof Error).to.not.be;
-        done();
-      })
-    });
-
-  it('associateRoute should return a promise', function(done) {
-    subnet.helpers.associateRoute({
-      Subnet: {}
-    }).then(function() {
-      expect(true).to.be;
-      done();
-    }, function(err) {
-      expect(err instanceof Error).to.not.be;
-      done();
-    })
+  it('concatSubnetComponents should join an string array with a "."', () => {
+    expect(subnet.helpers.concatSubnetComponents(['a', 'b'])).to.equal('a.b');
   });
 
-  it('throwIfPidNotFound should throw if project id not found in given list',
-    function() {
-      try {
-        subnet.helpers.throwIfPidNotFound('test', []);
-        expect('this case should not run').to.not.be;
-      } catch (err) {
-        expect(err instanceof Error).to.be;
-      }
-    });
 
-  it('throwIfSubnetNotFound should throw if project id not found in given list',
-    function() {
-      try {
-        subnet.helpers.throwIfSubnetNotFound('test', []);
-        expect('this case should not run').to.not.be;
-      } catch (err) {
-        expect(err instanceof Error).to.be;
-      }
-    });
+  it('associateRoute should return a promise', (done) => {
+    subnet.helpers.associateRoute({
+      Subnet: {}
+    }).then(() => {
+      C.check(done, () => {
+        expect(true).to.be;
+      });
+    }, C.getFail(done));
+  });
 
-  it('throwIfSubnetNotFound should return the SubnetDescription if it exists',
-    function() {
-      var result = subnet.helpers.throwIfSubnetNotFound('test', [{
+  it('throwIfPidFound should throw if project id is found in given list', () => {
+    expect(() => {
+      subnet.helpers.throwIfPidNotFound('test', [{
         Tags: [{
           Key: constants.PROJECT_TAG,
           Value: 'test'
         }]
       }]);
-      expect(result).to.be;
-    });
-
-  it('findExistingPid, should reject if project id not found', function(done) {
-    subnet.helpers.findExistingPid().then(function(done) {
-      expect('this case not to happen').to.not.be;
-      done();
-    }, function(err) {
-      expect(err instanceof Error).to.be;
-      done();
-    })
+    }).to.throw(Error);
   });
 
-  it('findProjectSubnet should reject if no subnet found', function(done) {
-    subnet.findProject().then(function(done) {
-      expect('this case not to happen').to.not.be;
-      done();
-    }, function(err) {
-      expect(err instanceof Error).to.be;
-      done();
+  it('throwIfSubnetNotFound should throw if project id not found in given list', () => {
+    expect(() => {
+      subnet.helpers.throwIfSubnetNotFound('test', []);
+    }).to.throw(Error);
+  });
+
+  it('throwIfSubnetNotFound should return the SubnetDescription if it exists', () => {
+    var result = subnet.helpers.throwIfSubnetNotFound('test', [{
+      Tags: [{
+        Key: constants.PROJECT_TAG,
+        Value: 'test'
+      }]
+    }]);
+    expect(result).to.be;
+  });
+
+  it('findExistingPid, should resolve if project id not found', (done) => {
+    subnet.helpers.findExistingPid().then(() => {
+      C.check(done, () => {
+        expect(true).to.be.ok;
+      });
+    }, C.getFail(done));
+  });
+
+  it('findProjectSubnet should reject if no subnet found', (done) => {
+    subnet.findProject().then(C.getFail(done), (err) => {
+      C.check(done, () => {
+
+        expect(err instanceof Error).to.be;
+      });
     })
   });
 
   it('filterIsDefault should return a list of NetworkAcl\'s tagged with ' +
-    'IsDefault',
-    function() {
+    'IsDefault', () => {
       expect(subnet.helpers.filterIsDefault({
         NetworkAcls: [{
           IsDefault: false
@@ -291,39 +281,30 @@ describe('subnetManager', function() {
       })[0].IsDefault).to.be
     });
 
-  it('defaultAssoc should return a promise', function(done) {
-    subnet.helpers.defaultAssoc().then(function() {
-      expect('this case not to happen').to.not.be;
-      done();
-    }, function(err) {
-      expect(err instanceof Error).to.be;
-      done();
-    });
-  });
-
-  it('defaultAssocId should reject if subnet is not found', function(done) {
-    subnet.helpers.defaultAssocId().then(function() {
-      expect('this case not to happen').to.not.be;
-      done();
-    }, function(err) {
-      expect(err instanceof Error).to.be;
-      done();
-    });
-  });
-
-  it('throwIfNetworkAclAssocListEmpty should throw if list is empty',
-    function() {
-      try {
-        subnet.helpers.throwIfNetworkAclAssocListEmpty([]);
-        expect('this case not to happen').to.not.be;
-      } catch (err) {
+  it('defaultAssoc should return a promise', (done) => {
+    subnet.helpers.defaultAssoc().then(C.getFail(done), (err) => {
+      C.check(done, () => {
         expect(err instanceof Error).to.be;
-      }
+      });
     });
+  });
+
+  it('defaultAssocId should reject if subnet is not found', (done) => {
+    subnet.helpers.defaultAssocId().then(C.getFail(done), (err) => {
+      C.check(done, () => {
+        expect(err instanceof Error).to.be;
+      });
+    });
+  });
+
+  it('throwIfNetworkAclAssocListEmpty should throw if list is empty', () => {
+    expect(() => {
+      subnet.helpers.throwIfNetworkAclAssocListEmpty([]);
+    }).to.throw(Error);
+  });
 
   it('throwIfNetworkAclAssocListEmpty should return the ' +
-    'NetworkAclAssociation if the list is valid',
-    function() {
+    'NetworkAclAssociation if the list is valid', () => {
       expect(
         subnet.helpers.throwIfNetworkAclAssocListEmpty([{
           NetworkAclAssociationId: 'test!'

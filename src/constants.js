@@ -23,52 +23,6 @@ var constants = Object.freeze({
   CLUSTERNATOR_TAG: CLUSTERNATOR_TAG,
   PROJECT_TAG: PROJECT_TAG,
   PR_TAG: PR_TAG,
-  AWS_DEFAULT_ACL_INGRESS: {
-    NetworkAclId: '',
-    RuleNumber: 1,
-    Protocol: '-1',
-    RuleAction: 'allow',
-    Egress: false,
-    CidrBlock: '0.0.0.0/0',
-    PortRange: {
-      From: 0,
-      To: 0
-    }
-  },
-  AWS_DEFAULT_ACL_EGRESS: {
-    NetworkAclId: '',
-    RuleNumber: 1,
-    Protocol: '-1',
-    RuleAction: 'allow',
-    Egress: true,
-    CidrBlock: '0.0.0.0/0',
-    PortRange: {
-      From: 0,
-      To: 0
-    }
-  },
-  AWS_DEFAULT_SG_INGRESS: {
-    GroupId: '',
-    IpPermissions: [{
-      FromPort: 1,
-      ToPort: 65535,
-      IpProtocol: '-1',
-      IpRanges: [{
-        CidrIp: '0.0.0.0/0'
-      }]
-    }]
-  },
-  AWS_DEFAULT_SG_EGRESS: {
-    GroupId: '',
-    IpPermissions: [{
-      FromPort: 0,
-      ToPort: 65535,
-      IpProtocol: '-1',
-      IpRanges: [{
-        CidrIp: '0.0.0.0/0'
-      }]
-    }]
-  },
   AWS_DEFAULT_EC2: {
     ImageId: AWS_DEFAULT_EC2_AMI,
     MaxCount: 1,

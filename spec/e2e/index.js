@@ -23,7 +23,6 @@ module.exports = {
   acl: require('./acl.spec'),
   cluster: require('./cluster.spec'),
   ec2: require('./ec2.spec'),
-  nic: require('./nic.spec'),
   pr: require('./pr.spec'),
   project: require('./project.spec'),
   r53: require('./route53.spec'),

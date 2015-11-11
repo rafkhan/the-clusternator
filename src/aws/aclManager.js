@@ -2,6 +2,7 @@
 
 var Q = require('q'),
   common = require('./common'),
+  skeletons = require('./ec2Skeletons'),
   util = require('../util'),
   constants = require('../constants');
 
@@ -11,7 +12,6 @@ var Q = require('q'),
   @return {AclManager}
 */
 function getAclManager(ec2, vpcId) {
-  var cbEc2 = ec2;
   ec2 = util.makePromiseApi(ec2);
 
   var baseFilters = constants.AWS_FILTER_CTAG.concat(
@@ -30,20 +30,12 @@ function getAclManager(ec2, vpcId) {
   }
 
   /**
-    @param {string} pid projectId
-    @return {Q.Promise}
-  */
-  function findExistingPid(pid) {
-    return describe(pid).then(throwIfListHasLength);
-  }
-
-  /**
     @param {string} aclId
     @return {Q.Promise}
   */
   function defaultInOutRules(aclId) {
-    var inbound = constants.AWS_DEFAULT_ACL_INGRESS,
-      outbound = constants.AWS_DEFAULT_ACL_EGRESS;
+    var inbound = skeletons.ACL_DEFAULT_INGRESS,
+      outbound = skeletons.ACL_DEFAULT_EGRESS;
 
     inbound.NetworkAclId = aclId;
     outbound.NetworkAclId = aclId;
@@ -61,7 +53,7 @@ function getAclManager(ec2, vpcId) {
       var aclId = result.NetworkAcl.NetworkAclId;
       return Q.all([
         /** @todo UPGRADE to Promise ec2 */
-        common.awsTagEc2(cbEc2, aclId, [{
+        common.awsTagEc2(ec2, aclId, [{
           Key: constants.CLUSTERNATOR_TAG,
           Value: 'true'
         }, {
@@ -79,11 +71,12 @@ function getAclManager(ec2, vpcId) {
     if (!pid) {
       throw new TypeError('Create ACL requires a ProjectId');
     }
-    var params = {
-      VpcId: vpcId
-    };
+    var params = util.clone(skeletons.ACL);
+    params.VpcId = vpcId
 
-    return findExistingPid(pid).then(function() {
+    return describe(pid).
+    then(throwIfListHasLength).
+    then(function() {
       return createAcl(pid, params);
     });
   }
@@ -93,6 +86,7 @@ function getAclManager(ec2, vpcId) {
       throw new TypeError('Destroy ACL requires a projectId');
     }
     return describe(pid).then(function(list) {
+      console.log('booooo', list);
       if (!list.length) {
         common.throwInvalidPidTag(pid, 'looking', 'NetworkAcl');
       }
@@ -110,7 +104,6 @@ function getAclManager(ec2, vpcId) {
     helpers: {
       createAcl,
       defaultInOutRules,
-      findExistingPid,
       throwIfListHasLength
     }
   };

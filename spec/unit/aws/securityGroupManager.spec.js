@@ -1,141 +1,71 @@
 'use strict';
 
 var rewire = require('rewire'),
-constants = require('../../../src/constants'),
-ec2Mock = require('./ec2-mock');
+  constants = require('../../../src/constants'),
+  ec2Mock = require('./ec2-mock');
 
-var SecurityGroup = rewire('../../../src/aws/securityGroupManager');
-require('../chai');
+var SecurityGroup = rewire('../../../src/aws/securityGroupManager'),
+  C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions: 0*/
-describe('securityGroupManager', function () {
+describe('securityGroupManager', () => {
   var securityGroup;
 
-  beforeEach(function () {
-      securityGroup = SecurityGroup(ec2Mock, 'vpc-id');
+  beforeEach(() => {
+    securityGroup = SecurityGroup(ec2Mock, 'vpc-id');
   });
 
-  it('should asynchronously list securityGroups', function (done) {
+  it('should asynchronously list securityGroups', (done) => {
     ec2Mock.setDescribeSecurityGroups([1, 2, 3]);
-    securityGroup.describe().then(function (list) {
-      expect(list).to.be.ok;
-      done();
-    }, function (err) {
-      // not this case
-      expect(err).equal(undefined);
-      done();
-    });
+    securityGroup.describe().then((list) => {
+      C.check(done, () => {
+        expect(list).to.be.ok;
+      });
+    }, C.getFail(done));
   });
 
-  it('should reject its promise on fail', function (done) {
+  it('should reject its promise on fail', (done) => {
     ec2Mock.setDescribeSecurityGroups(new Error('test'));
-    securityGroup.describe().then(function (list) {
-      // not this case
-      expect(list).equal(undefined);
-      done();
-    }, function (err) {
-      expect(err instanceof Error).to.be.true;
-      done();
+    securityGroup.describe().then(C.getFail(done), (err) => {
+      C.check(done, () => {
+        expect(err instanceof Error).to.be.ok;
+      });
     });
   });
 
-  it('create should throw without a pid', function () {
-    try {
+  it('create should throw without a pid', () => {
+    expect(() => {
       securityGroup.create();
-      expect('this case should not happen').to.not.be;
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   });
 
-  it('create should throw without a pr', function () {
-    try {
+  it('create should throw without a pr', () => {
+    expect(() => {
       securityGroup.create('test-project');
-      expect('this case should not happen').to.not.be;
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   });
 
-  it('create should return a promise', function () {
+  it('create should return a promise', () => {
     var p = securityGroup.create('test-project', '1');
     expect(typeof p.then).to.equal('function');
   });
 
-  it('destroy should throw without a pid', function () {
-    try {
+  it('destroy should throw without a pid', () => {
+    expect(() => {
       securityGroup.destroy();
-      expect('this case should not happen').to.not.be;
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   });
 
-  it('destroy should throw without a pr', function () {
-    try {
+  it('destroy should throw without a pr', () => {
+    expect(() => {
       securityGroup.destroy('test-project');
-      expect('this case should not happen').to.not.be;
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   });
 
-  it('destroy should return a promise', function () {
+  it('destroy should return a promise', () => {
     var p = securityGroup.destroy('test-project', '1');
     expect(typeof p.then).to.equal('function');
-  });
-
-  it('hasPidPr should return true if matching pid/pr tags are found',
-  function (){
-    expect(
-        securityGroup.hasPidPr('test', '1', [
-          {
-            Tags: [
-              {
-                Key: constants.PROJECT_TAG,
-                Value: 'test'
-              },
-              {
-                Key: constants.PR_TAG,
-                Value: '1'
-              }
-            ]
-          }
-        ])
-    ).to.be.true;
-  });
-
-  it('hasPidPr should return false if matching pr tags are not found',
-  function (){
-    expect(
-        securityGroup.hasPidPr('test', '1', [
-          {
-            Tags: [
-              {
-                Key: constants.PROJECT_TAG,
-                Value: 'test'
-              }
-            ]
-          }
-        ])
-    ).to.be.false;
-  });
-
-  it('hasPidPr should return false if matching pid/pr tags are not found',
-  function (){
-    expect(
-        securityGroup.hasPidPr('test', '1', [
-          {
-            Tags: [
-              {
-                Key: 'other',
-                Value: 'test'
-              }
-            ]
-          }
-        ])
-    ).to.be.false;
   });
 });

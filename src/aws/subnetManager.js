@@ -34,6 +34,9 @@ function getSubnetManager(ec2, vpcId) {
   @return {number}
   */
   function findHighestCidr(list) {
+    if (!list.length) {
+      throw new Error('findHighestCidr given empty list');
+    }
     var highest = -1;
     list.forEach(function(r) {
       var cidr = r.CidrBlock,
@@ -121,7 +124,7 @@ function getSubnetManager(ec2, vpcId) {
     @param {SubnetDescription[]}
     @throws {Error}
   */
-  function throwIfPidNotFound(pid, list) {
+  function throwIfPidFound(pid, list) {
     if (isPidInSubnetList(pid, list)) {
       throw new Error('Create Subnet Failed: Project: ' + pid +
         ' exists');
@@ -134,7 +137,7 @@ function getSubnetManager(ec2, vpcId) {
   */
   function findExistingPid(pid) {
     return describe().then(function(list) {
-      throwIfPidNotFound(pid, list);
+      throwIfPidFound(pid, list);
     });
   }
 
@@ -359,7 +362,7 @@ function getSubnetManager(ec2, vpcId) {
       incrementHighestCidr,
       isPidInSubnetList,
       throwIfNetworkAclAssocListEmpty,
-      throwIfPidNotFound,
+      throwIfPidFound,
       throwIfSubnetNotFound
     }
   };

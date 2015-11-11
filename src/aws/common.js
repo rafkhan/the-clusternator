@@ -97,7 +97,7 @@ function awsTagEc2(ec2, resourceIds, tags) {
   if (!Array.isArray(resourceIds)) {
     resourceIds = [resourceIds];
   }
-  return Q.nbind(ec2.createTags, ec2)({
+  return ec2.createTags({
     Resources: resourceIds,
     Tags: tags
   });
@@ -126,10 +126,10 @@ function makeEc2DescribeFn(ec2, apiFn, apiListName, baseFilters) {
       filters = filters.concat(
         makeAWSTagFilter(constants.PR_TAG, pr));
     }
-    return Q.nfbind(ec2[apiFn].bind(ec2), {
+    return ec2[apiFn]({
       DryRun: false,
       Filters: baseFilters.concat(filters)
-    })().then(function(result) {
+    }).then(function(result) {
       // this case happens when describing ec2 insances
       if (!result[apiListName]) {
         return [];

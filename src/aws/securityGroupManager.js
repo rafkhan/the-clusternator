@@ -2,26 +2,28 @@
 
 var Q = require('q'),
   common = require('./common'),
+  skeletons = require('./ec2Skeletons'),
   util = require('../util'),
   rid = require('../resourceIdentifier'),
   constants = require('../constants');
 
 function getSecurityGroupManager(ec2, vpcId) {
+  ec2 = util.makePromiseApi(ec2);
   var baseFilters = constants.AWS_FILTER_CTAG.concat(
       common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(
       ec2, 'describeSecurityGroups', 'SecurityGroups', baseFilters);
 
   function defaultInOutRules(groupId) {
-    var inbound = constants.AWS_DEFAULT_SG_INGRESS,
-      outbound = constants.AWS_DEFAULT_SG_EGRESS;
+    var inbound = skeletons.SG_DEFAULT_EGRESS_INGRESS,
+      outbound = skeletons.SG_DEFAULT_EGRESS;
 
     inbound.GroupId = groupId;
     outbound.GroupId = groupId;
 
     return Q.all([
-      Q.nfbind(ec2.authorizeSecurityGroupIngress.bind(ec2), inbound)(),
-      Q.nfbind(ec2.authorizeSecurityGroupEgress.bind(ec2), outbound)()
+      ec2.authorizeSecurityGroupIngress(inbound),
+      ec2.authorizeSecurityGroupEgress(outbound)
     ]).then(function() {
       return groupId;
     }, function(err) {
@@ -31,34 +33,15 @@ function getSecurityGroupManager(ec2, vpcId) {
     });
   }
 
-  function sgHasPidPr(pid, pr, list) {
-    var result = false;
-    list.forEach(function(sgDesc) {
-      var isProject = false,
-        isPR = false;
-      sgDesc.Tags.forEach(function(tag) {
-        if ((tag.Key === constants.PROJECT_TAG) && (tag.Value === pid)) {
-          isProject = true;
-        }
-        if ((tag.Key === constants.PR_TAG) && (tag.Value === pr)) {
-          isPR = true;
-        }
-      });
-      if (isProject && isPR) {
-        result = true;
-      }
-    });
-    return result;
-  }
-
   function rejectIfExists(pid, pr) {
-    return describe().then(function(list) {
-      if (sgHasPidPr(pid, pr, list)) {
+    return describe(pid, pr).then(function(list) {
+      if (list.length) {
         throw new Error('SecurityGroup Exists For Project: ' + pid +
           ' PR: ' + pr);
       }
     });
   }
+
 
   function createSecurityGroup(pid, pr) {
     var id = rid.generateRID({
@@ -70,7 +53,7 @@ function getSecurityGroupManager(ec2, vpcId) {
         Description: 'Created by clusternator for ' + pid + ', PR: ' + pr,
         VpcId: vpcId
       };
-    return Q.nfbind(ec2.createSecurityGroup.bind(ec2), params)().
+    return ec2.createSecurityGroup(params).
     then(function(result) {
       return Q.all([
         common.awsTagEc2(ec2, result.GroupId, [{
@@ -111,17 +94,16 @@ function getSecurityGroupManager(ec2, vpcId) {
         common.throwInvalidPidPrTag(pid, pr, 'looking', 'Group');
       }
 
-      return Q.nfbind(ec2.deleteSecurityGroup.bind(ec2), {
+      return ec2.deleteSecurityGroup({
         GroupId: list[0].GroupId
-      })();
+      });
     });
   }
 
   return {
-    describe: describe,
-    create: create,
-    destroy: destroy,
-    hasPidPr: sgHasPidPr
+    describe,
+    create,
+    destroy
   };
 }
 

@@ -109,6 +109,10 @@ function createNetworkAcl(p, cb) {
   cb(null, { NetworkAcl: { NetworkAclId: 'test' }});
 }
 
+function deleteNetworkAcl(p, cb) {
+  cb(null, { NetworkAcl: { NetworkAclId: 'test' }});
+}
+
 module.exports = {
   setCreateTags,
   createTags,
@@ -127,5 +131,6 @@ module.exports = {
   setAssociateRouteTable,
   associateRouteTable,
   replaceNetworkAclAssociation,
-  createNetworkAcl
+  createNetworkAcl,
+  deleteNetworkAcl
 };
