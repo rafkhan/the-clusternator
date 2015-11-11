@@ -86,7 +86,6 @@ function getAclManager(ec2, vpcId) {
       throw new TypeError('Destroy ACL requires a projectId');
     }
     return describe(pid).then(function(list) {
-      console.log('booooo', list);
       if (!list.length) {
         common.throwInvalidPidTag(pid, 'looking', 'NetworkAcl');
       }

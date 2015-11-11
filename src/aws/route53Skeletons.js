@@ -3,7 +3,7 @@ module.exports = Object.freeze({
     'SOA', 'A', 'TXT', 'NS', 'CNAME', 'MX', 'PTR', 'SRV', 'SPF', 'AAAA'
   ],
   CHANGE_ACTIONS: [
-      'CREATE', 'DELETE', 'UPSERT'
+    'CREATE', 'DELETE', 'UPSERT'
   ],
   RESOURCE_RECORD: {
     Value: ''
@@ -28,5 +28,9 @@ module.exports = Object.freeze({
   },
   CHANGE_PARAMS: {
     'HostedZoneId': ''
+  },
+  HOSTED_ZONE: {
+    CallerReference: 'clusternator',
+    Name: ''
   }
 });

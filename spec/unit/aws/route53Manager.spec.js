@@ -4,8 +4,8 @@ var rewire = require('rewire'),
   mockR53 = require('./route53-mock'),
   constants = require('../../../src/constants');
 
-var Route53 = rewire('../../../src/aws/route53Manager');
-require('../chai');
+var Route53 = rewire('../../../src/aws/route53Manager'),
+  C = require('../chai');
 
 /*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions: 0*/
@@ -14,6 +14,14 @@ describe('route53Manager', function() {
 
   beforeEach(function() {
     route53 = Route53(mockR53, 'someZone');
+  });
+
+  it('findId should return a promise', (done) => {
+    route53.findId().then(C.getFail(done), (err) => {
+      C.check(done, () => {
+        expect(err instanceof Error).to.be.true;
+      });
+    });
   });
 
   describe('helper functions', function() {
@@ -103,6 +111,31 @@ describe('route53Manager', function() {
       expect(
         result.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords[0].Value
       ).to.equal('1.2.3.4');
+    });
+
+    it('findFirstTag should find the first matching tag in a "TagSet"', () => {
+      var id = route53.helpers.findFirstTag([{
+        Tags: []
+      }, {
+        ResourceId: 'test',
+        Tags: [{
+          Key: constants.CLUSTERNATOR_TAG
+        }]
+      }]);
+      expect(id).to.equal('test');
+    });
+
+    it('pluckId should destructure Id out of an object', () => {
+      expect(route53.helpers.pluckId({
+        Id: 'test'
+      })).to.equal('test');
+    });
+
+    it('pluckId should trim "/hostedzone/ from a given Id"', () => {
+      expect(route53.helpers.pluckId({
+        Id: '/hostedzone/test'
+      })).
+      to.equal('test');
     });
   });
 });
