@@ -7,6 +7,7 @@ const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
 const AWS_DEFAULT_EC2_TYPE = 't2.micro';
 
 var constants = Object.freeze({
+  AWS_R53_ZONE_PREFIX: '/hostedzone/',
   AWS_DEFAULT_EC2_AMI: AWS_DEFAULT_EC2_AMI,
   AWS_DEFAULT_EC2_TYPE: AWS_DEFAULT_EC2_TYPE,
   AWS_EC2_POLL_INTERVAL: 15000, // ms to wait between polling EC2 statuses

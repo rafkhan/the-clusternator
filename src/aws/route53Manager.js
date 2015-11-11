@@ -241,7 +241,7 @@ function getRoute53(route53, zoneId) {
         return listTags(l).then((tagSet) => {
         var id = findFirstTag(tagSet);
         if (id) {
-          return id;
+          return constants.AWS_R53_ZONE_PREFIX + id;
         }
         throw new Error('Route53: No Clusternator Resources Found');
       });
