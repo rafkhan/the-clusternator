@@ -9,10 +9,10 @@ var Route53 = rewire('../../../src/aws/route53Manager'),
 
 /*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions: 0*/
-describe('route53Manager', function() {
+describe('route53Manager', () => {
   var route53;
 
-  beforeEach(function() {
+  beforeEach(() => {
     route53 = Route53(mockR53, 'someZone');
   });
 
@@ -24,59 +24,45 @@ describe('route53Manager', function() {
     });
   });
 
-  describe('helper functions', function() {
-    it('validateResourceRecordSetType should default to \'A\' records',
-      function() {
-        expect(route53.helpers.validateResourceRecordSetType()).to.equal('A');
-      });
+  describe('helper functions', () => {
+    it('validateResourceRecordSetType should default to \'A\' records', () => {
+      expect(route53.helpers.validateResourceRecordSetType()).to.equal('A');
+    });
 
-    it('createResourceRecordSet should throw without first parameter (name)',
-      function() {
-        try {
-          route53.helpers.createResourceRecordSet();
-          expect('this should not happen').to.not.be;
-        } catch (err) {
-          expect(err instanceof Error).to.be;
-        }
-      });
+    it('createResourceRecordSet should throw without first parameter (name)', () => {
+      expect(() => {
+        route53.helpers.createResourceRecordSet();
+      }).to.throw(Error);
+    });
 
     it('createResourceRecordSet should create a ResourceRecord from param ' +
-      'three',
-      function() {
+      'three', () => {
         var rrst = route53.helpers.createResourceRecordSet('name', 'A',
           '1.2.3.4');
         expect(rrst.ResourceRecords[0].Value).to.equal('1.2.3.4');
       });
 
-    it('createResourceRecord should throw without first parameter (value)',
-      function() {
-        try {
-          route53.helpers.createResourceRecord();
-          expect('this should not happen').to.not.be;
-        } catch (err) {
-          expect(err instanceof Error).to.be;
-        }
-      });
-
-    it('createResourceRecord should return an object like { Value: value }',
-      function() {
-        var rr = route53.helpers.createResourceRecord('stuff');
-        expect(rr.Value).to.equal('stuff');
-      });
-
-    it('findTld should return the mock tld (example.com.)', function(done) {
-      route53.helpers.findTld().then(function(tld) {
-        expect(tld).to.equal('example.com.');
-        done();
-      }, function(err) {
-        expect(err instanceof Error).to.not.be;
-        done();
+    it('createResourceRecord should throw without first parameter (value)', () => {
+      expect(() => {
+        route53.helpers.createResourceRecord();
       });
     });
 
+    it('createResourceRecord should return an object like { Value: value }', () => {
+      var rr = route53.helpers.createResourceRecord('stuff');
+      expect(rr.Value).to.equal('stuff');
+    });
+
+    it('findTld should return the mock tld (example.com.)', (done) => {
+      route53.helpers.findTld().then((tld) => {
+        C.check(done, () => {
+          expect(tld).to.equal('example.com.');
+        });
+      }, C.getFail(done));
+    });
+
     it('pluckHostedZoneName should return the HostedZone property\'s name ' +
-      'attribute',
-      function() {
+      'attribute', () => {
         expect(route53.helpers.pluckHostedZoneName({
           HostedZone: {
             Name: 'pat'
@@ -84,27 +70,24 @@ describe('route53Manager', function() {
         })).to.equal('pat');
       });
 
-    it('createChange throws without a valid action', function() {
-      try {
+    it('createChange throws without a valid action', () => {
+      expect(() => {
         route53.helpers.createChange('abflkhaslg');
-        expect('this case should not happen').to.not.be;
-      } catch (err) {
-        expect(err instanceof Error).to.be;
-      }
+      }).to.throw(Error);
     });
 
-    it('createChange should return an object with a valid action', function() {
+    it('createChange should return an object with a valid action', () => {
       expect(route53.helpers.createChange('UPSERT').Action).to.equal('UPSERT');
     });
 
     it('changeChangeBatch should return an object with a given Comment',
-      function() {
+      () => {
         expect(
           route53.helpers.createChangeBatch('stuff').Comment
         ).to.equal('stuff');
       })
 
-    it('createAParmas should return a complex AWS object', function() {
+    it('createAParmas should return a complex AWS object', () => {
       var result = route53.helpers.createAParams('test', '1', '1.2.3.4',
         'example.com.');
       expect(result.ChangeBatch.Changes[0].Action).to.equal('CREATE');

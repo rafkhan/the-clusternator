@@ -1,80 +1,76 @@
 'use strict';
 var util = require('../../src/util'),
-  Q = require('q');
-require('./chai');
+  Q = require('q'),
+  C = require('./chai');
 
 
 
 /*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions:0*/
-describe('utility functions', function() {
-  it('should have a function that quotes a supplied argument', function() {
+describe('utility functions', () => {
+  it('should have a function that quotes a supplied argument', () => {
     expect(util.quote('booya')).equal('"booya"');
   });
 
-  it('clone should return a copy of an object', function () {
-    var testObj = { a: 5, b: { ba: 10 }},
-    copy = util.clone(testObj);
+  it('clone should return a copy of an object', () => {
+    var testObj = {
+        a: 5,
+        b: {
+          ba: 10
+        }
+      },
+      copy = util.clone(testObj);
     expect(copy).to.not.equal(testObj);
     expect(copy.b).to.not.equal(testObj.b);
     expect(copy.b.ba).to.equal(testObj.b.ba);
   });
 
   it('getCidrPrefixFromIPString should return the first two classes of an ' +
-    ' ip address',
-    function() {
+    ' ip address', () => {
       expect(util.getCidrPrefixFromIPString('1.2.3.4')).to.equal('1.2');
     });
 
-  it('plog should return the first argument', function() {
+  it('plog should return the first argument', () => {
     expect(util.plog(2)).to.equal(2);
   })
 
-  it('errLog should return a broken promsie', function(done) {
+  it('errLog should return a broken promsie', (done) => {
     var output = 'hahhahah';
-    util.errLog(output).then(function() {
-      expect('this case should not happen').to.equal(undefined);
-      done();
-    }, function(err) {
-      expect(err.message).to.equal(output);
-      done();
+    util.errLog(output).then(C.getFail(done), (err) => {
+      C.check(done, () => {
+        expect(err.message).to.equal(output);
+      });
     });
   });
 
-  describe('waitFor tests', function() {
-    it('waitFor should resolve if its predicate resolves', function(done) {
+  describe('waitFor tests', () => {
+    it('waitFor should resolve if its predicate resolves', (done) => {
       function predicate() {
         return Q.resolve();
       }
-      util.waitFor(predicate, 1, 1, 'test').then(function() {
-        expect(true).to.be;
-        done();
-      }, function(err) {
-        expect(err).to.not.be;
-        done();
-      });
+      util.waitFor(predicate, 1, 1, 'test').then(() => {
+        C.check(done, () => {
+          expect(true).to.be;
+        });
+      }, C.getFail(done));
     });
 
 
     it('waitFor should reject if its predicate rejects, *and* max retries ' +
-      ' exceeded',
-      function(done) {
+      ' exceeded', (done) => {
         function predicate() {
           return Q.reject(new Error('test'));
         }
-        util.waitFor(predicate, 1, 1, 'test').then(function() {
-          expect('not this case').to.not.be;
-          done();
-        }, function(err) {
-          expect(err instanceof Error).to.be;
-          done();
+        util.waitFor(predicate, 1, 1, 'test').then(C.getFail(done), (err) => {
+          C.check(done, () => {
+            expect(err instanceof Error).to.be;
+          });
         });
       });
 
 
     it('waitFor should reseolve if its predicate resolves, *and* max retries ' +
-      ' is *not* exceeded',
-      function(done) {
+      ' is *not* exceeded', (done) => {
         var count = 0;
 
         function predicate() {
@@ -85,62 +81,54 @@ describe('utility functions', function() {
             return Q.resolve();
           }
         }
-        util.waitFor(predicate, 1, 6, 'test').then(function() {
-          expect(true).to.be;
-          done();
-        }, function(err) {
-          expect(err).to.not.be;
-          done();
-        });
+        util.waitFor(predicate, 1, 6, 'test').then(() => {
+          C.check(done, () => {
+            expect(true).to.be;
+          });
+        }, C.getFail(done));
       });
   });
 
-  describe('makePromiseApi tests', function() {
+  describe('makePromiseApi tests', () => {
     var api;
 
     // AWS's is a constructor so our mock should be too
-    MockApi.prototype.oneParam = function oneParam(param, callback) {
+    MockApi.prototype.oneParam = (param, callback) => {
       callback();
     };
-    MockApi.prototype.twoParams = function twoParams(p1, p2, callback) {
-      callback(p2);
+    MockApi.prototype.twoParams = (p1, p2, callback) => {
+      callback(null, p2);
     };
-    MockApi.prototype.errorOut = function errorOut(param, callback) {
+    MockApi.prototype.errorOut = (param, callback) => {
       callback(new Error('test'));
     };
 
-    beforeEach(function() {
+    beforeEach(() => {
       api = util.makePromiseApi(new MockApi());
     });
 
-    it('should turn oneParam into a promise', function(done) {
-      api.oneParam(1).then(function() {
-        expect(true).to.be;
-        done();
-      }, function(err) {
-        expect(err).to.not.be;
-        done();
-      });
+    it('should turn oneParam into a promise', (done) => {
+      api.oneParam(1).then(() => {
+        C.check(done, () => {
+          expect(true).to.be;
+        });
+      }, C.getFail(done));
     });
 
     it('should turn twoParams into a promise, and resolve the expected param (2)',
-      function(done) {
-        api.twoParams(1, 2).then(function(result) {
-          expect(result).to.equal(2);
-          done();
-        }, function(err) {
-          expect(err).to.not.be;
-          done();
-        });
+      (done) => {
+        api.twoParams(1, 2).then((result) => {
+          C.check(done, () => {
+            expect(result).to.equal(2);
+          });
+        }, C.getFail(done));
       });
 
-    it('should reject errorOut', function(done) {
-      api.errorOut(1).then(function() {
-        expect('this case should not happen').to.not.be;
-        done();
-      }, function(err) {
-        expect(err instanceof Error).to.be;
-        done();
+    it('should reject errorOut', (done) => {
+      api.errorOut(1).then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be;
+        });
       });
     });
 
