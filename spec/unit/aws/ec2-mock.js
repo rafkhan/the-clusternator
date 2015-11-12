@@ -113,6 +113,14 @@ function deleteNetworkAcl(p, cb) {
   cb(null, { NetworkAcl: { NetworkAclId: 'test' }});
 }
 
+function authorizeSecurityGroupIngress(p, cb) {
+    cb(null);
+}
+
+function authorizeSecurityGroupEgress(p, cb) {
+    cb(null);
+}
+
 module.exports = {
   setCreateTags,
   createTags,
@@ -132,5 +140,7 @@ module.exports = {
   associateRouteTable,
   replaceNetworkAclAssociation,
   createNetworkAcl,
-  deleteNetworkAcl
+  deleteNetworkAcl,
+  authorizeSecurityGroupEgress,
+  authorizeSecurityGroupIngress
 };

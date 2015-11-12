@@ -15,7 +15,7 @@ function getSecurityGroupManager(ec2, vpcId) {
       ec2, 'describeSecurityGroups', 'SecurityGroups', baseFilters);
 
   function defaultInOutRules(groupId) {
-    var inbound = skeletons.SG_DEFAULT_EGRESS_INGRESS,
+    var inbound = skeletons.SG_DEFAULT_INGRESS,
       outbound = skeletons.SG_DEFAULT_EGRESS;
 
     inbound.GroupId = groupId;
@@ -68,6 +68,7 @@ function getSecurityGroupManager(ec2, vpcId) {
         }]),
         defaultInOutRules(result.GroupId)
       ]).then(function() {
+        console.log('result', result);
         return result;
       });
     });
@@ -103,7 +104,10 @@ function getSecurityGroupManager(ec2, vpcId) {
   return {
     describe,
     create,
-    destroy
+    destroy,
+    helpers: {
+      defaultInOutRules
+    }
   };
 }
 
