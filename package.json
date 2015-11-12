@@ -37,6 +37,7 @@
     "body-parser": "^1.14.1",
     "express": "^4.13.3",
     "express-winston": "^0.4.1",
+    "kbpgp": "^2.0.48",
     "q": "^1.4.1",
     "ramda": "^0.17.1",
     "request-promise": "^0.4.3",
