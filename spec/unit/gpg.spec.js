@@ -17,16 +17,17 @@ describe('Test GPG CLI Wrapper', () => {
     gpg.__set__('spawn', require('child_process').spawn);
   });
 
-  it('escape should escape spaces', () => {
-    expect(gpg.escape('bo oya')).to.equal('"bo\\ oya"');
-  });
-
-  it('escape should escape dollar signs', () => {
-    expect(gpg.escape('bo$oya')).to.equal('"bo\\$oya"');
-  });
-
   it('encrypt should reject if passphrase is shorter than thirty chars', (done) => {
     gpg.encrypt('12345678901234567890123456789', 'some text').
+    then(C.getFail(done), (err) => {
+      C.check(done, () => {
+        expect(err instanceof Error).to.be.true;
+      });
+    });
+  });
+
+  it('encryptFile should reject if passphrase is shorter than thirty chars', (done) => {
+    gpg.encryptFile('12345678901234567890123456789', 'filePath').
     then(C.getFail(done), (err) => {
       C.check(done, () => {
         expect(err instanceof Error).to.be.true;
@@ -38,7 +39,7 @@ describe('Test GPG CLI Wrapper', () => {
   describe('Test GPG CLI Passing (not stdout)', () => {
     beforeEach(() => {
       var ms = mockSpawn();
-      ms.setDefault( ms.simple(0, '') );
+      ms.setDefault(ms.simple(0, ''));
       gpg.__set__('spawn', ms);
     });
 
@@ -65,7 +66,7 @@ describe('Test GPG CLI Wrapper', () => {
 
     beforeEach(() => {
       var ms = mockSpawn();
-      ms.setDefault( ms.simple(0, 'output text') );
+      ms.setDefault(ms.simple(0, 'output text'));
       gpg.__set__('spawn', ms);
     });
 
@@ -86,5 +87,52 @@ describe('Test GPG CLI Wrapper', () => {
           });
         }, C.getFail(done));
       });
+  });
+
+  describe('Test GPG CLI Failing With Stderr', () => {
+    beforeEach(() => {
+      var ms = mockSpawn(),
+        runner = ms.simple(1, '');
+
+      runner.stderr = 'test error';
+      ms.setDefault(runner);
+      gpg.__set__('spawn', ms);
+    });
+
+    it('encryptFile should reject if the spawned command resolves', (done) => {
+      gpg.encryptFile('some-super-secret-and-long-pass', 'filePath').
+      then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.ok;
+        });
+      });
+    });
+
+    it('decryptFile should reject if the spawned command resolves', (done) => {
+      gpg.decryptFile('some-super-secret-and-long-pass', 'cipherPath', 'out').
+      then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.ok;
+        });
+      });
+    });
+
+    it('encrypt should reject if the spawned command resolves', (done) => {
+      gpg.encrypt('some-super-secret-and-long-pass', 'cleartext').
+      then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.ok;
+        });
+      });
+    });
+
+    it('decrypt should reject if the spawned command resolves', (done) => {
+      gpg.decrypt('some-super-secret-and-long-pass', 'cipher').
+      then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.ok;
+        });
+      });
+    });
   });
 });

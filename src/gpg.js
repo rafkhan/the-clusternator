@@ -9,18 +9,9 @@ const FLAG_ARMOR = '--armor';
 const FLAG_PASSPHRASE = '--passphrase';
 const FLAG_SYMMETRIC = '--symmetric';
 const FLAG_DECRYPT = '--decrypt';
-const escapeString = /(["\s'$`\\])/g;
 
 var spawn = require('child_process').spawn,
   Q = require('q');
-
-/**
-  @param {string} cmd
-  @return {string} escaped string
-*/
-function escape(cmd) {
-  return '"' + cmd.replace(escapeString, '\\$1') + '"';
-};
 
 /**
   @param {string} passphrase - encryption passphrase
@@ -40,7 +31,7 @@ function encrypt(passphrase, cleartext) {
   }
 
   gpg = spawn(COMMAND, [
-    FLAG_ALGO, CRYPTO_ALGO, FLAG_ARMOR, FLAG_PASSPHRASE, escape(passphrase),
+    FLAG_ALGO, CRYPTO_ALGO, FLAG_ARMOR, FLAG_PASSPHRASE, passphrase,
     FLAG_SYMMETRIC
   ]);
 
@@ -52,9 +43,11 @@ function encrypt(passphrase, cleartext) {
     error += data;
   });
 
-  gpg.on('close', () => {
+  gpg.on('close', (code) => {
     if (error) {
       d.reject(new Error(error));
+    } else if (+code) {
+      d.reject(new Error('GPG terminated with exit code: ' + code));
     } else {
       d.resolve(output);
     }
@@ -74,7 +67,7 @@ function encrypt(passphrase, cleartext) {
 function decrypt(passphrase, ciphertext) {
   var d = Q.defer(),
     gpg = spawn(COMMAND, [
-      FLAG_QUIET, FLAG_PASSPHRASE, escape(passphrase), FLAG_DECRYPT
+      FLAG_QUIET, FLAG_PASSPHRASE, passphrase, FLAG_DECRYPT
     ]),
     error = '',
     output = '';
@@ -87,9 +80,11 @@ function decrypt(passphrase, ciphertext) {
     error += data;
   });
 
-  gpg.on('close', () => {
+  gpg.on('close', (code) => {
     if (error) {
       d.reject(new Error(error));
+    } else if (+code) {
+      d.reject(new Error('GPG terminated with exit code: ' + code));
     } else {
       d.resolve(output);
     }
@@ -119,7 +114,7 @@ function encryptFile(passphrase, filePath) {
   }
 
   gpg = spawn(COMMAND, [
-    FLAG_ALGO, CRYPTO_ALGO, FLAG_ARMOR, FLAG_PASSPHRASE, escape(passphrase),
+    FLAG_ALGO, CRYPTO_ALGO, FLAG_ARMOR, FLAG_PASSPHRASE, passphrase,
     FLAG_SYMMETRIC, filePath
   ]);
 
@@ -131,9 +126,11 @@ function encryptFile(passphrase, filePath) {
     error += data;
   });
 
-  gpg.on('close', () => {
+  gpg.on('close', (code) => {
     if (error) {
       d.reject(new Error(error));
+    } else if (+code) {
+      d.reject(new Error('GPG terminated with exit code: ' + code));
     } else {
       d.resolve(output);
     }
@@ -153,7 +150,7 @@ function encryptFile(passphrase, filePath) {
 function decryptFile(passphrase, cipherFilePath, outputFilePath) {
   var d = Q.defer(),
     gpg = spawn(COMMAND, [
-      FLAG_QUIET, FLAG_PASSPHRASE, escape(passphrase), FLAG_OUT, outputFilePath,
+      FLAG_QUIET, FLAG_PASSPHRASE, passphrase, FLAG_OUT, outputFilePath,
       FLAG_DECRYPT, cipherFilePath
     ]),
     error = '',
@@ -167,9 +164,11 @@ function decryptFile(passphrase, cipherFilePath, outputFilePath) {
     error += data;
   });
 
-  gpg.on('close', () => {
+  gpg.on('close', (code) => {
     if (error) {
       d.reject(new Error(error));
+    } else if (+code) {
+      d.reject(new Error('GPG terminated with exit code: ' + code));
     } else {
       d.resolve(output);
     }
