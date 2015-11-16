@@ -66,7 +66,7 @@ function generateTagFromEnv() {
   var tagOpts = {};
 
   if(env.CIRCLECI_PULL_REQUEST) {
-    tagOpts.pr = env.CIRCLECI_PULL_REQUEST;
+    tagOpts.pr = env.CIRCLE_PR_NUMBER;
   }
 
   if(env.CIRCLECI_PROJECT_REPONAME) {
