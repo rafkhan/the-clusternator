@@ -106,7 +106,7 @@ function destroyApp(argv) {
 function startServer(argv) {
   var config = require('./config')();
   return function() {
-    server.startServer(config);
+    return server.startServer(config);
   };
 }
 

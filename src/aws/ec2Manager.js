@@ -104,7 +104,10 @@ function getEC2Manager(ec2, vpcId) {
       if (!list.Reservations.length) {
         return [];
       }
-      return list.Reservations[0].Instances.map(function(reservation) {
+
+      var res = list.Reservations[0].Instances;
+      console.log(require('util').inspect(res));
+      return res.map(function(reservation) {
         return {
           InstanceId: reservation.instanceIds,
           State: reservation.State,
