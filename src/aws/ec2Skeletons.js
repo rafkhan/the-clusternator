@@ -7,6 +7,15 @@ module.exports = Object.freeze({
   VPC: {
     CidrBlock: ''
   },
+  EBS: {
+    AvailabilityZone: '',
+    size: '20' // GB
+  },
+  EBS_ATTACH: {
+    Device: 'xvdo',
+    InstanceId: '',
+    VolumeId: ''
+  },
   ACL: {
       VpcId: ''
   },

@@ -76,6 +76,7 @@ function findProjectRoot(cwd) {
       }
       return findProjectRoot(parentPath).then(d.resolve, d.reject);
     } else {
+      process.chdir(cwd);
       d.resolve(cwd);
     }
   }, d.reject);
