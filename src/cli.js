@@ -8,6 +8,7 @@ var util = require('./util');
 var server = require('./server/main');
 var circleCIClient = require('./client/circleCIClient');
 var clusternator = require('./clusternator');
+var clusternatorJson = require('./clusternator-json');
 
 
 function newApp(argv) {
@@ -141,7 +142,29 @@ function bootstrapAWS() {
 }
 
 function initializeProject() {
-  console.log('init a project');
+  return clusternatorJson.findProjectRoot().then((root) => {
+    return clusternatorJson.skipIfExists(root).then(() => { return root; });
+  }).then((root) => {
+    return clusternatorJson.findProjectNames(root).then((names) => {
+      return {
+        name: names[0]
+      };
+    }).
+    then(clusternatorJson.createInteractive).
+    then((results) => {
+      // parse results
+      return clusternatorJson.writeFromFullAnswers({
+        projectDir: root,
+        answers: results
+      }).then(() => {
+        return root;
+      });
+    });
+  }).then((root) => {
+    util.plog('Clusternator Initialized With Config: ' + clusternatorJson.fullPath(root));
+  }).fail((err) => {
+    util.plog('Clusternator: Initizalization Error: ' + err.message);
+  }).done();
 }
 
 function pullRequest(y) {
