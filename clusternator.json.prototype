@@ -1,0 +1,10 @@
+{
+  "projectId": "",
+  "private": ["pathToFilesToEncrypt"],
+  "appDefs": {
+    "pr": "path/to/appDef",
+    "production": "path/to/otherAppDef",
+    "staging": "",
+    "etc": ""
+  }
+}

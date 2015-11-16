@@ -7,8 +7,6 @@ require('./chai');
 
 /*global describe, it, expect */
 /*eslint no-unused-expressions:0*/
-describe('config provider', function () {
-  it('should return a config object', function (){
-    expect(config()).to.be;
-  });
+describe('config provider', () => {
+  /** @todo mock this up with fs-mock */
 });

@@ -1,20 +1,23 @@
 'use strict';
 
 var Q = require('q'),
-constants = require('../constants'),
-common = require('./common');
+  constants = require('../constants'),
+  util = require('../util'),
+  common = require('./common');
 
-function getRouteTableManager (ec2, vpcId) {
-  var describeRouteTables = Q.nfbind(ec2.describeRouteTables.bind(ec2), {
-    DryRun: false,
-    Filters: constants.AWS_FILTER_CTAG.concat(common.makeAWSVPCFilter(vpcId))
-  });
+function getRouteTableManager(ec2, vpcId) {
+  ec2 = util.makePromiseApi(ec2);
 
-  function findDefaultRoute() {
-    return describeRouteTables().then(function (routes) {
+  var baseFilters =
+    constants.AWS_FILTER_CTAG.concat(common.makeAWSVPCFilter(vpcId)),
+    describe = common.makeEc2DescribeFn(ec2, 'describeRouteTables',
+      'RouteTables', baseFilters);
+
+  function findDefault() {
+    return describe().then(function(routes) {
       var theRouteDesc;
-      routes.RouteTables.forEach(function (rDesc) {
-        rDesc.Tags.forEach(function (tag) {
+      routes.forEach(function(rDesc) {
+        rDesc.Tags.forEach(function(tag) {
           if (tag.Key === constants.CLUSTERNATOR_TAG) {
             theRouteDesc = rDesc;
           }
@@ -28,8 +31,8 @@ function getRouteTableManager (ec2, vpcId) {
   }
 
   return {
-    describe: describeRouteTables,
-    findDefault: findDefaultRoute
+    describe,
+    findDefault
   };
 }
 

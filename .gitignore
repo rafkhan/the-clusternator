@@ -19,3 +19,6 @@ lib
 
 # exclude generated "binaries"
 bin/*.js
+
+# exclude JetBrains IDE
+.idea

@@ -6,7 +6,7 @@ var Q = require('q'),
   rid = require('./resourceIdentifier'),
   Cluster = require('./aws/clusterManager'),
   Route53 = require('./aws/route53Manager'),
-  Task = require('./aws/taskServicemanager'),
+  Task = require('./aws/taskServiceManager'),
   util = require('./util');
 
 function getPRManager(ec2, ecs, r53, vpcId, zoneId) {

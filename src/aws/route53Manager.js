@@ -183,20 +183,89 @@ function getRoute53(route53, zoneId) {
     });
   }
 
-  return {
-    createPRARecord,
-    destroyPRARecord,
-    helpers: {
-      createAParams,
-      createChange,
-      createChangeBatch,
-      createResourceRecord,
-      createResourceRecordSet,
-      findTld,
-      validateResourceRecordSetType,
-      pluckHostedZoneName
-    }
-  };
+  /**
+    @return {Q.Promise<Object[]>}
+  */
+  function list() {
+    return route53.listHostedZones({}).then((result) => {
+      return result.HostedZones;
+    });
+  }
+
+  /**
+    @param {{ Id: string }}
+    @return {string}
+  */
+  function pluckId(resource) {
+    var splits = resource.Id.split('/');
+    return splits[splits.length - 1];
+  }
+
+  /**
+    @param {{ Tags: {{ Key: string, Value: string }}[] }} tagset
+    @return {string}
+  */
+  function findFirstTag(tagSet) {
+    var id = null;
+    tagSet.forEach((r) => {
+      r.Tags.forEach((t) => {
+        if (t.Key === constants.CLUSTERNATOR_TAG) {
+          id = r.ResourceId;
+        }
+      });
+    });
+    return id;
+  }
+
+  /**
+    @param {HostedZone[]}
+    @return {Q.Promise}
+  */
+  function listTags(l) {
+    return route53.listTagsForResources({
+      ResourceType: 'hostedzone',
+      ResourceIds: l.map(pluckId)
+    }).then(function(tagSet) {
+      return tagSet.ResourceTagSets;
+    });
+  }
+
+  /**
+    @return {Q.Promise<string>}
+  */
+  function findId() {
+    return list().then((l) => {
+        if (!l.length) {
+          throw new Error('Route53: No Hosted Zones Found');
+        }
+        return listTags(l).then((tagSet) => {
+        var id = findFirstTag(tagSet);
+        if (id) {
+          return constants.AWS_R53_ZONE_PREFIX + id;
+        }
+        throw new Error('Route53: No Clusternator Resources Found');
+      });
+    });
+}
+
+return {
+  list,
+  createPRARecord,
+  destroyPRARecord,
+  findId,
+  helpers: {
+    createAParams,
+    createChange,
+    createChangeBatch,
+    createResourceRecord,
+    createResourceRecordSet,
+    findTld,
+    validateResourceRecordSetType,
+    pluckHostedZoneName,
+    pluckId,
+    findFirstTag
+  }
+};
 }
 
 module.exports = getRoute53;

@@ -7,6 +7,7 @@ const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
 const AWS_DEFAULT_EC2_TYPE = 't2.micro';
 
 var constants = Object.freeze({
+  AWS_R53_ZONE_PREFIX: '/hostedzone/',
   AWS_DEFAULT_EC2_AMI: AWS_DEFAULT_EC2_AMI,
   AWS_DEFAULT_EC2_TYPE: AWS_DEFAULT_EC2_TYPE,
   AWS_EC2_POLL_INTERVAL: 15000, // ms to wait between polling EC2 statuses
@@ -23,52 +24,6 @@ var constants = Object.freeze({
   CLUSTERNATOR_TAG: CLUSTERNATOR_TAG,
   PROJECT_TAG: PROJECT_TAG,
   PR_TAG: PR_TAG,
-  AWS_DEFAULT_ACL_INGRESS: {
-    NetworkAclId: '',
-    RuleNumber: 1,
-    Protocol: '-1',
-    RuleAction: 'allow',
-    Egress: false,
-    CidrBlock: '0.0.0.0/0',
-    PortRange: {
-      From: 0,
-      To: 0
-    }
-  },
-  AWS_DEFAULT_ACL_EGRESS: {
-    NetworkAclId: '',
-    RuleNumber: 1,
-    Protocol: '-1',
-    RuleAction: 'allow',
-    Egress: true,
-    CidrBlock: '0.0.0.0/0',
-    PortRange: {
-      From: 0,
-      To: 0
-    }
-  },
-  AWS_DEFAULT_SG_INGRESS: {
-    GroupId: '',
-    IpPermissions: [{
-      FromPort: 1,
-      ToPort: 65535,
-      IpProtocol: '-1',
-      IpRanges: [{
-        CidrIp: '0.0.0.0/0'
-      }]
-    }]
-  },
-  AWS_DEFAULT_SG_EGRESS: {
-    GroupId: '',
-    IpPermissions: [{
-      FromPort: 0,
-      ToPort: 65535,
-      IpProtocol: '-1',
-      IpRanges: [{
-        CidrIp: '0.0.0.0/0'
-      }]
-    }]
-  },
   AWS_DEFAULT_EC2: {
     ImageId: AWS_DEFAULT_EC2_AMI,
     MaxCount: 1,

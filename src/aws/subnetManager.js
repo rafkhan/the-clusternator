@@ -6,7 +6,13 @@ var Q = require('q'),
   util = require('../util'),
   constants = require('../constants');
 
+/**
+  @param {EC2} AWS ec2 object
+  @return {Ec2Manager}
+*/
 function getSubnetManager(ec2, vpcId) {
+  ec2 = util.makePromiseApi(ec2);
+
   var vpc = Vpc(ec2),
     baseFilters = constants.AWS_FILTER_CTAG.concat(
       common.makeAWSVPCFilter(vpcId)),
@@ -28,6 +34,9 @@ function getSubnetManager(ec2, vpcId) {
   @return {number}
   */
   function findHighestCidr(list) {
+    if (!list.length) {
+      throw new Error('findHighestCidr given empty list');
+    }
     var highest = -1;
     list.forEach(function(r) {
       var cidr = r.CidrBlock,
@@ -42,33 +51,60 @@ function getSubnetManager(ec2, vpcId) {
     return +highest;
   }
 
+  /**
+    @param {CIDR[]} list
+    @return {string}
+  **/
   function incrementHighestCidr(list) {
     var highest = findHighestCidr(list);
     highest += 1;
     return highest + '.0/24';
   }
 
+  /**
+    @return {Q.Promise<string>}
+  */
   function getCidrPostfix() {
     return describe().then(incrementHighestCidr);
   }
 
+  /**
+    @param {string[]} [subnetPreix, subnetPostfix]
+    @return {string}
+  */
+  function concatSubnetComponents(results) {
+    return results.join('.');
+  }
+
+  /**
+    @param {string} pid
+    @return {Q.Promise<string>}
+  */
   function getNextSubnet(pid) {
     return Q.all([
       getCidrPrefix(pid),
       getCidrPostfix()
-    ]).then(function(results) {
-      return results[0] + '.' + results[1];
+    ]).then(concatSubnetComponents);
+  }
+
+  /**
+    @param {SubnetDescription}
+    @param {string}
+    @return {Q.Promise}
+  */
+  function associateRoute(snDesc, routeId) {
+    var id = snDesc.Subnet.SubnetId;
+    return ec2.associateRouteTable({
+      RouteTableId: routeId,
+      SubnetId: id
     });
   }
 
-  function associateRoute(snDesc, routeId) {
-    var id = snDesc.Subnet.SubnetId;
-    return Q.nfbind(ec2.associateRouteTable.bind(ec2), {
-      RouteTableId: routeId,
-      SubnetId: id
-    })();
-  }
-
+  /**
+    @param {string} pid
+    @param {SubnetDescription[]}
+    @return {boolean}
+  */
   function isPidInSubnetList(pid, list) {
     var found = false;
     list.forEach(function(sn) {
@@ -83,12 +119,25 @@ function getSubnetManager(ec2, vpcId) {
     return found;
   }
 
+  /**
+    @param {string} pid
+    @param {SubnetDescription[]}
+    @throws {Error}
+  */
+  function throwIfPidFound(pid, list) {
+    if (isPidInSubnetList(pid, list)) {
+      throw new Error('Create Subnet Failed: Project: ' + pid +
+        ' exists');
+    }
+  }
+
+  /**
+    @param {string} pid
+    @return {Q.Promise}
+  */
   function findExistingPid(pid) {
     return describe().then(function(list) {
-      if (isPidInSubnetList(pid, list)) {
-        throw new Error('Create Subnet Failed: Project: ' + pid +
-          ' exists');
-      }
+      throwIfPidFound(pid, list);
     });
   }
 
@@ -113,31 +162,59 @@ function getSubnetManager(ec2, vpcId) {
     return subnet;
   }
 
+  /**
+    @param {string} projectId
+    @param {SubnetDescription[]}
+    @return {SubnetDescription}
+    @throws {Error}
+  */
+  function throwIfSubnetNotFound(projectId, list) {
+    var subnet = findProjectTag(projectId, list);
+    if (subnet) {
+      return subnet;
+    }
+    throw new Error('No Clusternator Subnet Found For Project: ' + projectId);
+  }
+
+  /**
+    @param {string} projectId
+    @return {Q.Promise}
+  */
   function findProjectSubnet(projectId) {
     return describe().then(function(list) {
-      var subnet = findProjectTag(projectId, list);
-      if (subnet) {
-        return subnet;
-      }
-      throw new Error('No Clusternator Subnet Found For Project: ' + projectId);
+      return throwIfSubnetNotFound(projectId, list);
     });
   }
 
+  /**
+    @param {{ NetworkAcls: NetworkAclsDescriptions[]}}
+    @return {NetworkAclDescriptions[]}
+  */
+  function filterIsDefault(results) {
+    return results.NetworkAcls.filter(function(a) {
+      return a.IsDefault;
+    });
+  }
+
+  /**
+    @return {Q.Promise}
+  */
   function describeDefault() {
     // Trying to use a Filter on 'default', as per the docs didn't work
     // AWS wants a boolean, but their code wants a string, nothing comes back
     // filter default manually instead
-    return Q.nfbind(ec2.describeNetworkAcls.bind(ec2), {
+    return ec2.describeNetworkAcls({
       DryRun: false,
       Filters: common.makeAWSVPCFilter(vpcId)
-    })().
-    then(function(results) {
-      return results.NetworkAcls.filter(function(a) {
-        return a.IsDefault;
-      });
-    });
+    }).
+    then(filterIsDefault);
   }
 
+  /**
+    @param {string} subnetId
+    @param {NetworkAclAssociations[]}
+    @return {NetworkAclAssociations[]}
+   */
   function getFilteredAssociations(subnetId, list) {
     if (!list.length) {
       throw new Error('AclManager: Error expecting a default ACL');
@@ -147,32 +224,54 @@ function getSubnetManager(ec2, vpcId) {
     });
   }
 
+  /**
+    @param {string} subnetId
+    @return {Q.Promise}
+  */
   function defaultAssoc(subnetId) {
     return describeDefault().then(function(list) {
       return getFilteredAssociations(subnetId, list);
     });
   }
 
-  function defaultAssocId(subnetId) {
-    return defaultAssoc(subnetId).then(function(list) {
-      if (!list.length) {
-        throw new Error('AclManager: Error expecting a default ACL ' +
-          'Association');
-      }
-      return list[0].NetworkAclAssociationId;
-    });
+  /**
+    @param {Array}
+    @return {string}
+    @throws {Error}
+  */
+  function throwIfNetworkAclAssocListEmpty(list) {
+    if (!list.length) {
+      throw new Error('AclManager: Error expecting a default ACL ' +
+        'Association');
+    }
+    return list[0].NetworkAclAssociationId;
   }
 
+  /**
+   @param {string} subnetId
+   @return {Q.Promise<string>}
+  */
+  function defaultAssocId(subnetId) {
+    return defaultAssoc(subnetId).then(throwIfNetworkAclAssocListEmpty);
+  }
+
+  /**
+    @param {SubnetDescription} snDesc
+    @param {string} aclId
+  */
   function associateAcl(snDesc, aclId) {
     var snId = snDesc.Subnet.SubnetId;
     return defaultAssocId(snId).then(function(assocId) {
-      return Q.nfbind(ec2.replaceNetworkAclAssociation.bind(ec2), {
+      return ec2.replaceNetworkAclAssociation({
         AssociationId: assocId,
         NetworkAclId: aclId
-      })();
+      });
     });
   }
 
+  /**
+    @param {string} pid
+  */
   function destroy(pid) {
     if (!pid) {
       throw new TypeError('Destroy subnet requires a project id');
@@ -184,9 +283,9 @@ function getSubnetManager(ec2, vpcId) {
 
       var subnetId = list[0].SubnetId;
 
-      return Q.nfbind(ec2.deleteSubnet.bind(ec2), {
+      return ec2.deleteSubnet({
         SubnetId: subnetId
-      })();
+      });
     });
 
   }
@@ -194,7 +293,7 @@ function getSubnetManager(ec2, vpcId) {
   function createSubnet(params) {
     var pid = params.pid;
     delete params.pid; // aws doesn't like extra params :/
-    return Q.nbind(ec2.createSubnet, ec2)(params).then(function(results) {
+    return ec2.createSubnet(params).then(function(results) {
       return common.awsTagEc2(ec2, results.Subnet.SubnetId, [{
         Key: constants.CLUSTERNATOR_TAG,
         Value: 'true'
@@ -246,13 +345,26 @@ function getSubnetManager(ec2, vpcId) {
     create: create,
     destroy: destroy,
     findProject: findProjectSubnet,
-    findProjectTag: findProjectTag,
-    findHighestCidr: findHighestCidr,
-    incrementHighestCidr: incrementHighestCidr,
-    getFilteredAssociations: getFilteredAssociations,
-    isPidInSubnetList: isPidInSubnetList,
-    next: getNextSubnet,
-    cidrPrefix: getCidrPrefix
+    helpers: {
+      associateAcl,
+      associateRoute,
+      concatSubnetComponents,
+      defaultAssoc,
+      defaultAssocId,
+      filterIsDefault,
+      findExistingPid,
+      findHighestCidr,
+      findProjectTag,
+      getCidrPostfix,
+      getCidrPrefix,
+      getFilteredAssociations,
+      getNextSubnet,
+      incrementHighestCidr,
+      isPidInSubnetList,
+      throwIfNetworkAclAssocListEmpty,
+      throwIfPidFound,
+      throwIfSubnetNotFound
+    }
   };
 }
 

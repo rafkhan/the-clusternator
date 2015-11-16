@@ -1,5 +1,7 @@
 'use strict';
 
+var Q = require('q');
+
 var descriptions = {
   vpcs: [],
   subnets: [],
@@ -7,7 +9,8 @@ var descriptions = {
   securityGroups: [],
   networkAcls: [],
   createTags: [],
-  networkAclEntries: []
+  networkAclEntries: [],
+  assocRouteTables: []
 };
 
 function setDescription(id, val) {
@@ -36,6 +39,10 @@ function setDescribeSecurityGroups(val) {
 
 function setDescribeRouteTables(val) {
   setDescription('routeTables', val);
+}
+
+function setAssociateRouteTable(val) {
+  setDescription('assocRouteTables', val);
 }
 
 function describe(id, params, callback) {
@@ -86,19 +93,54 @@ function createNetworkAclEntry(rule, callback) {
   }
 }
 
+function associateRouteTable(assoc, callback) {
+  if (descriptions.assocRouteTables instanceof Error) {
+    callback(descriptions.assocRouteTables);
+  } else {
+    callback(null);
+  }
+}
+
+function replaceNetworkAclAssociation() {
+  return Q.resolve();
+}
+
+function createNetworkAcl(p, cb) {
+  cb(null, { NetworkAcl: { NetworkAclId: 'test' }});
+}
+
+function deleteNetworkAcl(p, cb) {
+  cb(null, { NetworkAcl: { NetworkAclId: 'test' }});
+}
+
+function authorizeSecurityGroupIngress(p, cb) {
+    cb(null);
+}
+
+function authorizeSecurityGroupEgress(p, cb) {
+    cb(null);
+}
+
 module.exports = {
-  setCreateTags: setCreateTags,
-  createTgs: createTags,
-  setDescribeVPCs: setDescribeVPCs,
-  describeVpcs: describeVpcs,
-  setDescribeSubnets: setDescribeSubnets,
-  describeSubnets: describeSubnets,
-  setDescribeRouteTables: setDescribeRouteTables,
-  describeRouteTables: describeRouteTables,
-  setDescribeNetworkAcls: setDescribeNetworkAcls,
-  describeNetworkAcls: describeNetworkAcls,
-  setDescribeSecurityGroups: setDescribeSecurityGroups,
-  describeSecurityGroups: describeSecurityGroups,
-  setCreateNetworkAclEntry: setCreateNetworkAclEntry,
-  createNetworkAclEntry: createNetworkAclEntry
+  setCreateTags,
+  createTags,
+  setDescribeVPCs,
+  describeVpcs,
+  setDescribeSubnets,
+  describeSubnets,
+  setDescribeRouteTables,
+  describeRouteTables,
+  setDescribeNetworkAcls,
+  describeNetworkAcls,
+  setDescribeSecurityGroups,
+  describeSecurityGroups,
+  setCreateNetworkAclEntry,
+  createNetworkAclEntry,
+  setAssociateRouteTable,
+  associateRouteTable,
+  replaceNetworkAclAssociation,
+  createNetworkAcl,
+  deleteNetworkAcl,
+  authorizeSecurityGroupEgress,
+  authorizeSecurityGroupIngress
 };
