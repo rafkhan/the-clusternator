@@ -23,8 +23,7 @@
     "test": "./node_modules/gulp/bin/gulp.js test-unit",
     "build": "./node_modules/gulp/bin/gulp.js transpile",
     "prepublish": "npm run build",
-    "docker-build": "npm run build && docker build -t rafkhan/clusternator-test .",
-    "postinstall": "npm run build"
+    "docker-build": "npm run build && docker build -t rafkhan/clusternator-test ."
   },
   "repository": {
     "type": "git",
