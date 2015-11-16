@@ -26,6 +26,8 @@ function pushHandler(prManager, req, res) {
           '"appdef" required to instantiate cluster.');
   }
 
+  // TODO swap out image tag name
+
   var parsedAppdef = JSON.parse(appdef);
   var parsedTag = resourceId.parseRID(tag);
 

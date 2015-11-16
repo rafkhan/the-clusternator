@@ -22,17 +22,17 @@ function createServer(prManager) {
     res.send('Still alive.');
   }
 
-  // SSL
-  // Auth
-  //
-  var curriedPushHandler = R.curry(pushHandler)(prManager)
+  // TODO: SSL, auth
+
+  var curriedPushHandler = R.curry(pushHandler)(prManager);
+  var curriedPRHandler = R.curry(prHandler)(prManager);
 
   app.use(bodyParser.json());
   app.use(loggers.request);
 
   app.get('/ping', ping);
   app.post('/clusternate', curriedPushHandler); // CI post-build hook
-  app.post('/github/pr', prHandler);     // github close PR hook
+  app.post('/github/pr', curriedPRHandler);     // github close PR hook
 
   app.use(loggers.error);
 
