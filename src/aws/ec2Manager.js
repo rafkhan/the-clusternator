@@ -102,7 +102,10 @@ function getEC2Manager(ec2, vpcId) {
       if (!list.Reservations.length) {
         return [];
       }
-      return list.Reservations[0].Instances.map(function(reservation) {
+
+      var res = list.Reservations[0].Instances;
+      console.log(require('util').inspect(res));
+      return res.map(function(reservation) {
         return {
           InstanceId: reservation.instanceIds,
           State: reservation.State,
@@ -225,6 +228,7 @@ function getEC2Manager(ec2, vpcId) {
   @param {string[]} instanceIds
   */
   function stopAndTerminate(instanceIds) {
+    console.log('pls dont run');
     return Q.nfbind(ec2.stopInstances.bind(ec2), {
       InstanceIds: instanceIds
     })().then(function() {
