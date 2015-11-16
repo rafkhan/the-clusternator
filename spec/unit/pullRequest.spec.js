@@ -12,8 +12,8 @@ app.post('/test', prHandler);
 
 /*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions: 0*/
-describe('pull request close handler', function() {
-  it('should forbid non-PR events', function(done) {
+describe('pull request close handler', () => {
+  it('should forbid non-PR events', (done) => {
     supertest(app)
       .post('/test')
       .set('X-Github-Event', 'NOT A PR')
@@ -21,7 +21,7 @@ describe('pull request close handler', function() {
       .expect(403, done);
   });
 
-  it('should forbid PR events that are not "closed" or "opened"', function(done) {
+  it('should forbid PR events that are not "closed" or "opened"', (done) => {
     supertest(app)
       .post('/test')
       .set('X-Github-Event', 'pull_request')
@@ -29,7 +29,7 @@ describe('pull request close handler', function() {
       .expect(403, done);
   });
 
-  it('should accept closed events', function(done) {
+  it('should accept closed events', (done) => {
     supertest(app)
       .post('/test')
       .set('X-Github-Event', 'pull_request')

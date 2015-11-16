@@ -10,28 +10,22 @@ require('../chai');
 
 /*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions: 0*/
-describe('ec2Manager', function() {
+describe('ec2Manager', () => {
   var ec2;
 
-  beforeEach(function() {
+  beforeEach(() => {
     ec2 = Ec2(ec2Mock);
   });
 
-  it('create should throw if not given a projectId or pr #', function() {
-    try {
+  it('create should throw if not given a projectId or pr #', () => {
+    expect(() => {
       ec2.create();
-      expect('this should not happen').to.be(undefined);
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   })
 
-  it('destroy should throw if not given a projectId or pr #', function() {
-    try {
+  it('destroy should throw if not given a projectId or pr #', () => {
+    expect(() => {
       ec2.destroy();
-      expect('this should not happen').to.be(undefined);
-    } catch (err) {
-      expect(err instanceof Error).to.be.true;
-    }
+    }).to.throw(Error);
   })
 });

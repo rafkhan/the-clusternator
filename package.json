@@ -34,12 +34,17 @@
   "license": "BSD-2-Clause",
   "dependencies": {
     "aws-sdk": "^2.2.12",
+    "base64url": "^1.0.5",
     "body-parser": "^1.14.1",
     "express": "^4.13.3",
     "express-winston": "^0.4.1",
+    "inquirer": "^0.11.0",
+    "kbpgp": "^2.0.48",
+    "parse-git-config": "^0.3.1",
     "q": "^1.4.1",
     "ramda": "^0.17.1",
     "request-promise": "^0.4.3",
+    "rimraf": "^2.4.3",
     "superagent": "^1.4.0",
     "winston": "^1.1.2",
     "yargs": "^3.29.0"
@@ -56,6 +61,8 @@
     "gulp-istanbul": "^0.10.2",
     "gulp-mocha": "^2.1.3",
     "mocha": "^2.3.3",
+    "mock-fs": "^3.4.0",
+    "mock-spawn": "^0.2.6",
     "rewire": "^2.3.4",
     "supertest": "^1.1.0"
   }

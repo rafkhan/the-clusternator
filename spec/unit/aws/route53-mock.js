@@ -10,10 +10,15 @@ var data = {
 }
 
 function getHostedZone(params, callback) {
-  callback(data.hostedZone);
+  callback(null, data.hostedZone);
+}
+
+function listHostedZones(params, callback) {
+  callback(null);
 }
 
 module.exports = {
   data: data,
-  getHostedZone
+  getHostedZone,
+  listHostedZones
 };

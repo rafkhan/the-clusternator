@@ -145,6 +145,12 @@ yargs.command('create', 'Create a resource', cli.create);
 
 yargs.command('destroy', 'Destroy a resource', cli.destroy);
 
+yargs.command('generate-pass', 'Generate a secure passphrase', cli.generatePass);
+
+yargs.command('make-private', 'Encrypts private assets (defined in clusternator.json)', cli.makePrivate);
+
+yargs.command('read-private', 'Decrypts private assets (defined i clusternator.json)', cli.readPrivate);
+
 yargs.help('help');
 var argv = yargs.argv;
 var command = argv._[0];

@@ -62,6 +62,8 @@ function getECSContainerInstanceUserData(clusterName, auth) {
 var DEFAULT_INSTANCE_PARAMS = constants.AWS_DEFAULT_EC2;
 
 function getEC2Manager(ec2, vpcId) {
+  ec2 = util.makePromiseApi(ec2);
+
   var baseFilters = constants.AWS_FILTER_CTAG.concat(
       common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(
@@ -98,7 +100,7 @@ function getEC2Manager(ec2, vpcId) {
       InstanceIds: instanceIds
     };
 
-    return Q.nbind(ec2.describeInstances, ec2)(params).then(function(list) {
+    return ec2.describeInstances(params).then(function(list) {
       if (!list.Reservations.length) {
         return [];
       }
@@ -201,7 +203,7 @@ function getEC2Manager(ec2, vpcId) {
       Groups: [config.sgId]
     });
 
-    return Q.nbind(ec2.runInstances, ec2)(params).then(function(results) {
+    return ec2.runInstances(params).then(function(results) {
       var tagPromises = [],
         readyPromises = [];
       results.Instances.forEach(function(instance) {
@@ -228,13 +230,12 @@ function getEC2Manager(ec2, vpcId) {
   @param {string[]} instanceIds
   */
   function stopAndTerminate(instanceIds) {
-    console.log('pls dont run');
-    return Q.nfbind(ec2.stopInstances.bind(ec2), {
+    return ec2.stopInstances({
       InstanceIds: instanceIds
-    })().then(function() {
-      return Q.nfbind(ec2.terminateInstances.bind(ec2), {
+    }).then(function() {
+      return ec2.terminateInstances({
         InstanceIds: instanceIds
-      })();
+      });
     }).then(function() {
       return waitForTermination(instanceIds);
     });
