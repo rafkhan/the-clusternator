@@ -29,6 +29,18 @@ function mandatory(defaults) {
   ];
 }
 
+function privateChoice() {
+  return [
+    {
+      type: 'input',
+      name: 'private',
+      message: 'Path to private folder',
+      default: ''
+    }
+  ]
+}
+
 module.exports = {
-  mandatory
+  mandatory,
+  privateChoice
 };

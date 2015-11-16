@@ -9,6 +9,7 @@ var server = require('./server/main');
 var circleCIClient = require('./client/circleCIClient');
 var clusternator = require('./clusternator');
 var clusternatorJson = require('./clusternator-json');
+var gpg = require('./gpg');
 
 
 function newApp(argv) {
@@ -179,6 +180,35 @@ function destroy(y) {
 
 }
 
+function makePrivate(y) {
+  y.demand('p').
+  alias('p', 'passphrase').
+  describe('p', 'Requires a passphrase to encrypt private files/directories');
+
+  return clusternatorJson.makePrivate(y.argv.p).then(() => {
+    util.plog('Clusternator: Private files/directories encrypted');
+  });
+}
+
+function readPrivate(y) {
+  y.demand('p').
+  alias('p', 'passphrase').
+  describe('p', 'Requires a passphrase to encrypt private files/directories');
+
+  return clusternatorJson.readPrivate(y.argv.p).then(() => {
+    util.plog('Clusternator: Private files/directories un-encrypted');
+  });
+}
+
+function generatePass() {
+  return gpg.generatePass().then((passphrase) => {
+    util.plog('Keep this passphrase secure: ' + passphrase);
+  }, (err) => {
+    util.plog('Error generating passphrase: ' + err.message);
+  });
+}
+
+
 function describe(y) {
   y.demand('p').
   alias('p', 'pull-request').
@@ -212,6 +242,10 @@ module.exports = {
   init: initializeProject,
   pullRequest: pullRequest,
   describe: describe,
-  create: create,
-  destroy: destroy
+  create,
+  destroy,
+
+  makePrivate,
+  readPrivate,
+  generatePass
 };

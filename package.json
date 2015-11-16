@@ -34,6 +34,7 @@
   "license": "BSD-2-Clause",
   "dependencies": {
     "aws-sdk": "^2.2.12",
+    "base64url": "^1.0.5",
     "body-parser": "^1.14.1",
     "express": "^4.13.3",
     "express-winston": "^0.4.1",

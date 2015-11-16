@@ -11,6 +11,8 @@ const FLAG_SYMMETRIC = '--symmetric';
 const FLAG_DECRYPT = '--decrypt';
 
 var spawn = require('child_process').spawn,
+  crypto = require('crypto'),
+  b64 = require('base64url'),
   Q = require('q');
 
 /**
@@ -179,10 +181,23 @@ function decryptFile(passphrase, cipherFilePath, outputFilePath) {
   return d.promise;
 }
 
+function generatePass() {
+  var d = Q.defer();
+  crypto.randomBytes(50, (err, buff) => {
+    if (err) {
+      d.reject(err);
+      return;
+    }
+    d.resolve(b64(buff));
+  });
+  return d.promise;
+}
+
 module.exports = {
   escape,
   encrypt,
   decrypt,
   encryptFile,
-  decryptFile
+  decryptFile,
+  generatePass
 };

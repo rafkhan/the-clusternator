@@ -134,5 +134,13 @@ describe('Test GPG CLI Wrapper', () => {
         });
       });
     });
+
+    it('generatePass should resolve a string longer than thirty characters', (done) => {
+      gpg.generatePass().then((pass) => {
+        C.check(done, () => {
+          expect(pass.length > 30).to.be.ok;
+        });
+      }, C.getFail(done));
+    });
   });
 });

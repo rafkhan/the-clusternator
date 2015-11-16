@@ -25,7 +25,7 @@ describe('clusternator.json handling', () => {
     oldGit = cn.__get__('git');
     oldInq = cn.__get__('inquirer');
     cn.__set__('git', mockGit);
-    cn.__set__('inquirer', { prompt: (p, cb) => { cb(); } });
+    cn.__set__('inquirer', { prompt: (p, cb) => { cb({ private: ''}); } });
 
     mockFs({
       'home/user/workspaces/rangle/the-clusternator': {
