@@ -25,8 +25,8 @@ var Q = require('q'),
   inquirer = require('inquirer'),
   util = require('./util'),
   questions = require('./create-interactive-questions'),
-  gpg = require('./gpg'),
-  tar = require('./tar'),
+  gpg = require('./cli-wrappers/gpg'),
+  tar = require('./cli-wrappers/tar'),
   rimraf = Q.nfbind(require('rimraf'));
 
 const GIT_CONFIG = VCS_DIR + path.sep + 'config';

@@ -3,7 +3,7 @@
 var rewire = require('rewire'),
   mockSpawn = require('mock-spawn');
 
-var tar = rewire('../../src/tar'),
+var tar = rewire('../../src/cli-wrappers/tar'),
   C = require('./chai');
 
 /*global describe, it, expect, beforeEach, afterEach */

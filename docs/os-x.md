@@ -83,19 +83,27 @@ mostly automatic.
 To get Docker working after reboot:
 
 - Run "Docker Quick Start Terminal" OS X app
-- In a CLI/Bash run `docker-machine env default` which should print out a string
-that needs to be evaluated
-- In a CLI/Bash evaluate the string from the previous command (something like:
-  `eval "$(docker-machine env default)"`)
+- In a CLI/Bash run 
 
-#### When/If Things Go Wrong
+```
+docker-machine env defaul && \
+eval "$(docker-machine env default)"
+```
+
+#### When/If Things Go Wrong (like a network change)
 
 Sometimes things do not go as planned. Fortunately Max OS X's Docker environment
 is virtual, and can be _completely_ reset:
 
-- Open _Virtual Box_ application
-- delete the "default" VM. This should be the only VM unless the reader uses
-_Virtual Box_ for their own purposes
+```
+killall -9 VBoxHeadless && docker-machine restart default 
+```
+followed by
+
+```
+docker-machine env default && eval "$(docker-machine env default)" 
+```
+
 
 
 #### Stopping Docker

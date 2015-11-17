@@ -9,7 +9,7 @@ var server = require('./server/main');
 var circleCIClient = require('./client/circleCIClient');
 var clusternator = require('./clusternator');
 var clusternatorJson = require('./clusternator-json');
-var gpg = require('./gpg');
+var gpg = require('./cli-wrappers/gpg');
 
 
 function newApp(argv) {
