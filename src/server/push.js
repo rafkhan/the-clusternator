@@ -26,10 +26,13 @@ function pushHandler(prManager, req, res) {
           '"appdef" required to instantiate cluster.');
   }
 
-  // TODO swap out image tag name
+  // TODO swap out image tag name in appdef object? Either here or in client.
 
   var parsedAppdef = JSON.parse(appdef);
   var parsedTag = resourceId.parseRID(tag);
+
+  // XXX SWAP FOR WINSTON
+  console.log('Generating application with tags:', parsedTag);
 
   prManager.create(parsedTag.pid, parsedTag.pr, parsedAppdef)
     .then((res) => { console.log('PR manager created build successfully', res); },
