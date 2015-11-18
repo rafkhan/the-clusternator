@@ -4,6 +4,7 @@ var R = require('ramda');
 
 var serverUtil = require('./util');
 var resourceId = require('../resourceIdentifier');
+var log = require('./loggers').logger;
 
 var missingPropertyStatus = 400;
 
@@ -30,13 +31,23 @@ function pushHandler(prManager, req, res) {
 
   var parsedAppdef = JSON.parse(appdef);
   var parsedTag = resourceId.parseRID(tag);
+  var prStr = parsedTag.pr + '';
+
+  console.log(tag, parsedTag);
+
+  log.info('Building project %s:%s',
+            parsedTag.pid, parsedTag.pr);
 
   // XXX SWAP FOR WINSTON
   console.log('Generating application with tags:', parsedTag);
 
   prManager.create(parsedTag.pid, parsedTag.pr, parsedAppdef)
-    .then((res) => { console.log('PR manager created build successfully', res); },
-          (err) => { console.log('Error creating PR build:', err.stack); });
+    .then((res) => { log.info('Successfully build %s:%s',
+                              parsedTag.pid, parsedTag.pr); },
+          (err) => {
+            log.error('failed to build %s:%s',
+                       parsedTag.pid, parsedTag.pr);
+          });
 
   var resp = JSON.stringify({
     appdef: appdef,
