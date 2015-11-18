@@ -2,8 +2,8 @@
 
 The clusternator is a tool for temporarily deploying applications on pull requests.
 It uses [AWS ECS](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html)
-to manage deployments, therefore *you must be using[Docker]
-(https://www.docker.com/)* to run your application.
+to manage deployments, therefore **you must be using [Docker]
+(https://www.docker.com/)** to run your application.
 
 
 #### Install the `clusternator` CLI
@@ -12,8 +12,6 @@ to manage deployments, therefore *you must be using[Docker]
 npm install -g clusternator
 clusternator --help
 ```
-
-
 
 
 ## Private Application Configurations
