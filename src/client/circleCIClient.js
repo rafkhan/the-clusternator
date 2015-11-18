@@ -68,11 +68,11 @@ function generateTagFromEnv() {
   var env = process.env;
   var tagOpts = {};
 
-  if(env.CIRCLECI_PULL_REQUEST) {
+  if(env.CIRCLE_PR_NUMBER) {
     tagOpts.pr = env.CIRCLE_PR_NUMBER;
   }
 
-  if(env.CIRCLECI_PROJECT_REPONAME) {
+  if(env.CIRCLE_PROJECT_REPONAME) {
     tagOpts.pid = env.CIRCLE_PROJECT_REPONAME;
   }
 
