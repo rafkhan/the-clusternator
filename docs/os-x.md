@@ -92,8 +92,12 @@ eval "$(docker-machine env default)"
 
 #### When/If Things Go Wrong (like a network change)
 
-Sometimes things do not go as planned. Fortunately Max OS X's Docker environment
-is virtual, and can be _completely_ reset:
+Sometimes things do not go as planned.  Sometimes, like when a network changes,
+or when a laptop sleeps, OS X's docker environment has issues.  These often
+manifest as "network errors".
+
+Fortunately Max OS X's Docker environment is virtual, and can be _completely_ 
+reset:
 
 ```
 killall -9 VBoxHeadless && docker-machine restart default 
@@ -104,6 +108,8 @@ followed by
 docker-machine env default && eval "$(docker-machine env default)" 
 ```
 
+It's possible these can be combined into a one liner, but that does not
+translate nicely into markdown.
 
 
 #### Stopping Docker

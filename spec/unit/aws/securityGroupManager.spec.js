@@ -35,37 +35,37 @@ describe('securityGroupManager', () => {
     });
   });
 
-  it('create should throw without a pid', () => {
+  it('createPr should throw without a pid', () => {
     expect(() => {
-      securityGroup.create();
+      securityGroup.createPr();
     }).to.throw(Error);
   });
 
-  it('create should throw without a pr', () => {
+  it('createPr should throw without a pr', () => {
     expect(() => {
-      securityGroup.create('test-project');
+      securityGroup.createPr('test-project');
     }).to.throw(Error);
   });
 
-  it('create should return a promise', () => {
-    var p = securityGroup.create('test-project', '1');
+  it('createPr should return a promise', () => {
+    var p = securityGroup.createPr('test-project', '1');
     expect(typeof p.then).to.equal('function');
   });
 
-  it('destroy should throw without a pid', () => {
+  it('destroyPr should throw without a pid', () => {
     expect(() => {
-      securityGroup.destroy();
+      securityGroup.destroyPr();
     }).to.throw(Error);
   });
 
-  it('destroy should throw without a pr', () => {
+  it('destroyPr should throw without a pr', () => {
     expect(() => {
-      securityGroup.destroy('test-project');
+      securityGroup.destroyPr('test-project');
     }).to.throw(Error);
   });
 
-  it('destroy should return a promise', () => {
-    var p = securityGroup.destroy('test-project', '1');
+  it('destroyPr should return a promise', () => {
+    var p = securityGroup.destroyPr('test-project', '1');
     expect(typeof p.then).to.equal('function');
   });
 

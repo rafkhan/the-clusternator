@@ -1,10 +1,22 @@
 'use strict';
 
-var Q = require('q');
-var R = require('ramda');
-var common = require('./common');
-var util = require('../util');
-var constants = require('../constants');
+const UTF8 = 'utf-8'
+const SETUP_SSH = 'mkdir -p /home/ec2-user/.ssh';
+const CHOWN_SSH ='chown -R ec2-user:ec2-user /home/ec2-user/.ssh && chmod -R ' +
+  'go-rwx /home/ec2-user/.ssh';
+const OUTPUT_SSH = '>> /home/ec2-user/.ssh/authorized_keys';
+
+var Q = require('q'),
+  R = require('ramda'),
+  common = require('./common'),
+  util = require('../util'),
+  constants = require('../constants'),
+  fs = require('fs'),
+  path = require('path');
+
+var ls = Q.nbind(fs.readdir, fs),
+  readFile = Q.nbind(fs.readFile, fs),
+  DEFAULT_INSTANCE_PARAMS = constants.AWS_DEFAULT_EC2;
 
 
 //var DEFAULT_SECURITY_GROUP = 'sg-356bb652'; // Default SG allows all traffic
@@ -12,60 +24,143 @@ var constants = require('../constants');
 // NETWORK INTERFACE MUST HAVE MATCHING SECURITY GROUP
 //var NETWORK_INTERFACE_ID = 'eni-66bd8349';
 
-function getECSContainerInstanceUserData(clusterName, auth) {
+/**
+ * Loads _all_ the contents of a given path, it assumes they're public keys
+ * @param {string} keyPath
+ * @returns {Q.Promise<string[]>}
+ */
+function loadUserPublicKeys(keyPath) {
+  return ls(keyPath).then((keyFiles) => {
+    return Q.all(keyFiles.map((fileName) => {
+      return readFile(path.normalize(keyPath + path.sep + fileName), UTF8);
+    }));
+  });
+}
 
-  var data = ['#!/bin/bash',
-    'echo ECS_CLUSTER=' + clusterName + ' >> /etc/ecs/ecs.config;'
-  ];
+/**
+ * @param {string} type
+ * @returns {string}
+ */
+function makeDockerAuthType(type) {
+  return `echo ECS_ENGINE_AUTH_TYPE=${ type } >> /etc/ecs/ecs.config;`
+}
 
-  if (auth) {
+/**
+ * @param {string} data
+ * @returns {string}
+ */
+function makeDockerAuthData(data) {
+  return `echo ECS_ENGINE_AUTH_DATA=${ data } >> /etc/ecs/ecs.config;`
+}
 
-    console.log(auth);
-
-    if (!auth.cfg && (!auth.username || !auth.password || !auth.email)) {
-      throw 'Auth should contain a username, password, and email';
-    }
-
-    var authJson;
-    var cfgType;
-
-    if (auth.cfg) {
-      authJson = JSON.parse(auth.cfg);
-      cfgType = 'dockercfg';
-    } else {
-      authJson = {
-        'https://index.docker.io/v1/user': auth
-      };
-      cfgType = 'docker';
-    }
-
-
-    var authStr = JSON.stringify(authJson);
-
-    var authType = 'echo ECS_ENGINE_AUTH_TYPE=' + cfgType +
-      ' >> /etc/ecs/ecs.config;';
-    var authData = 'echo ECS_ENGINE_AUTH_DATA=' + authStr +
-      ' >> /etc/ecs/ecs.config;';
-
-    data.push(authType);
-    data.push(authData);
+/**
+ * @todo sort out docker auth for private images
+ * @param {string} cfg
+ * @returns {string[]}
+ */
+function makeDockerAuthCfg(cfg) {
+  if (!cfg) {
+    throw new TypeError('Clusternator Ec2: makeDockerAuthCfg requires a param');
   }
+  const cfgType = 'dockercfg';
+  return [
+    makeDockerAuthType(cfgType),
+    makeDockerAuthData(cfg)
+  ];
+}
 
-  var bash = data.join('\n');
 
-  console.log(bash);
+/**
+ * @todo sort out docker auth for private images
+ * @param {{ username: string, password: string, email: string }}auth
+ * @return {string[]}
+ * @throws {TypeError}
+ */
+function makeDockerAuth(auth) {
+  if (!auth || !auth.username || !auth.password || !auth.email) {
+    throw new TypeError('Clusternator: Ec2: Auth should contain a ' +
+      'username, password, and email');
+  }
+  const cfgType = 'docker';
 
-  var buf = new Buffer(bash);
+  var authJson = {
+    'https://index.docker.io/v1/user': auth
+  }, authStr = JSON.stringify(authJson);
+
+  return [
+    makeDockerAuthType(cfgType),
+    makeDockerAuthData(authStr)
+  ];
+}
+
+/**
+ * @param {string[]} keys
+ * @returns {string[]}
+ */
+function processSSHKeys(keys) {
+  if (!keys.length) {
+    return [];
+  }
+  return [SETUP_SSH].concat(keys.map((key) => {
+    return `echo "\n' ${key}" ${OUTPUT_SSH}`;
+  }).concat(CHOWN_SSH));
+}
+
+/**
+ * @param {string} sshPath to user defined ssh public keys
+ * @returns {Q.Promise<string[]>}
+ */
+function makeSSHUserData(sshPath) {
+  return loadUserPublicKeys(sshPath).then(processSSHKeys);
+}
+
+
+/**
+ * @param {string[]} arr
+ * @return {string}
+ */
+function stringArrayToNewLineBase64(arr) {
+  var buf = new Buffer(arr.join('\n'));
   return buf.toString('base64');
 }
 
-var DEFAULT_INSTANCE_PARAMS = constants.AWS_DEFAULT_EC2;
+/**
+ * @param {string} clusterName
+ * @param {{ username: string, password: string, email:string}|{cfg:string}} auth
+ * @param sshPath
+ * @returns {Q.Promise<string>}
+ */
+function getECSContainerInstanceUserData(clusterName, auth, sshPath) {
+  var data = ['#!/bin/bash',
+    'echo ECS_CLUSTER=' + clusterName + ' >> /etc/ecs/ecs.config;'
+  ], authData = [];
+
+  if (auth) {
+    if (auth.cfg) {
+      authData = makeDockerAuthCfg(auth.cfg);
+    } else {
+      authData = makeDockerAuth(auth);
+    }
+  }
+
+  data = data.concat(authData);
+
+  return makeSSHUserData(sshPath).then((sshData) => {
+    data = data.concat(sshData);
+    return stringArrayToNewLineBase64(data);
+  }, (err) => {
+    util.plog('Clusternator Ec2: Warning: Loading user defined SSH keys ' +
+      'failed, custom logins disabled ' + err.message);
+    return stringArrayToNewLineBase64(data);
+  });
+}
+
 
 function getEC2Manager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
   var baseFilters = constants.AWS_FILTER_CTAG.concat(
-      common.makeAWSVPCFilter(vpcId)),
+    common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(
       ec2, 'describeInstances', 'Reservations', baseFilters);
 
@@ -106,8 +201,7 @@ function getEC2Manager(ec2, vpcId) {
       }
 
       var res = list.Reservations[0].Instances;
-      console.log(require('util').inspect(res));
-      return res.map(function(reservation) {
+      return res.map((reservation) => {
         return {
           InstanceId: reservation.instanceIds,
           State: reservation.State,
@@ -119,7 +213,7 @@ function getEC2Manager(ec2, vpcId) {
 
   function makeTerminatedPredicate(instanceIds) {
     function predicate() {
-      return checkInstanceStatuses(instanceIds).then(function(list) {
+      return checkInstanceStatuses(instanceIds).then((list) => {
         if (!list.length) {
           throw new Error('Ec2 Could not wait for ' + instanceIds.join(', ') +
             ' to terminate, they were not found');
@@ -137,7 +231,7 @@ function getEC2Manager(ec2, vpcId) {
 
   function makeReadyPredicate(instanceId) {
     function predicate() {
-      return checkInstanceStatuses([instanceId]).then(function(list) {
+      return checkInstanceStatuses([instanceId]).then((list) => {
         var d;
         if (!list.length) {
           throw new Error('Ec2 No Instances Awaiting Readiness');
@@ -154,8 +248,8 @@ function getEC2Manager(ec2, vpcId) {
   }
 
   /**
-  @param {string} instanceId
-  */
+   @param {string} instanceId
+   */
   function waitForReady(instanceId) {
     var fn = makeReadyPredicate(instanceId);
 
@@ -191,34 +285,38 @@ function getEC2Manager(ec2, vpcId) {
 
     var auth = config.auth;
     var apiConfig = config.apiConfig;
-    apiConfig.UserData = getECSContainerInstanceUserData(clusterName, auth);
+    var sshPath = '';
+    return getECSContainerInstanceUserData(clusterName, auth, sshPath).then((data) => {
+      apiConfig.UserData = data;
 
-    var params = R.merge(DEFAULT_INSTANCE_PARAMS, apiConfig);
+      var params = R.merge(DEFAULT_INSTANCE_PARAMS, apiConfig);
 
-    params.NetworkInterfaces.push({
-      DeviceIndex: 0,
-      AssociatePublicIpAddress: true,
-      SubnetId: config.subnetId,
-      DeleteOnTermination: true,
-      Groups: [config.sgId]
+      params.NetworkInterfaces.push({
+        DeviceIndex: 0,
+        AssociatePublicIpAddress: true,
+        SubnetId: config.subnetId,
+        DeleteOnTermination: true,
+        Groups: [config.sgId]
+      });
+
+      return ec2.runInstances(params).then((results) => {
+        var tagPromises = [],
+          readyPromises = [];
+        results.Instances.forEach(function(instance) {
+          tagPromises.push(tagInstance(instance, config.pr, config.pid));
+          readyPromises.push(waitForReady(instance.InstanceId));
+        });
+        return Q.all(tagPromises.concat(readyPromises)).then(() => {
+          return describe(config.pid, config.pr);
+        });
+      });
     });
 
-    return ec2.runInstances(params).then(function(results) {
-      var tagPromises = [],
-        readyPromises = [];
-      results.Instances.forEach(function(instance) {
-        tagPromises.push(tagInstance(instance, config.pr, config.pid));
-        readyPromises.push(waitForReady(instance.InstanceId));
-      });
-      return Q.all(tagPromises.concat(readyPromises)).then(function() {
-        return describe(config.pid, config.pr);
-      });
-    });
   }
 
   /**
-  @param {string[]} instanceIds
-  */
+   @param {string[]} instanceIds
+   */
   function waitForTermination(instanceIds) {
     var fn = makeTerminatedPredicate(instanceIds);
 
@@ -227,41 +325,56 @@ function getEC2Manager(ec2, vpcId) {
   }
 
   /**
-  @param {string[]} instanceIds
-  */
+   @param {string[]} instanceIds
+   */
   function stopAndTerminate(instanceIds) {
     return ec2.stopInstances({
       InstanceIds: instanceIds
-    }).then(function() {
+    }).then(() => {
       return ec2.terminateInstances({
         InstanceIds: instanceIds
       });
-    }).then(function() {
+    }).then(() => {
       return waitForTermination(instanceIds);
     });
   }
 
-  function destroy(pid, pr) {
+  function destroyPr(pid, pr) {
     if (!pid || !pr) {
       throw new TypeError('ec2 destroy requires pid, and pr');
     }
 
-    return describe(pid, pr).then(function(list) {
+    return describe(pid, pr).then((list) => {
       if (!list.length) {
         common.throwInvalidPidPrTag(pid, pr, 'looking', 'Instance');
       }
 
-      return stopAndTerminate(list[0].Instances.map(function(el) {
+      return stopAndTerminate(list[0].Instances.map((el) => {
         return el.InstanceId;
       }));
     });
   }
 
   return {
-    create: buildEc2Box,
-    describe: describe,
-    destroy: destroy,
-    checkInstanceStatus: checkInstanceStatuses
+    createPr: buildEc2Box,
+    describe,
+    destroyPr,
+    checkInstanceStatuses,
+    helpers: {
+      checkInstanceStatuses,
+      getECSContainerInstanceUserData,
+      loadUserPublicKeys,
+      makeDockerAuth,
+      makeDockerAuthCfg,
+      makeReadyPredicate,
+      makeSSHUserData,
+      makeTerminatedPredicate,
+      processSSHKeys,
+      stringArrayToNewLineBase64,
+      SETUP_SSH,
+      CHOWN_SSH,
+      OUTPUT_SSH
+    }
   };
 }
 

@@ -74,7 +74,11 @@ function getSecurityGroupManager(ec2, vpcId) {
     });
   }
 
-  function create(pid, pr) {
+  function create() {
+
+  }
+
+  function createPr(pid, pr) {
     if (!pid || !pr) {
       throw new TypeError('Create SecurityGroup requires a projectId, and ' +
         'pull request #');
@@ -84,7 +88,7 @@ function getSecurityGroupManager(ec2, vpcId) {
     });
   }
 
-  function destroy(pid, pr) {
+  function destroyPr(pid, pr) {
     if (!pid || !pr) {
       throw new Error('Destroy SecurityGroups requires a projectId, and a ' +
         'pull request #');
@@ -103,8 +107,9 @@ function getSecurityGroupManager(ec2, vpcId) {
 
   return {
     describe,
+    createPr,
     create,
-    destroy,
+    destroyPr,
     helpers: {
       defaultInOutRules
     }
