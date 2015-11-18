@@ -1,6 +1,6 @@
 {
   "name": "clusternator",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "description": "Program to deploy docker containers on cloud service platforms with minimal user input, and/or configuration",
   "main": "clusternator.js",
   "preferGlobal": true,
@@ -23,8 +23,7 @@
     "test": "./node_modules/gulp/bin/gulp.js test-unit",
     "build": "./node_modules/gulp/bin/gulp.js transpile",
     "prepublish": "npm run build",
-    "docker-build": "npm run build && docker build -t rafkhan/clusternator-test .",
-    "postinstall": "npm run build"
+    "docker-build": "npm run build && docker build -t rafkhan/clusternator-test ."
   },
   "repository": {
     "type": "git",
