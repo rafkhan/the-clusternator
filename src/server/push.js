@@ -4,6 +4,7 @@ var R = require('ramda');
 
 var serverUtil = require('./util');
 var resourceId = require('../resourceIdentifier');
+var log = require('./loggers').logger;
 
 var missingPropertyStatus = 400;
 
@@ -19,11 +20,13 @@ function pushHandler(prManager, req, res) {
   if(!tag) {
     error(missingPropertyStatus,
           '"tag" required for project identification.');
+    return;
   }
 
   if(!appdef) {
     error(missingPropertyStatus,
           '"appdef" required to instantiate cluster.');
+    return;
   }
 
   // TODO swap out image tag name in appdef object? Either here or in client.
@@ -31,12 +34,33 @@ function pushHandler(prManager, req, res) {
   var parsedAppdef = JSON.parse(appdef);
   var parsedTag = resourceId.parseRID(tag);
 
+  if(parsedTag.pid) {
+    error(missingPropertyStatus,
+          'Missing "pid" property in tag.');
+    return;
+  }
+
+  if(parsedTag.pr) {
+    error(missingPropertyStatus,
+          'Missing "pr" property in tag.');
+    return;
+  }
+
+  var prStr = parsedTag.pr + '';
+
+  log.info('Building project %s:%s',
+            parsedTag.pid, parsedTag.pr);
+
   // XXX SWAP FOR WINSTON
   console.log('Generating application with tags:', parsedTag);
 
   prManager.create(parsedTag.pid, parsedTag.pr, parsedAppdef)
-    .then((res) => { console.log('PR manager created build successfully', res); },
-          (err) => { console.log('Error creating PR build:', err.stack); });
+    .then((res) => { log.info('Successfully build %s:%s',
+                              parsedTag.pid, parsedTag.pr); },
+          (err) => {
+            log.error('failed to build %s:%s',
+                       parsedTag.pid, parsedTag.pr);
+          });
 
   var resp = JSON.stringify({
     appdef: appdef,
