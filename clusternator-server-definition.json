@@ -1,5 +1,5 @@
 {
-  "name": "NodeBasic",
+  "name": "Clusternator",
   "tasks": [
     {
       "containerDefinitions": [
@@ -13,19 +13,30 @@
             }
           ],
           "command": [],
-          "environment": [],
+          "environment": [{
+            "name": "PASSPHRASE",
+            "value": ""
+          }],
           "essential": true,
           "entryPoint": [],
           "links": [],
-          "mountPoints": [],
+          "mountPoints": [{
+            "sourceVolume":"dockerInDocker",
+            "containerPath":"/var/run/docker.sock"
+          }],
           "memory": 256,
           "name": "nodebasic",
           "cpu": 256,
-          "image": "rafkhan/clusternator-test"
+          "image": "rafkhan/dockernator:0.0.1"
         }
       ],
-      "volumes": [],
-      "family": "clusternator-test"
+      "volumes": [{
+        "name":"dockerInDocker",
+        "host": {
+          "sourcePath":"/var/run/docker.sock"
+        }
+      }],
+      "family": "dockernator"
     }
   ]
 }

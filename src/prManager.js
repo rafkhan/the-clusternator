@@ -40,13 +40,13 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     });
 
     return Q.all([
-      securityGroup.create(pid, pr),
+      securityGroup.createPr(pid, pr),
       cluster.create(clusterName)
     ]).
     then(function(results) {
       var sgDesc = results[0];
 
-      return ec2mgr.create({
+      return ec2mgr.createPr({
         clusterName: clusterName,
         pid: pid,
         pr: pr,
@@ -93,7 +93,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         }));
       });
       return Q.all(deregisterPromises).then(function() {
-        return ec2mgr.destroy(pid, pr).fail(function(err) {
+        return ec2mgr.destroyPr(pid, pr).fail(function(err) {
           util.plog('PR Destruction Problem Destroying Ec2: ' + err.message);
         });
       });
@@ -126,7 +126,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         pr: pr
       });
     }).then(function() {
-      return securityGroup.destroy(pid, pr);
+      return securityGroup.destroyPr(pid, pr);
     });
   }
 

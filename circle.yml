@@ -1,5 +1,5 @@
 machine:
-  services:
-    - docker
   node:
     version: 4.2.1
+  webhooks:
+    - url: https://the-clusternator-pr-1.rangleapp.io

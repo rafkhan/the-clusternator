@@ -1,0 +1,9 @@
+{
+  "projectId": "the-clusternator",
+  "private": [
+    "./credentials.local.json"
+  ],
+  "appDefs": {
+    "pr": "'null'"
+  }
+}

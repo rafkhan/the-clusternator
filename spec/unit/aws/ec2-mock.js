@@ -10,11 +10,16 @@ var descriptions = {
   networkAcls: [],
   createTags: [],
   networkAclEntries: [],
-  assocRouteTables: []
+  assocRouteTables: [],
+  instances: []
 };
 
 function setDescription(id, val) {
   descriptions[id] = val;
+}
+
+function setDescribeInstances(val) {
+  setDescription('instances', val);
 }
 
 function setDescribeVPCs(val) {
@@ -71,6 +76,10 @@ function describeSecurityGroups(params, callback) {
 
 function describeNetworkAcls(params, callback) {
   describe('networkAcls', params, callback);
+}
+
+function describeInstances(params, callback) {
+  describe('instances', params, callback);
 }
 
 function setCreateTags(val) {
@@ -142,5 +151,6 @@ module.exports = {
   createNetworkAcl,
   deleteNetworkAcl,
   authorizeSecurityGroupEgress,
-  authorizeSecurityGroupIngress
+  authorizeSecurityGroupIngress,
+  describeInstances
 };
