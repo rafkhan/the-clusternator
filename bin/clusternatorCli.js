@@ -151,6 +151,8 @@ yargs.command('make-private', 'Encrypts private assets (defined in clusternator.
 
 yargs.command('read-private', 'Decrypts private assets (defined i clusternator.json)', cli.readPrivate);
 
+yargs.command('deploy', 'Makes a deployment');
+
 yargs.help('help');
 var argv = yargs.argv;
 var command = argv._[0];
