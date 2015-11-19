@@ -217,6 +217,28 @@ function makePrFilter(pr) {
   return makeAWSTagFilter(constants.PR_TAG, pr);
 }
 
+
+/**
+ * @param {AWSEc2DescribeResults} results
+ * @returns {string}
+ * @throws {Error}
+ */
+function findIpFromEc2Describe(results) {
+  /** @todo in the future this might be plural, or more likely it will
+   be going through an ELB */
+  var ip;
+  if (!results[0]) {
+    throw new Error('createPR: unexpected EC2 create results');
+  }
+  results[0].Instances.forEach(function(inst) {
+    ip = inst.PublicIpAddress;
+  });
+  if (!ip) {
+    throw new Error('createPR: expecting a public IP address');
+  }
+  return ip;
+}
+
 module.exports = {
   areTagsPidPrValid,
   areTagsPidValid,
@@ -231,5 +253,6 @@ module.exports = {
   makeEc2DescribeFn,
   makeEc2DescribeProjectFn,
   makeEc2DescribePrFn,
-  makeEc2DescribeDeployment
+  makeEc2DescribeDeployment,
+  findIpFromEc2Describe
 };

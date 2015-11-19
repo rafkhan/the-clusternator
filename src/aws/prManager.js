@@ -1,13 +1,14 @@
 'use strict';
 var Q = require('q'),
-  Subnet = require('./aws/subnetManager'),
-  SG = require('./aws/securityGroupManager'),
-  Ec2 = require('./aws/ec2Manager'),
-  rid = require('./resourceIdentifier'),
-  Cluster = require('./aws/clusterManager'),
-  Route53 = require('./aws/route53Manager'),
-  Task = require('./aws/taskServiceManager'),
-  util = require('./util');
+  Subnet = require('./subnetManager'),
+  SG = require('./securityGroupManager'),
+  Ec2 = require('./ec2Manager'),
+  rid = require('./../resourceIdentifier'),
+  Cluster = require('./clusterManager'),
+  Route53 = require('./route53Manager'),
+  Task = require('./taskServiceManager'),
+  common = require('./common'),
+  util = require('./../util');
 
 function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
   var subnet = Subnet(ec2, vpcId),
@@ -17,21 +18,6 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     ec2mgr = Ec2(ec2, vpcId),
     task = Task(ecs);
 
-  function findIpFromEc2Describe(results) {
-    /** @todo in the future this might be plural, or more likely it will
-    be going through an ELB */
-    var ip;
-    if (!results[0]) {
-      throw new Error('createPR: unexpected EC2 create results');
-    }
-    results[0].Instances.forEach(function(inst) {
-      ip = inst.PublicIpAddress;
-    });
-    if (!ip) {
-      throw new Error('createPR: expecting a public IP address');
-    }
-    return ip;
-  }
 
   function createCluster(subnetId, pid, pr, appDef) {
     var clusterName = rid.generateRID({
@@ -54,7 +40,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         subnetId: subnetId,
         apiConfig: {}
       }).then(function(ec2Results) {
-        var ip = findIpFromEc2Describe(ec2Results);
+        var ip = common.findIpFromEc2Describe(ec2Results);
         return route53.createPRARecord(pid, pr, ip);
       });
     }).
@@ -102,7 +88,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
 
   function destroyRoutes(pid, pr) {
     return ec2mgr.describePr(pid, pr).then(function(results) {
-      var ip = findIpFromEc2Describe(results);
+      var ip = common.findIpFromEc2Describe(results);
       return route53.destroyPRARecord(pid, pr, ip);
     });
   }

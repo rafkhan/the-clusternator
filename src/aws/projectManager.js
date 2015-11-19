@@ -1,10 +1,10 @@
 'use strict';
 
-var Subnet = require('./aws/subnetManager'),
-  Route = require('./aws/routeTableManager'),
-  Route53 = require('./aws/route53Manager'),
-  Vpc = require('./aws/vpcManager'),
-  Acl = require('./aws/aclManager'),
+var Subnet = require('./subnetManager'),
+  Route = require('./routeTableManager'),
+  Route53 = require('./route53Manager'),
+  Vpc = require('./vpcManager'),
+  Acl = require('./aclManager'),
   Pr = require('./prManager'),
   Q = require('q');
 
