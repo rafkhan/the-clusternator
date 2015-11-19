@@ -162,7 +162,10 @@ function getEC2Manager(ec2, vpcId) {
   var baseFilters = constants.AWS_FILTER_CTAG.concat(
     common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(
-      ec2, 'describeInstances', 'Reservations', baseFilters);
+      ec2, 'describeInstances', 'Reservations', baseFilters),
+    describeProject = common.makeEc2DescribeProjectFn(describe),
+    describePr = common.makeEc2DescribePrFn(describe),
+    describeDeployment = common.makeEc2DescribeDeployment(common);
 
   function tagInstance(instance, pr, pid) {
     return common.awsTagEc2(ec2, instance.InstanceId, [{
@@ -286,7 +289,8 @@ function getEC2Manager(ec2, vpcId) {
     var auth = config.auth;
     var apiConfig = config.apiConfig;
     var sshPath = '';
-    return getECSContainerInstanceUserData(clusterName, auth, sshPath).then((data) => {
+    return getECSContainerInstanceUserData(clusterName, auth, sshPath).
+    then((data) => {
       apiConfig.UserData = data;
 
       var params = R.merge(DEFAULT_INSTANCE_PARAMS, apiConfig);
@@ -307,7 +311,7 @@ function getEC2Manager(ec2, vpcId) {
           readyPromises.push(waitForReady(instance.InstanceId));
         });
         return Q.all(tagPromises.concat(readyPromises)).then(() => {
-          return describe(config.pid, config.pr);
+          return describePr(config.pid, config.pr);
         });
       });
     });
@@ -339,12 +343,16 @@ function getEC2Manager(ec2, vpcId) {
     });
   }
 
+  function destroy(pid) {
+
+  }
+
   function destroyPr(pid, pr) {
     if (!pid || !pr) {
       throw new TypeError('ec2 destroy requires pid, and pr');
     }
 
-    return describe(pid, pr).then((list) => {
+    return describePr(pid, pr).then((list) => {
       if (!list.length) {
         common.throwInvalidPidPrTag(pid, pr, 'looking', 'Instance');
       }
@@ -358,6 +366,10 @@ function getEC2Manager(ec2, vpcId) {
   return {
     createPr: buildEc2Box,
     describe,
+    describeProject,
+    describePr,
+    describeDeployment,
+    destroy,
     destroyPr,
     checkInstanceStatuses,
     helpers: {

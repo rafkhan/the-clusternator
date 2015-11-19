@@ -19,7 +19,7 @@ function throwInvalidPidTag(pid, id, label) {
 */
 function areTagsPidValid(pid, collection) {
   var isValid = false;
-  collection.forEach(function(tag) {
+  collection.forEach((tag) => {
     if (tag.Key !== constants.PROJECT_TAG) {
       return;
     }
@@ -40,7 +40,7 @@ function areTagsPidPrValid(pid, pr, collection) {
   var isValidPid = false,
     isValidPr = false;
 
-  collection.forEach(function(tag) {
+  collection.forEach((tag) => {
     if (tag.Key === constants.PROJECT_TAG) {
       if (tag.Value === pid) {
         isValidPid = true;
@@ -86,6 +86,7 @@ function makeAWSVPCFilter(value) {
 */
 function makeAWSTagFilter(key, value) {
   return makeAWSFilter('tag:' + key, value);
+
 }
 
 /**
@@ -112,25 +113,22 @@ function awsTagEc2(ec2, resourceIds, tags) {
 */
 function makeEc2DescribeFn(ec2, apiFn, apiListName, baseFilters) {
   /**
-  @param {string=} pid projectId
-  @param {string=} pr pull request
+  @param {AwsFilter[]|AwsFilter} filters
   @return {Q.Promise}
   */
-  function describe(pid, pr) {
-    var filters = [];
-    if (pid) {
-      filters = filters.concat(
-        makeAWSTagFilter(constants.PROJECT_TAG, pid));
-    }
-    if (pr) {
-      filters = filters.concat(
-        makeAWSTagFilter(constants.PR_TAG, pr));
+  function describe(filters) {
+    if (!Array.isArray(filters)) {
+      if (filters) {
+        filters = [filters];
+      } else {
+        filters = [];
+      }
     }
     return ec2[apiFn]({
       DryRun: false,
       Filters: baseFilters.concat(filters)
-    }).then(function(result) {
-      // this case happens when describing ec2 insances
+    }).then((result) => {
+      // this case happens when describing ec2 instances
       if (!result[apiListName]) {
         return [];
       }
@@ -142,14 +140,96 @@ function makeEc2DescribeFn(ec2, apiFn, apiListName, baseFilters) {
   return describe;
 }
 
+/**
+ * @param {function(...):Q.Promise} describe
+ * @returns {function(...):Q.Promise}
+ */
+function makeEc2DescribeProjectFn(describe) {
+  /**
+   * @param {string} pid
+   * @returns {Q.Promise}
+   */
+  function describeProject(pid) {
+    return describe(makeProjectFilter(pid));
+  }
+  return describeProject;
+}
+
+/**
+ * @param {function(...):Q.Promise} describe
+ * @returns {function(...):Q.Promise}
+ */
+function makeEc2DescribePrFn(describe) {
+  /**
+   * @param {string} pid
+   * @param {string} pr
+   * @returns {Q.Promise}
+   */
+  function describePr(pid, pr) {
+    return describe(
+      makeProjectFilter(pid).concat(makePrFilter(pr))
+    );
+  }
+  return describePr;
+}
+
+/**
+ * @param {function(...):Q.Promise} describe
+ * @returns {function(...):Q.Promise}
+ */
+function makeEc2DescribeDeployment(describe) {
+  /**
+   * @param {string} pid
+   * @param {string} deployment
+   * @returns {Q.Promise}
+   */
+  function describeDeployment(pid, deployment) {
+    return describe([
+      makeProjectFilter(pid),
+      makeDeploymentFilter(deployment)
+    ]);
+  }
+  return describeDeployment;
+}
+
+/**
+ * @param {string} pid
+ * @returns {AWSFilter}
+ */
+function makeProjectFilter(pid) {
+  return makeAWSTagFilter(constants.PROJECT_TAG, pid);
+}
+
+/**
+ * @param {string} deployment
+ * @returns {AWSFilter}
+ */
+function makeDeploymentFilter(deployment) {
+  return makeAWSTagFilter(constants.DEPLOYMENT_TAG, deployment);
+}
+
+/**
+ * @param {string} pr
+ * @returns {AWSFilter}
+ */
+function makePrFilter(pr) {
+  pr = pr + '';
+  return makeAWSTagFilter(constants.PR_TAG, pr);
+}
+
 module.exports = {
-  areTagsPidPrValid: areTagsPidPrValid,
-  areTagsPidValid: areTagsPidValid,
-  throwInvalidPidTag: throwInvalidPidTag,
-  throwInvalidPidPrTag: throwInvalidPidPrTag,
-  awsTagEc2: awsTagEc2,
-  makeAWSVPCFilter: makeAWSVPCFilter,
-  makeAWSTagFilter: makeAWSTagFilter,
-  makeAWSFilter: makeAWSFilter,
-  makeEc2DescribeFn: makeEc2DescribeFn
+  areTagsPidPrValid,
+  areTagsPidValid,
+  throwInvalidPidTag,
+  throwInvalidPidPrTag,
+  awsTagEc2,
+  makeProjectFilter,
+  makePrFilter,
+  makeAWSVPCFilter,
+  makeAWSTagFilter,
+  makeAWSFilter,
+  makeEc2DescribeFn,
+  makeEc2DescribeProjectFn,
+  makeEc2DescribePrFn,
+  makeEc2DescribeDeployment
 };

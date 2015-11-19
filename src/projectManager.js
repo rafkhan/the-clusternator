@@ -18,7 +18,7 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     acl;
 
   function destroy(pid) {
-    return ec2.describe(pid).then((list) => {
+    return ec2.describeProject(pid).then((list) => {
       if (list.length) {
         throw new Error('ProjectManager: Cannot destroy project while open ' +
           'pull requests exist');

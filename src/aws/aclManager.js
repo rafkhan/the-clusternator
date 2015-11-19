@@ -67,6 +67,11 @@ function getAclManager(ec2, vpcId) {
     });
   }
 
+  function describeProject(pid) {
+    return describe(common.makeProjectFilter(pid));
+  }
+
+
   function create(pid) {
     if (!pid) {
       throw new TypeError('Create ACL requires a ProjectId');
@@ -74,7 +79,7 @@ function getAclManager(ec2, vpcId) {
     var params = util.clone(skeletons.ACL);
     params.VpcId = vpcId
 
-    return describe(pid).
+    return describeProject(pid).
     then(throwIfListHasLength).
     then(function() {
       return createAcl(pid, params);
@@ -85,7 +90,7 @@ function getAclManager(ec2, vpcId) {
     if (!pid) {
       throw new TypeError('Destroy ACL requires a projectId');
     }
-    return describe(pid).then(function(list) {
+    return describeProject(pid).then(function(list) {
       if (!list.length) {
         common.throwInvalidPidTag(pid, 'looking', 'NetworkAcl');
       }
@@ -98,6 +103,7 @@ function getAclManager(ec2, vpcId) {
 
   return {
     describe,
+    describeProject,
     create,
     destroy,
     helpers: {

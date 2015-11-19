@@ -12,7 +12,10 @@ function getSecurityGroupManager(ec2, vpcId) {
   var baseFilters = constants.AWS_FILTER_CTAG.concat(
       common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(
-      ec2, 'describeSecurityGroups', 'SecurityGroups', baseFilters);
+      ec2, 'describeSecurityGroups', 'SecurityGroups', baseFilters),
+    describeProject = common.makeEc2DescribeProjectFn(describe),
+    describePr = common.makeEc2DescribePrFn(describe),
+    describeDeployment = common.makeEc2DescribeDeployment(describe);
 
   function defaultInOutRules(groupId) {
     var inbound = skeletons.SG_DEFAULT_INGRESS,
@@ -88,6 +91,10 @@ function getSecurityGroupManager(ec2, vpcId) {
     });
   }
 
+  function destroy(pid) {
+
+  }
+
   function destroyPr(pid, pr) {
     if (!pid || !pr) {
       throw new Error('Destroy SecurityGroups requires a projectId, and a ' +
@@ -107,8 +114,12 @@ function getSecurityGroupManager(ec2, vpcId) {
 
   return {
     describe,
+    describeProject,
+    describePr,
+    describeDeployment,
     createPr,
     create,
+    destroy,
     destroyPr,
     helpers: {
       defaultInOutRules

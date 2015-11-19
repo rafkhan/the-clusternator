@@ -101,7 +101,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
   }
 
   function destroyRoutes(pid, pr) {
-    return ec2mgr.describe(pid, pr).then(function(results) {
+    return ec2mgr.describePr(pid, pr).then(function(results) {
       var ip = findIpFromEc2Describe(results);
       return route53.destroyPRARecord(pid, pr, ip);
     });
