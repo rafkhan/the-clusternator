@@ -4,6 +4,7 @@ const CLUSTERNATOR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'created';
 const PROJECT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project';
 const PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr';
 const DEPLOYMENT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'deployment';
+const SHA_TAG = CLUSTERNATOR_PREFIX + DELIM + 'sha';
 const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
 const AWS_DEFAULT_EC2_TYPE = 't2.micro';
 
@@ -26,6 +27,7 @@ var constants = Object.freeze({
   PROJECT_TAG,
   PR_TAG,
   DEPLOYMENT_TAG,
+  SHA_TAG,
   AWS_DEFAULT_EC2: {
     ImageId: AWS_DEFAULT_EC2_AMI,
     MaxCount: 1,

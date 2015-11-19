@@ -87,8 +87,8 @@ describe('route53Manager', () => {
         ).to.equal('stuff');
       })
 
-    it('createAParmas should return a complex AWS object', () => {
-      var result = route53.helpers.createAParams('test', '1', '1.2.3.4',
+    it('createAParams should return a complex AWS object', () => {
+      var result = route53.helpers.createAParams('test-1', '1.2.3.4',
         'example.com.');
       expect(result.ChangeBatch.Changes[0].Action).to.equal('CREATE');
       expect(

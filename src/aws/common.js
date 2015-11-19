@@ -2,12 +2,38 @@
 var constants = require('../constants'),
   Q = require('q');
 
+/**
+ * @param {string} pid
+ * @param {string} pr
+ * @param {string} id
+ * @param {string} label
+ * @throws {Error}
+ */
 function throwInvalidPidPrTag(pid, pr, id, label) {
   throw new Error('No Clusternator Tagged ' + label + ' Available For ' +
     'Destruction With ' + label + ' For Project: ' + pid + ' Id: ' + id +
     ' PR: ' + pr);
 }
 
+/**
+ * @param {string} pid
+ * @param {string} deployment
+ * @param {string} id
+ * @param {string} label
+ * @throws {Error}
+ */
+function throwInvalidPidDeploymentTag(pid, deployment, id, label) {
+  throw new Error('No Clusternator Tagged ' + label + ' Available For ' +
+    'Destruction With ' + label + ' For Project: ' + pid + ' Id: ' + id +
+    ' Deployment: ' + deployment);
+}
+
+/**
+ * @param {string} pid
+ * @param {string} id
+ * @param {string} label
+ * @throws {Error}
+ */
 function throwInvalidPidTag(pid, id, label) {
   throw new Error('No Clusternator Tagged ' + label + ' Available For ' +
     'Destruction With ' + label + ' For Project: ' + pid + ' Id: ' + id);
@@ -184,10 +210,9 @@ function makeEc2DescribeDeployment(describe) {
    * @returns {Q.Promise}
    */
   function describeDeployment(pid, deployment) {
-    return describe([
-      makeProjectFilter(pid),
-      makeDeploymentFilter(deployment)
-    ]);
+    return describe(
+      makeProjectFilter(pid).concat( makeDeploymentFilter(deployment))
+    );
   }
   return describeDeployment;
 }
@@ -244,6 +269,7 @@ module.exports = {
   areTagsPidValid,
   throwInvalidPidTag,
   throwInvalidPidPrTag,
+  throwInvalidPidDeploymentTag,
   awsTagEc2,
   makeProjectFilter,
   makePrFilter,

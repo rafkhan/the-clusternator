@@ -22,6 +22,7 @@ function logError(e) {
 module.exports = {
   acl: require('./acl.spec'),
   cluster: require('./cluster.spec'),
+  deployment: require('./deployment.spec'),
   ec2: require('./ec2.spec'),
   pr: require('./pr.spec'),
   project: require('./project.spec'),

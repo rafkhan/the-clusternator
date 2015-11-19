@@ -99,7 +99,9 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
       pr: pr
     });
     return destroyRoutes(pid, pr).
-    then(function() {
+    then(() => {
+      return destroyEc2(pid, pr, clusterName);
+    }, () => {
       return destroyEc2(pid, pr, clusterName);
     }).then(function(r) {
       return task.destroy(clusterName).fail(function(err) {

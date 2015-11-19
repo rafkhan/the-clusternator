@@ -37,7 +37,7 @@ function getSecurityGroupManager(ec2, vpcId) {
   }
 
   function rejectIfExists(pid, pr) {
-    return describe(pid, pr).then(function(list) {
+    return describePr(pid, pr).then(function(list) {
       if (list.length) {
         throw new Error('SecurityGroup Exists For Project: ' + pid +
           ' PR: ' + pr);
@@ -46,7 +46,12 @@ function getSecurityGroupManager(ec2, vpcId) {
   }
 
 
-  function createSecurityGroup(pid, pr) {
+  /**
+   * @param {string} pid
+   * @param {string} pr
+   * @returns {Q.Promise}
+   */
+  function createSecurityGroupPr(pid, pr) {
     var id = rid.generateRID({
         pid: pid,
         pr: pr
@@ -77,33 +82,120 @@ function getSecurityGroupManager(ec2, vpcId) {
     });
   }
 
-  function create() {
-
+  /**
+   * @param {string} pid
+   * @param {string} deployment
+   * @param {string} sha
+   * @returns {Q.Promise}
+   */
+  function createSecurityGroupDeployment(pid, deployment, sha) {
+    var id = rid.generateRID({
+        pid: pid,
+        sha: sha
+      }),
+      params = {
+        GroupName: id,
+        Description: 'Created by clusternator for ' + pid + ', Deplyoment: ' +
+        deployment,
+        VpcId: vpcId
+      };
+    return ec2.createSecurityGroup(params).
+    then(function(result) {
+      return Q.all([
+        common.awsTagEc2(ec2, result.GroupId, [{
+          Key: constants.CLUSTERNATOR_TAG,
+          Value: 'true'
+        }, {
+          Key: constants.PROJECT_TAG,
+          Value: pid
+        }, {
+          Key: constants.DEPLOYMENT_TAG,
+          Value: deployment
+        },{
+          Key: constants.SHA_TAG,
+          Value: sha
+        }]),
+        defaultInOutRules(result.GroupId)
+      ]).then(function() {
+        console.log('result', result);
+        return result;
+      });
+    });
   }
 
+  /**
+   * @param {string} pid
+   * @param {string} deployment
+   * @param {string} sha
+   * @returns {Q.Promise}
+   */
+  function createDeployment(pid, deployment, sha) {
+    if (!pid || !deployment || !sha) {
+      throw new TypeError('Create SecurityGroup requires a projectId, a ' +
+        'deployment label, and a SHA');
+    }
+    return describeDeployment(pid, deployment).then(function(list) {
+      if (list.length) {
+        // return the id
+        console.log('PANIC security group createDeployment not implemented');
+      } else {
+        // make a new one
+        return createSecurityGroupDeployment(pid, deployment, sha);
+      }
+    });
+  }
+
+  /**
+   * @param {string} pid
+   * @param {string} pr
+   * @returns {Q.Promise}
+   */
   function createPr(pid, pr) {
     if (!pid || !pr) {
       throw new TypeError('Create SecurityGroup requires a projectId, and ' +
         'pull request #');
     }
     return rejectIfExists(pid, pr).then(function() {
-      return createSecurityGroup(pid, pr);
+      return createSecurityGroupPr(pid, pr);
     });
   }
 
-  function destroy(pid) {
-
-  }
-
+  /**
+   * @param {string} pid
+   * @param {string} pr
+   * @returns {Q.Promise}
+   */
   function destroyPr(pid, pr) {
     if (!pid || !pr) {
       throw new Error('Destroy SecurityGroups requires a projectId, and a ' +
         'pull request #');
     }
 
-    return describe(pid, pr).then(function(list) {
+    return describePr(pid, pr).then(function(list) {
       if (!list.length) {
         common.throwInvalidPidPrTag(pid, pr, 'looking', 'Group');
+      }
+
+      return ec2.deleteSecurityGroup({
+        GroupId: list[0].GroupId
+      });
+    });
+  }
+
+  /**
+   * @param {string} pid
+   * @param {string} deployment
+   * @returns {Q.Promise}
+   */
+  function destroyDeployment(pid, deployment) {
+    if (!pid || !deployment) {
+      throw new Error('Destroy SecurityGroups requires a projectId, and a ' +
+        'deployment label');
+    }
+
+    return describeDeployment(pid, deployment).then(function(list) {
+      if (!list.length) {
+        common.throwInvalidPidPrTag(pid, deployment, 'looking', 'Group');
       }
 
       return ec2.deleteSecurityGroup({
@@ -118,9 +210,9 @@ function getSecurityGroupManager(ec2, vpcId) {
     describePr,
     describeDeployment,
     createPr,
-    create,
-    destroy,
+    createDeployment,
     destroyPr,
+    destroyDeployment,
     helpers: {
       defaultInOutRules
     }

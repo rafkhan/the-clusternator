@@ -7,9 +7,10 @@ var Q = require('q'),
   Cluster = require('./clusterManager'),
   Route53 = require('./route53Manager'),
   Task = require('./taskServiceManager'),
+  common = require('./common'),
   util = require('./../util');
 
-function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
+function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
   var subnet = Subnet(ec2, vpcId),
     securityGroup = SG(ec2, vpcId),
     cluster = Cluster(ecs),
@@ -17,45 +18,39 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     ec2mgr = Ec2(ec2, vpcId),
     task = Task(ecs);
 
-  function findIpFromEc2Describe(results) {
-    /** @todo in the future this might be plural, or more likely it will
-     be going through an ELB */
-    var ip;
-    if (!results[0]) {
-      throw new Error('createPR: unexpected EC2 create results');
-    }
-    results[0].Instances.forEach(function(inst) {
-      ip = inst.PublicIpAddress;
-    });
-    if (!ip) {
-      throw new Error('createPR: expecting a public IP address');
-    }
-    return ip;
-  }
-
-  function createCluster(subnetId, pid, pr, appDef) {
+  /**
+   * @param {string} subnetId
+   * @param {string} pid
+   * @param {string} deployment
+   * @param {string} sha
+   * @param {Object} appDef
+   * @returns {Request}
+   */
+  function createCluster(subnetId, pid, deployment, sha, appDef) {
     var clusterName = rid.generateRID({
-      pid: pid,
-      pr: pr
+      pid,
+      deployment,
+      sha
     });
 
     return Q.all([
-      securityGroup.createPr(pid, pr),
+      securityGroup.createDeployment(pid, deployment, sha),
       cluster.create(clusterName)
     ]).
     then(function(results) {
       var sgDesc = results[0];
 
-      return ec2mgr.createPr({
+      return ec2mgr.createDeployment({
         clusterName: clusterName,
         pid: pid,
-        pr: pr,
+        deployment: deployment,
+        sha: sha,
         sgId: sgDesc.GroupId,
         subnetId: subnetId,
         apiConfig: {}
       }).then(function(ec2Results) {
-        var ip = findIpFromEc2Describe(ec2Results);
-        return route53.createPRARecord(pid, pr, ip);
+        var ip = common.findIpFromEc2Describe(ec2Results);
+        return route53.createDeploymentARecord(pid, deployment, ip);
       });
     }).
     then(function() {
@@ -64,18 +59,18 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     //- start system
   }
 
-  function create(pid, pr, appDef) {
+  function create(pid, deployment, sha, appDef) {
 
     return subnet.describe().then(function(list) {
       if (!list.length) {
-        throw new Error('Create Pull Request failed, no subnet found for ' +
-          'Project: ' + pid + ' Pull Request # ' + pr);
+        throw new Error('Create Deployment failed, no subnet found for ' +
+          'Project: ' + pid + ' Deployment ' + deployment);
       }
-      return createCluster(list[0].SubnetId, pid, pr, appDef);
+      return createCluster(list[0].SubnetId, pid, deployment, sha, appDef);
     });
   }
 
-  function destroyEc2(pid, pr, clusterName) {
+  function destroyEc2(pid, deployment, clusterName) {
     if (!clusterName) {
       throw new Error('destroyEc2: requires valid clusterName');
     }
@@ -85,48 +80,59 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         deregisterPromises.push(cluster.deregister(
           arn, clusterName
         ).fail(function(err) {
-          util.plog('PR: destroy EC2: Warning, Deregistration for instance ' +
-            arn + ' failed, project: ' + pid + ' pr #' + pr +
-            ' error: ' + err.message);
+          util.plog('Deployment: destroy EC2: Warning, Deregistration for ' +
+            'instance ' + arn + ' failed, project: ' + pid + ' deployment ' +
+            deployment + ' error: ' + err.message);
           // do nothing on failure, deregistration _should_ actually work
           // automagically
         }));
       });
       return Q.all(deregisterPromises).then(function() {
-        return ec2mgr.destroyPr(pid, pr).fail(function(err) {
-          util.plog('PR Destruction Problem Destroying Ec2: ' + err.message);
+        return ec2mgr.destroyDeployment(pid, deployment).fail(function(err) {
+          util.plog('Deployment Destruction Problem Destroying Ec2: ' +
+            err.message);
         });
       });
     });
   }
 
-  function destroyRoutes(pid, pr) {
-    return ec2mgr.describePr(pid, pr).then(function(results) {
-      var ip = findIpFromEc2Describe(results);
-      return route53.destroyPRARecord(pid, pr, ip);
+  function destroyRoutes(pid, deployment) {
+    return ec2mgr.describeDeployment(pid, deployment).then(function(results) {
+      var ip = common.findIpFromEc2Describe(results);
+      return route53.destroyDeploymentARecord(pid, deployment, ip);
     });
   }
 
-  function destroy(pid, pr) {
+  /**
+   * @param {string} pid
+   * @param {string} deployment
+   * @param {string} sha
+   * @returns {Request}
+   */
+  function destroy(pid, deployment, sha) {
     var clusterName = rid.generateRID({
-      pid: pid,
-      pr: pr
+      pid,
+      deployment,
+      sha
     });
-    return destroyRoutes(pid, pr).
-    then(function() {
-      return destroyEc2(pid, pr, clusterName);
+    return destroyRoutes(pid, deployment).
+    then(() => {
+      return destroyEc2(pid, deployment, clusterName);
+    }, () => {
+      return destroyEc2(pid, deployment, clusterName);
     }).then(function(r) {
       return task.destroy(clusterName).fail(function(err) {
-        util.plog('PR Destruction Problem Destroying Task: ' + err.message);
+        util.plog('Deployment Destruction Problem Destroying Task: ' +
+          err.message);
         return r;
       });
     }).then(function() {
       return cluster.destroy({
         pid: pid,
-        pr: pr
+        deployment: deployment
       });
     }).then(function() {
-      return securityGroup.destroyPr(pid, pr);
+      return securityGroup.destroyDeployment(pid, deployment);
     });
   }
 
@@ -136,4 +142,4 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
   };
 }
 
-module.exports = getPRManager;
+module.exports = getDeploymentManager;

@@ -165,15 +165,44 @@ function getEC2Manager(ec2, vpcId) {
       ec2, 'describeInstances', 'Reservations', baseFilters),
     describeProject = common.makeEc2DescribeProjectFn(describe),
     describePr = common.makeEc2DescribePrFn(describe),
-    describeDeployment = common.makeEc2DescribeDeployment(common);
+    describeDeployment = common.makeEc2DescribeDeployment(describe);
 
-  function tagInstance(instance, pr, pid) {
+  /**
+   * @param {string} instance
+   * @param {string} pr
+   * @param {string} pid
+   * @returns {*}
+   */
+  function tagPrInstance(instance, pr, pid) {
     return common.awsTagEc2(ec2, instance.InstanceId, [{
       Key: constants.CLUSTERNATOR_TAG,
       Value: 'true'
     }, {
       Key: constants.PR_TAG,
-      Value: pr
+      Value: pr + ''
+    }, {
+      Key: constants.PROJECT_TAG,
+      Value: pid + ''
+    }]);
+  }
+
+  /**
+   * @param {string} instance
+   * @param {string} deployment
+   * @param {string} sha
+   * @param {string} pid
+   * @returns {*}
+   */
+  function tagDeploymentInstance(instance, deployment, sha, pid) {
+    return common.awsTagEc2(ec2, instance.InstanceId, [{
+      Key: constants.CLUSTERNATOR_TAG,
+      Value: 'true'
+    }, {
+      Key: constants.DEPLOYMENT_TAG,
+      Value: deployment
+    }, {
+      Key: constants.SHA_TAG,
+      Value: sha
     }, {
       Key: constants.PROJECT_TAG,
       Value: pid
@@ -235,7 +264,6 @@ function getEC2Manager(ec2, vpcId) {
   function makeReadyPredicate(instanceId) {
     function predicate() {
       return checkInstanceStatuses([instanceId]).then((list) => {
-        var d;
         if (!list.length) {
           throw new Error('Ec2 No Instances Awaiting Readiness');
         }
@@ -261,15 +289,43 @@ function getEC2Manager(ec2, vpcId) {
   }
 
   /**
-   * @param config Object
-   * config will merge with default ec2 config
+   * @param {{ clusterName: string, sgId: string, subnetId: string,
+   * pid: string, deployment: string, sha: string }} config
+   * @throws {Error}
    */
-  function buildEc2Box(config) {
+  function validateCreateDeploymentConfig(config) {
     if (!config) {
       throw new TypeError('This function requires a configuration object');
     }
+    if (!config.clusterName) {
+      throw new TypeError('Instance requires cluster name');
+    }
+    if (!config.sgId) {
+      throw new TypeError('Instance Requires sgId Group Id');
+    }
+    if (!config.subnetId) {
+      throw new TypeError('Instance Requires subnetId Id');
+    }
+    if (!config.pid) {
+      throw new TypeError('Instance Requires a pid');
+    }
+    if (!config.deployment) {
+      throw new TypeError('Instance Requires a deployment label');
+    }
+    if (!config.sha) {
+      throw new TypeError('Instance Requires a SHA label');
+    }
+  }
 
-    var clusterName = config.clusterName;
+  /**
+   * @param {{ clusterName: string, sgId: string, subnetId: string,
+   * pid: string, pr: string }} config
+   * @throws {Error}
+   */
+  function validateCreatePrConfig(config) {
+    if (!config) {
+      throw new TypeError('This function requires a configuration object');
+    }
     if (!config.clusterName) {
       throw new TypeError('Instance requires cluster name');
     }
@@ -285,29 +341,51 @@ function getEC2Manager(ec2, vpcId) {
     if (!config.pr) {
       throw new TypeError('Instance Requires a pr #');
     }
+  }
 
-    var auth = config.auth;
-    var apiConfig = config.apiConfig;
-    var sshPath = '';
+  /**
+   * @param {string} subnetId
+   * @param {string} sgId
+   * @returns {{DeviceIndex: number, AssociatePublicIpAddress: boolean,
+   * SubnetId: *, DeleteOnTermination: boolean, Groups: *[]}}
+   */
+  function getNICConfig(subnetId, sgId) {
+    return {
+        DeviceIndex: 0,
+        AssociatePublicIpAddress: true,
+        SubnetId: subnetId,
+        DeleteOnTermination: true,
+        Groups: [sgId]
+      };
+  }
+
+  /**
+   * @param {{ clusterName: string, sgId: string, subnetId: string,
+   * pid: string, pr: string, auth: Object=, apiConfig: Object=,
+   * sshPath: string }} config
+   * config will merge with default ec2 config
+   */
+  function createPr(config) {
+    validateCreatePrConfig(config);
+    var clusterName = config.clusterName,
+      auth = config.auth,
+      apiConfig = config.apiConfig,
+      sshPath = config.sshPath;
+
     return getECSContainerInstanceUserData(clusterName, auth, sshPath).
     then((data) => {
       apiConfig.UserData = data;
 
-      var params = R.merge(DEFAULT_INSTANCE_PARAMS, apiConfig);
+      var defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS),
+        params = R.merge(defaultConfig, apiConfig);
 
-      params.NetworkInterfaces.push({
-        DeviceIndex: 0,
-        AssociatePublicIpAddress: true,
-        SubnetId: config.subnetId,
-        DeleteOnTermination: true,
-        Groups: [config.sgId]
-      });
+      params.NetworkInterfaces.push(getNICConfig(config.subnetId, config.sgId));
 
       return ec2.runInstances(params).then((results) => {
         var tagPromises = [],
           readyPromises = [];
         results.Instances.forEach(function(instance) {
-          tagPromises.push(tagInstance(instance, config.pr, config.pid));
+          tagPromises.push(tagPrInstance(instance, config.pr, config.pid));
           readyPromises.push(waitForReady(instance.InstanceId));
         });
         return Q.all(tagPromises.concat(readyPromises)).then(() => {
@@ -315,7 +393,44 @@ function getEC2Manager(ec2, vpcId) {
         });
       });
     });
+  }
 
+  /**
+   * @param {{ clusterName: string, sgId: string, subnetId: string,
+   * pid: string, deployment: string, sha: string, auth: Object=,
+   * apiConfig: Object=, sshPath: string }} config
+   * config will merge with default ec2 config
+   */
+  function createDeployment(config) {
+    validateCreateDeploymentConfig(config);
+    var clusterName = config.clusterName,
+      auth = config.auth,
+      apiConfig = config.apiConfig,
+      sshPath = config.sshPath;
+
+    return getECSContainerInstanceUserData(clusterName, auth, sshPath).
+    then((data) => {
+      apiConfig.UserData = data;
+
+      var defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS),
+        params = R.merge(defaultConfig, apiConfig);
+
+      params.NetworkInterfaces.push(getNICConfig(config.subnetId, config.sgId));
+
+      return ec2.runInstances(params).then((results) => {
+        var tagPromises = [],
+          readyPromises = [];
+        results.Instances.forEach(function(instance) {
+          tagPromises.push(tagDeploymentInstance(
+            instance, config.deployment, config.sha, config.pid
+          ));
+          readyPromises.push(waitForReady(instance.InstanceId));
+        });
+        return Q.all(tagPromises.concat(readyPromises)).then(() => {
+          return describeDeployment(config.pid, config.deployment);
+        });
+      });
+    });
   }
 
   /**
@@ -347,6 +462,11 @@ function getEC2Manager(ec2, vpcId) {
 
   }
 
+  /**
+   * @param {string} pid
+   * @param {string} pr
+   * @returns {Q.Promise}
+   */
   function destroyPr(pid, pr) {
     if (!pid || !pr) {
       throw new TypeError('ec2 destroy requires pid, and pr');
@@ -363,14 +483,39 @@ function getEC2Manager(ec2, vpcId) {
     });
   }
 
+  /**
+   * @param {string} pid
+   * @param {string} deployment
+   * @returns {Q.Promise}
+   */
+  function destroyDeployment(pid, deployment) {
+    if (!pid || !deployment) {
+      throw new TypeError('ec2 destroy requires pid, and pr');
+    }
+
+    return describeDeployment(pid, deployment).then((list) => {
+      if (!list.length) {
+        common.throwInvalidPidDeploymentTag(
+          pid, deployment, 'looking', 'Instance'
+        );
+      }
+
+      return stopAndTerminate(list[0].Instances.map((el) => {
+        return el.InstanceId;
+      }));
+    });
+  }
+
   return {
-    createPr: buildEc2Box,
+    createPr: createPr,
+    createDeployment: createDeployment,
     describe,
     describeProject,
     describePr,
     describeDeployment,
     destroy,
     destroyPr,
+    destroyDeployment,
     checkInstanceStatuses,
     helpers: {
       checkInstanceStatuses,
