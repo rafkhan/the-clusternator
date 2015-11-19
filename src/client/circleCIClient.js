@@ -2,12 +2,39 @@
 
 var fs = require('fs');
 var q = require('q');
+var R = require('ramda');
 var request = require('superagent');
 var resourceId = require('../resourceIdentifier');
 
 var clusternateEndpoint = '/clusternate';
 
 var isCircleCI = process.env.CIRCLECI === 'true';
+
+
+function updateContainerDefs(tag, containerDef) {
+  var imgSrc = containerDef.image;
+  var newImg = imgSrc.replace(/\$TAG/g, tag);
+
+  // create new object with correct $TAG
+  return R.assoc('image', newImg, containerDef);
+}
+
+
+// TODO move to different file
+function replaceTagInAppdef(appdef, tag) {
+  var imgUpdater = R.map(R.curry(updateContainerDefs)(tag));
+
+  var updatedTasks = R.map((task) => {
+    var updatedContainerDefs = imgUpdater(task.containerDefinitions);
+    // return new obj with updated task
+    return R.assoc('containerDefinitions',
+                   updatedContainerDefs,
+                   task);
+  }, appdef.tasks);
+
+  return R.assoc('tasks', updatedTasks, appdef);
+}
+
 
 function push(host, appdef, tag) {
   if(!isCircleCI) {
@@ -28,8 +55,12 @@ function push(host, appdef, tag) {
   var readFile = q.nfbind(fs.readFile);
   readFile(appdef, 'utf8')
     .then((appdefText) => {
+      var appdef = JSON.parse(appdefText);
+      var taggedAppdef = replaceTagInAppdef(appdef, tag);
+      var taggedAppdefText = JSON.stringify(taggedAppdef, null, 2);
+
       return {
-        appdef: appdefText,
+        appdef: taggedAppdefText,
         tag: tag
       };
     }, (err) => {
@@ -38,9 +69,6 @@ function push(host, appdef, tag) {
     })
 
     .then((reqBody) => {
-
-      console.log('Sending:', reqBody);
-
       request
         .post(apiEndpoint)
         .send(reqBody)
@@ -86,6 +114,7 @@ function generateTagFromEnv() {
     opts: tagOpts
   };
 }
+
 
 
 module.exports = {
