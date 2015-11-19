@@ -210,6 +210,7 @@ function initializeProject(y) {
 
     return Q.allSettled([
       writeFile(path.normalize(dDir + path.sep + 'pr.json'), UTF8, prAppDef),
+      writeFile(path.normalize(dDir + path.sep + 'master.json'), UTF8, prAppDef),
       initAwsProject().then((pm) => {
         return pm.create(projectId).then(() => {
           util.plog(output + ' Network Resources Checked');
