@@ -270,7 +270,9 @@ function answersToClusternatorJSON(answers) {
 function writeFromFullAnswers(fullAnswers) {
   var json = answersToClusternatorJSON(fullAnswers.answers),
     dir = fullPath(fullAnswers.projectDir);
-  return writeFile(dir, json, UTF8);
+  return writeFile(dir, json, UTF8).then(() => {
+    return fullAnswers;
+  });
 }
 
 /**

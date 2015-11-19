@@ -10,7 +10,22 @@ var circleCIClient = require('./client/circleCIClient');
 var clusternator = require('./clusternator');
 var clusternatorJson = require('./clusternator-json');
 var gpg = require('./cli-wrappers/gpg');
+var awsProject = require('./aws/projectManager');
 
+
+/**
+ * @returns {Q.Promise}
+ */
+function initAwsProject() {
+  var c = require('./config'),
+    a = require('aws-sdk'),
+    config = c(),
+    ec2 = new a.EC2(config.credentials),
+    ecs = new a.ECS(config.credentials),
+    r53 = new a.Route53(config.credentials);
+
+    return awsProject(ec2, ecs, r53);
+}
 
 function newApp(argv) {
   return function() {
@@ -142,7 +157,14 @@ function bootstrapAWS() {
   console.log('bootstrap an AWS environment');
 }
 
-function initializeProject() {
+function initializeProject(y) {
+  var argv = y.demand('o').
+  alias('o', 'offline').
+  default('o', false).
+  describe('o', 'offline only, makes "clusternator.json" but does *not* ' +
+    'check the cloud infrastructure').
+    argv;
+
   return clusternatorJson.findProjectRoot().then((root) => {
     return clusternatorJson.skipIfExists(root).then(() => { return root; });
   }).then((root) => {
@@ -157,12 +179,25 @@ function initializeProject() {
       return clusternatorJson.writeFromFullAnswers({
         projectDir: root,
         answers: results
-      }).then(() => {
-        return root;
+      }).then((fullAnswers) => {
+        return {
+          root,
+          fullAnswers
+        };
       });
     });
-  }).then((root) => {
-    util.plog('Clusternator Initialized With Config: ' + clusternatorJson.fullPath(root));
+  }).then((initDetails) => {
+    var output = 'Clusternator Initialized With Config: ' +
+      clusternatorJson.fullPath(initDetails.root);
+    if (argv.o) {
+      util.plog(output + ' Network Resources *NOT* Checked');
+      return;
+    }
+    return initAwsProject().then((pm) => {
+      return pm.create(initDetails.fullAnswers.answers.projectId).then(() => {
+        util.plog(output + ' Network Resources Checked');
+      });
+    });
   }).fail((err) => {
     util.plog('Clusternator: Initizalization Error: ' + err.message);
   }).done();
@@ -208,6 +243,16 @@ function generatePass() {
   });
 }
 
+function deploy(y) {
+  var argv = y.demand('d').
+  alias('d', 'deployment-name').
+  default('d', 'master', 'The "master" deployment').
+  describe('d', 'Requires a deployment name').
+    argv;
+
+  console.log('deployment', argv);
+}
+
 
 function describe(y) {
   y.demand('p').
@@ -247,5 +292,7 @@ module.exports = {
 
   makePrivate,
   readPrivate,
-  generatePass
+  generatePass,
+
+  deploy
 };

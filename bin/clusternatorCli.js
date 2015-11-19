@@ -133,7 +133,7 @@ yargs.command('cluster:delete', 'Delete an existing cluster', function (y) {
 
 yargs.command('app:new', 'Creates a new app definition', function () {});
 
-yargs.command('init', 'Initializes a `.clusternator` file in the project ' + 'repo, and provisions AWS networkign resources.  Requires AWS credentials', cli.init);
+yargs.command('init', 'Initializes a `.clusternator` file in the project ' + 'repo, and provisions AWS networking resources.  Requires AWS credentials', cli.init);
 
 yargs.command('bootstrap', 'Bootstraps an AWS environment so that projects ' + 'can be launched into it', cli.bootstrap);
 
@@ -151,8 +151,11 @@ yargs.command('make-private', 'Encrypts private assets (defined in clusternator.
 
 yargs.command('read-private', 'Decrypts private assets (defined i clusternator.json)', cli.readPrivate);
 
-yargs.command('deploy', 'Makes a deployment');
+yargs.command('deploy', 'Makes a deployment', cli.deploy);
 
+/**
+ * @todo yargify everything from here down.  Manual if/else *not* required
+ */
 yargs.help('help');
 var argv = yargs.argv;
 var command = argv._[0];
@@ -194,5 +197,5 @@ if (command === 'circleci:push') {
 } else if (command === 'app:new') {
   cli.createAppDefinition(argv)();
 } else {
-  yargs.showHelp();
+  //yargs.showHelp();
 }

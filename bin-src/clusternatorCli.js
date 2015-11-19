@@ -158,7 +158,7 @@ yargs.command('app:new',
 
 
 yargs.command('init', 'Initializes a `.clusternator` file in the project ' +
-  'repo, and provisions AWS networkign resources.  Requires AWS credentials',
+  'repo, and provisions AWS networking resources.  Requires AWS credentials',
   cli.init);
 
 yargs.command('bootstrap', 'Bootstraps an AWS environment so that projects ' +
@@ -179,11 +179,12 @@ yargs.command('make-private', 'Encrypts private assets (defined in clusternator.
 
 yargs.command('read-private', 'Decrypts private assets (defined i clusternator.json)', cli.readPrivate);
 
-yargs.command('deploy', 'Makes a deployment');
+yargs.command('deploy', 'Makes a deployment', cli.deploy);
 
 
-
-
+/**
+ * @todo yargify everything from here down.  Manual if/else *not* required
+ */
 yargs.help('help');
 var argv = yargs.argv;
 var command = argv._[0];
@@ -236,5 +237,5 @@ if (command === 'circleci:push') {
   cli.createAppDefinition(argv)();
 
 } else {
-  yargs.showHelp();
+  //yargs.showHelp();
 }
