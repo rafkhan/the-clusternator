@@ -1,7 +1,7 @@
 var setup = require('./setup'),
-  PR = require(setup.path('aws', 'prManager.js'));
+  Deployment = require(setup.path('aws', 'deploymentManager.js'));
 
-module.exports = PR(
+module.exports = Deployment(
   setup.getEc2(), setup.getEcs(), setup.getRoute53(),
   setup.testVPC, setup.testR53
 );

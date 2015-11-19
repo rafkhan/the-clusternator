@@ -4,7 +4,7 @@ var R = require('ramda'),
 constants = require('./constants');
 
 
-var VALID_ID_TYPES = ['pr', 'sha', 'time', 'ttl', 'pid'];
+var VALID_ID_TYPES = ['pr', 'sha', 'time', 'ttl', 'pid', 'deployment'];
 
 
 // TODO add clusternator prefix

@@ -108,16 +108,14 @@ function getRoute53(route53, zoneId) {
 
   /**
     @param {string} verb
-    @param {string} pid
-    @param {string} pr
+    @param {string} domainName
     @param {string} ip
     @param {string} tld
     @param {Object=} config
   */
-  function changeAParams(verb, pid, pr, ip, tld, config) {
+  function changeAParams(verb, domainName, ip, tld, config) {
     config = config || {};
-    var domainName = rid.generatePRSubdomain(pid, pr),
-      changeBatch = createChangeBatch(),
+    var changeBatch = createChangeBatch(),
       change = createChange(verb),
       params = {
         ChangeBatch: changeBatch,
@@ -132,25 +130,23 @@ function getRoute53(route53, zoneId) {
   }
 
   /**
-    @param {string} pid
-    @param {string} pr
+    @param {string} domainName
     @param {string} ip
     @param {string} tld
     @param {Object=} config
   */
-  function createAParams(pid, pr, ip, tld, config) {
-    return changeAParams('CREATE', pid, pr, ip, tld, config);
+  function createAParams(domainName, ip, tld, config) {
+    return changeAParams('CREATE', domainName, ip, tld, config);
   }
 
   /**
-    @param {string} pid
-    @param {string} pr
+    @param {string} domainName
     @param {string} ip
     @param {string} tld
     @param {Object=} config
   */
-  function destroyAParams(pid, pr, ip, tld, config) {
-    return changeAParams('DELETE', pid, pr, ip, tld, config);
+  function destroyAParams(domainName, ip, tld, config) {
+    return changeAParams('DELETE', domainName, ip, tld, config);
   }
 
   /**
@@ -162,8 +158,37 @@ function getRoute53(route53, zoneId) {
   */
   function createPRARecord(pid, pr, ip, config) {
     return findTld().then(function(tld) {
+      var domainName = rid.generatePRSubdomain(pid, pr);
       return route53.changeResourceRecordSets(
-        createAParams(pid, pr, ip, tld, config)
+        createAParams(domainName, ip, tld, config)
+      );
+    });
+  }
+
+  /**
+   * @param {string} pid
+   * @param {string} deployment
+   * @returns {string}
+   */
+  function generateDeploymentDomain(pid, deployment) {
+    if (deployment === 'master') {
+      return pid;
+    }
+    return pid + '-' + deployment;
+  }
+
+  /**
+   @param {string} pid
+   @param {string} deployment
+   @param {string} ip
+   @param {Object=} Route53 config object (optional)
+   @return {Q.Promise}
+   */
+  function createDeploymentARecord(pid, deployment, ip, config) {
+    return findTld().then(function(tld) {
+      var domainName = generateDeploymentDomain(pid, deployment);
+      return route53.changeResourceRecordSets(
+        createAParams(domainName, ip, tld, config)
       );
     });
   }
@@ -177,8 +202,25 @@ function getRoute53(route53, zoneId) {
   */
   function destroyPRARecord(pid, pr, ip, config) {
     return findTld().then(function(tld) {
+      var domainName = rid.generatePRSubdomain(pid, pr);
       return route53.changeResourceRecordSets(
-        destroyAParams(pid, pr, ip, tld, config)
+        destroyAParams(domainName, ip, tld, config)
+      );
+    });
+  }
+
+  /**
+   * @param pid
+   * @param deployment
+   * @param ip
+   * @param config
+   * @returns {Request|Promise.<T>}
+   */
+  function destroyDeploymentARecord(pid, deployment, ip, config) {
+    return findTld().then(function(tld) {
+      var domainName = generateDeploymentDomain(pid, deployment);
+      return route53.changeResourceRecordSets(
+        destroyAParams(domainName, ip, tld, config)
       );
     });
   }
@@ -251,7 +293,9 @@ function getRoute53(route53, zoneId) {
 return {
   list,
   createPRARecord,
+  createDeploymentARecord,
   destroyPRARecord,
+  destroyDeploymentARecord,
   findId,
   helpers: {
     createAParams,

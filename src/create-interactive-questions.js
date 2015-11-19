@@ -1,4 +1,5 @@
 'use strict';
+var skeleton = require('./clusternator-json-skeleton');
 
 function truthy(value) {
   return value ? true : false;
@@ -11,6 +12,14 @@ function truthy(value) {
 function mandatory(defaults) {
   defaults = defaults || {};
 
+  if (!defaults.deploymentsDir) {
+    defaults.deploymentsDir = skeleton.deploymentsDir;
+  }
+
+  if (!defaults.private) {
+    defaults.private = ['.private'];
+  }
+
   return [
     {
       type: 'input',
@@ -21,9 +30,9 @@ function mandatory(defaults) {
     },
     {
       type: 'input',
-      name: 'appDefPr',
-      message: 'Path To App Def',
-      default: defaults.appDefPr || '',
+      name: 'deploymentsDir',
+      message: 'Where will your appDefs/deployment files live?',
+      default: defaults.deploymentsDir,
       validate: truthy
     }
   ];
@@ -35,7 +44,7 @@ function privateChoice() {
       type: 'input',
       name: 'private',
       message: 'Path to private folder',
-      default: ''
+      default: '.private'
     }
   ]
 }

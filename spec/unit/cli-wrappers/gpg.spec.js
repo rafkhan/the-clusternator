@@ -3,8 +3,8 @@
 var rewire = require('rewire'),
   mockSpawn = require('mock-spawn');
 
-var gpg = rewire('../../src/cli-wrappers/gpg'),
-  C = require('./chai');
+var gpg = rewire('../../../src/cli-wrappers/gpg'),
+  C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/

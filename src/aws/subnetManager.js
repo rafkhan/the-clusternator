@@ -17,7 +17,8 @@ function getSubnetManager(ec2, vpcId) {
     baseFilters = constants.AWS_FILTER_CTAG.concat(
       common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(
-      ec2, 'describeSubnets', 'Subnets', baseFilters);
+      ec2, 'describeSubnets', 'Subnets', baseFilters),
+    describeProject = common.makeEc2DescribeProjectFn(describe);
 
   /**
   @param {string} pid
@@ -137,7 +138,12 @@ function getSubnetManager(ec2, vpcId) {
   */
   function findExistingPid(pid) {
     return describe().then(function(list) {
-      throwIfPidFound(pid, list);
+      //throwIfPidFound(pid, list);
+      if (list.length) {
+        return list[0];
+      } else {
+        return;
+      }
     });
   }
 
@@ -316,7 +322,10 @@ function getSubnetManager(ec2, vpcId) {
     if (!aclId) {
       throw new Error('subnetManager.create requires an aclId param');
     }
-    return findExistingPid(pid).then(function() {
+    return findExistingPid(pid).then(function(result) {
+      if (result) {
+        return result;
+      }
       return getNextSubnet(pid).then(function(cidr) {
         return {
           VpcId: vpcId,
@@ -324,26 +333,27 @@ function getSubnetManager(ec2, vpcId) {
           AvailabilityZone: az || constants.AWS_DEFAULT_AZ,
           pid: pid
         };
-      });
-    }).
-    then(createSubnet).
-    then(function(snDesc) {
-      return associateRoute(snDesc, routeId).then(function() {
-        return snDesc;
-      });
-    }).then(function(snDesc) {
-      return associateAcl(snDesc, aclId).then(function() {
-        return snDesc;
+      }).
+      then(createSubnet).
+      then(function(snDesc) {
+        return associateRoute(snDesc, routeId).then(function() {
+          return snDesc;
+        });
+      }).then(function(snDesc) {
+        return associateAcl(snDesc, aclId).then(function() {
+          return snDesc;
+        });
       });
     });
   }
 
 
   return {
-    describe: describe,
-    defaultAssocId: defaultAssocId,
-    create: create,
-    destroy: destroy,
+    describe,
+    describeProject,
+    defaultAssocId,
+    create,
+    destroy,
     findProject: findProjectSubnet,
     helpers: {
       associateAcl,

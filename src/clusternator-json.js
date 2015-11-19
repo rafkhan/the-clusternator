@@ -11,12 +11,7 @@ const FILENAME = 'clusternator.json';
 const UTF8 = 'utf8';
 const CLUSTERNATOR_TAR = 'clusternator.tar.gz';
 const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
-const SKELETON = {
-  projectId: 'new-project',
-  appDefs: {
-    pr: 'path/to/your/prAppDef'
-  }
-};
+const SKELETON = require('./aws/appDefSkeleton');
 
 var Q = require('q'),
   git = Q.nfbind(require('parse-git-config')),
@@ -58,7 +53,8 @@ function parent(somePath) {
 }
 
 /**
- * This function searches (upwards) for a directory with a .git folder, starting from the CWD!
+ * This function searches (upwards) for a directory with a .git folder, starting
+ * from the CWD!
  * @return {Q.Promise<string>} promise to return the full path of the project
  */
 function findProjectRoot(cwd) {
@@ -200,16 +196,10 @@ function validate(cJson) {
  */
 function createInteractive(params) {
   var d = Q.defer(),
-    mandatory = questions.mandatory(params),
-    pq = questions.privateChoice();
+    mandatory = questions.mandatory(params);
 
   inquirer.prompt(mandatory, (answers) => {
-    inquirer.prompt(pq, (pAnswer) => {
-      if (pAnswer.private) {
-        answers.private = [pAnswer.private];
-      }
-      d.resolve(answers);
-    });
+    d.resolve(answers);
   });
 
   return d.promise;
@@ -254,13 +244,13 @@ function privateExists() {
 function answersToClusternatorJSON(answers) {
   answers.private = answers.private || [];
 
-  return JSON.stringify({
-    projectId: answers.projectId,
-    private: answers.private,
-    appDefs: {
-      pr: answers.appDefPr
-    }
-  }, null, 2);
+  var config = util.clone(SKELETON);
+
+  config.projectId = answers.projectId;
+  config.private = answers.private;
+  config.deploymentsDir = answers.deploymentsDir;
+
+  return JSON.stringify(config, null, 2);
 }
 
 /**
@@ -270,7 +260,9 @@ function answersToClusternatorJSON(answers) {
 function writeFromFullAnswers(fullAnswers) {
   var json = answersToClusternatorJSON(fullAnswers.answers),
     dir = fullPath(fullAnswers.projectDir);
-  return writeFile(dir, json, UTF8);
+  return writeFile(dir, json, UTF8).then(() => {
+    return fullAnswers;
+  });
 }
 
 /**

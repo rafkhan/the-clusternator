@@ -9,7 +9,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var aws = require('aws-sdk');
 
-var getPRManager = require('../prManager');
+var getPRManager = require('../aws/prManager');
 
 var prHandler = require('./pullRequest');
 var pushHandler = require('./push');

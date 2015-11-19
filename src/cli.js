@@ -1,16 +1,39 @@
 'use strict';
+const UTF8 = 'utf-8';
 
-var fs = require('fs');
-var path = require('path');
-var log = require('winston');
+var fs = require('fs'),
+  Q = require('q'),
+  path = require('path'),
+  log = require('winston'),
+  mkdirp = require('mkdirp'),
+  util = require('./util'),
+  server = require('./server/main'),
+  circleCIClient = require('./client/circleCIClient'),
+  clusternator = require('./clusternator'),
+  clusternatorJson = require('./clusternator-json'),
+  gpg = require('./cli-wrappers/gpg'),
+  git = require('./cli-wrappers/git'),
+  deployMgr = require('./aws/deploymentManager'),
+  appDefSkeleton = require('./aws/appDefSkeleton'),
+  awsProject = require('./aws/projectManager');
 
-var util = require('./util');
-var server = require('./server/main');
-var circleCIClient = require('./client/circleCIClient');
-var clusternator = require('./clusternator');
-var clusternatorJson = require('./clusternator-json');
-var gpg = require('./cli-wrappers/gpg');
+var writeFile = Q.nbind(fs.writeFile, fs),
+  readFile = Q.nbind(fs.readFile, fs);
 
+
+/**
+ * @returns {Q.Promise}
+ */
+function initAwsProject() {
+  var c = require('./config'),
+    a = require('aws-sdk'),
+    config = c(),
+    ec2 = new a.EC2(config.credentials),
+    ecs = new a.ECS(config.credentials),
+    r53 = new a.Route53(config.credentials);
+
+  return awsProject(ec2, ecs, r53);
+}
 
 function newApp(argv) {
   return function() {
@@ -142,7 +165,14 @@ function bootstrapAWS() {
   console.log('bootstrap an AWS environment');
 }
 
-function initializeProject() {
+function initializeProject(y) {
+  var argv = y.demand('o').
+  alias('o', 'offline').
+  default('o', false).
+  describe('o', 'offline only, makes "clusternator.json" but does *not* ' +
+    'check the cloud infrastructure').
+    argv;
+
   return clusternatorJson.findProjectRoot().then((root) => {
     return clusternatorJson.skipIfExists(root).then(() => { return root; });
   }).then((root) => {
@@ -157,12 +187,38 @@ function initializeProject() {
       return clusternatorJson.writeFromFullAnswers({
         projectDir: root,
         answers: results
-      }).then(() => {
-        return root;
+      }).then((fullAnswers) => {
+        return {
+          root,
+          fullAnswers
+        };
       });
     });
-  }).then((root) => {
-    util.plog('Clusternator Initialized With Config: ' + clusternatorJson.fullPath(root));
+  }).then((initDetails) => {
+    var output = 'Clusternator Initialized With Config: ' +
+      clusternatorJson.fullPath(initDetails.root),
+      dDir = initDetails.fullAnswers.answers.deploymentsDir,
+      prAppDef = util.clone(appDefSkeleton),
+      projectId = initDetails.fullAnswers.answers.projectId;
+
+    prAppDef.name = projectId;
+    if (argv.o) {
+      util.plog(output + ' Network Resources *NOT* Checked');
+      return;
+    }
+
+    mkdirp(dDir);
+
+    return Q.allSettled([
+      writeFile(path.normalize(dDir + path.sep + 'pr.json'), UTF8, prAppDef),
+      writeFile(path.normalize(dDir + path.sep + 'master.json'), UTF8, prAppDef),
+      initAwsProject().then((pm) => {
+        return pm.create(projectId).then(() => {
+          util.plog(output + ' Network Resources Checked');
+        });
+      })
+    ]);
+
   }).fail((err) => {
     util.plog('Clusternator: Initizalization Error: ' + err.message);
   }).done();
@@ -208,6 +264,40 @@ function generatePass() {
   });
 }
 
+function deploy(y) {
+  var argv = y.demand('d').
+  alias('d', 'deployment-name').
+  default('d', 'master', 'The "master" deployment').
+  describe('d', 'Requires a deployment name').
+    argv;
+
+  return clusternatorJson.get().then((cJson) => {
+    var dPath = path.normalize(
+      cJson.deploymentsDir + path.sep + argv.d + '.json'
+    );
+    return Q.all([
+      initAwsProject(),
+      git.shaHead(),
+      readFile(dPath, UTF8).
+        fail((err) => {
+        util.plog('Deployment AppDef Not Found In: ' + dPath + ' ' +
+          err.message);
+        throw err;
+      })
+    ]).then((results) => {
+      util.plog('Requirements met, creating deployment...');
+      return results[0].createDeployment(
+        cJson.projectId,
+        argv.d,
+        results[1],
+        results[2]
+      );
+    }).fail((err) => {
+      util.plog('Clusternator: Error creating deployment: ' + err.message);
+    });
+  });
+}
+
 
 function describe(y) {
   y.demand('p').
@@ -247,5 +337,7 @@ module.exports = {
 
   makePrivate,
   readPrivate,
-  generatePass
+  generatePass,
+
+  deploy
 };
