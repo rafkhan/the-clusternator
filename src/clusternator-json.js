@@ -11,12 +11,7 @@ const FILENAME = 'clusternator.json';
 const UTF8 = 'utf8';
 const CLUSTERNATOR_TAR = 'clusternator.tar.gz';
 const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
-const SKELETON = {
-  projectId: 'new-project',
-  appDefs: {
-    pr: 'path/to/your/prAppDef'
-  }
-};
+const SKELETON = require('./aws/appDefSkeleton');
 
 var Q = require('q'),
   git = Q.nfbind(require('parse-git-config')),
@@ -249,13 +244,13 @@ function privateExists() {
 function answersToClusternatorJSON(answers) {
   answers.private = answers.private || [];
 
-  return JSON.stringify({
-    projectId: answers.projectId,
-    private: answers.private,
-    appDefs: {
-      pr: answers.appDefPr
-    }
-  }, null, 2);
+  var config = util.clone(SKELETON);
+
+  config.projectId = answers.projectId;
+  config.private = answers.private;
+  config.deploymentsDir = answers.deploymentsDir;
+
+  return JSON.stringify(config, null, 2);
 }
 
 /**

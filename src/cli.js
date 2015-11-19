@@ -17,7 +17,8 @@ var fs = require('fs'),
   appDefSkeleton = require('./aws/appDefSkeleton'),
   awsProject = require('./aws/projectManager');
 
-var writeFile = Q.nbind(fs.writeFile, fs);
+var writeFile = Q.nbind(fs.writeFile, fs),
+  readFile = Q.nbind(fs.readFile, fs);
 
 
 /**
@@ -271,15 +272,28 @@ function deploy(y) {
     argv;
 
   return clusternatorJson.get().then((cJson) => {
+    var dPath = path.normalize(
+      cJson.deploymentsDir + path.sep + argv.d + '.json'
+    );
     return Q.all([
       initAwsProject(),
-      git.shaHead()
+      git.shaHead(),
+      readFile(dPath, UTF8).
+        fail((err) => {
+        util.plog('Deployment AppDef Not Found In: ' + dPath + ' ' +
+          err.message);
+        throw err;
+      })
     ]).then((results) => {
+      util.plog('Requirements met, creating deployment...');
       return results[0].createDeployment(
         cJson.projectId,
         argv.d,
-        results[1]
+        results[1],
+        results[2]
       );
+    }).fail((err) => {
+      util.plog('Clusternator: Error creating deployment: ' + err.message);
     });
   });
 }

@@ -59,22 +59,20 @@ function getProjectManager(ec2, ecs, awsRoute53) {
    */
   function createPR(pid, pr, appDef) {
     return findOrCreateProject(pid).then((snDesc) => {
-      return pullRequest.create(snDesc.Subnet.SubnetId, pid, pr, appDef);
+      return pullRequest.create(pid, pr, appDef);
     });
   }
 
   /**
    * @param {string} pid
-   * @param {string} deployment
+   * @param {string} dep
    * @param {string} sha
    * @param {Object} appDef
    * @returns {Q.Promise}
    */
-  function createDeployment(pid, deployment, sha, appDef) {
+  function createDeployment(pid, dep, sha, appDef) {
     return findOrCreateProject(pid).then((snDesc) => {
-      return pullRequest.create(
-        snDesc.Subnet.SubnetId, pid, deployment, sha, appDef
-      );
+      return deployment.create( pid, dep, sha, appDef );
     });
   }
 
@@ -91,8 +89,8 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     route = Route(ec2, vpcId);
     subnet = Subnet(ec2, vpcId);
     acl = Acl(ec2, vpcId);
-    pullRequest = Pr(ec2, ecs, vpcId, zoneId);
-    deployment = Deployment(ec2, ecs, route, vpcId, zoneId);
+    pullRequest = Pr(ec2, ecs, awsRoute53, vpcId, zoneId);
+    deployment = Deployment(ec2, ecs, awsRoute53, vpcId, zoneId);
     return {
       create,
       createPR,

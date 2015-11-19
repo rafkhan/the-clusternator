@@ -17,7 +17,8 @@ function getSubnetManager(ec2, vpcId) {
     baseFilters = constants.AWS_FILTER_CTAG.concat(
       common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(
-      ec2, 'describeSubnets', 'Subnets', baseFilters);
+      ec2, 'describeSubnets', 'Subnets', baseFilters),
+    describeProject = common.makeEc2DescribeProjectFn(describe);
 
   /**
   @param {string} pid
@@ -348,10 +349,11 @@ function getSubnetManager(ec2, vpcId) {
 
 
   return {
-    describe: describe,
-    defaultAssocId: defaultAssocId,
-    create: create,
-    destroy: destroy,
+    describe,
+    describeProject,
+    defaultAssocId,
+    create,
+    destroy,
     findProject: findProjectSubnet,
     helpers: {
       associateAcl,

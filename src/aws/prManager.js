@@ -52,7 +52,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
 
   function create(pid, pr, appDef) {
 
-    return subnet.describe().then(function(list) {
+    return subnet.describeProject(pid).then(function(list) {
       if (!list.length) {
         throw new Error('Create Pull Request failed, no subnet found for ' +
           'Project: ' + pid + ' Pull Request # ' + pr);
