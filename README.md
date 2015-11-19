@@ -13,6 +13,8 @@ npm install -g clusternator
 clusternator --help
 ```
 
+## [READ THE WIKI](https://github.com/rangle/the-clusternator/wiki)
+
 
 ## Private Application Configurations
 
