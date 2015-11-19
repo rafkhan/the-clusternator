@@ -11,7 +11,7 @@ const FILENAME = 'clusternator.json';
 const UTF8 = 'utf8';
 const CLUSTERNATOR_TAR = 'clusternator.tar.gz';
 const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
-const SKELETON = require('./aws/appDefSkeleton');
+const SKELETON = require('./clusternator-json-skeleton');
 
 var Q = require('q'),
   git = Q.nfbind(require('parse-git-config')),

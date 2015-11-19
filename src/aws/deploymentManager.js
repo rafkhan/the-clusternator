@@ -131,6 +131,9 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
         pid: pid,
         deployment: deployment
       });
+    }, () => {
+      // keep cleaning up
+      return;
     }).then(function() {
       return securityGroup.destroyDeployment(pid, deployment);
     });

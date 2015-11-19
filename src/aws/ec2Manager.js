@@ -1,6 +1,6 @@
 'use strict';
 
-const UTF8 = 'utf-8'
+const UTF8 = 'utf8'
 const SETUP_SSH = 'mkdir -p /home/ec2-user/.ssh';
 const CHOWN_SSH ='chown -R ec2-user:ec2-user /home/ec2-user/.ssh && chmod -R ' +
   'go-rwx /home/ec2-user/.ssh';
