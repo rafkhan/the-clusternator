@@ -6,11 +6,13 @@ var Subnet = require('./subnetManager'),
   Vpc = require('./vpcManager'),
   Acl = require('./aclManager'),
   Pr = require('./prManager'),
+  Deployment = require('./deploymentManager'),
   Q = require('q');
 
 function getProjectManager(ec2, ecs, awsRoute53) {
   var vpcId = null,
     pullRequest,
+    deployment,
     vpc = Vpc(ec2),
     r53 = Route53(awsRoute53),
     route,
@@ -49,9 +51,30 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     });
   }
 
-  function createPR(pid, pr) {
+  /**
+   * @param {string} pid
+   * @param {string} pr
+   * @param {Object} appDef
+   * @returns {Q.Promise}
+   */
+  function createPR(pid, pr, appDef) {
     return findOrCreateProject(pid).then((snDesc) => {
-      return pullRequest.create(snDesc.Subnet.SubnetId, pid, pr);
+      return pullRequest.create(snDesc.Subnet.SubnetId, pid, pr, appDef);
+    });
+  }
+
+  /**
+   * @param {string} pid
+   * @param {string} deployment
+   * @param {string} sha
+   * @param {Object} appDef
+   * @returns {Q.Promise}
+   */
+  function createDeployment(pid, deployment, sha, appDef) {
+    return findOrCreateProject(pid).then((snDesc) => {
+      return pullRequest.create(
+        snDesc.Subnet.SubnetId, pid, deployment, sha, appDef
+      );
     });
   }
 
@@ -69,9 +92,11 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     subnet = Subnet(ec2, vpcId);
     acl = Acl(ec2, vpcId);
     pullRequest = Pr(ec2, ecs, vpcId, zoneId);
+    deployment = Deployment(ec2, ecs, route, vpcId, zoneId);
     return {
       create,
       createPR,
+      createDeployment,
       destroy
     };
   });

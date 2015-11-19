@@ -58,7 +58,8 @@ function parent(somePath) {
 }
 
 /**
- * This function searches (upwards) for a directory with a .git folder, starting from the CWD!
+ * This function searches (upwards) for a directory with a .git folder, starting
+ * from the CWD!
  * @return {Q.Promise<string>} promise to return the full path of the project
  */
 function findProjectRoot(cwd) {
@@ -200,16 +201,10 @@ function validate(cJson) {
  */
 function createInteractive(params) {
   var d = Q.defer(),
-    mandatory = questions.mandatory(params),
-    pq = questions.privateChoice();
+    mandatory = questions.mandatory(params);
 
   inquirer.prompt(mandatory, (answers) => {
-    inquirer.prompt(pq, (pAnswer) => {
-      if (pAnswer.private) {
-        answers.private = [pAnswer.private];
-      }
-      d.resolve(answers);
-    });
+    d.resolve(answers);
   });
 
   return d.promise;

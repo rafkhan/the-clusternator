@@ -80,9 +80,14 @@ function getAclManager(ec2, vpcId) {
     params.VpcId = vpcId
 
     return describeProject(pid).
-    then(throwIfListHasLength).
-    then(function() {
-      return createAcl(pid, params);
+    then((aclList) => {
+      if (aclList.length) {
+        return {
+          NetworkAcl: aclList[0]
+        }
+      } else {
+        return createAcl(pid, params);
+      }
     });
   }
 
