@@ -165,6 +165,21 @@ function bootstrapAWS() {
   console.log('bootstrap an AWS environment');
 }
 
+function writeDeployment(name, dDir, appDef) {
+  return writeFile(path.normalize(dDir + path.sep + name + '.json'), appDef);
+}
+
+function generateDeploymentFromName(name) {
+  util.plog('Generating deployment: ',  name);
+    return clusternatorJson.get().then((config) => {
+      var appDef = util.clone(appDefSkeleton);
+      appDef.projectId = config.projectId;
+      appDef = JSON.stringify(appDef, null, 2);
+      return writeDeployment(name, config.deploymentsDir, appDef);
+    });
+}
+
+
 function initializeProject(y) {
   var argv = y.demand('o').
   alias('o', 'offline').
@@ -344,6 +359,15 @@ function stop(y) {
   });
 }
 
+function generateDeployment(y) {
+  var argv = y.demand('d').
+  alias('d', 'deployment-name').
+  describe('d', 'Requires a deployment name').
+    argv;
+
+  return generateDeploymentFromName(argv.d);
+}
+
 
 function describe(y) {
   y.demand('p').
@@ -384,6 +408,7 @@ module.exports = {
   makePrivate,
   readPrivate,
   generatePass,
+  generateDeployment,
 
   deploy,
   stop

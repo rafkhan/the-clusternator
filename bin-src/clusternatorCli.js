@@ -175,13 +175,18 @@ yargs.command('destroy', 'Destroy a resource', cli.destroy);
 
 yargs.command('generate-pass', 'Generate a secure passphrase', cli.generatePass);
 
-yargs.command('make-private', 'Encrypts private assets (defined in clusternator.json)', cli.makePrivate);
+yargs.command('make-private', 'Encrypts private assets (defined in ' +
+  'clusternator.json)', cli.makePrivate);
 
-yargs.command('read-private', 'Decrypts private assets (defined i clusternator.json)', cli.readPrivate);
+yargs.command('read-private', 'Decrypts private assets (defined in ' +
+  'clusternator.json)', cli.readPrivate);
 
 yargs.command('deploy', 'Makes a deployment', cli.deploy);
 
 yargs.command('stop', 'Stops a deployment, and cleans up', cli.stop);
+
+yargs.command('generate-deployment', 'Generates a deployment config',
+  cli.generateDeployment);
 
 
 /**
