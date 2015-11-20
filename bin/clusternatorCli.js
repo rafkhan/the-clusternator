@@ -157,6 +157,8 @@ yargs.command('stop', 'Stops a deployment, and cleans up', cli.stop);
 
 yargs.command('generate-deployment', 'Generates a deployment config', cli.generateDeployment);
 
+yargs.command('describe-services', 'Describe project services', cli.describeServices);
+
 /**
  * @todo yargify everything from here down.  Manual if/else *not* required
  */

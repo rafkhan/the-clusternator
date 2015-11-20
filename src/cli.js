@@ -368,6 +368,13 @@ function generateDeployment(y) {
   return generateDeploymentFromName(argv.d);
 }
 
+function describeServices() {
+  return initAwsProject().then((pm) => {
+    return clusternatorJson.get().then((config) => {
+      return pm.describeProject(config.projectId);
+    });
+  }).done();
+}
 
 function describe(y) {
   y.demand('p').
@@ -411,6 +418,8 @@ module.exports = {
   generateDeployment,
 
   deploy,
-  stop
+  stop,
+
+  describeServices
 
 };

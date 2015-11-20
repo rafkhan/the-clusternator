@@ -5,6 +5,7 @@ var Subnet = require('./subnetManager'),
   Route53 = require('./route53Manager'),
   Vpc = require('./vpcManager'),
   Acl = require('./aclManager'),
+  Cluster = require('./clusterManager'),
   Pr = require('./prManager'),
   Deployment = require('./deploymentManager'),
   Q = require('q');
@@ -12,6 +13,7 @@ var Subnet = require('./subnetManager'),
 function getProjectManager(ec2, ecs, awsRoute53) {
   var vpcId = null,
     pullRequest,
+    cluster,
     deployment,
     vpc = Vpc(ec2),
     r53 = Route53(awsRoute53),
@@ -96,6 +98,10 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     });
   }
 
+  function describeProject(pid) {
+    return cluster.describeProject(pid);
+  }
+
 
   return Q.all([
      vpc.findProject(),
@@ -104,6 +110,7 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     var vDesc = results[0],
     zoneId = results[1];
 
+    cluster = Cluster(ecs);
     vpcId = vDesc.VpcId;
     route = Route(ec2, vpcId);
     subnet = Subnet(ec2, vpcId);
@@ -115,7 +122,8 @@ function getProjectManager(ec2, ecs, awsRoute53) {
       createPR,
       createDeployment,
       destroy,
-      destroyDeployment
+      destroyDeployment,
+      describeProject
     };
   });
 
