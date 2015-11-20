@@ -30,8 +30,8 @@ function getSecurityGroupManager(ec2, vpcId) {
     ]).then(function() {
       return groupId;
     }, function(err) {
-      util.plog('SecurityGroup: Warning Could Not Add Custom Rules: ' +
-        err.message);
+      //util.plog('SecurityGroup: Warning Could Not Add Custom Rules: ' +
+      //  err.message);
       return groupId;
     });
   }

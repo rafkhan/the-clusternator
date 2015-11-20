@@ -314,6 +314,36 @@ function deploy(y) {
   });
 }
 
+function stop(y) {
+  var argv = y.demand('d').
+  alias('d', 'deployment-name').
+  default('d', 'master', 'The "master" deployment').
+  describe('d', 'Requires a deployment name').
+  alias('s', 'SHA (git hash)').
+  default('s', '', 'HEAD').
+  describe('s', 'Requires a SHA').
+    argv;
+
+  return clusternatorJson.get().then((cJson) => {
+    return Q.all([
+      initAwsProject(),
+      git.shaHead()
+    ]).then((results) => {
+      util.plog('Stopping Deployment...: ', cJson.projectId, ': ', argv.d,
+        ' sha: ', sha);
+      var sha = argv.s || results[1];
+      return results[0].destroyDeployment(
+        cJson.projectId,
+        argv.d,
+        sha
+      );
+    }).fail((err) => {
+      util.plog('Clusternator: Error stopping deployment: ' + err.message);
+      util.plog(err.stack);
+    });
+  });
+}
+
 
 function describe(y) {
   y.demand('p').
@@ -355,5 +385,7 @@ module.exports = {
   readPrivate,
   generatePass,
 
-  deploy
+  deploy,
+  stop
+
 };

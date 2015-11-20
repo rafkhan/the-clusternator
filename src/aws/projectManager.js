@@ -84,6 +84,17 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     });
   }
 
+  /**
+   * @param {string} pid
+   * @param {string} dep
+   * @param {string} sha
+   * @returns {Request}
+   */
+  function destroyDeployment(pid, dep, sha) {
+    return findOrCreateProject(pid).then((snDesc) => {
+      return deployment.destroy( pid, dep, sha);
+    });
+  }
 
 
   return Q.all([
@@ -103,7 +114,8 @@ function getProjectManager(ec2, ecs, awsRoute53) {
       create,
       createPR,
       createDeployment,
-      destroy
+      destroy,
+      destroyDeployment
     };
   });
 

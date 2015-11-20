@@ -181,6 +181,8 @@ yargs.command('read-private', 'Decrypts private assets (defined i clusternator.j
 
 yargs.command('deploy', 'Makes a deployment', cli.deploy);
 
+yargs.command('stop', 'Stops a deployment, and cleans up', cli.stop);
+
 
 /**
  * @todo yargify everything from here down.  Manual if/else *not* required
