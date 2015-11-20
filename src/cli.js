@@ -321,7 +321,14 @@ function deploy(y) {
         argv.d,
         results[1],
         appDef
-      );
+      ).then(() => {
+        var label = '-' + argv.d;
+        if (argv.d === 'master') {
+          label = '';
+        }
+        util.plog('Deployment will be available at ',
+          cJson.projectId + label + '.rangleapp.io');
+      });
     }).fail((err) => {
       util.plog('Clusternator: Error creating deployment: ' + err.message);
       util.plog(err.stack);
@@ -344,9 +351,9 @@ function stop(y) {
       initAwsProject(),
       git.shaHead()
     ]).then((results) => {
+      var sha = argv.s || results[1];
       util.plog('Stopping Deployment...: ', cJson.projectId, ': ', argv.d,
         ' sha: ', sha);
-      var sha = argv.s || results[1];
       return results[0].destroyDeployment(
         cJson.projectId,
         argv.d,

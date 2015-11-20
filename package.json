@@ -30,7 +30,7 @@
     "url": "https://github.com/rangle/the-clusternator"
   },
   "author": "rangle.io",
-  "license": "BSD-2-Clause",
+  "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.2.12",
     "base64url": "^1.0.5",
