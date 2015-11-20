@@ -51,7 +51,10 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
         apiConfig: {}
       }).then(function(ec2Results) {
         var ip = common.findIpFromEc2Describe(ec2Results);
-        return route53.createDeploymentARecord(pid, deployment, ip);
+        return route53.createDeploymentARecord(pid, deployment, ip).fail(() => {
+          // fail over
+          return;
+        });
       });
     }).
     then(function() {

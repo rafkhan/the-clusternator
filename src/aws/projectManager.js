@@ -31,6 +31,10 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     });
   }
 
+  /**
+   * @param {string} pid
+   * @returns {Request|Promise.<T>}
+   */
   function create(pid) {
     return Q.all([
       route.findDefault(),
@@ -43,6 +47,10 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     });
   }
 
+  /**
+   * @param {string} pid
+   * @returns {Request}
+   */
   function findOrCreateProject(pid) {
     return create(pid).then((sDesc) => {
       return sDesc;
