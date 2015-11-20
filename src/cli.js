@@ -1,11 +1,11 @@
 'use strict';
-const UTF8 = 'utf-8';
+const UTF8 = 'utf8';
 
 var fs = require('fs'),
   Q = require('q'),
   path = require('path'),
   log = require('winston'),
-  mkdirp = require('mkdirp'),
+  mkdirp = Q.nfbind(require('mkdirp')),
   util = require('./util'),
   server = require('./server/main'),
   circleCIClient = require('./client/circleCIClient'),
@@ -93,7 +93,7 @@ function newApp(argv) {
       apiConfig: EC2APIConfig
     };
 
-    var app = JSON.parse(fs.readFileSync(appDefPath, 'utf8'));
+    var app = JSON.parse(fs.readFileSync(appDefPath, UTF8));
 
     return clusternator.newApp(clusterName, app, ec2Config)
       .then(function(data) {
@@ -111,7 +111,7 @@ function updateApp(argv) {
     var clusterName = argv.cluster;
     var appDefPath = argv.app;
 
-    var app = JSON.parse(fs.readFileSync(appDefPath, 'utf8'));
+    var app = JSON.parse(fs.readFileSync(appDefPath, UTF8));
 
     return clusternator.updateApp(clusterName, app);
   };
@@ -154,7 +154,7 @@ function createAppDefinition() {
     var defaultAppPath = path.resolve(__dirname,
       '../examples/DEFAULT.json');
     var defaultApp = JSON.parse(
-      fs.readFileSync(defaultAppPath, 'utf8'));
+      fs.readFileSync(defaultAppPath, UTF8));
 
     var prettyString = JSON.stringify(defaultApp, null, 2);
     console.log(prettyString);
@@ -207,17 +207,20 @@ function initializeProject(y) {
       return;
     }
 
-    mkdirp(dDir);
+    return mkdirp(dDir).then(() => {
+      prAppDef = JSON.stringify(prAppDef, null, 2);
 
-    return Q.allSettled([
-      writeFile(path.normalize(dDir + path.sep + 'pr.json'), UTF8, prAppDef),
-      writeFile(path.normalize(dDir + path.sep + 'master.json'), UTF8, prAppDef),
-      initAwsProject().then((pm) => {
-        return pm.create(projectId).then(() => {
-          util.plog(output + ' Network Resources Checked');
-        });
-      })
-    ]);
+      return Q.allSettled([
+        writeFile(path.normalize(dDir + path.sep + 'pr.json'), prAppDef),
+        writeFile(path.normalize(dDir + path.sep + 'master.json'), prAppDef),
+        initAwsProject().then((pm) => {
+          return pm.create(projectId).then(() => {
+            util.plog(output + ' Network Resources Checked');
+          });
+        })
+      ]);
+
+    });
 
   }).fail((err) => {
     util.plog('Clusternator: Initizalization Error: ' + err.message);
@@ -264,6 +267,14 @@ function generatePass() {
   });
 }
 
+function safeParse(string) {
+  try {
+    return JSON.parse(string);
+  } catch (err) {
+    return null;
+  }
+}
+
 function deploy(y) {
   var argv = y.demand('d').
   alias('d', 'deployment-name').
@@ -286,14 +297,19 @@ function deploy(y) {
       })
     ]).then((results) => {
       util.plog('Requirements met, creating deployment...');
+      var appDef = safeParse(results[2]);
+      if (!appDef) {
+        throw new Error('Deployment failed, error parsing appDef: ' + dPath);
+      }
       return results[0].createDeployment(
         cJson.projectId,
         argv.d,
         results[1],
-        results[2]
+        appDef
       );
     }).fail((err) => {
       util.plog('Clusternator: Error creating deployment: ' + err.message);
+      util.plog(err.stack);
     });
   });
 }

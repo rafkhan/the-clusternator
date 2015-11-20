@@ -53,7 +53,7 @@ function push(host, appdef, tag) {
   var d = q.defer();
 
   var readFile = q.nfbind(fs.readFile);
-  readFile(appdef, 'utf-8')
+  readFile(appdef, 'utf8')
     .then((appdefText) => {
       var appdef = JSON.parse(appdefText);
       var taggedAppdef = replaceTagInAppdef(appdef, tag);

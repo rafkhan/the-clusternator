@@ -22,3 +22,6 @@ bin/*.js
 
 # exclude JetBrains IDE
 .idea
+
+# skip private folder
+.private

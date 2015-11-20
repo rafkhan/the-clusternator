@@ -47,6 +47,7 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
         sha: sha,
         sgId: sgDesc.GroupId,
         subnetId: subnetId,
+        sshPath: '.private/ssh-public',
         apiConfig: {}
       }).then(function(ec2Results) {
         var ip = common.findIpFromEc2Describe(ec2Results);
@@ -124,13 +125,19 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
       return task.destroy(clusterName).fail(function(err) {
         util.plog('Deployment Destruction Problem Destroying Task: ' +
           err.message);
-        return r;
+        return;
       });
     }).then(function() {
       return cluster.destroy({
         pid: pid,
         deployment: deployment
+      }).fail(() => {
+        // fail over, keep cleaning
+        return;
       });
+    }, () => {
+      // keep cleaning up
+      return;
     }).then(function() {
       return securityGroup.destroyDeployment(pid, deployment);
     });

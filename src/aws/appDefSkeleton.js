@@ -17,18 +17,18 @@ module.exports = Object.freeze({
             'name': 'PASSPHRASE',
             'value': ''
           }],
-          'essential': true,
-          'entryPoint': [],
-          'links': [],
-          'mountPoints': [],
-          'memory': 256,
-          'name': 'nodebasic',
-          'cpu': 256,
-          'image': ''
+          essential: true,
+          entryPoint: [],
+          links: [],
+          mountPoints: [],
+          memory: 256,
+          name: 'nodebasic',
+          cpu: 256,
+          image: 'rafkhan/nodemongo:master'
         }
       ],
       'volumes': [],
-      'family': ''
+      'family': 'default'
     }
   ]
 });
