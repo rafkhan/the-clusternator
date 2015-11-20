@@ -131,10 +131,12 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
         return;
       });
     }).then(function() {
-      return cluster.destroy({
-        pid: pid,
-        deployment: deployment
-      }).fail(() => {
+      var clusterName = rid.generateRID({
+        pid,
+        deployment,
+        sha
+      });
+      return cluster.destroy(clusterName).fail(() => {
         // fail over, keep cleaning
         return;
       });

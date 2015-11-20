@@ -112,10 +112,11 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         return;
       });
     }).then(function() {
-      return cluster.destroy({
+      var clusterName = rid.generateRID({
         pid: pid,
         pr: pr
-      }).fail(() => {
+      });
+      return cluster.destroy(clusterName).fail(() => {
         return;
       });
     }).then(function() {

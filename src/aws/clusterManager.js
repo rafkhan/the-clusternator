@@ -27,8 +27,7 @@ function getClusterManager(ecs) {
     return Q.nbind(ecs.createCluster, ecs)(params);
   }
 
-function deleteCluster(config) {
-    var name = rid.generateRID(config);
+function deleteCluster(name) {
     if (!name) {
       return Q.reject(new Error('deleteCluster: missing, or invalid config'));
     }

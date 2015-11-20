@@ -458,10 +458,6 @@ function getEC2Manager(ec2, vpcId) {
     });
   }
 
-  function destroy(pid) {
-
-  }
-
   /**
    * @param {string} pid
    * @param {string} pr
@@ -513,7 +509,6 @@ function getEC2Manager(ec2, vpcId) {
     describeProject,
     describePr,
     describeDeployment,
-    destroy,
     destroyPr,
     destroyDeployment,
     checkInstanceStatuses,
