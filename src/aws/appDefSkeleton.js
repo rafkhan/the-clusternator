@@ -24,7 +24,7 @@ module.exports = Object.freeze({
           memory: 256,
           name: 'nodebasic',
           cpu: 256,
-          image: 'rafkhan/nodemongo:master'
+          image: 'library/nginx'
         }
       ],
       'volumes': [],

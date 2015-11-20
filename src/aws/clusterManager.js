@@ -27,8 +27,7 @@ function getClusterManager(ecs) {
     return Q.nbind(ecs.createCluster, ecs)(params);
   }
 
-function deleteCluster(config) {
-    var name = rid.generateRID(config);
+function deleteCluster(name) {
     if (!name) {
       return Q.reject(new Error('deleteCluster: missing, or invalid config'));
     }
@@ -87,10 +86,71 @@ function deleteCluster(config) {
     });
   }
 
+
+  function listServices(cluster) {
+    return Q.nfbind(ecs.listServices.bind(ecs), {
+      cluster
+    })().then((services) => {
+      return services.serviceArns.filter((service) => {
+        if (service.length) {
+          return true;
+        }
+        return false;
+      });
+    });
+  }
+
+  function describeServices(cluster, services) {
+    return Q.nfbind(ecs.describeServices.bind(ecs), {
+      cluster,
+      services
+    })();
+  }
+
+  function describePr(pid, pr) {
+
+  }
+
+  function describeDeployment(pid, sha) {
+
+  }
+
+  function identity(o) {
+    return o;
+  }
+
+  function describeProject(pid) {
+    return listClusters().then((list) => {
+      var sLists = list.filter((arn) => {
+        var arnParts = arn.split('/').filter(identity),
+          parts = rid.parseRID(arnParts[arnParts.length - 1]);
+        if (parts.pid === pid) {
+          return true;
+        }
+        return false;
+      }).map((relevant) => {
+        return listServices(relevant).then((services) => {
+          if (services.length) {
+            return describeServices(relevant, services);
+          }
+          return null;
+        });
+      });
+
+      return Q.all(sLists).then((results) => {
+        console.log('results', JSON.stringify(
+          results.filter(identity), null, 2));
+      });
+    });
+  }
+
   return {
     create: createCluster,
     list: listClusters,
-    listContainers: listContainers,
+    listContainers,
+    describeProject,
+    describePr,
+    describeDeployment,
     describe: describeCluster,
     destroy: deleteCluster,
     deregister: deregister

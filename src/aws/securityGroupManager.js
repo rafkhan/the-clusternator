@@ -30,8 +30,8 @@ function getSecurityGroupManager(ec2, vpcId) {
     ]).then(function() {
       return groupId;
     }, function(err) {
-      util.plog('SecurityGroup: Warning Could Not Add Custom Rules: ' +
-        err.message);
+      //util.plog('SecurityGroup: Warning Could Not Add Custom Rules: ' +
+      //  err.message);
       return groupId;
     });
   }
@@ -91,6 +91,7 @@ function getSecurityGroupManager(ec2, vpcId) {
   function createSecurityGroupDeployment(pid, deployment, sha) {
     var id = rid.generateRID({
         pid: pid,
+        deployment: deployment,
         sha: sha
       }),
       params = {
@@ -117,16 +118,13 @@ function getSecurityGroupManager(ec2, vpcId) {
         }]),
         defaultInOutRules(result.GroupId)
       ]).then(function() {
-        console.log('result', result);
         return result;
       });
     });
   }
 
   /**
-   * @param {string} pid
-   * @param {string} deployment
-   * @param {string} sha
+   * @param {string} pid * @param {string} deployment @param {string} sha
    * @returns {Q.Promise}
    */
   function createDeployment(pid, deployment, sha) {
@@ -137,7 +135,9 @@ function getSecurityGroupManager(ec2, vpcId) {
     return describeDeployment(pid, deployment).then(function(list) {
       if (list.length) {
         // return the id
-        console.log('PANIC security group createDeployment not implemented');
+        util.plog('Security Group Found For ', pid, ' Deployment: ', deployment,
+          ' SHA:', sha);
+        return { GroupId: list[0].GroupId }
       } else {
         // make a new one
         return createSecurityGroupDeployment(pid, deployment, sha);

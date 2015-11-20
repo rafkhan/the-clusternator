@@ -149,8 +149,11 @@ function getECSContainerInstanceUserData(clusterName, auth, sshPath) {
     data = data.concat(sshData);
     return stringArrayToNewLineBase64(data);
   }, (err) => {
-    util.plog('Clusternator Ec2: Warning: Loading user defined SSH keys ' +
-      'failed, custom logins disabled ' + err.message);
+    //util.plog('Clusternator Ec2: Warning: Loading user defined SSH keys ' +
+    //  'failed, custom logins disabled ' + err.message);
+
+    util.plog('Notice, no user keys found in .private/ssh-public, logging ' +
+      '*not* possible');
     return stringArrayToNewLineBase64(data);
   });
 }
@@ -458,10 +461,6 @@ function getEC2Manager(ec2, vpcId) {
     });
   }
 
-  function destroy(pid) {
-
-  }
-
   /**
    * @param {string} pid
    * @param {string} pr
@@ -513,7 +512,6 @@ function getEC2Manager(ec2, vpcId) {
     describeProject,
     describePr,
     describeDeployment,
-    destroy,
     destroyPr,
     destroyDeployment,
     checkInstanceStatuses,

@@ -5,6 +5,7 @@ var Subnet = require('./subnetManager'),
   Route53 = require('./route53Manager'),
   Vpc = require('./vpcManager'),
   Acl = require('./aclManager'),
+  Cluster = require('./clusterManager'),
   Pr = require('./prManager'),
   Deployment = require('./deploymentManager'),
   Q = require('q');
@@ -12,6 +13,7 @@ var Subnet = require('./subnetManager'),
 function getProjectManager(ec2, ecs, awsRoute53) {
   var vpcId = null,
     pullRequest,
+    cluster,
     deployment,
     vpc = Vpc(ec2),
     r53 = Route53(awsRoute53),
@@ -31,6 +33,10 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     });
   }
 
+  /**
+   * @param {string} pid
+   * @returns {Request|Promise.<T>}
+   */
   function create(pid) {
     return Q.all([
       route.findDefault(),
@@ -43,6 +49,10 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     });
   }
 
+  /**
+   * @param {string} pid
+   * @returns {Request}
+   */
   function findOrCreateProject(pid) {
     return create(pid).then((sDesc) => {
       return sDesc;
@@ -76,6 +86,21 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     });
   }
 
+  /**
+   * @param {string} pid
+   * @param {string} dep
+   * @param {string} sha
+   * @returns {Request}
+   */
+  function destroyDeployment(pid, dep, sha) {
+    return findOrCreateProject(pid).then((snDesc) => {
+      return deployment.destroy( pid, dep, sha);
+    });
+  }
+
+  function describeProject(pid) {
+    return cluster.describeProject(pid);
+  }
 
 
   return Q.all([
@@ -85,6 +110,7 @@ function getProjectManager(ec2, ecs, awsRoute53) {
     var vDesc = results[0],
     zoneId = results[1];
 
+    cluster = Cluster(ecs);
     vpcId = vDesc.VpcId;
     route = Route(ec2, vpcId);
     subnet = Subnet(ec2, vpcId);
@@ -95,7 +121,9 @@ function getProjectManager(ec2, ecs, awsRoute53) {
       create,
       createPR,
       createDeployment,
-      destroy
+      destroy,
+      destroyDeployment,
+      describeProject
     };
   });
 

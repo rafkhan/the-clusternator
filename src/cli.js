@@ -165,6 +165,21 @@ function bootstrapAWS() {
   console.log('bootstrap an AWS environment');
 }
 
+function writeDeployment(name, dDir, appDef) {
+  return writeFile(path.normalize(dDir + path.sep + name + '.json'), appDef);
+}
+
+function generateDeploymentFromName(name) {
+  util.plog('Generating deployment: ',  name);
+    return clusternatorJson.get().then((config) => {
+      var appDef = util.clone(appDefSkeleton);
+      appDef.projectId = config.projectId;
+      appDef = JSON.stringify(appDef, null, 2);
+      return writeDeployment(name, config.deploymentsDir, appDef);
+    });
+}
+
+
 function initializeProject(y) {
   var argv = y.demand('o').
   alias('o', 'offline').
@@ -314,6 +329,52 @@ function deploy(y) {
   });
 }
 
+function stop(y) {
+  var argv = y.demand('d').
+  alias('d', 'deployment-name').
+  default('d', 'master', 'The "master" deployment').
+  describe('d', 'Requires a deployment name').
+  alias('s', 'SHA (git hash)').
+  default('s', '', 'HEAD').
+  describe('s', 'Requires a SHA').
+    argv;
+
+  return clusternatorJson.get().then((cJson) => {
+    return Q.all([
+      initAwsProject(),
+      git.shaHead()
+    ]).then((results) => {
+      util.plog('Stopping Deployment...: ', cJson.projectId, ': ', argv.d,
+        ' sha: ', sha);
+      var sha = argv.s || results[1];
+      return results[0].destroyDeployment(
+        cJson.projectId,
+        argv.d,
+        sha
+      );
+    }).fail((err) => {
+      util.plog('Clusternator: Error stopping deployment: ' + err.message);
+      util.plog(err.stack);
+    });
+  });
+}
+
+function generateDeployment(y) {
+  var argv = y.demand('d').
+  alias('d', 'deployment-name').
+  describe('d', 'Requires a deployment name').
+    argv;
+
+  return generateDeploymentFromName(argv.d);
+}
+
+function describeServices() {
+  return initAwsProject().then((pm) => {
+    return clusternatorJson.get().then((config) => {
+      return pm.describeProject(config.projectId);
+    });
+  }).done();
+}
 
 function describe(y) {
   y.demand('p').
@@ -354,6 +415,11 @@ module.exports = {
   makePrivate,
   readPrivate,
   generatePass,
+  generateDeployment,
 
-  deploy
+  deploy,
+  stop,
+
+  describeServices
+
 };

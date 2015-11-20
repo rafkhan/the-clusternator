@@ -137,7 +137,7 @@ function getSubnetManager(ec2, vpcId) {
     @return {Q.Promise}
   */
   function findExistingPid(pid) {
-    return describe().then(function(list) {
+    return describeProject(pid).then(function(list) {
       //throwIfPidFound(pid, list);
       if (list.length) {
         return list[0];

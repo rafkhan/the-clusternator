@@ -72,11 +72,12 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         deregisterPromises.push(cluster.deregister(
           arn, clusterName
         ).fail(function(err) {
-          util.plog('PR: destroy EC2: Warning, Deregistration for instance ' +
-            arn + ' failed, project: ' + pid + ' pr #' + pr +
-            ' error: ' + err.message);
+          //util.plog('PR: destroy EC2: Warning, Deregistration for instance ' +
+          //  arn + ' failed, project: ' + pid + ' pr #' + pr +
+          //  ' error: ' + err.message);
           // do nothing on failure, deregistration _should_ actually work
           // automagically
+          return;
         }));
       });
       return Q.all(deregisterPromises).then(function() {
@@ -112,10 +113,11 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         return;
       });
     }).then(function() {
-      return cluster.destroy({
+      var clusterName = rid.generateRID({
         pid: pid,
         pr: pr
-      }).fail(() => {
+      });
+      return cluster.destroy(clusterName).fail(() => {
         return;
       });
     }).then(function() {

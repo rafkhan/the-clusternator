@@ -51,7 +51,10 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
         apiConfig: {}
       }).then(function(ec2Results) {
         var ip = common.findIpFromEc2Describe(ec2Results);
-        return route53.createDeploymentARecord(pid, deployment, ip);
+        return route53.createDeploymentARecord(pid, deployment, ip).fail(() => {
+          // fail over
+          return;
+        });
       });
     }).
     then(function() {
@@ -81,9 +84,9 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
         deregisterPromises.push(cluster.deregister(
           arn, clusterName
         ).fail(function(err) {
-          util.plog('Deployment: destroy EC2: Warning, Deregistration for ' +
-            'instance ' + arn + ' failed, project: ' + pid + ' deployment ' +
-            deployment + ' error: ' + err.message);
+          //util.plog('Deployment: destroy EC2: Warning, Deregistration for ' +
+          //  'instance ' + arn + ' failed, project: ' + pid + ' deployment ' +
+          //  deployment + ' error: ' + err.message);
           // do nothing on failure, deregistration _should_ actually work
           // automagically
         }));
@@ -128,10 +131,12 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
         return;
       });
     }).then(function() {
-      return cluster.destroy({
-        pid: pid,
-        deployment: deployment
-      }).fail(() => {
+      var clusterName = rid.generateRID({
+        pid,
+        deployment,
+        sha
+      });
+      return cluster.destroy(clusterName).fail(() => {
         // fail over, keep cleaning
         return;
       });
@@ -139,7 +144,10 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
       // keep cleaning up
       return;
     }).then(function() {
-      return securityGroup.destroyDeployment(pid, deployment);
+      return securityGroup.destroyDeployment(pid, deployment).fail(() => {
+        // fail over
+        return;
+      });
     });
   }
 

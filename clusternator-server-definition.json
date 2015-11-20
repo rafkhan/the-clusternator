@@ -8,7 +8,7 @@
           "portMappings": [
             {
               "hostPort": 80,
-              "containerPort": 8080,
+              "containerPort": 9090,
               "protocol": "tcp"
             }
           ],
@@ -25,8 +25,8 @@
             "containerPath":"/var/run/docker.sock"
           }],
           "memory": 256,
-          "name": "nodebasic",
-          "cpu": 256,
+          "name": "clusternator-server",
+          "cpu": 1,
           "image": "rafkhan/dockernator:0.0.1"
         }
       ],
