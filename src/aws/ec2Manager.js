@@ -102,7 +102,7 @@ function processSSHKeys(keys) {
     return [];
   }
   return [SETUP_SSH].concat(keys.map((key) => {
-    return `echo "\n' ${key}" ${OUTPUT_SSH}`;
+    return `echo "\n${key}" ${OUTPUT_SSH}`;
   }).concat(CHOWN_SSH));
 }
 

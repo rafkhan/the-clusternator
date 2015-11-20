@@ -38,6 +38,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         pr: pr,
         sgId: sgDesc.GroupId,
         subnetId: subnetId,
+        sshPath: '.private/ssh-public',
         apiConfig: {}
       }).then(function(ec2Results) {
         var ip = common.findIpFromEc2Describe(ec2Results);
@@ -107,11 +108,15 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
       return task.destroy(clusterName).fail(function(err) {
         util.plog('PR Destruction Problem Destroying Task: ' + err.message);
         return r;
+      }).fail(() => {
+        return;
       });
     }).then(function() {
       return cluster.destroy({
         pid: pid,
         pr: pr
+      }).fail(() => {
+        return;
       });
     }).then(function() {
       return securityGroup.destroyPr(pid, pr);
