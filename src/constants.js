@@ -5,7 +5,7 @@ const PROJECT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project';
 const PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr';
 const DEPLOYMENT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'deployment';
 const SHA_TAG = CLUSTERNATOR_PREFIX + DELIM + 'sha';
-const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
+const AWS_DEFAULT_EC2_AMI = 'ami-5449393e';
 const AWS_DEFAULT_EC2_TYPE = 't2.micro';
 
 var constants = Object.freeze({
