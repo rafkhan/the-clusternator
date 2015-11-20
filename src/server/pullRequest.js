@@ -4,20 +4,25 @@ var Q = require('q')
 var R = require('ramda');
 
 var serverUtil = require('./util');
+var log = require('./loggers').logger;
 
 function writeSuccess(res, result) {
+  log.info('PR close success:', result);
   res.send(':)');
 }
 
 function writeFailure(res, err) {
-  res.send(':(');
+  log.error(err.stack);
+  res.status(500);
+  res.send(err);
+  return;
 }
 
 // Extracts relevant data from github webhook body
 function getPRInfo(body) {
   var prBody = body['pull_request'];
   var number = prBody.number;
-  var name = prBody.repository.name;
+  var name = prBody.head.repo.name;
 
   return {
     number: number,

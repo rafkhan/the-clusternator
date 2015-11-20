@@ -26,7 +26,7 @@
           }],
           "memory": 256,
           "name": "clusternator-server",
-          "cpu": 1,
+          "cpu": 256,
           "image": "rafkhan/dockernator:0.0.1"
         }
       ],
