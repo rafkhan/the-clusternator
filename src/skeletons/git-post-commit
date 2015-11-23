@@ -2,5 +2,5 @@
 FILE=clusternator.tar.gz.asc
 if [ -f "$FILE" ]
 then
-exec clusternator read-private -p $CLUSTERNATOR_PASS
+clusternator read-private -p $CLUSTERNATOR_PASS
 fi
