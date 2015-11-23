@@ -18,6 +18,11 @@ var credFileName = 'credentials',
   localPath = path.join(__dirname, '/../'),
   globalPath = '/etc/clusternator/';
 
+/**
+ * @todo replace this with `os.homedir()`?
+ * https://nodejs.org/api/os.html#os_os_homedir
+ * @returns {string}
+ */
 function getUserHome() {
   return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
 }

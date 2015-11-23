@@ -11,7 +11,7 @@ const FILENAME = 'clusternator.json';
 const UTF8 = 'utf8';
 const CLUSTERNATOR_TAR = 'clusternator.tar.gz';
 const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
-const SKELETON = require('./clusternator-json-skeleton');
+const SKELETON = require('./skeletons/clusternator-json-skeleton');
 
 var Q = require('q'),
   git = Q.nfbind(require('parse-git-config')),
@@ -19,7 +19,7 @@ var Q = require('q'),
   fs = require('fs'),
   inquirer = require('inquirer'),
   util = require('./util'),
-  questions = require('./create-interactive-questions'),
+  questions = require('./skeletons/create-interactive-questions'),
   gpg = require('./cli-wrappers/gpg'),
   tar = require('./cli-wrappers/tar'),
   rimraf = Q.nfbind(require('rimraf'));
