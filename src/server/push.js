@@ -17,6 +17,7 @@ function pushHandler(prManager, req, res) {
   var appdef = body.appdef;
   var tag = body.tag;
 
+
   if(!tag) {
     error(missingPropertyStatus,
           '"tag" required for project identification.');
@@ -34,13 +35,15 @@ function pushHandler(prManager, req, res) {
   var parsedAppdef = JSON.parse(appdef);
   var parsedTag = resourceId.parseRID(tag);
 
-  if(parsedTag.pid) {
+  log.info('Tag segments:', parsedTag);
+
+  if(!parsedTag.pid) {
     error(missingPropertyStatus,
           'Missing "pid" property in tag.');
     return;
   }
 
-  if(parsedTag.pr) {
+  if(!parsedTag.pr) {
     error(missingPropertyStatus,
           'Missing "pr" property in tag.');
     return;
@@ -60,6 +63,7 @@ function pushHandler(prManager, req, res) {
           (err) => {
             log.error('failed to build %s:%s',
                        parsedTag.pid, parsedTag.pr);
+            log.error(err.stack);
           });
 
   var resp = JSON.stringify({
