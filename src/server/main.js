@@ -45,9 +45,12 @@ function createServer(prManager) {
 // using a hardcoded one right now).
 //
 function loadPRManagerAsync(config) {
-  var ec2 = new aws.EC2(config.credentials);
-  var ecs = new aws.ECS(config.credentials);
-  var r53 = new aws.Route53(config.credentials);
+  if (!config.awsCredentials) {
+    return Q.reject(new Error('No AWS Credentials'));
+  }
+  var ec2 = new aws.EC2(config.awsCredentials);
+  var ecs = new aws.ECS(config.awsCredentials);
+  var r53 = new aws.Route53(config.awsCredentials);
   var prm = getPRManager(ec2, ecs, r53, TEST_VPC, TEST_ZONE);
   return q.resolve(prm);
 }

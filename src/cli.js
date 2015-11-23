@@ -29,9 +29,9 @@ function initAwsProject() {
   var c = require('./config'),
     a = require('aws-sdk'),
     config = c(),
-    ec2 = new a.EC2(config.credentials),
-    ecs = new a.ECS(config.credentials),
-    r53 = new a.Route53(config.credentials);
+    ec2 = new a.EC2(config.awsCredentials),
+    ecs = new a.ECS(config.awsCredentials),
+    r53 = new a.Route53(config.awsCredentials);
 
   return awsProject(ec2, ecs, r53);
 }
