@@ -1,6 +1,6 @@
 'use strict';
 var skeleton = require('./clusternator-json-skeleton'),
-  util = require('./util');
+  util = require('./../util');
 
 function truthy(value) {
   return value ? true : false;

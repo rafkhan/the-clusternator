@@ -46,7 +46,7 @@ function createServer(prManager) {
 //
 function loadPRManagerAsync(config) {
   if (!config.awsCredentials) {
-    return Q.reject(new Error('No AWS Credentials'));
+    return q.reject(new Error('No AWS Credentials'));
   }
   var ec2 = new aws.EC2(config.awsCredentials);
   var ecs = new aws.ECS(config.awsCredentials);
