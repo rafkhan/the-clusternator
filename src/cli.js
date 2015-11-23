@@ -21,6 +21,7 @@ var writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs);
 
 
+
 /**
  * @returns {Q.Promise}
  */
@@ -179,6 +180,92 @@ function generateDeploymentFromName(name) {
     });
 }
 
+/**
+ * @param {string[]} names
+ * @returns {{name: string}}
+ */
+function pickBestName(names) {
+  return {
+    name: names[0]
+  };
+}
+
+/**
+ * @param {Object} fullAnswers
+ * @returns {Q.Promise}
+ */
+function addPrivateToGitIgnore(fullAnswers) {
+  var priv = fullAnswers.answers.private,
+    addPromises = priv.map((privItem) => {
+      return git.addToGitIgnore(privItem);
+    });
+
+  return Q.all(addPromises);
+}
+
+/**
+ * @param {Object} results
+ * @param {string} root - the project's root folder
+ * @returns {Q.Promise}
+ */
+function processInitUserOptions(results, root) {
+  // parse results
+  return clusternatorJson.writeFromFullAnswers({
+    projectDir: root,
+    answers: results
+  }).then((fullAnswers) => {
+    return addPrivateToGitIgnore(fullAnswers).then(() => {
+      return {
+        root,
+        fullAnswers
+      };
+    });
+  });
+}
+
+/**
+ * @returns {Q.Promise<string>}
+ */
+function getProjectRootRejectIfClusternatorJsonExists() {
+  return clusternatorJson.findProjectRoot().then((root) => {
+    return clusternatorJson.skipIfExists(root).then(() => { return root; });
+  })
+}
+
+/**
+ * @returns {Q.Promise<Object>}
+ */
+function getInitUserOptions() {
+  return getProjectRootRejectIfClusternatorJsonExists().
+  then((root) => {
+    return clusternatorJson.findProjectNames(root).
+    then(pickBestName).
+    then(clusternatorJson.createInteractive).
+    then((results) => {
+      return processInitUserOptions(results, root);
+    });
+  })
+}
+
+/**
+ * @param {string} depDir
+ * @param {string} projectId
+ * @returns {Q.Promise}
+ */
+function initializeDeployments(depDir, projectId) {
+  return mkdirp(depDir).then(() => {
+    var prAppDef = util.clone(appDefSkeleton);
+    prAppDef.name = projectId;
+    prAppDef = JSON.stringify(prAppDef, null, 2);
+
+    return Q.allSettled([
+      writeFile(path.normalize(depDir + path.sep + 'pr.json'), prAppDef),
+      writeFile(path.normalize(depDir + path.sep + 'master.json'), prAppDef)
+    ]);
+  });
+}
+
+
 
 function initializeProject(y) {
   var argv = y.demand('o').
@@ -188,55 +275,24 @@ function initializeProject(y) {
     'check the cloud infrastructure').
     argv;
 
-  return clusternatorJson.findProjectRoot().then((root) => {
-    return clusternatorJson.skipIfExists(root).then(() => { return root; });
-  }).then((root) => {
-    return clusternatorJson.findProjectNames(root).then((names) => {
-      return {
-        name: names[0]
-      };
-    }).
-    then(clusternatorJson.createInteractive).
-    then((results) => {
-      // parse results
-      return clusternatorJson.writeFromFullAnswers({
-        projectDir: root,
-        answers: results
-      }).then((fullAnswers) => {
-        return {
-          root,
-          fullAnswers
-        };
-      });
-    });
-  }).then((initDetails) => {
+  return getInitUserOptions().then((initDetails) => {
     var output = 'Clusternator Initialized With Config: ' +
-      clusternatorJson.fullPath(initDetails.root),
+        clusternatorJson.fullPath(initDetails.root),
       dDir = initDetails.fullAnswers.answers.deploymentsDir,
-      prAppDef = util.clone(appDefSkeleton),
       projectId = initDetails.fullAnswers.answers.projectId;
 
-    prAppDef.name = projectId;
-    if (argv.o) {
-      util.plog(output + ' Network Resources *NOT* Checked');
-      return;
-    }
+    return initializeDeployments(dDir, projectId).then(() => {
+      if (argv.o) {
+        util.plog(output + ' Network Resources *NOT* Checked');
+        return;
+      }
 
-    return mkdirp(dDir).then(() => {
-      prAppDef = JSON.stringify(prAppDef, null, 2);
-
-      return Q.allSettled([
-        writeFile(path.normalize(dDir + path.sep + 'pr.json'), prAppDef),
-        writeFile(path.normalize(dDir + path.sep + 'master.json'), prAppDef),
-        initAwsProject().then((pm) => {
-          return pm.create(projectId).then(() => {
-            util.plog(output + ' Network Resources Checked');
-          });
-        })
-      ]);
-
+      return initAwsProject().then((pm) => {
+        return pm.create(projectId).then(() => {
+          util.plog(output + ' Network Resources Checked');
+        });
+      })
     });
-
   }).fail((err) => {
     util.plog('Clusternator: Initizalization Error: ' + err.message);
   }).done();
