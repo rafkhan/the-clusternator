@@ -41,7 +41,7 @@ gulp.task('pre-test-unit', ['lint'], function preUnitTest() {
 });
 
 gulp.task('test-unit', ['pre-test-unit'], function testUnit() {
-  return gulp.src(specPaths).
+  return gulp.src(cliPath.concat(specPaths)).
   pipe(mocha()).
   pipe(istanbul.writeReports({
     reporters: ['text', 'lcovonly', 'html', 'json', 'text-summary'],
