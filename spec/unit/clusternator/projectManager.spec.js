@@ -3,11 +3,11 @@
 var rewire = require('rewire'),
   C = require('../chai');
 
-var Pm = rewire('../../../src/aws/projectManager');
+var Pm = rewire('../../../src/clusternator/projectManager');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
-describe('AWS\'s project manager', () => {
+describe('Clusternator\'s project manager', () => {
 
 });
