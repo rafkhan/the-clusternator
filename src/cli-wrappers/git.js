@@ -32,6 +32,9 @@ function readGitIgnore() {
   return gitIgnorePath().then((ignoreFile) => {
     return readFile(ignoreFile, UTF8).then((file) => {
       return file.split(NEWLINE);
+    }, () => {
+      // fail over
+      return [];
     });
   });
 }

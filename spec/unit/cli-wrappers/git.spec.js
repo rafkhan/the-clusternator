@@ -12,14 +12,15 @@ var git = rewire('../../../src/cli-wrappers/git'),
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('Test git CLI Wrapper', () => {
-  var oldCJson;
+  var oldCJson, projectRoot = '/';
 
   beforeEach(() => {
+    projectRoot = '/';
     git.__set__('spawn', mockSpawn());
     oldCJson = git.__get__('clusternatorJson');
     git.__set__('clusternatorJson', {
       findProjectRoot: () => {
-        return Q.resolve('/');
+        return Q.resolve(projectRoot);
       }
     });
     mockFs({
@@ -103,6 +104,15 @@ describe('Test git CLI Wrapper', () => {
       C.check(done, () => {
         expect(Array.isArray(result)).to.be.ok;
         expect(typeof result[0]).to.equal('string');
+      });
+    }, C.getFail(done));
+  });
+
+  it('readGitIgnore should resolve even if there is not .gitignore', (done) => {
+    projectRoot = 'some/invalid/path';
+    git.helpers.readGitIgnore().then((result) => {
+      C.check(done, () => {
+        expect(Array.isArray(result)).to.be.ok;
       });
     }, C.getFail(done));
   });
