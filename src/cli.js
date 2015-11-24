@@ -6,6 +6,7 @@ var fs = require('fs'),
   path = require('path'),
   log = require('winston'),
   mkdirp = Q.nfbind(require('mkdirp')),
+  Config = require('./config'),
   util = require('./util'),
   server = require('./server/main'),
   circleCIClient = require('./client/circleCIClient'),
@@ -13,9 +14,9 @@ var fs = require('fs'),
   clusternatorJson = require('./clusternator-json'),
   gpg = require('./cli-wrappers/gpg'),
   git = require('./cli-wrappers/git'),
-  deployMgr = require('./aws/deploymentManager'),
   appDefSkeleton = require('./aws/appDefSkeleton'),
-  awsProject = require('./aws/projectManager');
+  cnProjectManager = require('./clusternator/projectManager'),
+  awsProjectManager = require('./aws/projectManager');
 
 var writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs);
@@ -25,15 +26,26 @@ var writeFile = Q.nbind(fs.writeFile, fs),
 /**
  * @returns {Q.Promise}
  */
-function initAwsProject() {
-  var c = require('./config'),
-    a = require('aws-sdk'),
-    config = c(),
+function initAwsProject(config) {
+    var a = require('aws-sdk'),
     ec2 = new a.EC2(config.awsCredentials),
     ecs = new a.ECS(config.awsCredentials),
     r53 = new a.Route53(config.awsCredentials);
 
-  return awsProject(ec2, ecs, r53);
+  return awsProjectManager(ec2, ecs, r53);
+}
+
+function initClusternatorProject(config) {
+  return cnProjectManager(config);
+}
+
+function initProject() {
+  var config = Config();
+
+  if (config.awsCredentials) {
+    return initAwsProject(config);
+  }
+  return initClusternatorProject(config);
 }
 
 function newApp(argv) {
@@ -287,7 +299,7 @@ function initializeProject(y) {
         return;
       }
 
-      return initAwsProject().then((pm) => {
+      return initProject().then((pm) => {
         return pm.create(projectId).then(() => {
           util.plog(output + ' Network Resources Checked');
         });
@@ -358,7 +370,7 @@ function deploy(y) {
       cJson.deploymentsDir + path.sep + argv.d + '.json'
     );
     return Q.all([
-      initAwsProject(),
+      initProject(),
       git.shaHead(),
       readFile(dPath, UTF8).
         fail((err) => {
@@ -404,7 +416,7 @@ function stop(y) {
 
   return clusternatorJson.get().then((cJson) => {
     return Q.all([
-      initAwsProject(),
+      initProject(),
       git.shaHead()
     ]).then((results) => {
       var sha = argv.s || results[1];
@@ -432,7 +444,7 @@ function generateDeployment(y) {
 }
 
 function describeServices() {
-  return initAwsProject().then((pm) => {
+  return initProject().then((pm) => {
     return clusternatorJson.get().then((config) => {
       return pm.describeProject(config.projectId);
     });
@@ -486,3 +498,12 @@ module.exports = {
   describeServices
 
 };
+
+function fb(n) {
+  return Array.apply(null, Array(n)).map((_, i) => {
+    if (i % 3 === 0) { return 'fizz'; }
+    if (i % 5 === 0) { return 'buzz'; }
+    return i;
+  });
+}
+
