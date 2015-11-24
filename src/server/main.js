@@ -17,6 +17,7 @@ var pushHandler = require('./push');
 var loggers = require('./loggers');
 var log = loggers.logger;
 
+var waitFor = require('../util').waitFor;
 
 var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
 
@@ -70,9 +71,15 @@ function loadPRManagerAsync(ec2, ecs, r53) {
 }
 
 function createAndPollTable(ddbManager, tableName) {
+  log.info('Creating DynamoDB table: %s', tableName);
   return ddbManager.createTable(tableName)
     .then(() => {
-      return ddbManager.pollForActiveTable(GITHUB_AUTH_TOKEN_TABLE);
+      log.info('Waiting for DynamoDB table: %s', tableName);
+
+      return waitFor(() => {
+        log.info('Polling...');
+        return ddbManager.checkActiveTable(GITHUB_AUTH_TOKEN_TABLE);
+      }, 500, 100, 'ddb table create ' + tableName)
     }, q.reject);
 }
 
@@ -97,9 +104,7 @@ function initializeWebhookTable(ddbManager) {
 
     .then(() => {
       log.info('table active');
-    }, (err) => {
-      log.error(err, err.stack);
-    });
+    }, q.reject);
 }
 
 function getServer(config) {
@@ -120,7 +125,7 @@ function startServer(config) {
       server.listen(config.port); 
       console.log('Clusternator listening on port', config.port)
     }, (err) => {
-      
+      log.error(err, err.stack);
     });
 }
 

@@ -3,9 +3,6 @@
 var q = require('q');
 var R = require('ramda');
 
-var waitFor = require('../util').waitFor;
-
-
 var defaultTableParams = {
   AttributeDefinitions: [{
     AttributeName: 'ProjectName',
@@ -35,7 +32,7 @@ function getDynamoDBManager(ddb) {
     return ddbListTables()
       .then((tables) => {
         // TODO check r.contains
-        if(R.contains('tableName', tables.TableNames)) {
+        if(R.contains(tableName, tables.TableNames)) {
           return true;
         } else {
           return false;
@@ -50,23 +47,24 @@ function getDynamoDBManager(ddb) {
     return ddbCreateTable(tableParams);
   }
 
-  function pollForActiveTable(tableName) {
-    return waitFor(() => {
-      return ddbDescribeTable(tableName)
-        .then((data) => {
-          if(data.TableStatus === 'ACTIVE') {
-            return q.resolve(data);
-          } else {
-            return q.reject();
-          }
-        }, q.reject);
-    }, 1000, 100, 'DDB Create Table');
+  function checkActiveTable(tableName) {
+    return ddbDescribeTable({ TableName: tableName })
+      .then((data) => {
+        var tableStatus = data.Table.TableStatus;
+        if(tableStatus === 'ACTIVE') {
+          return q.resolve(data);
+        } else {
+          return q.reject();
+        }
+      }, (err) => {
+        return err;
+      });
   }
 
   return {
     checkTableExistence: checkTableExistence,
     createTable: createTable,
-    pollForActiveTable: pollForActiveTable
+    checkActiveTable: checkActiveTable 
   };
 }
 
