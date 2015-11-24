@@ -123,5 +123,6 @@ module.exports = {
   waitFor,
   makePromiseApi,
   clone,
+  info,
   winston
 };

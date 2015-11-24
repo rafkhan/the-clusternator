@@ -48,7 +48,7 @@ function loadJSON(fullpath) {
   try {
     return require(fullpath);
   } catch (err) {
-    util.info('Error', err.message);
+    util.winston.error('Error', err.message);
     return null;
   }
 }
