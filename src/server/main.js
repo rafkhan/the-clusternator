@@ -2,6 +2,7 @@
 
 const TEST_VPC = 'vpc-ab07b4cf';
 const TEST_ZONE = '/hostedzone/Z1K98SX385PNRP';
+const LOGIN_PATH = '/login.html';
 
 var R = require('ramda');
 var q = require('q');
@@ -15,8 +16,28 @@ var prHandler = require('./pullRequest');
 var pushHandler = require('./push');
 var loggers = require('./loggers');
 
+var nodePath = require('path');
+var compression = require('compression');
+var authentication = require('./auth/authentication');
+var authorization = require('./auth/authorization');
+var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
+var users = require('./auth/users');
+
+function getLoginPage(req, res) {
+  res.redirect(200, LOGIN_PATH);
+}
+
 function createServer(prManager) {
   var app = express();
+
+  authentication.init(app);
+
+  app.use(compression());
+  app.use(express['static'](
+    nodePath.normalize(__dirname + nodePath.sep + '..' + nodePath.sep + 'www'))
+  );
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
 
   function ping(req, res) {
     res.send('Still alive.');
@@ -27,12 +48,30 @@ function createServer(prManager) {
   var curriedPushHandler = R.curry(pushHandler)(prManager);
   var curriedPRHandler = R.curry(prHandler)(prManager);
 
-  app.use(bodyParser.json());
   app.use(loggers.request);
 
+  app.post('/login', authentication.endpoints.login);
+
+  app.put('/users/:id/password', [
+    ensureAuth(LOGIN_PATH),
+    users.endpoints.password
+  ]);
+
+  app.get('/users/:id', [
+    ensureAuth(LOGIN_PATH),
+    users.endpoints.get
+  ]);
+
   app.get('/ping', ping);
-  app.post('/clusternate', curriedPushHandler); // CI post-build hook
-  app.post('/github/pr', curriedPRHandler);     // github close PR hook
+  app.post('/clusternate',
+    [
+      ensureAuth(LOGIN_PATH),
+      curriedPushHandler
+    ]); // CI post-build hook
+  app.post('/github/pr', [
+    ensureAuth,
+    curriedPRHandler
+  ]);     // github close PR hook
 
   app.use(loggers.error);
 
@@ -66,10 +105,10 @@ function startServer(config) {
   // wtf
   return getServer(config)
     .then((server) => {
-      server.listen(config.port); 
+      server.listen(config.port);
       console.log('Clusternator listening on port', config.port)
     }, (err) => {
-      
+
     });
 }
 
