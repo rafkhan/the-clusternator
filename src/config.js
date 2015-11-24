@@ -48,7 +48,7 @@ function loadJSON(fullpath) {
   try {
     return require(fullpath);
   } catch (err) {
-    console.log('Error', err.message);
+    util.info('Error', err.message);
     return null;
   }
 }
@@ -69,21 +69,21 @@ function checkAwsCreds() {
   if (c) {
     return c;
   }
-  util.plog('No "local" credentials found in ' + fullpath +
+  util.info('No "local" credentials found in ' + fullpath +
     ', checking project');
   fullpath = localPath + credFileName + '.json';
   c = validateAwsCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
-  util.plog('No "project" credentials found in ' + fullpath +
+  util.info('No "project" credentials found in ' + fullpath +
     ', checking global');
   fullpath = path.join(globalPath, credFileName + '.json');
   c = validateAwsCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
-  util.plog('No "global" credentials found in ' + fullpath +
+  util.info('No "global" credentials found in ' + fullpath +
     ', checking environment variables');
   return getAwsCredsFromProc();
 }
@@ -126,21 +126,21 @@ function checkConfig() {
   if (c) {
     return c;
   }
-  util.plog('No "local" config found in ' + fullpath +
+  util.info('No "local" config found in ' + fullpath +
     ', checking project');
   fullpath = localPath + configFileName + '.json';
   c = loadJSON(fullpath);
   if (c) {
     return c;
   }
-  util.plog('No "project" config found in ' + fullpath +
+  util.info('No "project" config found in ' + fullpath +
     ', checking global');
   fullpath = path.join(globalPath, configFileName + '.json');
   c = loadJSON(fullpath);
   if (c) {
     return c;
   }
-  util.plog('No "global" config found in ' + fullpath);
+  util.info('No "global" config found in ' + fullpath);
   return {};
 }
 

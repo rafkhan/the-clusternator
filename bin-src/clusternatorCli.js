@@ -2,12 +2,34 @@
 
 'use strict';
 
-var R = require('ramda');
-var yargs = require('yargs');
+var R = require('ramda'),
+  yargs = require('yargs'),
+  util = require('../lib/util'),
+  constants = require('../lib/constants'),
+  cli = require('../lib/cli');
 
-var cli = require('../lib/cli');
+cliLogger();
 
-var DEFAULT_PORT = 3000;
+function cliLogger() {
+  const INFO = 2;
+  const LOG_MAX = 5;
+
+
+  var argv = yargs.count('verbose').
+  alias('v', 'verbose').
+  describe('v', 'Verbosity, defaults to info, add more v\'s to increase').
+  boolean('quiet').
+  alias('q', 'quiet').
+  describe('q', 'Quiet mode, only errors will output (overrides -v)').
+    argv;
+
+  if (argv.q) {
+    util.winston.transports.console.level = constants.LOG_LEVELS[0];
+  } else {
+    let logLevel = INFO + argv.v > LOG_MAX ? LOG_MAX : INFO + argv.v;
+    util.winston.transports.console.level = constants.LOG_LEVELS[logLevel];
+  }
+}
 
 yargs.usage('Usage: $0 <command> [opts]');
 
@@ -202,10 +224,10 @@ var command = argv._[0];
 if (command === 'circleci:push') {
   cli.circleCIPush(argv)()
     .then(() => {
-      console.log('Done.');
+      util.info('Done.');
       process.exit(0);
     }, (err) => {
-      console.log('ERROR', err)
+      util.error('Error ', err);
       process.exit(-1);
     });
 
@@ -215,9 +237,9 @@ if (command === 'circleci:push') {
 } else if (command === 'server:start') {
   cli.startServer(argv)()
     .then(() => {
-      console.log('Successfully started server.');
+      util.info('Successfully started server.');
     }, (err) => {
-      console.log('Error starting server:', err)
+      util.error('Error starting server:', err)
       process.exit(-1);
     });
 
@@ -228,19 +250,19 @@ if (command === 'circleci:push') {
 } else if (command === 'cluster:update') {
   cli.updateApp(argv)()
     .then(function(data) {
-      console.log('Done.');
+      util.info('Done.');
       process.exit(0);
     }, function(err) {
-      console.log('ERROR', err);
+      util.error('ERROR', err);
     });
 
 } else if (command === 'cluster:delete') {
   cli.destroyApp(argv)()
     .then(function(data) {
-      console.log('Done.');
+      util.info('Done.');
       process.exit(0);
     }, function(err) {
-      console.log('ERROR', err);
+      util.error('ERROR', err);
     });
 
 } else if (command === 'app:new') {

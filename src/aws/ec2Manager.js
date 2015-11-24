@@ -149,10 +149,10 @@ function getECSContainerInstanceUserData(clusterName, auth, sshPath) {
     data = data.concat(sshData);
     return stringArrayToNewLineBase64(data);
   }, (err) => {
-    //util.plog('Clusternator Ec2: Warning: Loading user defined SSH keys ' +
+    //util.info('Clusternator Ec2: Warning: Loading user defined SSH keys ' +
     //  'failed, custom logins disabled ' + err.message);
 
-    util.plog('Notice, no user keys found in .private/ssh-public, logging ' +
+    util.info('Notice, no user keys found in .private/ssh-public, logging ' +
       '*not* possible');
     return stringArrayToNewLineBase64(data);
   });
@@ -254,7 +254,7 @@ function getEC2Manager(ec2, vpcId) {
             ' to terminate, they were not found');
         }
         if (list[0].State.Name === 'terminated') {
-          util.plog('Ec2: Instances ' + instanceIds.join(', ') + ' Terminated');
+          util.info('Ec2: Instances ' + instanceIds.join(', ') + ' Terminated');
           return true;
         } else {
           throw new Error('Ec2: Not Yet Terminated');
@@ -271,7 +271,7 @@ function getEC2Manager(ec2, vpcId) {
           throw new Error('Ec2 No Instances Awaiting Readiness');
         }
         if (list[0].State.Name === 'running') {
-          util.plog('Ec2 Is Ready');
+          util.info('Ec2 Is Ready');
           return true;
         } else {
           throw new Error('Ec2: Wait For Readiness');

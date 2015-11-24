@@ -1,5 +1,6 @@
 'use strict';
-var path = require('path');
+var path = require('path'),
+  util = require('./util');
 
 var DEFAULT_ENV = Object.freeze({
     host: '127.0.0.1',
@@ -24,7 +25,7 @@ function findPackageJSON() {
     var cwd = process.cwd(),
     p = findPackageJSON_(cwd);
 
-    console.log(p);
+    util.info(p);
 }
 
 function init(e) {

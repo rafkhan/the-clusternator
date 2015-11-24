@@ -29,7 +29,7 @@ var taskServiceManager = TaskServiceManager(ecs);
  * Then rebuilds app by it's specification.
  */
 function updateApp(clusterName, appDef) {
-  console.log('Updating', appDef.name, 'on', clusterName, 'with app definition',
+  util.info('Updating', appDef.name, 'on', clusterName, 'with app definition',
     '"' + appDef.name + '"');
 
   function loadNewApp() {
@@ -39,14 +39,14 @@ function updateApp(clusterName, appDef) {
   return clusterManager.describe(clusterName)
     .then(R.prop('clusterArn'), q.reject)
     .then((clusterArn) => {
-      console.log('Initiating cleanup on', clusterArn);
+      util.info('Initiating cleanup on', clusterArn);
       return clusterArn;
     }, q.reject)
 
   .then(taskServiceManager.destroy, q.reject)
     .then((args) => {
       var serviceNames = R.map(R.prop('serviceName'), args);
-      console.log('Deleted services', serviceNames);
+      util.info('Deleted services', serviceNames);
       return args;
     }, q.reject)
 
@@ -54,7 +54,7 @@ function updateApp(clusterName, appDef) {
     .then((services) => {
       var f = R.compose(R.prop('serviceName'), R.prop('service'));
       var serviceNames = R.map(f, services);
-      console.log('Initialized services', serviceNames);
+      util.info('Initialized services', serviceNames);
       return services;
     }, q.reject);
 }
@@ -67,19 +67,19 @@ function updateApp(clusterName, appDef) {
  * Then rebuilds app by it's specification.
  */
 function destroyApp(clusterName) {
-  console.log('Destroying', clusterName);
+  util.info('Destroying', clusterName);
 
   return clusterManager.describe(clusterName)
     .then(R.prop('clusterArn'), q.reject)
     .then((clusterArn) => {
-      console.log('Initiating cleanup on', clusterArn);
+      util.info('Initiating cleanup on', clusterArn);
       return clusterArn;
     }, q.reject)
 
   .then(taskServiceManager.destroy, q.reject)
     .then((args) => {
       var serviceNames = R.map(R.prop('serviceName'), args);
-      console.log('Deleted services', serviceNames);
+      util.info('Deleted services', serviceNames);
       return args;
     }, q.reject);
 

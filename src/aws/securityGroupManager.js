@@ -30,7 +30,7 @@ function getSecurityGroupManager(ec2, vpcId) {
     ]).then(function() {
       return groupId;
     }, function(err) {
-      //util.plog('SecurityGroup: Warning Could Not Add Custom Rules: ' +
+      //util.info('SecurityGroup: Warning Could Not Add Custom Rules: ' +
       //  err.message);
       return groupId;
     });
@@ -76,7 +76,7 @@ function getSecurityGroupManager(ec2, vpcId) {
         }]),
         defaultInOutRules(result.GroupId)
       ]).then(function() {
-        console.log('result', result);
+        util.info('result', result);
         return result;
       });
     });
@@ -135,7 +135,7 @@ function getSecurityGroupManager(ec2, vpcId) {
     return describeDeployment(pid, deployment).then(function(list) {
       if (list.length) {
         // return the id
-        util.plog('Security Group Found For ', pid, ' Deployment: ', deployment,
+        util.info('Security Group Found For ', pid, ' Deployment: ', deployment,
           ' SHA:', sha);
         return { GroupId: list[0].GroupId }
       } else {

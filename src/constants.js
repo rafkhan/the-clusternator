@@ -8,7 +8,17 @@ const SHA_TAG = CLUSTERNATOR_PREFIX + DELIM + 'sha';
 const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
 const AWS_DEFAULT_EC2_TYPE = 't2.micro';
 
+var util = require('./util');
+
 var constants = Object.freeze({
+  LOG_LEVELS: Object.freeze({
+    0: 'error',
+    1: 'warn',
+    2: 'info',
+    3: 'verbose',
+    4: 'debug',
+    5: 'silly'
+  }),
   AWS_R53_ZONE_PREFIX: '/hostedzone/',
   AWS_DEFAULT_EC2_AMI,
   AWS_DEFAULT_EC2_TYPE,
@@ -28,7 +38,7 @@ var constants = Object.freeze({
   PR_TAG,
   DEPLOYMENT_TAG,
   SHA_TAG,
-  AWS_DEFAULT_EC2: {
+  AWS_DEFAULT_EC2: Object.freeze({
     ImageId: AWS_DEFAULT_EC2_AMI,
     MaxCount: 1,
     MinCount: 1,
@@ -71,7 +81,7 @@ var constants = Object.freeze({
 
     // TODO INSTALL ECS AGENT HERE
     //UserData: 'STRING_VALUE'
-  }
+  })
 });
 
 module.exports = constants;

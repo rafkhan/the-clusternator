@@ -84,7 +84,7 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
         deregisterPromises.push(cluster.deregister(
           arn, clusterName
         ).fail(function(err) {
-          //util.plog('Deployment: destroy EC2: Warning, Deregistration for ' +
+          //util.info('Deployment: destroy EC2: Warning, Deregistration for ' +
           //  'instance ' + arn + ' failed, project: ' + pid + ' deployment ' +
           //  deployment + ' error: ' + err.message);
           // do nothing on failure, deregistration _should_ actually work
@@ -93,7 +93,7 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
       });
       return Q.all(deregisterPromises).then(function() {
         return ec2mgr.destroyDeployment(pid, deployment).fail(function(err) {
-          util.plog('Deployment Destruction Problem Destroying Ec2: ' +
+          util.info('Deployment Destruction Problem Destroying Ec2: ' +
             err.message);
         });
       });
@@ -126,7 +126,7 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
       return destroyEc2(pid, deployment, clusterName);
     }).then(function(r) {
       return task.destroy(clusterName).fail(function(err) {
-        util.plog('Deployment Destruction Problem Destroying Task: ' +
+        util.info('Deployment Destruction Problem Destroying Task: ' +
           err.message);
         return;
       });

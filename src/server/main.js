@@ -22,10 +22,7 @@ var authentication = require('./auth/authentication');
 var authorization = require('./auth/authorization');
 var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 var users = require('./auth/users');
-
-function getLoginPage(req, res) {
-  res.redirect(200, LOGIN_PATH);
-}
+var util = require('../util');
 
 function createServer(prManager) {
   var app = express();
@@ -106,7 +103,7 @@ function startServer(config) {
   return getServer(config)
     .then((server) => {
       server.listen(config.port);
-      console.log('Clusternator listening on port', config.port)
+      util.info('Clusternator listening on port', config.port)
     }, (err) => {
 
     });
