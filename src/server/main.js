@@ -69,14 +69,37 @@ function loadPRManagerAsync(ec2, ecs, r53) {
   return q.resolve(prm);
 }
 
+function createAndPollTable(ddbManager, tableName) {
+  return ddbManager.createTable(tableName)
+    .then(() => {
+      return ddbManager.pollForActiveTable(GITHUB_AUTH_TOKEN_TABLE);
+    }, q.reject);
+}
+
 function initializeWebhookTable(ddbManager) {
   log.info('Looking for DynamoDB table: %s',
-      GITHUB_AUTH_TOKEN_TABLE);
+    GITHUB_AUTH_TOKEN_TABLE);
 
   return ddbManager.checkTableExistence(GITHUB_AUTH_TOKEN_TABLE)
     .then((exists) => {
-       
-    }, q.reject);
+      if(exists) {
+        log.info('DynamoDB table %s was found',
+          GITHUB_AUTH_TOKEN_TABLE);
+
+        return q.resolve();
+      } else {
+        log.info('DynamoDB table %s was not found',
+          GITHUB_AUTH_TOKEN_TABLE);
+
+        return createAndPollTable(ddbManager, GITHUB_AUTH_TOKEN_TABLE);
+      }
+    }, q.reject)
+
+    .then(() => {
+      log.info('table active');
+    }, (err) => {
+      log.error(err, err.stack);
+    });
 }
 
 function getServer(config) {
