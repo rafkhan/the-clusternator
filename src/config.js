@@ -10,11 +10,22 @@ const AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY';
 var util = require('./util'),
   path = require('path');
 
+const DOT_CLUSTERNATOR_CONFIG =
+  path.normalize(getUserHome() + path.sep + '.clusternator_config.json');
+
 var credFileName = 'credentials',
   configFileName = 'config',
   localPath = path.join(__dirname, '/../'),
   globalPath = '/etc/clusternator/';
 
+/**
+ * @todo replace this with `os.homedir()`?
+ * https://nodejs.org/api/os.html#os_os_homedir
+ * @returns {string}
+ */
+function getUserHome() {
+  return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+}
 
 function validateCreds(c) {
   if (!c) {
@@ -41,7 +52,7 @@ function loadJSON(fullpath) {
   }
 }
 
-function getCredsFromProc() {
+function getAwsCredsFromProc() {
   if (process.env[AWS_ENV_KEY] && process.env[AWS_ENV_SECRET]) {
     return {
       accessKeyId: process.env[AWS_ENV_KEY],
@@ -51,7 +62,7 @@ function getCredsFromProc() {
   return null;
 }
 
-function checkCreds() {
+function checkAwsCreds() {
   var fullpath = path.join(localPath, credFileName + '.local.json'),
     c = validateCreds(loadJSON(fullpath));
   if (c) {
@@ -73,7 +84,18 @@ function checkCreds() {
   }
   util.plog('No "global" credentials found in ' + fullpath +
     ', checking environment variables');
-  return getCredsFromProc();
+  return getAwsCredsFromProc();
+}
+
+function checkClusternatorCreds() {
+  try {
+    return require(DOT_CLUSTERNATOR_CONFIG);
+  } catch (err) {
+    return {
+      user: null,
+      pass: null
+    };
+  }
 }
 
 function checkConfig() {
@@ -101,14 +123,10 @@ function checkConfig() {
 }
 
 function getConfig() {
-  var creds = checkCreds(),
-    config = checkConfig();
+  var config = checkConfig();
 
-  if (!creds) {
-    throw new Error('Clusternator requires configuration');
-  }
-
-  config.credentials = creds;
+  config.awsCredentials = checkAwsCreds();
+  config.clusternatorCredentials = checkClusternatorCreds();
 
   return config;
 }

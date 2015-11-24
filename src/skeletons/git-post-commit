@@ -1,0 +1,6 @@
+#!/bin/sh
+FILE=clusternator.tar.gz.asc
+if [ -f "$FILE" ]
+then
+clusternator read-private -p $CLUSTERNATOR_PASS
+fi
