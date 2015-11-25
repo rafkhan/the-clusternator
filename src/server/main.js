@@ -119,9 +119,7 @@ function createAndPollTable(ddbManager, tableName) {
     }, q.reject);
 }
 
-function initializeWebhookTable(ddbManager) {
-  var tableName = GITHUB_AUTH_TOKEN_TABLE;
-
+function initializeDynamoTable(ddbManager, tableName) {
   log.info('Looking for DynamoDB table: %s', tableName);
 
   return ddbManager.checkTableExistence(tableName)
@@ -148,8 +146,9 @@ function getServer(config) {
   var a = getAwsResources(config);
 
   var ddbManager = getDynamoDBManager(a.ddb);
+  var initDynamoTable = R.curry(initializeDynamoTable)(ddbManager);
 
-  return initializeWebhookTable(ddbManager)
+  return initDynamoTable(GITHUB_AUTH_TOKEN_TABLE)
     .then(() => {
       return loadPRManagerAsync(a.ec2, a.ecs, a.r53)
     }, q.reject)
