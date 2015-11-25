@@ -5,6 +5,7 @@ var R = require('ramda');
 var serverUtil = require('./util');
 var resourceId = require('../resourceIdentifier');
 var log = require('./loggers').logger;
+var util = require('../util');
 
 var missingPropertyStatus = 400;
 
@@ -55,7 +56,7 @@ function pushHandler(prManager, req, res) {
             parsedTag.pid, parsedTag.pr);
 
   // XXX SWAP FOR WINSTON
-  console.log('Generating application with tags:', parsedTag);
+  util.info('Generating application with tags:', parsedTag);
 
   prManager.create(parsedTag.pid, parsedTag.pr, parsedAppdef)
     .then((res) => { log.info('Successfully build %s:%s',

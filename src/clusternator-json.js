@@ -231,7 +231,7 @@ function privateExists() {
     return readFile(dir).then(() => {
       return dir;
     }, (err) => {
-      util.plog('Clusternator: Encrypted Private File: ' + dir + ' does not exist, or is unreadable');
+      util.info('Clusternator: Encrypted Private File: ' + dir + ' does not exist, or is unreadable');
       throw err;
     });
   });

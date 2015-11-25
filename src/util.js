@@ -2,15 +2,31 @@
 
 const WAIT_DEFAULT_INTERVAL = 10000;
 
-var Q = require('q');
+var Q = require('q'),
+  Winston = require('winston'),
+  winston;
+
+initWinston();
+
+function initWinston() {
+  winston = new (Winston.Logger)({
+    transports: [
+      new (Winston.transports.Console)({level: 'info'})
+    ]
+  });
+}
+
+function info() {
+  winston.info.apply(winston, arguments);
+}
 
 function errLog(x) {
-  console.log('ERROR', x);
+  winston.info('ERROR', x);
   return Q.reject(new Error(x));
 }
 
 function plog() {
-  console.log.apply(null, arguments);
+  winston.info.apply(null, arguments);
   return arguments[0];
 }
 
@@ -106,5 +122,7 @@ module.exports = {
   getCidrPrefixFromIPString,
   waitFor,
   makePromiseApi,
-  clone
+  clone,
+  info,
+  winston
 };

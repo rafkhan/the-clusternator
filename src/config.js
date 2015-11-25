@@ -8,7 +8,8 @@ const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID';
 const AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY';
 
 var util = require('./util'),
-  path = require('path');
+  path = require('path'),
+  semver = require('semver');
 
 const DOT_CLUSTERNATOR_CONFIG =
   path.normalize(getUserHome() + path.sep + '.clusternator_config.json');
@@ -27,7 +28,7 @@ function getUserHome() {
   return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
 }
 
-function validateCreds(c) {
+function validateAwsCreds(c) {
   if (!c) {
     return null;
   }
@@ -47,7 +48,7 @@ function loadJSON(fullpath) {
   try {
     return require(fullpath);
   } catch (err) {
-    console.log('Error', err.message);
+    util.winston.error('Error', err.message);
     return null;
   }
 }
@@ -64,36 +65,57 @@ function getAwsCredsFromProc() {
 
 function checkAwsCreds() {
   var fullpath = path.join(localPath, credFileName + '.local.json'),
-    c = validateCreds(loadJSON(fullpath));
+    c = validateAwsCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
-  util.plog('No "local" credentials found in ' + fullpath +
+  util.info('No "local" credentials found in ' + fullpath +
     ', checking project');
   fullpath = localPath + credFileName + '.json';
-  c = validateCreds(loadJSON(fullpath));
+  c = validateAwsCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
-  util.plog('No "project" credentials found in ' + fullpath +
+  util.info('No "project" credentials found in ' + fullpath +
     ', checking global');
   fullpath = path.join(globalPath, credFileName + '.json');
-  c = validateCreds(loadJSON(fullpath));
+  c = validateAwsCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
-  util.plog('No "global" credentials found in ' + fullpath +
+  util.info('No "global" credentials found in ' + fullpath +
     ', checking environment variables');
   return getAwsCredsFromProc();
 }
 
+function validateClusternatorCreds(c) {
+  if (!c.host) {
+    return null;
+  }
+  if (!c.user) {
+    return null;
+  }
+  if (!c.pass) {
+    return null;
+  }
+  if (!c.apiVersion) {
+    c.apiVersion = '0.0.1';
+  } else {
+    c.apiVersion = semver.clean(c.apiVersion);
+  }
+  return c;
+}
+
 function checkClusternatorCreds() {
   try {
-    return require(DOT_CLUSTERNATOR_CONFIG);
+    var c = require(DOT_CLUSTERNATOR_CONFIG);
+    return validateClusternatorCreds(c);
   } catch (err) {
     return {
       user: null,
-      pass: null
+      pass: null,
+      host: null,
+      apiVersion: null
     };
   }
 }
@@ -104,21 +126,21 @@ function checkConfig() {
   if (c) {
     return c;
   }
-  util.plog('No "local" config found in ' + fullpath +
+  util.info('No "local" config found in ' + fullpath +
     ', checking project');
   fullpath = localPath + configFileName + '.json';
   c = loadJSON(fullpath);
   if (c) {
     return c;
   }
-  util.plog('No "project" config found in ' + fullpath +
+  util.info('No "project" config found in ' + fullpath +
     ', checking global');
   fullpath = path.join(globalPath, configFileName + '.json');
   c = loadJSON(fullpath);
   if (c) {
     return c;
   }
-  util.plog('No "global" config found in ' + fullpath);
+  util.info('No "global" config found in ' + fullpath);
   return {};
 }
 

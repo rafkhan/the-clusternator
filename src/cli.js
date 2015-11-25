@@ -4,8 +4,8 @@ const UTF8 = 'utf8';
 var fs = require('fs'),
   Q = require('q'),
   path = require('path'),
-  log = require('winston'),
   mkdirp = Q.nfbind(require('mkdirp')),
+  Config = require('./config'),
   util = require('./util'),
   server = require('./server/main'),
   circleCIClient = require('./client/circleCIClient'),
@@ -13,9 +13,9 @@ var fs = require('fs'),
   clusternatorJson = require('./clusternator-json'),
   gpg = require('./cli-wrappers/gpg'),
   git = require('./cli-wrappers/git'),
-  deployMgr = require('./aws/deploymentManager'),
   appDefSkeleton = require('./aws/appDefSkeleton'),
-  awsProject = require('./aws/projectManager');
+  cnProjectManager = require('./clusternator/projectManager'),
+  awsProjectManager = require('./aws/projectManager');
 
 var writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs);
@@ -25,15 +25,26 @@ var writeFile = Q.nbind(fs.writeFile, fs),
 /**
  * @returns {Q.Promise}
  */
-function initAwsProject() {
-  var c = require('./config'),
-    a = require('aws-sdk'),
-    config = c(),
+function initAwsProject(config) {
+    var a = require('aws-sdk'),
     ec2 = new a.EC2(config.awsCredentials),
     ecs = new a.ECS(config.awsCredentials),
     r53 = new a.Route53(config.awsCredentials);
 
-  return awsProject(ec2, ecs, r53);
+  return awsProjectManager(ec2, ecs, r53);
+}
+
+function initClusternatorProject(config) {
+  return cnProjectManager(config);
+}
+
+function initProject() {
+  var config = Config();
+
+  if (config.awsCredentials) {
+    return initAwsProject(config);
+  }
+  return initClusternatorProject(config);
 }
 
 function newApp(argv) {
@@ -47,7 +58,7 @@ function newApp(argv) {
 
     var keyPairName = argv.keypair;
     if (!keyPairName) {
-      console.log('Consider adding a --keypair');
+      util.info('Consider adding a --keypair');
     } else {
       EC2APIConfig.KeyName = keyPairName;
     }
@@ -55,7 +66,7 @@ function newApp(argv) {
     var subnetId = argv['subnet-id'];
     var securityGroup = argv['security-group'];
     if ((subnetId && !securityGroup) || (!subnetId && securityGroup)) {
-      log.info('You must include both a subnet ID and a security group ID');
+      util.info('You must include both a subnet ID and a security group ID');
 
     } else if (subnetId && securityGroup) {
       var networkInterfaces = [{
@@ -98,7 +109,7 @@ function newApp(argv) {
 
     return clusternator.newApp(clusterName, app, ec2Config)
       .then(function(data) {
-        console.log(data);
+        util.info(data);
       }, util.errLog)
       .then(null, util.errLog);
     //TODO REMOVE THAT
@@ -144,7 +155,7 @@ function circleCIPush(argv) {
 function circleCITag(argv) {
   return function() {
     var ridData = circleCIClient.generateTagFromEnv();
-    console.log(ridData.tag);
+    util.info(ridData.tag);
     return;
   };
 }
@@ -158,12 +169,12 @@ function createAppDefinition() {
       fs.readFileSync(defaultAppPath, UTF8));
 
     var prettyString = JSON.stringify(defaultApp, null, 2);
-    console.log(prettyString);
+    util.info(prettyString);
   };
 }
 
 function bootstrapAWS() {
-  console.log('bootstrap an AWS environment');
+  util.info('bootstrap an AWS environment');
 }
 
 function writeDeployment(name, dDir, appDef) {
@@ -171,7 +182,7 @@ function writeDeployment(name, dDir, appDef) {
 }
 
 function generateDeploymentFromName(name) {
-  util.plog('Generating deployment: ',  name);
+  util.info('Generating deployment: ',  name);
     return clusternatorJson.get().then((config) => {
       var appDef = util.clone(appDefSkeleton);
       appDef.projectId = config.projectId;
@@ -283,23 +294,23 @@ function initializeProject(y) {
 
     return initializeDeployments(dDir, projectId).then(() => {
       if (argv.o) {
-        util.plog(output + ' Network Resources *NOT* Checked');
+        util.info(output + ' Network Resources *NOT* Checked');
         return;
       }
 
-      return initAwsProject().then((pm) => {
+      return initProject().then((pm) => {
         return pm.create(projectId).then(() => {
-          util.plog(output + ' Network Resources Checked');
+          util.info(output + ' Network Resources Checked');
         });
       })
     });
   }).fail((err) => {
-    util.plog('Clusternator: Initizalization Error: ' + err.message);
+    util.info('Clusternator: Initizalization Error: ' + err.message);
   }).done();
 }
 
 function pullRequest(y) {
-  console.log('Initializing new pull request: #' + y.argv._[1]);
+  util.info('Initializing new pull request: #' + y.argv._[1]);
 }
 
 function create(y) {
@@ -316,7 +327,7 @@ function makePrivate(y) {
   describe('p', 'Requires a passphrase to encrypt private files/directories');
 
   return clusternatorJson.makePrivate(y.argv.p).then(() => {
-    util.plog('Clusternator: Private files/directories encrypted');
+    util.info('Clusternator: Private files/directories encrypted');
   });
 }
 
@@ -326,15 +337,15 @@ function readPrivate(y) {
   describe('p', 'Requires a passphrase to encrypt private files/directories');
 
   return clusternatorJson.readPrivate(y.argv.p).then(() => {
-    util.plog('Clusternator: Private files/directories un-encrypted');
+    util.info('Clusternator: Private files/directories un-encrypted');
   });
 }
 
 function generatePass() {
   return gpg.generatePass().then((passphrase) => {
-    util.plog('Keep this passphrase secure: ' + passphrase);
+    util.info('Keep this passphrase secure: ' + passphrase);
   }, (err) => {
-    util.plog('Error generating passphrase: ' + err.message);
+    util.info('Error generating passphrase: ' + err.message);
   });
 }
 
@@ -358,16 +369,16 @@ function deploy(y) {
       cJson.deploymentsDir + path.sep + argv.d + '.json'
     );
     return Q.all([
-      initAwsProject(),
+      initProject(),
       git.shaHead(),
       readFile(dPath, UTF8).
         fail((err) => {
-        util.plog('Deployment AppDef Not Found In: ' + dPath + ' ' +
+        util.info('Deployment AppDef Not Found In: ' + dPath + ' ' +
           err.message);
         throw err;
       })
     ]).then((results) => {
-      util.plog('Requirements met, creating deployment...');
+      util.info('Requirements met, creating deployment...');
       var appDef = safeParse(results[2]);
       if (!appDef) {
         throw new Error('Deployment failed, error parsing appDef: ' + dPath);
@@ -382,12 +393,12 @@ function deploy(y) {
         if (argv.d === 'master') {
           label = '';
         }
-        util.plog('Deployment will be available at ',
+        util.info('Deployment will be available at ',
           cJson.projectId + label + '.rangleapp.io');
       });
     }).fail((err) => {
-      util.plog('Clusternator: Error creating deployment: ' + err.message);
-      util.plog(err.stack);
+      util.info('Clusternator: Error creating deployment: ' + err.message);
+      util.info(err.stack);
     });
   });
 }
@@ -404,11 +415,11 @@ function stop(y) {
 
   return clusternatorJson.get().then((cJson) => {
     return Q.all([
-      initAwsProject(),
+      initProject(),
       git.shaHead()
     ]).then((results) => {
       var sha = argv.s || results[1];
-      util.plog('Stopping Deployment...: ', cJson.projectId, ': ', argv.d,
+      util.info('Stopping Deployment...: ', cJson.projectId, ': ', argv.d,
         ' sha: ', sha);
       return results[0].destroyDeployment(
         cJson.projectId,
@@ -416,8 +427,8 @@ function stop(y) {
         sha
       );
     }).fail((err) => {
-      util.plog('Clusternator: Error stopping deployment: ' + err.message);
-      util.plog(err.stack);
+      util.info('Clusternator: Error stopping deployment: ' + err.message);
+      util.info(err.stack);
     });
   });
 }
@@ -432,7 +443,7 @@ function generateDeployment(y) {
 }
 
 function describeServices() {
-  return initAwsProject().then((pm) => {
+  return initProject().then((pm) => {
     return clusternatorJson.get().then((config) => {
       return pm.describeProject(config.projectId);
     });
@@ -451,9 +462,9 @@ function describe(y) {
   describe('r', 'Limits the description to a resource type');
 
   if (y.argv.p !== 'all') {
-    console.log('Describing resources associated to pr #' + y.argv.p);
+    util.info('Describing resources associated to pr #' + y.argv.p);
   } else {
-    console.log('Describing *all* resources in use');
+    util.info('Describing *all* resources in use');
   }
 }
 
@@ -486,3 +497,12 @@ module.exports = {
   describeServices
 
 };
+
+function fb(n) {
+  return Array.apply(null, Array(n)).map((_, i) => {
+    if (i % 3 === 0) { return 'fizz'; }
+    if (i % 5 === 0) { return 'buzz'; }
+    return i;
+  });
+}
+

@@ -3,6 +3,7 @@
 var Q = require('q');
 var R = require('ramda');
 var rid = require('../resourceIdentifier');
+var util = require('../util');
 
 var DEFAULT_CLUSTER_PARAMS = {
 };
@@ -138,7 +139,7 @@ function deleteCluster(name) {
       });
 
       return Q.all(sLists).then((results) => {
-        console.log('results', JSON.stringify(
+        util.info('results', JSON.stringify(
           results.filter(identity), null, 2));
       });
     });

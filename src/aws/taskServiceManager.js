@@ -2,6 +2,7 @@
 
 var q = require('q');
 var R = require('ramda');
+var util = require('../util');
 
 var TaskDefinitionManager = require('./taskDefinitionManager');
 
@@ -113,7 +114,7 @@ function getTaskServiceManager(ecs) {
     function createTaskAndService(task) {
       return taskDefinitionManager.create(task)
         .then((t) => {
-          console.log('Created task',
+          util.info('Created task',
             t.taskDefinition.taskDefinitionArn);
           return t;
         })

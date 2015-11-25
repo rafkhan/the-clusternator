@@ -72,7 +72,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         deregisterPromises.push(cluster.deregister(
           arn, clusterName
         ).fail(function(err) {
-          //util.plog('PR: destroy EC2: Warning, Deregistration for instance ' +
+          //util.info('PR: destroy EC2: Warning, Deregistration for instance ' +
           //  arn + ' failed, project: ' + pid + ' pr #' + pr +
           //  ' error: ' + err.message);
           // do nothing on failure, deregistration _should_ actually work
@@ -82,7 +82,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
       });
       return Q.all(deregisterPromises).then(function() {
         return ec2mgr.destroyPr(pid, pr).fail(function(err) {
-          util.plog('PR Destruction Problem Destroying Ec2: ' + err.message);
+          util.info('PR Destruction Problem Destroying Ec2: ' + err.message);
         });
       });
     });
@@ -107,7 +107,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
       return destroyEc2(pid, pr, clusterName);
     }).then(function(r) {
       return task.destroy(clusterName).fail(function(err) {
-        util.plog('PR Destruction Problem Destroying Task: ' + err.message);
+        util.info('PR Destruction Problem Destroying Task: ' + err.message);
         return r;
       }).fail(() => {
         return;
