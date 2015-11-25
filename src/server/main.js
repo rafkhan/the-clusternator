@@ -114,32 +114,33 @@ function createAndPollTable(ddbManager, tableName) {
 
       return waitFor(() => {
         log.info('Polling...');
-        return ddbManager.checkActiveTable(GITHUB_AUTH_TOKEN_TABLE);
+        return ddbManager.checkActiveTable(tableName);
       }, 500, 100, 'ddb table create ' + tableName)
     }, q.reject);
 }
 
 function initializeWebhookTable(ddbManager) {
-  log.info('Looking for DynamoDB table: %s',
-    GITHUB_AUTH_TOKEN_TABLE);
+  var tableName = GITHUB_AUTH_TOKEN_TABLE;
 
-  return ddbManager.checkTableExistence(GITHUB_AUTH_TOKEN_TABLE)
+  log.info('Looking for DynamoDB table: %s', tableName);
+
+  return ddbManager.checkTableExistence(tableName)
     .then((exists) => {
       if(exists) {
         log.info('DynamoDB table %s was found',
-          GITHUB_AUTH_TOKEN_TABLE);
+          tableName);
 
         return q.resolve();
       } else {
         log.info('DynamoDB table %s was not found',
-          GITHUB_AUTH_TOKEN_TABLE);
+          tableName);
 
-        return createAndPollTable(ddbManager, GITHUB_AUTH_TOKEN_TABLE);
+        return createAndPollTable(ddbManager, tableName);
       }
     }, q.reject)
 
     .then(() => {
-      log.info('table active');
+      log.info('Table "' + tableName + '" is active');
     }, q.reject);
 }
 
