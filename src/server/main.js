@@ -7,7 +7,7 @@ const LOGIN_PATH = '/login.html';
 var R = require('ramda');
 var q = require('q');
 var express = require('express');
-var bodyParser = require('body-parser');
+var bodyParser = require('body-parser-rawbody');
 var aws = require('aws-sdk');
 
 var getPRManager = require('../aws/prManager');
@@ -20,8 +20,7 @@ var log = loggers.logger;
 
 var waitFor = require('../util').waitFor;
 
-var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
-
+var githubAuthMiddleware = require('./auth/githubHook');
 
 var nodePath = require('path');
 var compression = require('compression');
@@ -30,6 +29,10 @@ var authorization = require('./auth/authorization');
 var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 var users = require('./auth/users');
 var util = require('../util');
+
+
+var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
+
 
 function createServer(prManager) {
   var app = express();
@@ -72,8 +75,9 @@ function createServer(prManager) {
       ensureAuth(LOGIN_PATH),
       curriedPushHandler
     ]); // CI post-build hook
+
   app.post('/github/pr', [
-    ensureAuth,
+    githubAuthMiddleware,
     curriedPRHandler
   ]);     // github close PR hook
 
