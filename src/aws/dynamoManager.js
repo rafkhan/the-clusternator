@@ -27,6 +27,7 @@ function getDynamoDBManager(ddb) {
   var ddbListTables    = q.nbind(ddb.listTables, ddb);
   var ddbCreateTable   = q.nbind(ddb.createTable, ddb);
   var ddbDescribeTable = q.nbind(ddb.describeTable, ddb);
+  var ddbPutItem       = q.nbind(ddb.putItem, ddb);
 
   function checkTableExistence(tableName) {
     return ddbListTables()

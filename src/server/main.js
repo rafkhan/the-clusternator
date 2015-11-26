@@ -7,7 +7,7 @@ const LOGIN_PATH = '/login.html';
 var R = require('ramda');
 var q = require('q');
 var express = require('express');
-var bodyParser = require('body-parser');
+var bodyParser = require('body-parser-rawbody');
 var aws = require('aws-sdk');
 
 var getPRManager = require('../aws/prManager');
@@ -20,8 +20,7 @@ var log = loggers.logger;
 
 var waitFor = require('../util').waitFor;
 
-var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
-
+var githubAuthMiddleware = require('./auth/githubHook');
 
 var nodePath = require('path');
 var compression = require('compression');
@@ -30,6 +29,10 @@ var authorization = require('./auth/authorization');
 var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 var users = require('./auth/users');
 var util = require('../util');
+
+
+var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
+
 
 function createServer(prManager) {
   var app = express();
@@ -72,8 +75,9 @@ function createServer(prManager) {
       ensureAuth(LOGIN_PATH),
       curriedPushHandler
     ]); // CI post-build hook
+
   app.post('/github/pr', [
-    ensureAuth,
+    githubAuthMiddleware,
     curriedPRHandler
   ]);     // github close PR hook
 
@@ -114,32 +118,31 @@ function createAndPollTable(ddbManager, tableName) {
 
       return waitFor(() => {
         log.info('Polling...');
-        return ddbManager.checkActiveTable(GITHUB_AUTH_TOKEN_TABLE);
+        return ddbManager.checkActiveTable(tableName);
       }, 500, 100, 'ddb table create ' + tableName)
     }, q.reject);
 }
 
-function initializeWebhookTable(ddbManager) {
-  log.info('Looking for DynamoDB table: %s',
-    GITHUB_AUTH_TOKEN_TABLE);
+function initializeDynamoTable(ddbManager, tableName) {
+  log.info('Looking for DynamoDB table: %s', tableName);
 
-  return ddbManager.checkTableExistence(GITHUB_AUTH_TOKEN_TABLE)
+  return ddbManager.checkTableExistence(tableName)
     .then((exists) => {
       if(exists) {
         log.info('DynamoDB table %s was found',
-          GITHUB_AUTH_TOKEN_TABLE);
+          tableName);
 
         return q.resolve();
       } else {
         log.info('DynamoDB table %s was not found',
-          GITHUB_AUTH_TOKEN_TABLE);
+          tableName);
 
-        return createAndPollTable(ddbManager, GITHUB_AUTH_TOKEN_TABLE);
+        return createAndPollTable(ddbManager, tableName);
       }
     }, q.reject)
 
     .then(() => {
-      log.info('table active');
+      log.info('Table "' + tableName + '" is active');
     }, q.reject);
 }
 
@@ -147,8 +150,9 @@ function getServer(config) {
   var a = getAwsResources(config);
 
   var ddbManager = getDynamoDBManager(a.ddb);
+  var initDynamoTable = R.curry(initializeDynamoTable)(ddbManager);
 
-  return initializeWebhookTable(ddbManager)
+  return initDynamoTable(GITHUB_AUTH_TOKEN_TABLE)
     .then(() => {
       return loadPRManagerAsync(a.ec2, a.ecs, a.r53)
     }, q.reject)
