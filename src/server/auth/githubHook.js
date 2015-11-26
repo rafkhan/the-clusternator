@@ -20,7 +20,7 @@ function middleWare(req, res, next) {
   hmac.setEncoding('hex');
   hmac.write(text);
   hmac.end();
-  var hash = hmac.read();
+  var hash = 'sha1=' + hmac.read();
 
   if(hash === signature) {
     next();
