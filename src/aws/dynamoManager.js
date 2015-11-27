@@ -6,6 +6,8 @@ var R = require('ramda');
 var defaultTableParams = {
   AttributeDefinitions: [{
     AttributeName: 'ProjectName',
+    AttributeType: 'S',
+    AttributeName: 'SecretToken',
     AttributeType: 'S'
   }],
   KeySchema: [
@@ -19,6 +21,11 @@ var defaultTableParams = {
     WriteCapacityUnits: 25
   },
   //TableName: 'TableName'
+};
+
+
+var tableNames = {
+  GITHUB_AUTH_TOKEN_TABLE: 'github_tokens'
 };
 
 
@@ -62,10 +69,20 @@ function getDynamoDBManager(ddb) {
       });
   }
 
+  function insertItem(tableName, item) {
+    var params = {
+      TableName: tableName,
+      Item: item
+    };
+ 
+    return ddbPutItem(params);
+  }
+
   return {
     checkTableExistence: checkTableExistence,
     createTable: createTable,
-    checkActiveTable: checkActiveTable 
+    checkActiveTable: checkActiveTable,
+    tableNames: tableNames
   };
 }
 
