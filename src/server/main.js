@@ -29,14 +29,18 @@ var authorization = require('./auth/authorization');
 var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 var users = require('./auth/users');
 var util = require('../util');
+var clusternatorApi = require('./clusternator-api');
 
 
 var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
 
-
 function createServer(prManager) {
   var app = express();
 
+  /**
+   *  @todo the authentication package could work with a "mount", or another
+   *  mechanism that is better encapsulated
+   */
   authentication.init(app);
 
   app.use(compression());
@@ -45,6 +49,12 @@ function createServer(prManager) {
   );
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
+
+  /**
+   * @todo the clusternator package could work  with a "mount", or another
+   * mechanism that is better encapsulated
+   */
+  clusternatorApi.init(app);
 
   function ping(req, res) {
     res.send('Still alive.');
@@ -87,10 +97,10 @@ function createServer(prManager) {
 }
 
 function getAwsResources(config) {
-  var ec2 = new aws.EC2(config.credentials);
-  var ecs = new aws.ECS(config.credentials);
-  var r53 = new aws.Route53(config.credentials);
-  var ddb = new aws.DynamoDB(config.credentials);
+  var ec2 = new aws.EC2(config.awsCredentials);
+  var ecs = new aws.ECS(config.awsCredentials);
+  var r53 = new aws.Route53(config.awsCredentials);
+  var ddb = new aws.DynamoDB(config.awsCredentials);
 
   return {
     ec2: ec2,

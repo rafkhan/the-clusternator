@@ -8,7 +8,7 @@ var Q = require('q'),
   Route53 = require('./route53Manager'),
   Task = require('./taskServiceManager'),
   common = require('./common'),
-  util = require('./../util');
+  util = require('../util');
 
 function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
   var subnet = Subnet(ec2, vpcId),

@@ -15,24 +15,13 @@ var fs = require('fs'),
   git = require('./cli-wrappers/git'),
   appDefSkeleton = require('./aws/appDefSkeleton'),
   cnProjectManager = require('./clusternator/projectManager'),
-  awsProjectManager = require('./aws/projectManager');
+  awsProjectManager = require('./aws/project-init');
 
 var writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs);
 
 
 
-/**
- * @returns {Q.Promise}
- */
-function initAwsProject(config) {
-    var a = require('aws-sdk'),
-    ec2 = new a.EC2(config.awsCredentials),
-    ecs = new a.ECS(config.awsCredentials),
-    r53 = new a.Route53(config.awsCredentials);
-
-  return awsProjectManager(ec2, ecs, r53);
-}
 
 function initClusternatorProject(config) {
   return cnProjectManager(config);
@@ -42,7 +31,7 @@ function initProject() {
   var config = Config();
 
   if (config.awsCredentials) {
-    return initAwsProject(config);
+    return awsProjectManager(config);
   }
   return initClusternatorProject(config);
 }
