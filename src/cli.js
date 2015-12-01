@@ -144,7 +144,7 @@ function circleCIPush(argv) {
 function circleCITag(argv) {
   return function() {
     var ridData = circleCIClient.generateTagFromEnv();
-    util.info(ridData.tag);
+    console.log(ridData.tag);
     return;
   };
 }
