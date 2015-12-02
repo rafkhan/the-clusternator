@@ -72,7 +72,7 @@ function createServer(prManager) {
   app.get('/ping', ping);
   app.post('/clusternate',
     [
-      ensureAuth(LOGIN_PATH),
+      //ensureAuth(LOGIN_PATH),
       curriedPushHandler
     ]); // CI post-build hook
 
