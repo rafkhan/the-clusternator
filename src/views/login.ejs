@@ -1,4 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>THE CLUSTERNATOR - Login</title>
+</head>
+<body>
 <form action="/login" method="post">
+    <% if (error) { %>
+    <h2>Error Logging In</h2>
+    <% } %>
     <div>
         <label>Username:</label>
         <input type="text" name="username"/><br/>
@@ -11,3 +21,4 @@
         <input type="submit" value="Submit"/>
     </div>
 </form>
+</body>

@@ -2,13 +2,14 @@
 
 const TEST_VPC = 'vpc-ab07b4cf';
 const TEST_ZONE = '/hostedzone/Z1K98SX385PNRP';
-const LOGIN_PATH = '/login.html';
+const LOGIN_PATH = '/login';
 
 var R = require('ramda');
 var q = require('q');
 var express = require('express');
 var bodyParser = require('body-parser-rawbody');
 var aws = require('aws-sdk');
+var path = require('path');
 
 var getPRManager = require('../aws/prManager');
 var getDynamoDBManager = require('../aws/dynamoManager');
@@ -67,7 +68,33 @@ function createServer(prManager) {
 
   app.use(loggers.request);
 
+  app.set('views', path.join(__dirname, '..', 'views'));
+  app.set('view engine', 'ejs');
+
+  app.get('/', [
+    ensureAuth(LOGIN_PATH),
+    (req, res) => {
+      res.render('index', { login: true });
+    }]);
+  app.get('/logout', [
+      authentication.endpoints.logout
+    ]
+  );
+  app.get('/login', (req, res) => {
+    res.render('login', { error: false });
+  });
   app.post('/login', authentication.endpoints.login);
+
+  app.get('/passwd', [
+    ensureAuth(LOGIN_PATH),
+    (req, res) => {
+      res.render('passwd', { error: false, username: req.user.id });
+    }
+  ]);
+  app.post('/passwd', [
+    ensureAuth(LOGIN_PATH),
+    users.endpoints.password
+  ]);
 
   app.put('/users/:id/password', [
     ensureAuth(LOGIN_PATH),
