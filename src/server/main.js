@@ -73,8 +73,9 @@ function createServer(prManager) {
 
   app.get('/', [
     ensureAuth(LOGIN_PATH),
+    exposeUser,
     (req, res) => {
-      res.render('index', { login: true });
+      res.render('index');
     }]);
   app.get('/logout', [
       authentication.endpoints.logout
@@ -87,15 +88,28 @@ function createServer(prManager) {
 
   app.get('/passwd', [
     ensureAuth(LOGIN_PATH),
+    exposeUser,
     (req, res) => {
-      res.render('passwd', { error: false, username: req.user.id });
+      res.render('passwd', { error: false });
     }
   ]);
-  app.post('/passwd', [
+
+  app.get('/users/:id/tokens', [
+    ensureAuth(LOGIN_PATH),
+    exposeUser,
+    users.endpoints.getTokens
+  ]);
+
+  app.post('/users/:id/tokens', [
+    ensureAuth(LOGIN_PATH),
+    exposeUser,
+    users.endpoints.createToken
+  ]);
+
+  app.post('/users/:id/password', [
     ensureAuth(LOGIN_PATH),
     users.endpoints.password
   ]);
-
   app.put('/users/:id/password', [
     ensureAuth(LOGIN_PATH),
     users.endpoints.password
@@ -181,6 +195,14 @@ function initializeDynamoTable(ddbManager, tableName) {
     .then(() => {
       log.info('Table "' + tableName + '" is active');
     }, q.reject);
+}
+
+function exposeUser(req, res, next) {
+  if (!req.user) {
+    res.locals.username = null;
+  }
+  res.locals.username = req.user.id;
+  next();
 }
 
 function getServer(config) {

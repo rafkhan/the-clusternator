@@ -4,6 +4,7 @@
 
 var users = Object.create(null),
   passwords = require('./passwords'),
+  tokens = require('./tokens'),
   authorities = require('./authorities'),
   auth = require('./authorization'),
   Q = require('q');
@@ -16,7 +17,9 @@ module.exports = {
     create: createUserEndpoint,
     password: changePassword,
     get: getUser,
-    getAll: getAllUsers
+    getAll: getAllUsers,
+    getTokens: getTokens,
+    createToken: createToken
   }
 };
 
@@ -229,4 +232,23 @@ function getAllUsers(req, res) {
     });
   }
   res.json(result);
+}
+
+function getTokens(req, res) {
+  tokens.findById(req.user.id).then((tokens) => {
+    var masked = tokens.map((t) => {
+      return JSON.parse(t).hash.slice(0, 6) + 'XXXXXXXXXXXXXXXXXX';
+    });
+    res.render('tokens', { tokens: masked });
+  }, (err) => {
+    res.status(500).json({ error: err.message });
+  });
+}
+
+function createToken(req, res) {
+  tokens.create(req.user.id).then((token) => {
+    res.render('create-token', { token: token });
+  }, (err) => {
+    res.status(500).json({ error: err });
+  });
 }

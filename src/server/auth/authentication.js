@@ -10,7 +10,7 @@ var LocalStrategy = require('passport-local').Strategy,
   session = require('express-session'),
   users = require('./users'),
   passwords = require('./passwords'),
-  tokens = require('./passwords');
+  tokens = require('./tokens');
 
 var config = Config();
 

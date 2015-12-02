@@ -5,7 +5,7 @@
     <title>THE CLUSTERNATOR - Login</title>
 </head>
 <body>
-<form id="passwd" action="/passwd" method="post">
+<form id="passwd" action="/users/<%= username %>/password" method="post">
     <% if (error) { %>
     <h2>Error Changing Password</h2>
     <% } %>
