@@ -33,7 +33,7 @@ function updateApp(clusterName, appDef) {
     '"' + appDef.name + '"');
 
   function loadNewApp() {
-    return taskServiceManager.create(clusterName, appDef);
+    return taskServiceManager.create(clusterName, appDef.name ,appDef);
   }
 
   return clusterManager.describe(clusterName)
