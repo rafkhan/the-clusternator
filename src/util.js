@@ -11,13 +11,17 @@ initWinston();
 function initWinston() {
   winston = new (Winston.Logger)({
     transports: [
-      new (Winston.transports.Console)({level: 'info'})
+      new (Winston.transports.Console)()
     ]
   });
 }
 
 function info() {
   winston.info.apply(winston, arguments);
+}
+
+function error() {
+  winston.error.apply(winston, arguments);
 }
 
 function errLog(x) {
@@ -124,5 +128,6 @@ module.exports = {
   makePromiseApi,
   clone,
   info,
+  error,
   winston
 };

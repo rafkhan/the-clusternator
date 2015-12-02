@@ -239,7 +239,7 @@ if (command === 'circleci:push') {
     .then(() => {
       util.info('Successfully started server.');
     }, (err) => {
-      util.error('Error starting server:', err)
+      util.error('can not start server:', err)
       process.exit(-1);
     });
 
@@ -253,7 +253,7 @@ if (command === 'circleci:push') {
       util.info('Done.');
       process.exit(0);
     }, function(err) {
-      util.error('ERROR', err);
+      util.error(err);
     });
 
 } else if (command === 'cluster:delete') {

@@ -195,7 +195,7 @@ if (command === 'circleci:push') {
   cli.startServer(argv)().then(function () {
     util.info('Successfully started server.');
   }, function (err) {
-    util.error('Error starting server:', err);
+    util.error('can not start server:', err);
     process.exit(-1);
   });
 } else if (command === 'cluster:new') {
@@ -206,7 +206,7 @@ if (command === 'circleci:push') {
     util.info('Done.');
     process.exit(0);
   }, function (err) {
-    util.error('ERROR', err);
+    util.error(err);
   });
 } else if (command === 'cluster:delete') {
   cli.destroyApp(argv)().then(function (data) {

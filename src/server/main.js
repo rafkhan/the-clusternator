@@ -77,7 +77,7 @@ function createServer(prManager) {
     ]); // CI post-build hook
 
   app.post('/github/pr', [
-    githubAuthMiddleware,
+    //githubAuthMiddleware,
     curriedPRHandler
   ]);     // github close PR hook
 
@@ -87,10 +87,12 @@ function createServer(prManager) {
 }
 
 function getAwsResources(config) {
-  var ec2 = new aws.EC2(config.credentials);
-  var ecs = new aws.ECS(config.credentials);
-  var r53 = new aws.Route53(config.credentials);
-  var ddb = new aws.DynamoDB(config.credentials);
+  var creds = config.awsCredentials;
+
+  var ec2 = new aws.EC2(creds);
+  var ecs = new aws.ECS(creds);
+  var r53 = new aws.Route53(creds);
+  var ddb = new aws.DynamoDB(creds);
 
   return {
     ec2: ec2,
