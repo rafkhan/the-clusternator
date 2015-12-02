@@ -9,7 +9,8 @@ var LocalStrategy = require('passport-local').Strategy,
     passport = require('passport'),
     session = require('express-session'),
     users = require('./users'),
-    passwords = require('./passwords');
+    passwords = require('./passwords'),
+    tokens = require('./passwords');
 
 var config = Config();
 
@@ -23,7 +24,11 @@ function init(app) {
 
     passport.use('login-local', new LocalStrategy(authLocal));
     passport.use('auth-header', new HeaderStrategy({}, (token, done) => {
-
+      tokens.verify(token).then(() => {
+        return users.find(tokens.userFromToken(token)).then((user) => {
+          done(null, user);
+        });
+      }).fail(done);
     }));
     app.use(passport.initialize());
     app.use(passport.session());

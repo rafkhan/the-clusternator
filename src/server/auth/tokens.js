@@ -1,8 +1,8 @@
 'use strict';
-
 /*global require, module*/
 const TOKEN_SIZE = 64;
 const MAX_TOKENS = 5;
+const DELIM = ':';
 
 var tokens = Object.create(null),
   crypto = require('crypto'),
@@ -11,8 +11,8 @@ var tokens = Object.create(null),
   Q = require('q');
 
 /**
- * @param {string} id
- * @returns {Q.Promise}
+ * @param {string} token
+ * @returns {Q.Promise<string>}
  */
 function find(id) {
   var d = Q.defer();
@@ -22,6 +22,15 @@ function find(id) {
     d.resolve([]);
   }
   return d.promise;
+}
+
+/**
+ * @param {string} token
+ * @returns {Q.Promise.<string>}
+ */
+function findByToken(token) {
+  var details = splitToken(token);
+  return find(details.id);
 }
 
 function saveUserTokens(id, userTokens) {
@@ -60,13 +69,27 @@ function createToken(id) {
         foundTokens.push(shash);
         return saveUserTokens(id, foundTokens);
       }).then(() => {
-        return newToken;
+        return id + DELIM + newToken;
       });
     });
   });
 }
 
-function invalidateToken(id, token) {
+function splitToken(token) {
+  var splitToken = token.split(DELIM);
+  if (splitToken.length !== 2) {
+    throw new TypeError('Invalid Token');
+  }
+  return {
+    id: splitToken[0],
+    token: splitToken[1]
+  }
+}
+
+function invalidateToken(token) {
+  var details = splitToken(token),
+    id = details.id;
+  token = details.token;
   return verify(id, token).then((index) => {
     if (index === null) {
       return;
@@ -106,10 +129,21 @@ function verify(id, token) {
   });
 }
 
+function verifyByToken(token) {
+  var details = splitToken(token);
+  return verify(details.id, details.token);
+}
+
+function userFromToken(token) {
+  return splitToken(token).id;
+}
+
 module.exports = {
-  find,
+  findById: find,
+  find: findByToken,
   create: createToken,
   invalidate: invalidateToken,
-  verify
+  verify: verifyByToken,
+  userFromToken: userFromToken
 };
 

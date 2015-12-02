@@ -2,14 +2,14 @@
 
 /*global describe, it, expect */
 /*eslint no-unused-expressions:0*/
-describe('Passwords interface', function () {
+describe('Tokens interface', function () {
   // for this.timeout to work this describe block CANNOT use an arrow
   this.timeout(10000);
   var C = require('../../chai'),
     tokens = require('../../../../src/server/auth/tokens');
 
-  it('find should resolve an array', (done) => {
-    tokens.find('some id').then((results) => {
+  it('findById should resolve an array', (done) => {
+    tokens.findById('some id').then((results) => {
       C.check(done, () => {
         expect(Array.isArray(results)).to.be.ok;
       });
@@ -24,9 +24,17 @@ describe('Passwords interface', function () {
     }, C.getFail(done));
   });
 
+  it('created tokens should be prefixed with a user id and a colon', (done) => {
+    tokens.create('some id').then((token) => {
+      C.check(done, () => {
+        expect(token.indexOf('some id:')).to.equal(0);
+      });
+    }, C.getFail(done));
+  });
+
   it('created tokens should be validatable', (done) => {
     tokens.create('some id').then((token) => {
-      return tokens.verify('some id', token).then((index) => {
+      return tokens.verify(token).then((index) => {
         C.check(done, () => {
           expect(typeof index === 'number').to.be.ok;
         });
@@ -36,14 +44,18 @@ describe('Passwords interface', function () {
 
   it('created tokens should be invalidatable', (done) => {
     tokens.create('some id').then((token) => {
-      return tokens.invalidate('some id', token).then(() => {
-        return tokens.verify('some id', token).then(C.getFail(done), (err) => {
+      return tokens.invalidate(token).then(() => {
+        return tokens.verify(token).then(C.getFail(done), (err) => {
           C.check(done, () => {
             expect(err instanceof Error).to.be.ok;
           });
         });
       });
     });
+  });
+
+  it('userFromToken should return a user id from a token', () => {
+    expect(tokens.userFromToken('me:23523k5j2k35j2')).to.equal('me');
   });
 
 });
