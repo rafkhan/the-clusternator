@@ -1,6 +1,6 @@
 {
   "name": "clusternator",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Program to deploy docker containers on cloud service platforms with minimal user input, and/or configuration",
   "main": "clusternator.js",
   "preferGlobal": true,
