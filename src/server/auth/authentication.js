@@ -4,6 +4,7 @@
 
 // sets up, and initializes authentication
 var LocalStrategy = require('passport-local').Strategy,
+    HeaderStrategy = require('passport-http-header-token').Strategy,
     Config = require('../../config'),
     passport = require('passport'),
     session = require('express-session'),
@@ -21,6 +22,9 @@ function init(app) {
     }));
 
     passport.use('login-local', new LocalStrategy(authLocal));
+    passport.use('auth-header', new HeaderStrategy({}, (token, done) => {
+
+    }));
     app.use(passport.initialize());
     app.use(passport.session());
 
