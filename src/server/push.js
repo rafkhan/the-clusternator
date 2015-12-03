@@ -36,6 +36,12 @@ function pushHandler(prManager, req, res) {
   var parsedAppdef = JSON.parse(appdef);
   var parsedTag = resourceId.parseRID(tag);
 
+  if(!parsedTag) {
+    error(missingPropertyStatus,
+          'Can not parse tag.');
+    return;
+  }
+
   log.info('Tag segments:', parsedTag);
 
   if(!parsedTag.pid) {
@@ -56,7 +62,7 @@ function pushHandler(prManager, req, res) {
             parsedTag.pid, parsedTag.pr);
 
   // XXX SWAP FOR WINSTON
-  util.info('Generating application with tags:', parsedTag);
+  log.info('Generating application with tags:', parsedTag);
 
   prManager.create(parsedTag.pid, parsedTag.pr, parsedAppdef)
     .then((res) => { log.info('Successfully build %s:%s',

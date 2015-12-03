@@ -165,7 +165,7 @@ function startServer(config) {
   return getServer(config)
     .then((server) => {
       server.listen(config.port);
-      util.info('Clusternator listening on port', config.port)
+      log.info('Clusternator listening on port', config.port)
     }, (err) => {
       log.error(err, err.stack);
     });
