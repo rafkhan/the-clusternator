@@ -9,6 +9,7 @@ var Subnet = require('./subnetManager'),
   Pr = require('./prManager'),
   Deployment = require('./deploymentManager'),
   DynamoManager = require('./dynamoManager'),
+  gpg = require('../cli-wrappers/gpg'),
   Q = require('q');
 
 function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
@@ -108,8 +109,16 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
   function initializeGithubWebhookToken(pid) {
     return gpg.generatePass()
       .then((passphrase) => {
+        var item = {
+          ProjectName: { S: pid },
+          GithubSecretToken: { S: passphrase }
+        };
+
         return ddbManager
-          .insertItems(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE);
+          .insertItem(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE, item)
+          .then(() => {
+            return passphrase;
+          }, Q.reject);
       }, Q.reject);
   }
 

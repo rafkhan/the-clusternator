@@ -304,15 +304,13 @@ function initializeProject(y) {
           util.info(output + ' Network Resources Checked');
         }, Q.reject)
 
-        .then() => {
+        .then(() => {
           return pm.initializeGithubWebhookToken(projectId);
         }, Q.reject)
 
         .then((token) => {
-        
-        }, (err) => {
-        
-        });
+          console.log('STORE THIS TOKEN ON GITHUB', token);
+        }, Q.reject);
 
       })
     });
