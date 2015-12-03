@@ -13,10 +13,7 @@
             }
           ],
           "command": [],
-          "environment": [{
-            "name": "PASSPHRASE",
-            "value": ""
-          }],
+          "environment": [],
           "essential": true,
           "entryPoint": [],
           "links": [],
@@ -27,7 +24,7 @@
           "memory": 256,
           "name": "clusternator-server",
           "cpu": 256,
-          "image": "rafkhan/dockernator:0.0.1"
+          "image": "rafkhan/dockernator:master"
         }
       ],
       "volumes": [{
