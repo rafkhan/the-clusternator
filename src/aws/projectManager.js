@@ -8,15 +8,18 @@ var Subnet = require('./subnetManager'),
   Cluster = require('./clusterManager'),
   Pr = require('./prManager'),
   Deployment = require('./deploymentManager'),
+  DynamoManager = require('./dynamoManager'),
+  gpg = require('../cli-wrappers/gpg'),
   Q = require('q');
 
-function getProjectManager(ec2, ecs, awsRoute53) {
+function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
   var vpcId = null,
     pullRequest,
     cluster,
     deployment,
     vpc = Vpc(ec2),
     r53 = Route53(awsRoute53),
+    ddbManager = DynamoManager(dynamoDB),
     route,
     subnet,
     acl;
@@ -103,6 +106,23 @@ function getProjectManager(ec2, ecs, awsRoute53) {
   }
 
 
+  function initializeGithubWebhookToken(pid) {
+    return gpg.generatePass()
+      .then((passphrase) => {
+        var item = {
+          ProjectName: { S: pid },
+          GithubSecretToken: { S: passphrase }
+        };
+
+        return ddbManager
+          .insertItem(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE, item)
+          .then(() => {
+            return passphrase;
+          }, Q.reject);
+      }, Q.reject);
+  }
+
+
   return Q.all([
      vpc.findProject(),
      r53.findId()
@@ -123,7 +143,8 @@ function getProjectManager(ec2, ecs, awsRoute53) {
       createDeployment,
       destroy,
       destroyDeployment,
-      describeProject
+      describeProject,
+      initializeGithubWebhookToken
     };
   });
 

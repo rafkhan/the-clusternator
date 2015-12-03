@@ -31,9 +31,6 @@ var users = require('./auth/users');
 var util = require('../util');
 
 
-var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
-
-
 function createServer(prManager) {
   var app = express();
 
@@ -153,8 +150,9 @@ function getServer(config) {
 
   var ddbManager = getDynamoDBManager(a.ddb);
   var initDynamoTable = R.curry(initializeDynamoTable)(ddbManager);
+  var githubAuthTokenTable = ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE;
 
-  return initDynamoTable(GITHUB_AUTH_TOKEN_TABLE)
+  return initDynamoTable(githubAuthTokenTable)
     .then(() => {
       return loadPRManagerAsync(a.ec2, a.ecs, a.r53)
     }, q.reject)
