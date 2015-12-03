@@ -78,7 +78,7 @@ yargs.command('circleci:push',
       }
     };
 
-    y.options(R.merge(opts, dockerCredOpts))
+    y.options(opts)
       .help('help');
   });
 
@@ -227,7 +227,7 @@ if (command === 'circleci:push') {
       util.info('Done.');
       process.exit(0);
     }, (err) => {
-      util.error('Error ', err);
+      util.error(err);
       process.exit(-1);
     });
 

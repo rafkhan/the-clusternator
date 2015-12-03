@@ -72,7 +72,7 @@ function createServer(prManager) {
   app.get('/ping', ping);
   app.post('/clusternate',
     [
-      ensureAuth(LOGIN_PATH),
+      //ensureAuth(LOGIN_PATH),
       curriedPushHandler
     ]); // CI post-build hook
 
@@ -165,7 +165,7 @@ function startServer(config) {
   return getServer(config)
     .then((server) => {
       server.listen(config.port);
-      util.info('Clusternator listening on port', config.port)
+      log.info('Clusternator listening on port', config.port)
     }, (err) => {
       log.error(err, err.stack);
     });
