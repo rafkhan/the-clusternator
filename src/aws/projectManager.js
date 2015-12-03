@@ -75,6 +75,15 @@ function getProjectManager(ec2, ecs, awsRoute53) {
 
   /**
    * @param {string} pid
+   * @param {string} pr
+   * @returns {Q.Promise}
+   */
+  function destroyPR(pid, pr) {
+    return pullRequest.destroy(pid, pr);
+  }
+
+  /**
+   * @param {string} pid
    * @param {string} dep
    * @param {string} sha
    * @param {Object} appDef
@@ -122,8 +131,12 @@ function getProjectManager(ec2, ecs, awsRoute53) {
       createPR,
       createDeployment,
       destroy,
+      destroyPR,
       destroyDeployment,
-      describeProject
+      describeProject,
+
+      deployment,
+      pr: pullRequest
     };
   });
 
