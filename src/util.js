@@ -11,7 +11,7 @@ initWinston();
 function initWinston() {
   winston = new (Winston.Logger)({
     transports: [
-      new (Winston.transports.Console)()
+      new (Winston.transports.Console)() // TODO fix minimum log level
     ]
   });
 }

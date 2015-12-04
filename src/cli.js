@@ -22,6 +22,18 @@ var writeFile = Q.nbind(fs.writeFile, fs),
 
 
 
+/**
+ * @returns {Q.Promise}
+ */
+function initAwsProject(config) {
+  var a = require('aws-sdk'),
+  ec2 = new a.EC2(config.awsCredentials),
+  ecs = new a.ECS(config.awsCredentials),
+  r53 = new a.Route53(config.awsCredentials),
+  ddb = new a.DynamoDB(config.awsCredentials);
+
+  return awsProjectManager(ec2, ecs, r53, ddb);
+}
 
 function initClusternatorProject(config) {
   return cnProjectManager(config);
@@ -290,7 +302,16 @@ function initializeProject(y) {
       return initProject().then((pm) => {
         return pm.create(projectId).then(() => {
           util.info(output + ' Network Resources Checked');
-        });
+        }, Q.reject)
+
+        .then(() => {
+          return pm.initializeGithubWebhookToken(projectId);
+        }, Q.reject)
+
+        .then((token) => {
+          console.log('STORE THIS TOKEN ON GITHUB', token);
+        }, Q.reject);
+
       })
     });
   }).fail((err) => {

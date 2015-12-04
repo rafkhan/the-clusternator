@@ -123,7 +123,7 @@ function createServer(prManager) {
   app.get('/ping', ping);
   app.post('/clusternate',
     [
-      ensureAuth(LOGIN_PATH),
+      //ensureAuth(LOGIN_PATH),
       curriedPushHandler
     ]); // CI post-build hook
 
@@ -212,8 +212,9 @@ function getServer(config) {
 
   var ddbManager = getDynamoDBManager(a.ddb);
   var initDynamoTable = R.curry(initializeDynamoTable)(ddbManager);
+  var githubAuthTokenTable = ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE;
 
-  return initDynamoTable(GITHUB_AUTH_TOKEN_TABLE)
+  return initDynamoTable(githubAuthTokenTable)
     .then(() => {
       return loadPRManagerAsync(a.ec2, a.ecs, a.r53)
     }, q.reject)
@@ -224,7 +225,7 @@ function startServer(config) {
   return getServer(config)
     .then((server) => {
       server.listen(config.port);
-      util.info('Clusternator listening on port', config.port)
+      log.info('Clusternator listening on port', config.port)
     }, (err) => {
       log.error(err, err.stack);
     });

@@ -70,7 +70,7 @@ yargs.command('circleci:push', 'Triggers ECS build from circleCI', function (y) 
     }
   };
 
-  y.options(R.merge(opts, dockerCredOpts)).help('help');
+  y.options(opts).help('help');
 });
 
 yargs.command('circleci:tag', 'Generates tag for CircleCI PR', function (y) {
@@ -186,7 +186,7 @@ if (command === 'circleci:push') {
     util.info('Done.');
     process.exit(0);
   }, function (err) {
-    util.error('Error ', err);
+    util.error(err);
     process.exit(-1);
   });
 } else if (command === 'circleci:tag') {

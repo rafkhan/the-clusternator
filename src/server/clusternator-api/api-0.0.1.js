@@ -46,7 +46,7 @@ function getPFail(res) {
  * @param {Resource} res
  */
 function noAuth(res) {
-  res.status(401).json({ error: err});
+  res.status(401).json({ error: 'Not Authorized'});
 }
 
 function authorizeCommand(config) {
@@ -87,7 +87,7 @@ function executeCommand(commands) {
       req.query.params = [];
     }
 
-    fn(params).then((output) => {
+    fn(req.query.params).then((output) => {
       res.json(output);
     }).fail(getPFail(res));
   }
