@@ -127,7 +127,7 @@ function createServer(prManager) {
     ]); // CI post-build hook
 
   app.post('/github/pr', [
-    //githubAuthMiddleware,
+    githubAuthMiddleware,
     curriedPRHandler
   ]);     // github close PR hook
 
