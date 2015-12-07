@@ -173,7 +173,10 @@ yargs.command('stop', 'Stops a deployment, and cleans up', cli.stop);
 yargs.command('generate-deployment', 'Generates a deployment config', cli.generateDeployment);
 
 yargs.command('list-projects', 'List projects with clusternator resources', cli.listProjects);
+
 yargs.command('describe-services', 'Describe project services', cli.describeServices);
+
+yargs.command('add-new-ssh-key', 'Adds a new SSH Key', cli.newSSH);
 
 /**
  * @todo yargify everything from here down.  Manual if/else *not* required

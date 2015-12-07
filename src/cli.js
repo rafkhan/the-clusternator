@@ -16,9 +16,11 @@ var fs = require('fs'),
   clusternatorJson = require('./clusternator-json'),
   gpg = require('./cli-wrappers/gpg'),
   git = require('./cli-wrappers/git'),
+  sshKey = require('./cli-wrappers/ssh-keygen'),
   appDefSkeleton = require('./aws/appDefSkeleton'),
   cnProjectManager = require('./clusternator/projectManager'),
-  awsProjectManager = require('./aws/project-init');
+  awsProjectManager = require('./aws/project-init'),
+  constants = require('./constants');
 
 var writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs),
@@ -303,6 +305,7 @@ function initializeDeployments(depDir, projectId) {
     prAppDef = JSON.stringify(prAppDef, null, 2);
 
     return Q.allSettled([
+      mkdirp(path.join(depDir, '..', constants.SSH_PUBLIC_PATH)),
       writeFile(path.join(depDir, 'pr.json'), prAppDef),
       writeFile(path.join(depDir, 'master.json'), prAppDef),
       initializeDockerFile(),
@@ -546,6 +549,21 @@ function describe(y) {
   }
 }
 
+function newSSH(y) {
+  var argv = y.demand('n').
+  alias('n', 'name').
+  describe('n', 'Creates a new SSH key with the provided name.  The keypair ' +
+    'are stored in ~/.ssh, and the public key is installed into the project').
+    argv;
+
+  return clusternatorJson.findProjectRoot().then((root) => {
+    var publicPath = path.join(root, '.private', constants.SSH_PUBLIC_PATH);
+    return mkdirp(publicPath).then(() => {
+      return sshKey(argv.n, publicPath);
+    });
+  });
+}
+
 module.exports = {
   newApp: newApp,
   updateApp: updateApp,
@@ -573,5 +591,7 @@ module.exports = {
   stop,
 
   describeServices,
-  listProjects
+  listProjects,
+
+  newSSH
 };
