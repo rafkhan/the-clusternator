@@ -1,6 +1,7 @@
 'use strict';
 const UTF8 = 'utf8';
 const DOCKERFILE = 'Dockerfile';
+const DOCKERIGNORE = '.dockerignore';
 const CIRCLEFILE = 'circle.yml';
 
 var fs = require('fs'),
@@ -287,8 +288,17 @@ function initializeDeployments(depDir, projectId) {
       writeFile(path.join(depDir, 'pr.json'), prAppDef),
       writeFile(path.join(depDir, 'master.json'), prAppDef),
       initializeDockerFile(),
-      initializeCircleCIFile()
+      initializeCircleCIFile(),
+      initializeDockerIgnoreFile()
     ]);
+  });
+}
+
+function initializeDockerIgnoreFile() {
+  return clusternatorJson.findProjectRoot().then((root) => {
+    return getSkeletonFile(DOCKERIGNORE).then((contents) => {
+      return writeFile(path.join(root, DOCKERIGNORE), contents);
+    });
   });
 }
 
