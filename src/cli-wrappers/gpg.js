@@ -181,6 +181,9 @@ function decryptFile(passphrase, cipherFilePath, outputFilePath) {
   return d.promise;
 }
 
+/**
+ * @returns {Q.Promise<string>}
+ */
 function generatePass() {
   var d = Q.defer();
   crypto.randomBytes(50, (err, buff) => {

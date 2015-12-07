@@ -190,19 +190,48 @@ function validate(cJson) {
   return results;
 }
 
+function promisePrompt(qs) {
+  var d = Q.defer();
+  inquirer.prompt(qs, (answers) => {
+    d.resolve(answers);
+  });
+  return d.promise;
+}
+
 /**
  * @param {Object=} params
  * @returns {Q.Promise<Array>}
  */
 function createInteractive(params) {
-  var d = Q.defer(),
-    mandatory = questions.mandatory(params);
+  var mandatory = questions.mandatory(params),
+    gitHooks = questions.gitHookChoice(),
+    enc = questions.encryptionChoice();
 
-  inquirer.prompt(mandatory, (answers) => {
-    d.resolve(answers);
+  return promisePrompt(mandatory).then((answers) => {
+    if (!answers.passphrase) {
+      return answers;
+    }
+    return promisePrompt(enc).then((encAnswer) => {
+      if (encAnswer.passphraseInput === 'gen') {
+        // generate
+        return gpg.generatePass().then((pass) => {
+          answers.passphrase = pass;
+          return answers;
+        });
+      }
+      answers.passphrase = encAnswer.passphraseInput;
+      return answers;
+    }).then((answers) => {
+      return promisePrompt(gitHooks).then((ghAnswers) => {
+        if (ghAnswers.gitHooks) {
+          answers.gitHooks = true;
+        } else {
+          answers.gitHooks = false;
+        }
+        return answers;
+      });
+    });
   });
-
-  return d.promise;
 }
 
 /**

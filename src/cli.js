@@ -21,7 +21,8 @@ var fs = require('fs'),
   awsProjectManager = require('./aws/project-init');
 
 var writeFile = Q.nbind(fs.writeFile, fs),
-  readFile = Q.nbind(fs.readFile, fs);
+  readFile = Q.nbind(fs.readFile, fs),
+  chmod = Q.nbind(fs.chmod, fs);
 
 
 /**
@@ -31,7 +32,7 @@ var writeFile = Q.nbind(fs.writeFile, fs),
 function getSkeletonFile(skeleton) {
   return readFile(path.join(
     __dirname, '..', 'src', 'skeletons', skeleton
-  ));
+  ), UTF8);
 }
 
 
@@ -258,6 +259,33 @@ function getProjectRootRejectIfClusternatorJsonExists() {
   })
 }
 
+function installGitHook(root, name, passphrase) {
+  return getSkeletonFile('git-' + name).then((contents) => {
+    contents = contents.replace('\$CLUSTERNATOR_PASS', passphrase);
+    return writeFile(path.join(root, '.git', 'hooks', name), contents);
+  }).then(() => {
+    return chmod(path.join(root, '.git', 'hooks', name), '+x');
+  });
+}
+
+function processGitHooks(results, root) {
+  if (!results.passphrase) {
+    return;
+  }
+  if (!results.gitHooks) {
+    return;
+  }
+  return Q.all([
+    installGitHook(root, 'post-commit', results.passphrase),
+    installGitHook(root, 'pre-commit', results.passphrase),
+    installGitHook(root, 'post-merge', results.passphrase)
+  ]).then(() => {
+    util.info('Git Hooks Installed');
+    util.info('Shared Secret: ', results.passphrase);
+    util.info('Do not lose the shared secret, and please keep it safe');
+  });
+}
+
 /**
  * @returns {Q.Promise<Object>}
  */
@@ -268,7 +296,12 @@ function getInitUserOptions() {
     then(pickBestName).
     then(clusternatorJson.createInteractive).
     then((results) => {
-      return processInitUserOptions(results, root);
+      return Q.allSettled([
+        processInitUserOptions(results, root),
+        processGitHooks(results, root)
+      ]).then((results) => {
+        return results[0].value;
+      });
     });
   })
 }
@@ -357,6 +390,7 @@ function initializeProject(y) {
     });
   }).fail((err) => {
     util.info('Clusternator: Initialization Error: ' + err.message);
+    util.info(err.stack);
   }).done();
 }
 

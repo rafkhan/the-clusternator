@@ -43,6 +43,46 @@ function mandatory(defaults) {
       message: 'Where will your private files live?',
       default: defaults.private,
       validate: truthy
+    },
+    {
+      type: 'confirm',
+      name: 'passphrase',
+      message: 'Do you have a passphrase, or would you like a passphrase (If unsure say no)',
+      default: false
+    }
+  ];
+}
+
+function encryptionChoice() {
+  return [
+    {
+      type: 'input',
+      name: 'passphraseInput',
+      message: 'If you have a passphrase paste it in here, otherwise enter "gen" to generate one',
+      default: 'gen',
+      validate: (input) => {
+        if (!input) {
+          return false;
+        }
+        if (input.toLowerCase() === 'gen') {
+          return true;
+        }
+        if (input.length < 20) {
+          return false;
+        }
+        return true;
+      }
+    }
+  ];
+}
+
+function gitHookChoice() {
+  return [
+    {
+      type: 'confirm',
+      name: 'gitHooks',
+      message: 'Would you like git hooks installed that will encrypt/decrypt your .private files before/after commit, and after pulls?',
+      default: true
     }
   ];
 }
@@ -60,5 +100,7 @@ function privateChoice() {
 
 module.exports = {
   mandatory,
-  privateChoice
+  privateChoice,
+  gitHookChoice,
+  encryptionChoice
 };
