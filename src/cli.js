@@ -35,26 +35,11 @@ function getSkeletonFile(skeleton) {
   ), UTF8);
 }
 
-
-
-/**
- * @returns {Q.Promise}
- */
-function initAwsProject(config) {
-  var a = require('aws-sdk'),
-  ec2 = new a.EC2(config.awsCredentials),
-  ecs = new a.ECS(config.awsCredentials),
-  r53 = new a.Route53(config.awsCredentials),
-  ddb = new a.DynamoDB(config.awsCredentials);
-
-  return awsProjectManager(ec2, ecs, r53, ddb);
-}
-
 function initClusternatorProject(config) {
   return cnProjectManager(config);
 }
 
-function initProject() {
+function getProjectAPI() {
   var config = Config();
 
   if (config.awsCredentials) {
@@ -373,7 +358,7 @@ function initializeProject(y) {
         return;
       }
 
-      return initProject().then((pm) => {
+      return getProjectAPI().then((pm) => {
         return pm.create(projectId).then(() => {
           util.info(output + ' Network Resources Checked');
         }, Q.reject)
@@ -452,7 +437,7 @@ function deploy(y) {
   return clusternatorJson.get().then((cJson) => {
     var dPath = path.join(cJson.deploymentsDir, argv.d + '.json');
     return Q.all([
-      initProject(),
+      getProjectAPI(),
       git.shaHead(),
       readFile(dPath, UTF8).
         fail((err) => {
@@ -498,7 +483,7 @@ function stop(y) {
 
   return clusternatorJson.get().then((cJson) => {
     return Q.all([
-      initProject(),
+      getProjectAPI(),
       git.shaHead()
     ]).then((results) => {
       var sha = argv.s || results[1];
@@ -526,9 +511,19 @@ function generateDeployment(y) {
 }
 
 function describeServices() {
-  return initProject().then((pm) => {
+  return getProjectAPI().then((pm) => {
     return clusternatorJson.get().then((config) => {
       return pm.describeProject(config.projectId);
+    });
+  }).done();
+}
+
+function listProjects() {
+  return getProjectAPI().then((pm) => {
+    return pm.listProjects().then((projectNames) => {
+      projectNames.forEach((name) => {
+        console.log(name);
+      });
     });
   }).done();
 }
@@ -577,15 +572,6 @@ module.exports = {
   deploy,
   stop,
 
-  describeServices
-
+  describeServices,
+  listProjects
 };
-
-function fb(n) {
-  return Array.apply(null, Array(n)).map((_, i) => {
-    if (i % 3 === 0) { return 'fizz'; }
-    if (i % 5 === 0) { return 'buzz'; }
-    return i;
-  });
-}
-

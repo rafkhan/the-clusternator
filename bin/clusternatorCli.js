@@ -172,6 +172,7 @@ yargs.command('stop', 'Stops a deployment, and cleans up', cli.stop);
 
 yargs.command('generate-deployment', 'Generates a deployment config', cli.generateDeployment);
 
+yargs.command('list-projects', 'List projects with clusternator resources', cli.listProjects);
 yargs.command('describe-services', 'Describe project services', cli.describeServices);
 
 /**

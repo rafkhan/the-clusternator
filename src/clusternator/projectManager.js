@@ -74,6 +74,9 @@ function getProjectManager(config) {
     return host + '/';
   }
 
+  function listProjects() {
+  }
+
   function create() {
 
   }
@@ -112,6 +115,7 @@ function getProjectManager(config) {
       destroy,
       destroyDeployment,
       describeProject,
+      listProjects,
       helpers: {
         makeRequestObject,
         makeRequest,
