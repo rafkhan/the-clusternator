@@ -39,7 +39,7 @@ function identity(obj) {
  * @returns {string}
  */
 function fullPath(dirPath) {
-  return path.normalize(dirPath + path.sep + FILENAME);
+  return path.join(dirPath, FILENAME);
 }
 
 function parent(somePath) {
@@ -110,7 +110,7 @@ function findGitName(projectRoot) {
  */
 function findPackageName(projectRoot) {
   try {
-    return require(path.normalize(projectRoot + path.sep + PACKAGE_JSON)).name;
+    return require(path.join(projectRoot, PACKAGE_JSON)).name;
   } catch(err) {
     return '';
   }
@@ -122,7 +122,7 @@ function findPackageName(projectRoot) {
  */
 function findBowerName(projectRoot) {
   try {
-    return require(path.normalize(projectRoot + path.sep + BOWER_JSON)).name;
+    return require(path.join(projectRoot, BOWER_JSON)).name;
   } catch(err) {
     return '';
   }
@@ -227,7 +227,7 @@ function skipIfExists(dir) {
  */
 function privateExists() {
   return findProjectRoot().then((root) => {
-    var dir = path.normalize(root + path.sep + CLUSTERNATOR_PRIVATE);
+    var dir = path.join(root, CLUSTERNATOR_PRIVATE);
     return readFile(dir).then(() => {
       return dir;
     }, (err) => {
@@ -284,8 +284,8 @@ function getConfig() {
 function readPrivate(passPhrase) {
   return privateExists().then(() => {
     return findProjectRoot().then((root) => {
-      var gpgPath = path.normalize(root + path.sep + CLUSTERNATOR_PRIVATE),
-        tarPath = path.normalize(root + path.sep + CLUSTERNATOR_TAR);
+      var gpgPath = path.join(root, CLUSTERNATOR_PRIVATE),
+        tarPath = path.join(root, CLUSTERNATOR_TAR);
       return gpg.decryptFile(passPhrase, gpgPath, tarPath).then(() => {
         return tar.extract(tarPath).then(() => {
           return Q.allSettled([
@@ -310,13 +310,13 @@ function makePrivate(passPhrase) {
       throw new Error('Clusternator: No private assets marked in config file');
     }
     return findProjectRoot().then((root) => {
-      var tarFile = path.normalize(root + path.sep + CLUSTERNATOR_TAR);
+      var tarFile = path.join(root, CLUSTERNATOR_TAR);
 
       return tar.ball(tarFile, config.private).then(() => {
         return gpg.encryptFile(passPhrase, tarFile)
       }).then(() => {
         var rmPromises = config.private.map((fileOrFolder) => {
-          return rimraf(path.normalize(root + path.sep + fileOrFolder));
+          return rimraf(path.join(root, fileOrFolder));
         });
         rmPromises.push(rimraf(tarFile));
         return Q.allSettled(rmPromises);

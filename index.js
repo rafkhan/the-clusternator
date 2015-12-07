@@ -1,7 +1,3 @@
-'use strict';
+module.exports = {
 
-var server = require('./src/server/main'),
-  config = require('./src/config')();
-
-server.startServer(config);
-
+};

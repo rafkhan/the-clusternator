@@ -6,7 +6,7 @@ var users = Object.create(null),
   passwords = require('./passwords'),
   tokens = require('./tokens'),
   authorities = require('./authorities'),
-  auth = require('./authorization'),
+  config = require('../../config')(),
   Q = require('q');
 
 module.exports = {
@@ -29,7 +29,7 @@ function init() {
   if (Object.keys(users).length === 0) {
     createUser({
       id: 'root',
-      authority: authorities.ADM,
+      authority: 0,
       password: 'password'
     });
   }
@@ -57,7 +57,7 @@ function validateCreateUser(user) {
 }
 
 /**
- * @param {{ id: string, password: string, authority: authority }} user
+ * @param {{ id: string, password: string, authority: number }} user
  * @returns {Q.Promise}
  */
 function createUser(user) {
@@ -156,48 +156,27 @@ function updateUserEndpoint(req, res) {
   var id = req.body.username,
     authority = req.body.authority;
 
-  // no authority
-  if (auth.lessThan(authority < req.user.authority)) {
-    res.sendStatus(401);
-    return;
-  }
   // admins can edit anyone
-  if (req.user.authority === authorities.ADM) {
+  if (req.user.authority === 0) {
     updateUserEndpoint_(req, res);
     return;
   }
-  // greater thans can edit anyone, and people can demote themselves
-  if (auth.greaterThan(req.user.authority, authority)) {
-    updateUserEndpoint_(req, res);
-    return;
-  }
-  // equal to's other than admins cannot edit each other
+  // users can edit themselves
   if (req.user.id === id) {
     updateUserEndpoint_(req, res);
     return;
   }
-  res.status(500).json({ error: 'unexpected update case' });
+  res.status(401).json({ error: 'not authorized' });
 }
 
 function getUser(req, res) {
   find(req.params.id).then((user) => {
     // admins can see admins
-    if (req.user.authority === authorities.ADM) {
+    if (req.user.authority === 0) {
       res.json(user);
       return;
     }
-    // underlings cannot see overlings
-    if (auth.lessThan(req.user.authority, user.authority)) {
-      res.status(401).json({ error: 'Not Authorized' });
-      return;
-    }
-    // overlings can see underlings
-    if (auth.greaterThan(req.user.authority, user.authority)) {
-      res.json(user);
-      return;
-    }
-    // equals can see each other? Spec?
-    if (req.user.authority === user.authority) {
+    if (req.user.id === req.body.id) {
       res.json(user);
       return;
     }
@@ -206,14 +185,14 @@ function getUser(req, res) {
 
 function getAllUsers(req, res) {
   var result;
-  if (req.user.authority === authorities.ADM) {
+  if (req.user.authority === 0) {
     result = Object.keys(users).map((key) => {
       return users[key];
     });
   }
-  if (req.user.authority === authorities.MGR) {
+  if (req.user.authority === 1) {
     result = Object.keys(users).map((key) => {
-      if (users[key].authority <= authorities.MGR) {
+      if (users[key].authority <= 1) {
         return users[key];
       }
       return null;
@@ -221,9 +200,9 @@ function getAllUsers(req, res) {
       return val;
     });
   }
-  if (req.user.authority === authorities.REG) {
+  if (req.user.authority === 2) {
     result = Object.keys(users).map((key) => {
-      if (users[key].authority === authorities.REG) {
+      if (users[key].authority === 2) {
         return users[key];
       }
       return null;

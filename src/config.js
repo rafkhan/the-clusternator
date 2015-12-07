@@ -12,7 +12,7 @@ var util = require('./util'),
   semver = require('semver');
 
 const DOT_CLUSTERNATOR_CONFIG =
-  path.normalize(getUserHome() + path.sep + '.clusternator_config.json');
+  path.join(getUserHome(), '.clusternator_config.json');
 
 var credFileName = 'credentials',
   configFileName = 'config',

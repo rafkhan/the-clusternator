@@ -32,7 +32,7 @@ var ls = Q.nbind(fs.readdir, fs),
 function loadUserPublicKeys(keyPath) {
   return ls(keyPath).then((keyFiles) => {
     return Q.all(keyFiles.map((fileName) => {
-      return readFile(path.normalize(keyPath + path.sep + fileName), UTF8);
+      return readFile(path.join(keyPath, fileName), UTF8);
     }));
   });
 }

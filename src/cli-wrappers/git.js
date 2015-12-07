@@ -22,7 +22,7 @@ var writeFile = Q.nbind(fs.writeFile, fs),
  */
 function gitIgnorePath() {
   return clusternatorJson.findProjectRoot().then((root) => {
-    return path.normalize(root + path.sep + GITIGNORE);
+    return path.join(root, GITIGNORE);
   });
 }
 /**

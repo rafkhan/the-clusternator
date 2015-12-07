@@ -18,4 +18,4 @@ tar xfz ./clusternator.tar.gz
 
 # Start the service
 echo "Starting Service"
-node ./index.js
+node ./server-init.js

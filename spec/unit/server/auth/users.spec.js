@@ -27,7 +27,7 @@ describe('Users interface', () => {
     (done) => {
       users.create(testUser4).then((newU) => {
         C.check(done, () => {
-          expect(newU.authority).to.equal('regular');
+          expect(newU.authority).to.equal(2);
         });
       }, C.getFail(done));
     });

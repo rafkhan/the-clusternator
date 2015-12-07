@@ -26,7 +26,6 @@ var githubAuthMiddleware = require('./auth/githubHook');
 var nodePath = require('path');
 var compression = require('compression');
 var authentication = require('./auth/authentication');
-var authorization = require('./auth/authorization');
 var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 var users = require('./auth/users');
 var util = require('../util');
@@ -46,7 +45,7 @@ function createServer(prManager) {
 
   app.use(compression());
   app.use(express['static'](
-    nodePath.normalize(__dirname + nodePath.sep + '..' + nodePath.sep + 'www'))
+    nodePath.join(__dirname, '..', 'www'))
   );
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));

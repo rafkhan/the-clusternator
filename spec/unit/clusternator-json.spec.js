@@ -194,6 +194,6 @@ describe('clusternator.json handling', () => {
   });
 
   it('writeFromFullAnswers should return a promise', () => {
-    expect(typeof cn.writeFromFullAnswers({ answers: { projectId: '', appDefPr: '' }}).then).to.equal('function');
+    expect(typeof cn.writeFromFullAnswers({ answers: { projectId: '', appDefPr: '' }, projectDir: '/'}).then).to.equal('function');
   });
 });

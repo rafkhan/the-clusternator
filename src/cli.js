@@ -1,5 +1,7 @@
 'use strict';
 const UTF8 = 'utf8';
+const DOCKERFILE = 'Dockerfile';
+const CIRCLEFILE = 'circle.yml';
 
 var fs = require('fs'),
   Q = require('q'),
@@ -19,6 +21,17 @@ var fs = require('fs'),
 
 var writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs);
+
+
+/**
+ * @param {string} skeleton
+ * @return {Promise<string>}
+ */
+function getSkeletonFile(skeleton) {
+  return readFile(path.join(
+    __dirname, '..', 'src', 'skeletons', skeleton
+  ));
+}
 
 
 
@@ -179,7 +192,7 @@ function bootstrapAWS() {
 }
 
 function writeDeployment(name, dDir, appDef) {
-  return writeFile(path.normalize(dDir + path.sep + name + '.json'), appDef);
+  return writeFile(path.join(dDir, name + '.json'), appDef);
 }
 
 function generateDeploymentFromName(name) {
@@ -271,9 +284,27 @@ function initializeDeployments(depDir, projectId) {
     prAppDef = JSON.stringify(prAppDef, null, 2);
 
     return Q.allSettled([
-      writeFile(path.normalize(depDir + path.sep + 'pr.json'), prAppDef),
-      writeFile(path.normalize(depDir + path.sep + 'master.json'), prAppDef)
+      writeFile(path.join(depDir, 'pr.json'), prAppDef),
+      writeFile(path.join(depDir, 'master.json'), prAppDef),
+      initializeDockerFile(),
+      initializeCircleCIFile()
     ]);
+  });
+}
+
+function initializeDockerFile() {
+  return clusternatorJson.findProjectRoot().then((root) => {
+    return getSkeletonFile(DOCKERFILE).then((contents) => {
+      return writeFile(path.join(root, DOCKERFILE), contents);
+    });
+  });
+}
+
+function initializeCircleCIFile() {
+  return clusternatorJson.findProjectRoot().then((root) => {
+    return getSkeletonFile(CIRCLEFILE).then((contents) => {
+      return writeFile(path.join(root, CIRCLEFILE), contents);
+    });
   });
 }
 
@@ -315,7 +346,7 @@ function initializeProject(y) {
       })
     });
   }).fail((err) => {
-    util.info('Clusternator: Initizalization Error: ' + err.message);
+    util.info('Clusternator: Initialization Error: ' + err.message);
   }).done();
 }
 
@@ -375,9 +406,7 @@ function deploy(y) {
     argv;
 
   return clusternatorJson.get().then((cJson) => {
-    var dPath = path.normalize(
-      cJson.deploymentsDir + path.sep + argv.d + '.json'
-    );
+    var dPath = path.join(cJson.deploymentsDir, argv.d + '.json');
     return Q.all([
       initProject(),
       git.shaHead(),
