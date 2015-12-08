@@ -46,7 +46,7 @@ function create(repo, image, tag, dockerFile) {
             return r;
           },
           (err) => {
-            console.log('ERROR', err);
+            console.log('ERROR', err, '(', error, ')');
             console.log('output', output);
             pfail('build', repoDesc.id)(err);
           },
