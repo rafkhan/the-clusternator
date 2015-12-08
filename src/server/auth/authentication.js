@@ -24,13 +24,7 @@ function init(app) {
   }));
 
   passport.use('login-local', new LocalStrategy(authLocal));
-  passport.use('auth-header', new HeaderStrategy({}, (token, done) => {
-    tokens.verify(token).then(() => {
-      return users.find(tokens.userFromToken(token)).then((user) => {
-        done(null, user);
-      });
-    }).fail(done);
-  }));
+  passport.use('auth-header', new HeaderStrategy({}, authToken));
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -38,10 +32,22 @@ function init(app) {
   passport.deserializeUser(deserializeUser);
 }
 
+function authToken(token, done) {
+  logger.info('authToken');
+  tokens.verify(token).then(() => {
+    logger.info('authToken: verified');
+    return users.find(tokens.userFromToken(token)).then((user) => {
+      logger.verbose('authToken: user found');
+      done(null, user);
+    });
+  }).fail(done);
+}
+
 function authLocal(user, pass, done) {
   return passwords.verify(user, pass).then(function () {
     logger.info('authLocal: Password Verified');
     return users.find(user).then(function (found) {
+      logger.verbose('authLocal: User Found');
       done(null, found);
     });
   }).fail(function (err) {
@@ -52,7 +58,7 @@ function authLocal(user, pass, done) {
 
 function authenticateUserEndpoint(req, res, next) {
   logger.debug('Authenticate User Start');
-  passport.authenticate('login-local', function (err, user, info) {
+  passport.authenticate('login-local', (err, user, info) => {
     logger.debug('Authenticate User Post Passport');
     if (req.get('ContentType') === 'application/json') {
       if (err) {
@@ -69,7 +75,7 @@ function authenticateUserEndpoint(req, res, next) {
         return;
       }
     }
-    req.logIn(user, function (err) {
+    req.logIn(user, (err) => {
       logger.debug('Authenticate User Post Login');
       if (req.get('ContentType') === 'application/json') {
         if (err) {

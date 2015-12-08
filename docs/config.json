@@ -3,14 +3,16 @@
   "port":9090,
   "sessionSecret":"Make This UNIQUE and crypto random on install/deployment",
   "sessionCookieName":"clusternator.sid",
+  "slackURI":"",
   "privilegeGroups": {
     "0": "admins",
     "1": "managers",
     "2": "users"
   },
   "commandPrivileges": {
-    "project": {
+    "projects": {
       "create": 1,
+      "build": 2,
       "list": 2,
       "describe": 1,
       "destroy": 1

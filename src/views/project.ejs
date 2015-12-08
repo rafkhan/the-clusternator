@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>THE CLUSTERNATOR</title>
+</head>
+<body>
+<h1>Clusternator</h1>
+<ul>
+    <li>
+        <form action="/<%= api %>/projects/build" method="post">
+            <input type="hidden" value="<%= project %>" name="project[0]" />
+            <input type="submit" value="Build Docker Image" />
+        </form>
+    </li>
+</ul>
+</body>
+</html>

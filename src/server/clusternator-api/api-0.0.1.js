@@ -1,5 +1,6 @@
 'use strict';
 const LOGIN_PATH = '/login';
+const API = '0.0.1';
 
 var Config = require('../../config'),
   passport = require('passport'),
@@ -59,12 +60,12 @@ function authorizeCommand(config) {
       logger.debug(`Attempting to authorize: ${req.user.id} For: ${ns}.${cmd}`);
 
       auth.find(req.user.id).then((userAuth) => {
-        if (userAuth <= requiredAuth) {
-          logger.warn(`NOT AUTHORIZED: ${req.user.id} On: ${ns}.${cmd}`);
+        if (+userAuth.authority <= +requiredAuth) {
+          logger.info(`Authorized: ${req.user.id} On: ${ns}.${cmd}`);
           next();
           return;
         }
-        logger.info(`Authorized: ${req.user.id} On: ${ns}.${cmd}`);
+        logger.warn(`NOT AUTHORIZED: ${req.user.id} On: ${ns}.${cmd}`);
         noAuth(res);
       }).fail(getPFail(res));
   }
@@ -83,27 +84,73 @@ function executeCommand(commands) {
       getPFail(res)(new Error('Invalid Command'));
       return;
     }
-    if (!Array.isArray(req.query.params)) {
-      req.query.params = [];
+    if (!Array.isArray(req.body.params)) {
+      req.body.params = [];
     }
 
-    fn(req.query.params).then((output) => {
-      res.json(output);
+    fn(req.body.params).then((output) => {
+      if (req.get('ContentType') === 'application/json') {
+        res.json(output);
+      } else {
+        res.redirect('/');
+      }
     }).fail(getPFail(res));
+  }
+}
+
+function getListProjects(commands) {
+  return (req, res, next) => {
+    commands.projects.list().then((projects) => {
+      if (req.get('ContentType') === 'application/json') {
+        res.json(projects);
+      } else {
+        res.render('projects', { api: API, projects: projects });
+      }
+    }, getPFail(res))
+  }
+}
+
+function getProject(commands) {
+  return (req, res, next) => {
+    commands.projects.list().then((projects) => {
+      if (projects.indexOf(req.params.project) === -1) {
+        res.status(404).json({ error: req.params.project + ' not found' });
+        return;
+      }
+      if (req.get('ContentType') === 'application/json') {
+        res.json(req.params.project);
+      } else {
+        res.render('project', {api: API, project: req.params.project});
+      }
+    }, getPFail(res));
+  }
+}
+
+function authSwitch(req, res, next) {
+  if (req.isAuthenticated()) {
+    next();
+  } else {
+    passport.authenticate(['auth-header'],
+      { failureRedirect: LOGIN_PATH})(req, res, next);
   }
 }
 
 function init(app) {
   var config = Config();
-  logger.debug('API 0.0.1 Initializing');
+  logger.debug(`API ${API} Initializing`);
 
   getCommands(config).then((commands) => {
-    logger.debug('API 0.0.1 Got CommandiObjects');
-    app.post('/0.0.1/:namespace/:command', [
-      (res, req, next) => {
-        next();
-      },
-      passport.authenticate('auth-header'),
+    logger.debug(`API ${API} Got CommandObjects`);
+    app.get(`/${API}/projects`, [
+      authSwitch,
+      getListProjects(commands)
+    ]);
+    app.get(`/${API}/projects/:project`, [
+      authSwitch,
+      getProject(commands)
+    ]);
+    app.post(`/${API}/:namespace/:command`, [
+      authSwitch,
       authorizeCommand(config),
       executeCommand(commands)
     ]);

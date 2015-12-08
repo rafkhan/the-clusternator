@@ -8,7 +8,10 @@ const  Q = require('q'),
 function pfail(msg, id) {
   return (err) => {
     util.warn('Dockernator Failed To ' + msg, err.message);
-    return git.destroy(id);
+    return git.destroy(id).then(() => {
+      util.info('Dockernation Failed: Cleanup Successful');
+      throw err;
+    });
   };
 }
 
