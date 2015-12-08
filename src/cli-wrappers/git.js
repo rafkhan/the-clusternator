@@ -192,27 +192,33 @@ function getShortRepoName(repo) {
 /**
  * @param {string} repo
  * @param {string=} identifier (master)
- * @return {Q.Promise<string>}
+ * @return {Q.Promise<{{ id: string, path: string }}>}
  */
 function create(repo, identifier) {
   identifier = identifier || 'master';
   const repoId = (+Date.now()).toString(16) + Math.floor(Math.random() * 100000),
     namespacePath = path.normalize(TMP + '/' + repoId),
     repoShort = getShortRepoName(repo),
-    repoPath = path.join(namespacePath, repoShort);
+    repoDesc = {
+      id:  repoId,
+      path:  path.join(namespacePath, repoShort)
+    };
+  util.verbose('Create/Checkout Git Repo', repo);
   return mkdirp(namespacePath).then(() => {
+    util.info('Git Clone', repo);
     process.chdir(namespacePath);
     return clone(repo);
   }).then(() => {
-    process.chdir(repoPath);
+    process.chdir(repoDesc.path);
+    util.info('Git Checkout', repo);
     return checkout(identifier).fail((err) => {
       util.warn('git checkout failed, cloning from master/HEAD: ', err.message);
     });
   }).then(() => {
-    return repoId;
+    return repoDesc;
   }).fail((err) => {
     util.verbose('git create failed', err);
-    return repoId;
+    return repoDesc;
   });
 }
 
@@ -221,6 +227,7 @@ function create(repo, identifier) {
  * @param {string} repoId
  */
 function destroy(repoId) {
+  util.info('Destryoing Git Repo: ', repoId);
   process.chdir(path.normalize(TMP));
   return rimraf(path.normalize(TMP + '/' + repoId));
 }
