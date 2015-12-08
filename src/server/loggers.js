@@ -2,6 +2,20 @@
 
 var winston = require('winston');
 var expressWinston = require('express-winston');
+var logLevelsByLogger = {
+  request: 0,
+  error: 0,
+  logger: 0
+};
+
+switch (process.env.NODE_ENV) {
+  case 'debug':
+    logLevelsByLogger.logger = 5;
+    break;
+  case 'production':
+    logLevelsByLogger.logger = 0;
+    break;
+}
 
 var requestLogger = expressWinston.logger({
   transports: [
@@ -28,6 +42,7 @@ var errorLogger = expressWinston.errorLogger({
 var logger = new (winston.Logger)({
   transports: [
     new (winston.transports.Console)({
+      level: logLevelsByLogger.logger,
       timestamp: function() {
         return Date.now();
       },
@@ -39,6 +54,8 @@ var logger = new (winston.Logger)({
     })
   ]
 });
+
+
 
 module.exports = {
   request: requestLogger,

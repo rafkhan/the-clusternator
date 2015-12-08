@@ -8,5 +8,4 @@ RUN cd /home/app/; npm install
 ## Expose the ports
 EXPOSE 3000
 
-#CMD ["node", "/opt/clusternator/index.js"]
 CMD ["/home/app/serve.sh"]

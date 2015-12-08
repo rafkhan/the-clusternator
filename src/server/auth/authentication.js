@@ -10,6 +10,7 @@ var LocalStrategy = require('passport-local').Strategy,
   session = require('express-session'),
   users = require('./users'),
   passwords = require('./passwords'),
+  logger = require('../loggers').logger,
   tokens = require('./tokens');
 
 var config = Config();
@@ -39,19 +40,23 @@ function init(app) {
 
 function authLocal(user, pass, done) {
   return passwords.verify(user, pass).then(function () {
+    logger.info('authLocal: Password Verified');
     return users.find(user).then(function (found) {
       done(null, found);
     });
-  }).fail(function () {
+  }).fail(function (err) {
+    logger.error('Authentication Error', err.message);
     done(null, false, {message: 'Invalid Login Credentials'});
   });
 }
 
 function authenticateUserEndpoint(req, res, next) {
+  logger.debug('Authenticate User Start');
   passport.authenticate('login-local', function (err, user, info) {
+    logger.debug('Authenticate User Post Passport');
     if (req.get('ContentType') === 'application/json') {
       if (err) {
-        res.status(500).json({error: err.message});
+        res.status(500).json({error: true });
         return;
       }
       if (!user) {
@@ -60,14 +65,15 @@ function authenticateUserEndpoint(req, res, next) {
       }
     } else {
       if (err || !user) {
-        res.render('login', {error: true});
+        res.render('login', {error: true });
         return;
       }
     }
     req.logIn(user, function (err) {
+      logger.debug('Authenticate User Post Login');
       if (req.get('ContentType') === 'application/json') {
         if (err) {
-          res.status(500).json({error: err.message});
+          res.status(500).json({error: true});
         } else {
           res.json(user);
         }

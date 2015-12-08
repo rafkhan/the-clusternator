@@ -20,10 +20,20 @@ module.exports = {
  * @return {{ authority: number }}
  */
 function validateAuthority(id, authority) {
-  if (+authority >= 0 && +authority < authorityTypes.length) {
-    return { id: id, authority: +authority };
+  if (authorityTypes[authority + ''] === undefined) {
+    return { id: id, authority: DEFAULT_AUTHORITY};
   }
-  return { id: id, authority: DEFAULT_AUTHORITY};
+  return {id: id, authority: +authority};
+}
+
+function isSet(id) {
+  if (authorities[id] === undefined) {
+    return false;
+  }
+  if (authorities[id] === null) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -32,7 +42,7 @@ function validateAuthority(id, authority) {
  */
 function find(id) {
   var d = Q.defer();
-  if (authorities[id]) {
+  if (isSet(id)) {
     d.resolve(authorities[id]);
   } else {
     d.reject(new Error('not found'));
