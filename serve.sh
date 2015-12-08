@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Fail On Error
+set -e
+
 # Locate *this* file
 echo "Discovering Docker Environment"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -18,4 +21,4 @@ tar xfz ./clusternator.tar.gz
 
 # Start the service
 echo "Starting Service"
-node ./server-init.js
+npm start
