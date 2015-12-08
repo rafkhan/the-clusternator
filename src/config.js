@@ -16,7 +16,7 @@ const DOT_CLUSTERNATOR_CONFIG =
 
 var credFileName = 'credentials',
   configFileName = 'config',
-  localPath = path.join(__dirname, '/../.private'),
+  localPath = path.join(__dirname, '..', '.private'),
   globalPath = '/etc/clusternator/';
 
 /**
