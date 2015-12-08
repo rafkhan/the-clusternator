@@ -1,9 +1,11 @@
 'use strict';
 
+const TMP = '/tmp';
 const COMMAND = 'git';
 const FLAG_REV_PARSE = 'rev-parse';
 const FLAG_HEAD = 'HEAD';
-const FLAG_CLONE = 'cone';
+const FLAG_CLONE = 'clone';
+const FLAG_CHECKOUT = 'checkout';
 const GITIGNORE = '.gitignore';
 const NEWLINE = '\n';
 const UTF8 = 'utf8';
@@ -12,6 +14,9 @@ var spawn = require('child_process').spawn,
   fs = require('fs'),
   Q = require('q'),
   path = require('path'),
+  mkdirp = Q.nfbind(require('mkdirp')),
+  rimraf = Q.nfbind(require('rimraf')),
+  util = require('../util'),
   clusternatorJson = require('../clusternator-json');
 
 var writeFile = Q.nbind(fs.writeFile, fs),
@@ -102,15 +107,15 @@ function shaHead() {
 }
 
 /**
- * @param {string} repo
+ * @param {string} identifier ideally a SHA
  * @returns {Q.Promise}
  */
-function clone(repo) {
-  if (!repo) {
+function checkout(identifier) {
+  if (!identifier) {
     throw new TypeError('git: clone requires a repository string');
   }
   var d = Q.defer(),
-    git = spawn(COMMAND, [FLAG_CLONE, repo]),
+    git = spawn(COMMAND, [FLAG_CHECKOUT, identifier]),
     error = '',
     output = '';
 
@@ -137,14 +142,100 @@ function clone(repo) {
   return d.promise;
 }
 
+/**
+ * @param {string} repo
+ * @returns {Q.Promise}
+ */
+function clone(repo) {
+  if (!repo) {
+    throw new TypeError('git: clone requires a repository string');
+  }
+  var d = Q.defer(),
+    git = spawn(COMMAND, [FLAG_CLONE, repo]),
+    error = '',
+    output = '';
+
+  git.stdout.on('data', (data) => {
+    output += data;
+  });
+
+  git.stderr.on('data', (data) => {
+    error += data;
+  });
+
+  git.on('close', (code) => {
+    if (+code) {
+      d.reject(new Error('git terminated with exit code: ' + code));
+    } else {
+      d.resolve(output.trim());
+    }
+  });
+
+  git.stdin.end();
+
+  return d.promise;
+}
+
+/**
+ * Strips a git URL into a short name (no .git or http://...)
+ * @param {string} repo
+ * @returns {string}
+ */
+function getShortRepoName(repo) {
+  var split = repo.split('/'),
+    lastString = split[split.length - 1];
+
+  return lastString.slice(lastString.length - 4) === '.git' ?
+      lastString.slice(0, lastString.length - 4) : lastString
+}
+
+/**
+ * @param {string} repo
+ * @param {string=} identifier (master)
+ * @return {Q.Promise<string>}
+ */
+function create(repo, identifier) {
+  identifier = identifier || 'master';
+  const repoId = (+Date.now()).toString(16) + Math.floor(Math.random() * 100000),
+    namespacePath = path.normalize(TMP + '/' + repoId),
+    repoShort = getShortRepoName(repo),
+    repoPath = path.join(namespacePath, repoShort);
+  return mkdirp(namespacePath).then(() => {
+    process.chdir(namespacePath);
+    return clone(repo);
+  }).then(() => {
+    process.chdir(repoPath);
+    return checkout(identifier).fail((err) => {
+      util.warn('git checkout failed, cloning from master/HEAD: ', err.message);
+    });
+  }).then(() => {
+    return repoId;
+  }).fail((err) => {
+    util.verbose('git create failed', err);
+    return repoId;
+  });
+}
+
+
+/**
+ * @param {string} repoId
+ */
+function destroy(repoId) {
+  process.chdir(path.normalize(TMP));
+  return rimraf(path.normalize(TMP + '/' + repoId));
+}
+
 module.exports = {
   GITIGNORE,
   shaHead,
   clone,
   addToGitIgnore,
+  create,
+  destroy,
   helpers: {
     gitIgnorePath,
     readGitIgnore,
-    gitIgnoreHasItem
+    gitIgnoreHasItem,
+    checkout
   }
 };

@@ -24,6 +24,10 @@ function verbose() {
   winston.verbose.apply(winston, arguments);
 }
 
+function warn() {
+  winston.verbose.apply(winston, arguments);
+}
+
 function error() {
   winston.error.apply(winston, arguments);
 }
@@ -133,6 +137,7 @@ module.exports = {
   clone,
   info,
   verbose,
+  warn,
   error,
   winston
 };
