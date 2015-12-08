@@ -12,17 +12,22 @@ a = require('aws-sdk');
 
 function getEc2() {
   var config = c();
-  return new a.EC2(config.credentials);
+  return new a.EC2(config.awsCredentials);
 }
 
 function getEcs() {
   var config = c();
-  return new a.ECS(config.credentials);
+  return new a.ECS(config.awsCredentials);
 }
 
 function getRoute53() {
   var config = c();
-  return new a.Route53(config.credentials);
+  return new a.Route53(config.awsCredentials);
+}
+
+function getDDB() {
+  var config = c();
+  return new a.DynamoDB(config.awsCredentials);
 }
 
 function makePath() {
@@ -36,6 +41,7 @@ module.exports = {
   getEc2: getEc2,
   getEcs: getEcs,
   getRoute53: getRoute53,
+  getDDB,
   testVPC: TEST_VPC,
   testROUTE: TEST_ROUTE,
   testR53: TEST_R53

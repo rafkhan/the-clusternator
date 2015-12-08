@@ -35,12 +35,29 @@ function create(repo, image, tag, dockerFile) {
       util.verbose('CWD -> ', repoDesc.path);
       process.chdir(repoDesc.path);
       util.info('Building Docker Image: ', image, `(${repo})`, tag);
+      var error = '', output = '';
+
       return docker.build(image, dockerFile)
         .then(() => {
           util.info('Pushing Docker Image: ', image, `(${repo})`, tag);
           return docker.push(image).fail(pfail('push', repoDesc.id));
         })
-        .fail(pfail('build', repoDesc.id))
+        .then((r) => {
+            return r;
+          },
+          (err) => {
+            console.log('ERROR', err);
+            console.log('output', output);
+            pfail('build', repoDesc.id)(err);
+          },
+          (prog) => {
+            if (prog.error) {
+              error += prog.error;
+            } else if (prog.data) {
+              output += prog.data;
+            }
+          })
+        //.fail(pfail('build', repoDesc.id))
         .then(() => {
           return git.destroy(repoDesc);
         })
