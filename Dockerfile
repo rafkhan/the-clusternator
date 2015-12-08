@@ -1,7 +1,5 @@
 FROM rafkhan/rangle-node:14.04-4.2.2
 
-# Docker 1.6.2
-
 # application installs
 RUN sudo apt-get update && sudo apt-get -y install git wget \
   && curl -sSL https://get.docker.com/ | sed \
@@ -15,4 +13,4 @@ RUN cd /home/app/; npm install
 ## Expose the ports
 EXPOSE 9090
 
-CMD ["/home/app/serve.sh"]
+#CMD ["/home/app/serve.sh"]
