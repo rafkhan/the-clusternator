@@ -115,25 +115,23 @@ function checkout(identifier) {
     throw new TypeError('git: clone requires a repository string');
   }
   var d = Q.defer(),
-    git = spawn(COMMAND, [FLAG_CHECKOUT, identifier]),
-    error = '',
-    output = '';
+    git = spawn(COMMAND, [FLAG_CHECKOUT, identifier]);
+
+  git.stdout.setEncoding('utf8');
 
   git.stdout.on('data', (data) => {
-    output += data;
+    d.notify({ data: data });
   });
 
   git.stderr.on('data', (data) => {
-    error += data;
+    d.notify({ error: data });
   });
 
   git.on('close', (code) => {
-    if (error) {
-      d.reject(new Error(error));
-    } else if (+code) {
+    if (+code) {
       d.reject(new Error('git terminated with exit code: ' + code));
     } else {
-      d.resolve(output.trim());
+      d.resolve();
     }
   });
 
@@ -151,23 +149,23 @@ function clone(repo) {
     throw new TypeError('git: clone requires a repository string');
   }
   var d = Q.defer(),
-    git = spawn(COMMAND, [FLAG_CLONE, repo]),
-    error = '',
-    output = '';
+    git = spawn(COMMAND, [FLAG_CLONE, repo]);
+
+  git.stdout.setEncoding('utf8');
 
   git.stdout.on('data', (data) => {
-    output += data;
+    d.notify({ data: data });
   });
 
   git.stderr.on('data', (data) => {
-    error += data;
+    d.notify({ error: data });
   });
 
   git.on('close', (code) => {
     if (+code) {
       d.reject(new Error('git terminated with exit code: ' + code));
     } else {
-      d.resolve(output.trim());
+      d.resolve();
     }
   });
 

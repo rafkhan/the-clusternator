@@ -12,7 +12,7 @@ const spawn = require('child_process').spawn,
 
 /**
  * @param {string} tag
- * @param {string} dockerFile
+ * @param {string=} dockerFile
  * @returns {Q.Promise}
  */
 function build(tag, dockerFile) {
@@ -23,23 +23,25 @@ function build(tag, dockerFile) {
   var d = Q.defer(),
     docker = spawn(COMMAND, [
       FLAG_BUILD, FLAG_TAG, tag, FLAG_FILE, dockerFile, BUILD_CWD
-    ]),
-    error = '',
-    output = '';
+    ], {
+      env: process.env
+    });
+
+  docker.stdout.setEncoding('utf8');
 
   docker.stdout.on('data', (data) => {
-    output += data;
+    d.notify({ data: data });
   });
 
   docker.stderr.on('data', (data) => {
-    error += data;
+    d.notify({ error: data });
   });
 
   docker.on('close', (code) => {
     if (+code) {
       d.reject(new Error('docker terminated with exit code: ' + code));
     } else {
-      d.resolve(output.trim());
+      d.resolve();
     }
   });
 
@@ -57,23 +59,23 @@ function push(tag) {
     throw new TypeError('docker: push requires a tag string');
   }
   var d = Q.defer(),
-    docker = spawn(COMMAND, [FLAG_PUSH, tag]),
-    error = '',
-    output = '';
+    docker = spawn(COMMAND, [FLAG_PUSH, tag]);
+
+  docker.stdout.setEncoding('utf8');
 
   docker.stdout.on('data', (data) => {
-    output += data;
+    d.notify({ data: data });
   });
 
   docker.stderr.on('data', (data) => {
-    error += data;
+    d.notify({ error: data });
   });
 
   docker.on('close', (code) => {
     if (+code) {
       d.reject(new Error('docker terminated with exit code: ' + code));
     } else {
-      d.resolve(output.trim());
+      d.resolve();
     }
   });
 

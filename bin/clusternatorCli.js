@@ -178,6 +178,8 @@ yargs.command('describe-services', 'Describe project services', cli.describeServ
 
 yargs.command('add-new-ssh-key', 'Adds a new SSH Key', cli.newSSH);
 
+yargs.command('build', 'Local Docker Build', cli.dockerBuild);
+
 /**
  * @todo yargify everything from here down.  Manual if/else *not* required
  */

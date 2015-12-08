@@ -16,6 +16,7 @@ var fs = require('fs'),
   clusternatorJson = require('./clusternator-json'),
   gpg = require('./cli-wrappers/gpg'),
   git = require('./cli-wrappers/git'),
+  docker = require('./cli-wrappers/docker'),
   sshKey = require('./cli-wrappers/ssh-keygen'),
   appDefSkeleton = require('./aws/appDefSkeleton'),
   cnProjectManager = require('./clusternator/projectManager'),
@@ -182,6 +183,12 @@ function bootstrapAWS() {
 
 function writeDeployment(name, dDir, appDef) {
   return writeFile(path.join(dDir, name + '.json'), appDef);
+}
+
+function demandPassphrase(y){
+  return y.demand('p').
+  alias('p', 'passphrase').
+  describe('p', 'Requires a passphrase to encrypt private files/directories');
 }
 
 function generateDeploymentFromName(name) {
@@ -395,9 +402,7 @@ function destroy(y) {
 }
 
 function makePrivate(y) {
-  y.demand('p').
-  alias('p', 'passphrase').
-  describe('p', 'Requires a passphrase to encrypt private files/directories');
+  demandPassphrase(y);
 
   return clusternatorJson.makePrivate(y.argv.p).then(() => {
     util.info('Clusternator: Private files/directories encrypted');
@@ -405,9 +410,7 @@ function makePrivate(y) {
 }
 
 function readPrivate(y) {
-  y.demand('p').
-  alias('p', 'passphrase').
-  describe('p', 'Requires a passphrase to encrypt private files/directories');
+  demandPassphrase(y);
 
   return clusternatorJson.readPrivate(y.argv.p).then(() => {
     util.info('Clusternator: Private files/directories un-encrypted');
@@ -564,6 +567,54 @@ function newSSH(y) {
   });
 }
 
+function dockerBuild(y) {
+  var id = (+Date.now()).toString(16),
+    argv = demandPassphrase(y)
+      .demand('i')
+      .alias('i', 'image')
+      .describe('i', 'Name of the docker image to create')
+      .default('i', id)
+      .argv;
+
+  util.info('Building Docker Image: ', argv.i);
+
+  util.verbose('Encrypting Private Folder');
+  return makePrivate(y).then(() => {
+    return clusternatorJson
+      .findProjectRoot()
+      .then((root) => {
+        var output, outputError;
+        process.chdir(root);
+        util.info('Start Docker Build', argv.i);
+        return docker.build(argv.i)
+          .progress((data) => {
+            if (!data) { return; }
+            if (data.error) {
+              outputError += data.error;
+              util.error(outputError);
+            }
+            if (data.data) {
+              output += data.data;
+              util.verbose(output);
+            }
+          });
+      })
+      .then(() => {
+        util.verbose('Decrypting Private Folder');
+        return readPrivate(y);
+      })
+      .then(() => {
+        util.info('Built Docker Image: ', argv.i);
+      })
+      .fail((err) => {
+        util.warn('Docker failed to build: ', err.message);
+        return readPrivate(y);
+      });
+  }).fail((err) => {
+    util.error('Error building local Docker image: ', err.message);
+  });
+}
+
 module.exports = {
   newApp: newApp,
   updateApp: updateApp,
@@ -593,5 +644,6 @@ module.exports = {
   describeServices,
   listProjects,
 
-  newSSH
+  newSSH,
+  dockerBuild
 };
