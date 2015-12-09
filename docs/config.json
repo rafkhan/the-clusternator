@@ -1,0 +1,39 @@
+{
+  "description":"Update this with production values, or use a config.local.json (same structure as this file)",
+  "port":9090,
+  "sessionSecret":"Make This UNIQUE and crypto random on install/deployment",
+  "sessionCookieName":"clusternator.sid",
+  "slackURI":"",
+  "privilegeGroups": {
+    "0": "admins",
+    "1": "managers",
+    "2": "users"
+  },
+  "commandPrivileges": {
+    "projects": {
+      "create": 1,
+      "build": 2,
+      "list": 2,
+      "describe": 1,
+      "destroy": 1
+    },
+    "pr": {
+      "create": 2,
+      "list": 2,
+      "describe": 2,
+      "destroy": 2
+    },
+    "deployment": {
+      "create": 2,
+      "list": 2,
+      "describe": 2,
+      "destroy": 2
+    },
+    "user": {
+      "create": 0,
+      "list": 2,
+      "describe": 0,
+      "destroy": 0
+    }
+  }
+}

@@ -46,9 +46,7 @@ function encrypt(passphrase, cleartext) {
   });
 
   gpg.on('close', (code) => {
-    if (error) {
-      d.reject(new Error(error));
-    } else if (+code) {
+    if (+code) {
       d.reject(new Error('GPG terminated with exit code: ' + code));
     } else {
       d.resolve(output);
@@ -83,9 +81,7 @@ function decrypt(passphrase, ciphertext) {
   });
 
   gpg.on('close', (code) => {
-    if (error) {
-      d.reject(new Error(error));
-    } else if (+code) {
+    if (+code) {
       d.reject(new Error('GPG terminated with exit code: ' + code));
     } else {
       d.resolve(output);
@@ -129,9 +125,7 @@ function encryptFile(passphrase, filePath) {
   });
 
   gpg.on('close', (code) => {
-    if (error) {
-      d.reject(new Error(error));
-    } else if (+code) {
+    if (+code) {
       d.reject(new Error('GPG terminated with exit code: ' + code));
     } else {
       d.resolve(output);
@@ -167,9 +161,7 @@ function decryptFile(passphrase, cipherFilePath, outputFilePath) {
   });
 
   gpg.on('close', (code) => {
-    if (error) {
-      d.reject(new Error(error));
-    } else if (+code) {
+    if (+code) {
       d.reject(new Error('GPG terminated with exit code: ' + code));
     } else {
       d.resolve(output);
@@ -181,6 +173,9 @@ function decryptFile(passphrase, cipherFilePath, outputFilePath) {
   return d.promise;
 }
 
+/**
+ * @returns {Q.Promise<string>}
+ */
 function generatePass() {
   var d = Q.defer();
   crypto.randomBytes(50, (err, buff) => {

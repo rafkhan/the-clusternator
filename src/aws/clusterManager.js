@@ -139,8 +139,20 @@ function deleteCluster(name) {
       });
 
       return Q.all(sLists).then((results) => {
-        util.info('results', JSON.stringify(
-          results.filter(identity), null, 2));
+        var formatted = results.map((result) => {
+          if (result && result.services) {
+            return {
+              arn: result.services[0].serviceArn,
+              events: result.services[0].events.shift().message
+            }
+          }
+          return null;
+        }).filter((el) => {
+          return el;
+        });
+        util.info(JSON.stringify(formatted, null, 2));
+        //util.info('results', JSON.stringify(
+        //  results.filter(identity), null, 2));
       });
     });
   }

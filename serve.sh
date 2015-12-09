@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Fail On Error
+set -e
+
 # Locate *this* file
 echo "Discovering Docker Environment"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -16,6 +19,9 @@ gpg --out  ./clusternator.tar.gz --passphrase $PASSPHRASE --decrypt \
 echo "Extracting Configuration Tarball"
 tar xfz ./clusternator.tar.gz
 
+# run docker login (Clusternator only)
+./.private/docker-login.sh
+
 # Start the service
 echo "Starting Service"
-node ./index.js
+npm start

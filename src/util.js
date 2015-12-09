@@ -20,6 +20,14 @@ function info() {
   winston.info.apply(winston, arguments);
 }
 
+function verbose() {
+  winston.verbose.apply(winston, arguments);
+}
+
+function warn() {
+  winston.verbose.apply(winston, arguments);
+}
+
 function error() {
   winston.error.apply(winston, arguments);
 }
@@ -128,6 +136,8 @@ module.exports = {
   makePromiseApi,
   clone,
   info,
+  verbose,
+  warn,
   error,
   winston
 };

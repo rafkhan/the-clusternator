@@ -2,13 +2,14 @@
 
 const TEST_VPC = 'vpc-ab07b4cf';
 const TEST_ZONE = '/hostedzone/Z1K98SX385PNRP';
-const LOGIN_PATH = '/login.html';
+const LOGIN_PATH = '/login';
 
 var R = require('ramda');
 var q = require('q');
 var express = require('express');
 var bodyParser = require('body-parser-rawbody');
 var aws = require('aws-sdk');
+var path = require('path');
 
 var getPRManager = require('../aws/prManager');
 var getDynamoDBManager = require('../aws/dynamoManager');
@@ -25,23 +26,35 @@ var githubAuthMiddleware = require('./auth/githubHook');
 var nodePath = require('path');
 var compression = require('compression');
 var authentication = require('./auth/authentication');
-var authorization = require('./auth/authorization');
 var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 var users = require('./auth/users');
 var util = require('../util');
+var clusternatorApi = require('./clusternator-api');
 
+
+var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
 
 function createServer(prManager) {
   var app = express();
 
+  /**
+   *  @todo the authentication package could work with a "mount", or another
+   *  mechanism that is better encapsulated
+   */
   authentication.init(app);
 
   app.use(compression());
   app.use(express['static'](
-    nodePath.normalize(__dirname + nodePath.sep + '..' + nodePath.sep + 'www'))
+    nodePath.join(__dirname, '..', 'www'))
   );
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
+
+  /**
+   * @todo the clusternator package could work  with a "mount", or another
+   * mechanism that is better encapsulated
+   */
+  clusternatorApi.init(app);
 
   function ping(req, res) {
     res.send('Still alive.');
@@ -54,8 +67,48 @@ function createServer(prManager) {
 
   app.use(loggers.request);
 
+  app.set('views', path.join(__dirname, '..', 'views'));
+  app.set('view engine', 'ejs');
+
+  app.get('/', [
+    ensureAuth(LOGIN_PATH),
+    exposeUser,
+    (req, res) => {
+      res.render('index');
+    }]);
+  app.get('/logout', [
+      authentication.endpoints.logout
+    ]
+  );
+  app.get('/login', (req, res) => {
+    res.render('login', { error: false });
+  });
   app.post('/login', authentication.endpoints.login);
 
+  app.get('/passwd', [
+    ensureAuth(LOGIN_PATH),
+    exposeUser,
+    (req, res) => {
+      res.render('passwd', { error: false });
+    }
+  ]);
+
+  app.get('/users/:id/tokens', [
+    ensureAuth(LOGIN_PATH),
+    exposeUser,
+    users.endpoints.getTokens
+  ]);
+
+  app.post('/users/:id/tokens', [
+    ensureAuth(LOGIN_PATH),
+    exposeUser,
+    users.endpoints.createToken
+  ]);
+
+  app.post('/users/:id/password', [
+    ensureAuth(LOGIN_PATH),
+    users.endpoints.password
+  ]);
   app.put('/users/:id/password', [
     ensureAuth(LOGIN_PATH),
     users.endpoints.password
@@ -143,6 +196,14 @@ function initializeDynamoTable(ddbManager, tableName) {
     .then(() => {
       log.info('Table "' + tableName + '" is active');
     }, q.reject);
+}
+
+function exposeUser(req, res, next) {
+  if (!req.user) {
+    res.locals.username = null;
+  }
+  res.locals.username = req.user.id;
+  next();
 }
 
 function getServer(config) {

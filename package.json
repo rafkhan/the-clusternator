@@ -2,7 +2,7 @@
   "name": "clusternator",
   "version": "0.1.13",
   "description": "Program to deploy docker containers on cloud service platforms with minimal user input, and/or configuration",
-  "main": "clusternator.js",
+  "main": "index.js",
   "preferGlobal": true,
   "keywords": [
     "docker",
@@ -19,7 +19,8 @@
     "url": "https://github.com/rangle/the-clusternator/issues"
   },
   "scripts": {
-    "start": "./bin/clusternator.sh server:start",
+    "start": "node ./server-init.js",
+    "dev": "NODE_ENV=debug; nodemon ./server-init.js",
     "test": "./node_modules/gulp/bin/gulp.js test-unit",
     "build": "./node_modules/gulp/bin/gulp.js transpile",
     "prepublish": "npm run build",
@@ -38,6 +39,7 @@
     "compression": "^1.6.0",
     "connect-ensure-login": "^0.1.1",
     "credential": "^0.2.6",
+    "ejs": "^2.3.4",
     "express": "^4.13.3",
     "express-session": "^1.12.1",
     "express-winston": "^0.4.1",
@@ -47,6 +49,7 @@
     "mkdirp": "^0.5.1",
     "parse-git-config": "^0.3.1",
     "passport": "^0.3.2",
+    "passport-http-header-token": "^1.0.0",
     "passport-local": "^1.0.0",
     "q": "^1.4.1",
     "ramda": "^0.17.1",
@@ -73,6 +76,7 @@
     "mocha": "^2.3.3",
     "mock-fs": "^3.4.0",
     "mock-spawn": "^0.2.6",
+    "nodemon": "^1.8.1",
     "rewire": "^2.3.4",
     "supertest": "^1.1.0"
   }

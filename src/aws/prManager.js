@@ -8,7 +8,9 @@ var Q = require('q'),
   Route53 = require('./route53Manager'),
   Task = require('./taskServiceManager'),
   common = require('./common'),
-  util = require('./../util');
+  path = require('path'),
+  constants = require('../constants'),
+  util = require('../util');
 
 function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
   var subnet = Subnet(ec2, vpcId),
@@ -38,7 +40,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         pr: pr,
         sgId: sgDesc.GroupId,
         subnetId: subnetId,
-        sshPath: '.private/ssh-public',
+        sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
         apiConfig: {}
       }).then(function(ec2Results) {
         var ip = common.findIpFromEc2Describe(ec2Results);

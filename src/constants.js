@@ -7,6 +7,7 @@ const DEPLOYMENT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'deployment';
 const SHA_TAG = CLUSTERNATOR_PREFIX + DELIM + 'sha';
 const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
 const AWS_DEFAULT_EC2_TYPE = 't2.micro';
+const SSH_PUBLIC_PATH = 'ssh-public';
 
 var util = require('./util');
 
@@ -38,6 +39,7 @@ var constants = Object.freeze({
   PR_TAG,
   DEPLOYMENT_TAG,
   SHA_TAG,
+  SSH_PUBLIC_PATH,
   AWS_DEFAULT_EC2: Object.freeze({
     ImageId: AWS_DEFAULT_EC2_AMI,
     MaxCount: 1,

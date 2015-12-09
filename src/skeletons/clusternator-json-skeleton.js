@@ -7,5 +7,5 @@ module.exports = Object.freeze({
   private: [],      // these files/directories can be automatically encrypted/decrypted, ideally before/after commit
 
   // These are defaults
-  deploymentsDir: path.normalize('.private' + path.sep + 'deployments')
+  deploymentsDir: path.join('.private', 'deployments')
 });

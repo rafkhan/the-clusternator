@@ -1,5 +1,8 @@
 'use strict';
 const UTF8 = 'utf8';
+const DOCKERFILE = 'Dockerfile';
+const DOCKERIGNORE = '.dockerignore';
+const CIRCLEFILE = 'circle.yml';
 
 var fs = require('fs'),
   Q = require('q'),
@@ -13,37 +16,37 @@ var fs = require('fs'),
   clusternatorJson = require('./clusternator-json'),
   gpg = require('./cli-wrappers/gpg'),
   git = require('./cli-wrappers/git'),
+  docker = require('./cli-wrappers/docker'),
+  sshKey = require('./cli-wrappers/ssh-keygen'),
   appDefSkeleton = require('./aws/appDefSkeleton'),
   cnProjectManager = require('./clusternator/projectManager'),
-  awsProjectManager = require('./aws/projectManager');
+  awsProjectManager = require('./aws/project-init'),
+  constants = require('./constants');
 
 var writeFile = Q.nbind(fs.writeFile, fs),
-  readFile = Q.nbind(fs.readFile, fs);
-
+  readFile = Q.nbind(fs.readFile, fs),
+  chmod = Q.nbind(fs.chmod, fs);
 
 
 /**
- * @returns {Q.Promise}
+ * @param {string} skeleton
+ * @return {Promise<string>}
  */
-function initAwsProject(config) {
-  var a = require('aws-sdk'),
-  ec2 = new a.EC2(config.awsCredentials),
-  ecs = new a.ECS(config.awsCredentials),
-  r53 = new a.Route53(config.awsCredentials),
-  ddb = new a.DynamoDB(config.awsCredentials);
-
-  return awsProjectManager(ec2, ecs, r53, ddb);
+function getSkeletonFile(skeleton) {
+  return readFile(path.join(
+    __dirname, '..', 'src', 'skeletons', skeleton
+  ), UTF8);
 }
 
 function initClusternatorProject(config) {
   return cnProjectManager(config);
 }
 
-function initProject() {
+function getProjectAPI() {
   var config = Config();
 
   if (config.awsCredentials) {
-    return initAwsProject(config);
+    return awsProjectManager(config);
   }
   return initClusternatorProject(config);
 }
@@ -179,7 +182,13 @@ function bootstrapAWS() {
 }
 
 function writeDeployment(name, dDir, appDef) {
-  return writeFile(path.normalize(dDir + path.sep + name + '.json'), appDef);
+  return writeFile(path.join(dDir, name + '.json'), appDef);
+}
+
+function demandPassphrase(y){
+  return y.demand('p').
+  alias('p', 'passphrase').
+  describe('p', 'Requires a passphrase to encrypt private files/directories');
 }
 
 function generateDeploymentFromName(name) {
@@ -244,6 +253,33 @@ function getProjectRootRejectIfClusternatorJsonExists() {
   })
 }
 
+function installGitHook(root, name, passphrase) {
+  return getSkeletonFile('git-' + name).then((contents) => {
+    contents = contents.replace('\$CLUSTERNATOR_PASS', passphrase);
+    return writeFile(path.join(root, '.git', 'hooks', name), contents);
+  }).then(() => {
+    return chmod(path.join(root, '.git', 'hooks', name), '+x');
+  });
+}
+
+function processGitHooks(results, root) {
+  if (!results.passphrase) {
+    return;
+  }
+  if (!results.gitHooks) {
+    return;
+  }
+  return Q.all([
+    installGitHook(root, 'post-commit', results.passphrase),
+    installGitHook(root, 'pre-commit', results.passphrase),
+    installGitHook(root, 'post-merge', results.passphrase)
+  ]).then(() => {
+    util.info('Git Hooks Installed');
+    util.info('Shared Secret: ', results.passphrase);
+    util.info('Do not lose the shared secret, and please keep it safe');
+  });
+}
+
 /**
  * @returns {Q.Promise<Object>}
  */
@@ -254,7 +290,12 @@ function getInitUserOptions() {
     then(pickBestName).
     then(clusternatorJson.createInteractive).
     then((results) => {
-      return processInitUserOptions(results, root);
+      return Q.allSettled([
+        processInitUserOptions(results, root),
+        processGitHooks(results, root)
+      ]).then((results) => {
+        return results[0].value;
+      });
     });
   })
 }
@@ -271,9 +312,37 @@ function initializeDeployments(depDir, projectId) {
     prAppDef = JSON.stringify(prAppDef, null, 2);
 
     return Q.allSettled([
-      writeFile(path.normalize(depDir + path.sep + 'pr.json'), prAppDef),
-      writeFile(path.normalize(depDir + path.sep + 'master.json'), prAppDef)
+      mkdirp(path.join(depDir, '..', constants.SSH_PUBLIC_PATH)),
+      writeFile(path.join(depDir, 'pr.json'), prAppDef),
+      writeFile(path.join(depDir, 'master.json'), prAppDef),
+      initializeDockerFile(),
+      initializeCircleCIFile(),
+      initializeDockerIgnoreFile()
     ]);
+  });
+}
+
+function initializeDockerIgnoreFile() {
+  return clusternatorJson.findProjectRoot().then((root) => {
+    return getSkeletonFile(DOCKERIGNORE).then((contents) => {
+      return writeFile(path.join(root, DOCKERIGNORE), contents);
+    });
+  });
+}
+
+function initializeDockerFile() {
+  return clusternatorJson.findProjectRoot().then((root) => {
+    return getSkeletonFile(DOCKERFILE).then((contents) => {
+      return writeFile(path.join(root, DOCKERFILE), contents);
+    });
+  });
+}
+
+function initializeCircleCIFile() {
+  return clusternatorJson.findProjectRoot().then((root) => {
+    return getSkeletonFile(CIRCLEFILE).then((contents) => {
+      return writeFile(path.join(root, CIRCLEFILE), contents);
+    });
   });
 }
 
@@ -299,7 +368,7 @@ function initializeProject(y) {
         return;
       }
 
-      return initProject().then((pm) => {
+      return getProjectAPI().then((pm) => {
         return pm.create(projectId).then(() => {
           util.info(output + ' Network Resources Checked');
         }, Q.reject)
@@ -315,7 +384,8 @@ function initializeProject(y) {
       })
     });
   }).fail((err) => {
-    util.info('Clusternator: Initizalization Error: ' + err.message);
+    util.info('Clusternator: Initialization Error: ' + err.message);
+    util.info(err.stack);
   }).done();
 }
 
@@ -332,9 +402,7 @@ function destroy(y) {
 }
 
 function makePrivate(y) {
-  y.demand('p').
-  alias('p', 'passphrase').
-  describe('p', 'Requires a passphrase to encrypt private files/directories');
+  demandPassphrase(y);
 
   return clusternatorJson.makePrivate(y.argv.p).then(() => {
     util.info('Clusternator: Private files/directories encrypted');
@@ -342,9 +410,7 @@ function makePrivate(y) {
 }
 
 function readPrivate(y) {
-  y.demand('p').
-  alias('p', 'passphrase').
-  describe('p', 'Requires a passphrase to encrypt private files/directories');
+  demandPassphrase(y);
 
   return clusternatorJson.readPrivate(y.argv.p).then(() => {
     util.info('Clusternator: Private files/directories un-encrypted');
@@ -375,11 +441,9 @@ function deploy(y) {
     argv;
 
   return clusternatorJson.get().then((cJson) => {
-    var dPath = path.normalize(
-      cJson.deploymentsDir + path.sep + argv.d + '.json'
-    );
+    var dPath = path.join(cJson.deploymentsDir, argv.d + '.json');
     return Q.all([
-      initProject(),
+      getProjectAPI(),
       git.shaHead(),
       readFile(dPath, UTF8).
         fail((err) => {
@@ -425,7 +489,7 @@ function stop(y) {
 
   return clusternatorJson.get().then((cJson) => {
     return Q.all([
-      initProject(),
+      getProjectAPI(),
       git.shaHead()
     ]).then((results) => {
       var sha = argv.s || results[1];
@@ -453,9 +517,19 @@ function generateDeployment(y) {
 }
 
 function describeServices() {
-  return initProject().then((pm) => {
+  return getProjectAPI().then((pm) => {
     return clusternatorJson.get().then((config) => {
       return pm.describeProject(config.projectId);
+    });
+  }).done();
+}
+
+function listProjects() {
+  return getProjectAPI().then((pm) => {
+    return pm.listProjects().then((projectNames) => {
+      projectNames.forEach((name) => {
+        console.log(name);
+      });
     });
   }).done();
 }
@@ -476,6 +550,69 @@ function describe(y) {
   } else {
     util.info('Describing *all* resources in use');
   }
+}
+
+function newSSH(y) {
+  var argv = y.demand('n').
+  alias('n', 'name').
+  describe('n', 'Creates a new SSH key with the provided name.  The keypair ' +
+    'are stored in ~/.ssh, and the public key is installed into the project').
+    argv;
+
+  return clusternatorJson.findProjectRoot().then((root) => {
+    var publicPath = path.join(root, '.private', constants.SSH_PUBLIC_PATH);
+    return mkdirp(publicPath).then(() => {
+      return sshKey(argv.n, publicPath);
+    });
+  });
+}
+
+function dockerBuild(y) {
+  var id = (+Date.now()).toString(16),
+    argv = demandPassphrase(y)
+      .demand('i')
+      .alias('i', 'image')
+      .describe('i', 'Name of the docker image to create')
+      .default('i', id)
+      .argv;
+
+  util.info('Building Docker Image: ', argv.i);
+
+  util.verbose('Encrypting Private Folder');
+  return makePrivate(y).then(() => {
+    return clusternatorJson
+      .findProjectRoot()
+      .then((root) => {
+        var output, outputError;
+        process.chdir(root);
+        util.info('Start Docker Build', argv.i);
+        return docker.build(argv.i)
+          .progress((data) => {
+            if (!data) { return; }
+            if (data.error) {
+              outputError += data.error;
+              util.error(outputError);
+            }
+            if (data.data) {
+              output += data.data;
+              util.verbose(output);
+            }
+          });
+      })
+      .then(() => {
+        util.verbose('Decrypting Private Folder');
+        return readPrivate(y);
+      })
+      .then(() => {
+        util.info('Built Docker Image: ', argv.i);
+      })
+      .fail((err) => {
+        util.warn('Docker failed to build: ', err.message);
+        return readPrivate(y);
+      });
+  }).fail((err) => {
+    util.error('Error building local Docker image: ', err.message);
+  });
 }
 
 module.exports = {
@@ -504,15 +641,9 @@ module.exports = {
   deploy,
   stop,
 
-  describeServices
+  describeServices,
+  listProjects,
 
+  newSSH,
+  dockerBuild
 };
-
-function fb(n) {
-  return Array.apply(null, Array(n)).map((_, i) => {
-    if (i % 3 === 0) { return 'fizz'; }
-    if (i % 5 === 0) { return 'buzz'; }
-    return i;
-  });
-}
-

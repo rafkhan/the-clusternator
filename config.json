@@ -1,6 +1,0 @@
-{
-  "description":"Update this with production values, or use a config.local.json (same structure as this file)",
-  "port":9090,
-  "sessionSecret":"Make This UNIQUE and crypto random on install/deployment",
-  "sessionCookieName":"clusternator.sid"
-}

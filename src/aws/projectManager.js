@@ -10,6 +10,7 @@ var Subnet = require('./subnetManager'),
   Deployment = require('./deploymentManager'),
   DynamoManager = require('./dynamoManager'),
   gpg = require('../cli-wrappers/gpg'),
+  constants = require('../constants'),
   Q = require('q');
 
 function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
@@ -78,6 +79,15 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
 
   /**
    * @param {string} pid
+   * @param {string} pr
+   * @returns {Q.Promise}
+   */
+  function destroyPR(pid, pr) {
+    return pullRequest.destroy(pid, pr);
+  }
+
+  /**
+   * @param {string} pid
    * @param {string} dep
    * @param {string} sha
    * @param {Object} appDef
@@ -122,6 +132,26 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
       }, Q.reject);
   }
 
+  function listProjects() {
+    return subnet.describe().then((dBlock) => {
+      return dBlock.map((block) => {
+        return block.Tags;
+      });
+    }).then((tags) => {
+      return tags.map((tagGroup) => {
+        var result = null;
+        tagGroup.forEach((tag) => {
+          if (tag.Key === constants.PROJECT_TAG) {
+            result = tag.Value;
+          }
+        });
+        return result;
+      }).filter((identity) => {
+        return identity;
+      });
+    });
+  }
+
 
   return Q.all([
      vpc.findProject(),
@@ -142,8 +172,13 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
       createPR,
       createDeployment,
       destroy,
+      destroyPR,
       destroyDeployment,
       describeProject,
+      listProjects,
+
+      deployment,
+      pr: pullRequest,
       initializeGithubWebhookToken
     };
   });

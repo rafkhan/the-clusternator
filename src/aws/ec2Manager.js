@@ -32,7 +32,7 @@ var ls = Q.nbind(fs.readdir, fs),
 function loadUserPublicKeys(keyPath) {
   return ls(keyPath).then((keyFiles) => {
     return Q.all(keyFiles.map((fileName) => {
-      return readFile(path.normalize(keyPath + path.sep + fileName), UTF8);
+      return readFile(path.join(keyPath, fileName), UTF8);
     }));
   });
 }
@@ -152,8 +152,8 @@ function getECSContainerInstanceUserData(clusterName, auth, sshPath) {
     //util.info('Clusternator Ec2: Warning: Loading user defined SSH keys ' +
     //  'failed, custom logins disabled ' + err.message);
 
-    util.info('Notice, no user keys found in .private/ssh-public, logging ' +
-      '*not* possible');
+    util.info(`Notice, no user keys found in .private/
+    ${constants.SSH_PUBLIC_PATH}, logging '*not* possible`);
     return stringArrayToNewLineBase64(data);
   });
 }
