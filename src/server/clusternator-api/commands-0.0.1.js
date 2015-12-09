@@ -19,7 +19,7 @@ function getCommands(config) {
         destroy: a.destroy,
         build: (params) => {
           var  d = Q.defer(),
-            imageName = 'rafkhan/hello-raf-please-delete-me';
+            imageName = 'rafkhan/delete-me-i-am-from-docker-in-a-vm';
           dockernate
             .create('https://github.com/bennett000/js-seed-full-stack.git',
               imageName)

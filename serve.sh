@@ -19,6 +19,9 @@ gpg --out  ./clusternator.tar.gz --passphrase $PASSPHRASE --decrypt \
 echo "Extracting Configuration Tarball"
 tar xfz ./clusternator.tar.gz
 
+# run docker login (Clusternator only)
+./.private/docker-login.sh
+
 # Start the service
 echo "Starting Service"
 npm start

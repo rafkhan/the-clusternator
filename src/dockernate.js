@@ -36,12 +36,24 @@ function create(repo, image, tag, dockerFile) {
       process.chdir(repoDesc.path);
       util.info('Building Docker Image: ', image, `(${repo})`, tag);
 
+      var output = '', error = '';
+
       return docker.build(image, dockerFile)
         .then(() => {
           util.info('Pushing Docker Image: ', image, `(${repo})`, tag);
           return docker.push(image).fail(pfail('push', repoDesc.id));
+        }, (err) => {
+          console.log('ERROR', error);
+          console.log('Output', output);
+          pfail('build', repoDesc)(err);
+        }, (p) => {
+          if (p.error) {
+            error += p.error;
+          } else if (p.data) {
+            output += p.data;
+          }
         })
-        .fail(pfail('build', repoDesc.id))
+        //.fail(pfail('build', repoDesc.id))
         .then(() => {
           return git.destroy(repoDesc);
         })
