@@ -27,6 +27,7 @@ function middleWare(req, res, next) {
   var hash = 'sha1=' + hmac.read();
 
   if(hash === signature) {
+    log.info('Github signature match.');
     next(req, res);
   } else {
     var msg = 'Invalid signature. ' + 
