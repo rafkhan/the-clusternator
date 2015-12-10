@@ -21,7 +21,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     task = Task(ecs);
 
 
-  function createCluster(subnetId, pid, pr, appDef) {
+  function createCluster(subnetId, pid, pr, appDef, sshData) {
     var clusterName = rid.generateRID({
       pid: pid,
       pr: pr
@@ -40,7 +40,7 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         pr: pr,
         sgId: sgDesc.GroupId,
         subnetId: subnetId,
-        sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
+        sshPath: sshData || path.join('.private', constants.SSH_PUBLIC_PATH),
         apiConfig: {}
       }).then(function(ec2Results) {
         var ip = common.findIpFromEc2Describe(ec2Results);
@@ -53,14 +53,14 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     //- start system
   }
 
-  function create(pid, pr, appDef) {
+  function create(pid, pr, appDef, sshData) {
 
     return subnet.describeProject(pid).then(function(list) {
       if (!list.length) {
         throw new Error('Create Pull Request failed, no subnet found for ' +
           'Project: ' + pid + ' Pull Request # ' + pr);
       }
-      return createCluster(list[0].SubnetId, pid, pr, appDef);
+      return createCluster(list[0].SubnetId, pid, pr, appDef, sshData);
     });
   }
 

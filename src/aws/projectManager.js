@@ -69,11 +69,12 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
    * @param {string} pid
    * @param {string} pr
    * @param {Object} appDef
+   * @param {Object=} sshData
    * @returns {Q.Promise}
    */
-  function createPR(pid, pr, appDef) {
+  function createPR(pid, pr, appDef, sshData) {
     return findOrCreateProject(pid).then((snDesc) => {
-      return pullRequest.create(pid, pr, appDef);
+      return pullRequest.create(pid, pr, appDef, sshData);
     });
   }
 

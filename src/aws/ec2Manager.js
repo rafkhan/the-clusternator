@@ -25,6 +25,14 @@ var ls = Q.nbind(fs.readdir, fs),
 //var NETWORK_INTERFACE_ID = 'eni-66bd8349';
 
 /**
+ * @param input
+ * @returns {boolean}
+ */
+function isString(input) {
+  return typeof input === 'string';
+}
+
+/**
  * Loads _all_ the contents of a given path, it assumes they're public keys
  * @param {string} keyPath
  * @returns {Q.Promise<string[]>}
@@ -127,10 +135,10 @@ function stringArrayToNewLineBase64(arr) {
 /**
  * @param {string} clusterName
  * @param {{ username: string, password: string, email:string}|{cfg:string}} auth
- * @param sshPath
+ * @param {string|Buffer}sshDataOrPath
  * @returns {Q.Promise<string>}
  */
-function getECSContainerInstanceUserData(clusterName, auth, sshPath) {
+function getECSContainerInstanceUserData(clusterName, auth, sshDataOrPath) {
   var data = ['#!/bin/bash',
     'echo ECS_CLUSTER=' + clusterName + ' >> /etc/ecs/ecs.config;'
   ], authData = [];
@@ -145,7 +153,12 @@ function getECSContainerInstanceUserData(clusterName, auth, sshPath) {
 
   data = data.concat(authData);
 
-  return makeSSHUserData(sshPath).then((sshData) => {
+  if (!isString(sshDataOrPath)) {
+    data = data.concat(sshDataOrPath);
+    return Q.resolve(stringArrayToNewLineBase64(data));
+  }
+
+  return makeSSHUserData(sshDataOrPath).then((sshData) => {
     data = data.concat(sshData);
     return stringArrayToNewLineBase64(data);
   }, (err) => {
@@ -532,6 +545,8 @@ function getEC2Manager(ec2, vpcId) {
     }
   };
 }
+
+getEC2Manager.makeSSHUserData = makeSSHUserData;
 
 
 module.exports = getEC2Manager;

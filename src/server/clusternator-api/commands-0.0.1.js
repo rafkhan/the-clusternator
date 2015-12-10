@@ -1,5 +1,6 @@
 'use strict';
 
+const SSH_PUBLIC = 'ssh-public';
 const MAX_PROJECT_NAME = 150;
 const API = '0.0.1';
 
@@ -10,6 +11,7 @@ const aws = require('../../aws/project-init'),
   slack = require('../../cli-wrappers/slack'),
   clusternatorJson = require('../../clusternator-json'),
   config = require('../../config')(),
+  ec2 = require('../../aws/ec2Manager'),
   Projects = require('../db/projects'),
   Q = require('q');
 
@@ -91,7 +93,7 @@ function makePrCreate(pm) {
   return (body) => {
     var pr = sanitizePr(body.pr),
       sha = sanitizeSha(body.sha),
-      appDef;
+      appDef, sshData;
 
     return projects
       .find(body.id)
@@ -113,12 +115,22 @@ function makePrCreate(pm) {
                 path.join(desc.path, srcConfig.deploymentsDir, 'pr');
               util.info(`Collecting application definition(s)`);
               appDef = require(defPath );
+            })
+            .then(() => {
+              return ec2
+                .makeSSHUserData(path.join(desc.path, '.private', SSH_PUBLIC))
+                .then((userData) => {
+                  util.info('Collected SSH Public Keys');
+                  sshData = userData;
+                });
             });
         }).then((image) => {
           appDef.tasks[0].containerDefinitions[0].environment[0].value =
             project.sharedKey;
           appDef.tasks[0].containerDefinitions[0].image = image;
-          return pm.createPR(project.id, pr + '', appDef);
+          util.info('Launching PR With Appdef:');
+          util.info(JSON.stringify(appDef, null, 2));
+          return pm.createPR(project.id, pr + '', appDef, sshData);
         }).then(() => {
           return slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha} ` +
             'successful', project.channel);
