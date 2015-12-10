@@ -1,5 +1,7 @@
 'use strict';
 
+const POLL_INTERVAL = 30000;
+
 const Q = require('q'),
   util = require('../../util');
 
@@ -9,6 +11,12 @@ function getProjectsDB(config, pm) {
     init = populateFromAWS().fail((err) => {
       util.error('Projects: Failed to populate existing resources', err);
     });
+
+  poll();
+
+  function poll() {
+    setInterval(populateFromAWS, POLL_INTERVAL);
+  }
 
   function checkPrefix(prefix) {
     if (!prefix || prefix.length < 1) {

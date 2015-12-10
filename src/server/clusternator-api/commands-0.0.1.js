@@ -131,9 +131,10 @@ function makePrCreate(pm) {
           util.info('Launching PR With Appdef:');
           util.info(JSON.stringify(appDef, null, 2));
           return pm.createPR(project.id, pr + '', appDef, sshData);
-        }).then(() => {
+        }).then((prResult) => {
           return slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha} ` +
-            'successful', project.channel);
+            `successful.  Application will be available at <${prResult.url}>`,
+            project.channel);
         }).fail((err) => {
           slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha} ` +
             `failed: ${err.message}`, project.channel);
@@ -158,7 +159,7 @@ function makePrDestroy(pm) {
     return projects
       .find(body.id)
       .then((project) => {
-        return pm.destroyPR(project.id, pr);
+        return pm.destroyPR(project.id, pr + '');
       });
   };
 }

@@ -465,13 +465,12 @@ function deploy(y) {
         argv.d,
         results[1],
         appDef
-      ).then(() => {
+      ).then((result) => {
         var label = '-' + argv.d;
         if (argv.d === 'master') {
           label = '';
         }
-        util.info('Deployment will be available at ',
-          cJson.projectId + label + '.rangleapp.io');
+        util.info('Deployment will be available at ', result.url);
       });
     }).fail((err) => {
       util.info('Clusternator: Error creating deployment: ' + err.message);
