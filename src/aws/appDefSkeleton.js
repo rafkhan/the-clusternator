@@ -8,7 +8,7 @@ module.exports = Object.freeze({
           'portMappings': [
             {
               'hostPort': 80,
-              'containerPort': 8080,
+              'containerPort': 3000,
               'protocol': 'tcp'
             }
           ],
@@ -24,7 +24,7 @@ module.exports = Object.freeze({
           memory: 256,
           name: 'nodebasic',
           cpu: 256,
-          image: 'library/nginx'
+          image: ''
         }
       ],
       'volumes': [],

@@ -2,6 +2,7 @@
 const UTF8 = 'utf8';
 const DOCKERFILE = 'Dockerfile';
 const DOCKERIGNORE = '.dockerignore';
+const SERVE_SH = 'serve.sh';
 const CIRCLEFILE = 'circle.yml';
 
 var fs = require('fs'),
@@ -261,7 +262,7 @@ function installGitHook(root, name, passphrase) {
     contents = contents.replace('\$CLUSTERNATOR_PASS', passphrase);
     return writeFile(path.join(root, '.git', 'hooks', name), contents);
   }).then(() => {
-    return chmod(path.join(root, '.git', 'hooks', name), '+x');
+    return chmod(path.join(root, '.git', 'hooks', name), '700');
   });
 }
 
@@ -320,44 +321,69 @@ function initializeDeployments(depDir, projectId) {
       writeFile(path.join(depDir, 'master.json'), prAppDef),
       initializeDockerFile(),
       initializeCircleCIFile(),
-      initializeDockerIgnoreFile()
+      initializeDockerIgnoreFile(),
+      initializeServeSh()
     ]);
   });
 }
 
 function initializeDockerIgnoreFile() {
-  return clusternatorJson.findProjectRoot().then((root) => {
-    return getSkeletonFile(DOCKERIGNORE).then((contents) => {
-      return writeFile(path.join(root, DOCKERIGNORE), contents);
+  return clusternatorJson
+    .findProjectRoot()
+    .then((root) => {
+      return getSkeletonFile(DOCKERIGNORE)
+        .then((contents) => {
+          return writeFile(path.join(root, DOCKERIGNORE), contents);
+        });
     });
-  });
 }
 
 function initializeDockerFile() {
-  return clusternatorJson.findProjectRoot().then((root) => {
-    return getSkeletonFile(DOCKERFILE).then((contents) => {
-      return writeFile(path.join(root, DOCKERFILE), contents);
+  return clusternatorJson
+    .findProjectRoot()
+    .then((root) => {
+      return getSkeletonFile(DOCKERFILE)
+        .then((contents) => {
+          return writeFile(path.join(root, DOCKERFILE), contents);
+        });
     });
-  });
+}
+
+function initializeServeSh() {
+  return clusternatorJson
+    .findProjectRoot()
+    .then((root) => {
+      var sPath = path.join(root, SERVE_SH);
+      return getSkeletonFile(SERVE_SH)
+        .then((contents) => {
+          return writeFile(sPath, contents);
+        })
+        .then(() => {
+          return chmod(sPath, '755');
+        });
+    });
 }
 
 function initializeCircleCIFile() {
-  return clusternatorJson.findProjectRoot().then((root) => {
-    return getSkeletonFile(CIRCLEFILE).then((contents) => {
-      return writeFile(path.join(root, CIRCLEFILE), contents);
+  return clusternatorJson
+    .findProjectRoot()
+    .then((root) => {
+      return getSkeletonFile(CIRCLEFILE)
+        .then((contents) => {
+          return writeFile(path.join(root, CIRCLEFILE), contents);
+        });
     });
-  });
 }
 
 
 
 function initializeProject(y) {
-  var argv = y.demand('o').
-  alias('o', 'offline').
-  default('o', false).
-  describe('o', 'offline only, makes "clusternator.json" but does *not* ' +
-    'check the cloud infrastructure').
-    argv;
+  var argv = y.demand('o')
+    .alias('o', 'offline')
+    .default('o', false)
+    .describe('o', 'offline only, makes "clusternator.json" but does *not* ' +
+      'check the cloud infrastructure')
+    .argv;
 
   return getInitUserOptions().then((initDetails) => {
     var output = 'Clusternator Initialized With Config: ' +
@@ -407,9 +433,11 @@ function destroy(y) {
 function makePrivate(y) {
   demandPassphrase(y);
 
-  return clusternatorJson.makePrivate(y.argv.p).then(() => {
-    util.info('Clusternator: Private files/directories encrypted');
-  });
+  return clusternatorJson
+    .makePrivate(y.argv.p)
+    .then(() => {
+      util.info('Clusternator: Private files/directories encrypted');
+    }).done();
 }
 
 function readPrivate(y) {

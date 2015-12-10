@@ -316,7 +316,7 @@ function getConfigFrom(root) {
  * @return {Q.Promise<Object>}
  */
 function getConfig() {
-  return findProjectRoot(root)
+  return findProjectRoot()
     .then(getConfigFrom);
 }
 
@@ -368,29 +368,31 @@ function readPrivate(passPhrase, root) {
  * @returns {Q.Promise}
  */
 function makePrivate(passPhrase, root) {
-  return getConfig().then((config) => {
-    if (!config.private || !(Array.isArray(config.private) || !config.private.length)) {
-      throw new Error('Clusternator: No private assets marked in config file');
-    }
-    function makePrivateFromRoot(root) {
-      var tarFile = path.join(root, CLUSTERNATOR_TAR);
+  return getConfig()
+    .then((config) => {
+      if (!config.private || !(Array.isArray(config.private) || !config.private.length)) {
+        throw new Error('Clusternator: No private assets marked in config file');
+      }
 
-      return tar.ball(tarFile, config.private).then(() => {
-        return gpg.encryptFile(passPhrase, tarFile)
-      }).then(() => {
-        var rmPromises = config.private.map((fileOrFolder) => {
-          return rimraf(path.join(root, fileOrFolder));
+      function makePrivateFromRoot(root) {
+        var tarFile = path.join(root, CLUSTERNATOR_TAR);
+
+        return tar.ball(tarFile, config.private).then(() => {
+          return gpg.encryptFile(passPhrase, tarFile)
+        }).then(() => {
+          var rmPromises = config.private.map((fileOrFolder) => {
+            return rimraf(path.join(root, fileOrFolder));
+          });
+          rmPromises.push(rimraf(tarFile));
+          return Q.allSettled(rmPromises);
         });
-        rmPromises.push(rimraf(tarFile));
-        return Q.allSettled(rmPromises);
-      });
-    }
+      }
 
-    if (root) {
-      return makePrivateFromRoot(root);
-    }
-    return findProjectRoot().then(makePrivateFromRoot);
-  });
+      if (root) {
+        return makePrivateFromRoot(root);
+      }
+      return findProjectRoot().then(makePrivateFromRoot);
+    });
 }
 
 module.exports = {
