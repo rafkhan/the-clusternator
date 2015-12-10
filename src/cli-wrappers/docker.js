@@ -8,6 +8,7 @@ const COMMAND = 'docker',
   BUILD_CWD = './';
 
 const spawn = require('child_process').spawn,
+  util = require('../util'),
   Q = require('q');
 
 /**
@@ -38,6 +39,7 @@ function build(tag, dockerFile) {
   });
 
   docker.on('close', (code) => {
+    util.info('Docker Build: Process Exited', code);
     if (+code) {
       d.reject(new Error('docker terminated with exit code: ' + code));
     } else {
@@ -72,6 +74,7 @@ function push(tag) {
   });
 
   docker.on('close', (code) => {
+    util.info('Docker Push: Process Exited', code);
     if (+code) {
       d.reject(new Error('docker terminated with exit code: ' + code));
     } else {
@@ -102,6 +105,7 @@ function destroy(tag) {
   });
 
   docker.on('close', (code) => {
+    util.info('Docker Destroy: Process Exited', code);
     if (+code) {
       d.reject(new Error('docker terminated with exit code: ' + code));
     } else {

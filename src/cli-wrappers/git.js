@@ -201,14 +201,16 @@ function create(repo, identifier) {
       id:  repoId,
       path:  path.join(namespacePath, repoShort)
     };
-  util.verbose('Create/Checkout Git Repo', repo);
+  var repoMasked = repo.split('@').filter((i) => i);
+  repoMasked = repoMasked[repoMasked.length - 1];
+  util.verbose('Create/Checkout Git Repo', repoMasked);
   return mkdirp(namespacePath).then(() => {
-    util.info('Git Clone', repo);
+    util.info('Git Clone', repoMasked);
     process.chdir(namespacePath);
     return clone(repo);
   }).then(() => {
     process.chdir(repoDesc.path);
-    util.info('Git Checkout', repo);
+    util.info('Git Checkout', repoMasked);
     return checkout(identifier).fail((err) => {
       util.warn('git checkout failed, cloning from master/HEAD: ', err.message);
     });
@@ -225,7 +227,7 @@ function create(repo, identifier) {
  * @param {string} repoId
  */
 function destroy(repoId) {
-  util.info('Destryoing Git Repo: ', repoId);
+  util.info('Destroying Git Repo: ', repoId);
   process.chdir(path.normalize(TMP));
   return rimraf(path.normalize(TMP + '/' + repoId));
 }

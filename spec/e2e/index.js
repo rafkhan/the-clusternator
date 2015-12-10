@@ -16,7 +16,8 @@ function logOutput() {
 }
 
 function logError(e) {
-    console.log(e.message);
+  console.log(e.message);
+  console.log(e.stack);
 }
 
 module.exports = {

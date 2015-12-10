@@ -251,18 +251,29 @@ function skipIfExists(dir) {
 }
 
 /**
+ * @param {string} root
+ * @returns {Q.Promise}
+ * @private
+ */
+function privateExists_(root) {
+  var dir = path.join(root, CLUSTERNATOR_PRIVATE);
+  return readFile(dir).then(() => {
+    return dir;
+  }, (err) => {
+    util.info(`Clusternator: Encrypted Private File: ${dir} does not exist, or
+    is unreadable`);
+    throw err;
+  });
+}
+
+/**
  * Resolves if the
  * @returns {Q.Promise}
  */
 function privateExists() {
-  return findProjectRoot().then((root) => {
-    var dir = path.join(root, CLUSTERNATOR_PRIVATE);
-    return readFile(dir).then(() => {
-      return dir;
-    }, (err) => {
-      util.info('Clusternator: Encrypted Private File: ' + dir + ' does not exist, or is unreadable');
-      throw err;
-    });
+  return findProjectRoot()
+    .then((root) => {
+      return privateExists_(root);
   });
 }
 
@@ -294,51 +305,74 @@ function writeFromFullAnswers(fullAnswers) {
   });
 }
 
+function getConfigFrom(root) {
+  var file = fullPath(root);
+  return readFile(file, UTF8).then((file) => {
+    return JSON.parse(file);
+  });
+}
+
 /**
  * @return {Q.Promise<Object>}
  */
 function getConfig() {
-  return findProjectRoot().then((root) => {
-    var file = fullPath(root);
-    return readFile(file, UTF8).then((file) => {
-      return JSON.parse(file);
+  return findProjectRoot(root)
+    .then(getConfigFrom);
+}
+
+/**
+ * @param {string} tarPath
+ * @param {string} gpgPath
+ * @returns {Q.Promise}
+ */
+function untar(tarPath, gpgPath) {
+  return tar
+    .extract(tarPath)
+    .then(() => {
+      return Q.allSettled([
+        rimraf(gpgPath),
+        rimraf(tarPath)
+      ]);
     });
-  });
 }
 
 /**
  * @param {string} passPhrase
+ * @param {string} root=
  * @returns {Q.Promise}
  */
-function readPrivate(passPhrase) {
-  return privateExists().then(() => {
-    return findProjectRoot().then((root) => {
-      var gpgPath = path.join(root, CLUSTERNATOR_PRIVATE),
-        tarPath = path.join(root, CLUSTERNATOR_TAR);
-      return gpg.decryptFile(passPhrase, gpgPath, tarPath).then(() => {
-        return tar.extract(tarPath).then(() => {
-          return Q.allSettled([
-            rimraf(gpgPath),
-            rimraf(tarPath)
-          ]);
-        });
-      });
-    });
-  });
-}
+function readPrivate(passPhrase, root) {
+  if (!root) {
+    return findProjectRoot()
+      .then(readPrivateFromRoot);
+  } else {
+    return readPrivateFromRoot(root);
+  }
 
+  function readPrivateFromRoot(root) {
+    return privateExists_(root)
+      .then(() => {
+        var gpgPath = path.join(root, CLUSTERNATOR_PRIVATE),
+          tarPath = path.join(root, CLUSTERNATOR_TAR);
+
+        return gpg
+          .decryptFile(passPhrase, gpgPath, tarPath)
+          .then(() => untar(tarPath, gpgPath));
+      });
+  }
+}
 
 /**
  * Given a passphase make private tars, and encrypts a config's private section
  * @param {String} passPhrase
  * @returns {Q.Promise}
  */
-function makePrivate(passPhrase) {
+function makePrivate(passPhrase, root) {
   return getConfig().then((config) => {
     if (!config.private || !(Array.isArray(config.private) || !config.private.length)) {
       throw new Error('Clusternator: No private assets marked in config file');
     }
-    return findProjectRoot().then((root) => {
+    function makePrivateFromRoot(root) {
       var tarFile = path.join(root, CLUSTERNATOR_TAR);
 
       return tar.ball(tarFile, config.private).then(() => {
@@ -350,7 +384,12 @@ function makePrivate(passPhrase) {
         rmPromises.push(rimraf(tarFile));
         return Q.allSettled(rmPromises);
       });
-    });
+    }
+
+    if (root) {
+      return makePrivateFromRoot(root);
+    }
+    return findProjectRoot().then(makePrivateFromRoot);
   });
 }
 
@@ -361,6 +400,7 @@ module.exports = {
   findProjectRoot,
   fullPath,
   get: getConfig,
+  getFrom: getConfigFrom,
   privateExists,
   readPrivate,
   makePrivate,

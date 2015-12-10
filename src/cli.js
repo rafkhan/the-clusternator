@@ -218,7 +218,10 @@ function pickBestName(names) {
 function addPrivateToGitIgnore(fullAnswers) {
   var priv = fullAnswers.answers.private,
     addPromises = priv.map((privItem) => {
-      return git.addToGitIgnore(privItem);
+      return Q.all([
+        git.addToGitIgnore(privItem),
+        git.addToGitIgnore('clusternator.tar.gz')
+      ]);
     });
 
   return Q.all(addPromises);
@@ -535,15 +538,15 @@ function listProjects() {
 }
 
 function describe(y) {
-  y.demand('p').
-  alias('p', 'pull-request').
-  default('p', 'all', 'All pull requests').
-  describe('p', 'Limits the description to a pull request').
-  demand('r').
-  alias('r', 'resource').
-  default('r', 'all', 'All resource types').
-  choices('r', ['all', 'securityGroups', 'instances', 'services']).
-  describe('r', 'Limits the description to a resource type');
+  y.demand('p')
+    .alias('p', 'pull-request')
+    .default('p', 'all', 'All pull requests')
+    .describe('p', 'Limits the description to a pull request')
+    .demand('r')
+    .alias('r', 'resource')
+    .default('r', 'all', 'All resource types')
+    .choices('r', ['all', 'securityGroups', 'instances', 'services'])
+    .describe('r', 'Limits the description to a resource type');
 
   if (y.argv.p !== 'all') {
     util.info('Describing resources associated to pr #' + y.argv.p);

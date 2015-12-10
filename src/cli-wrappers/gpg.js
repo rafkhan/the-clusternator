@@ -11,6 +11,7 @@ const FLAG_SYMMETRIC = '--symmetric';
 const FLAG_DECRYPT = '--decrypt';
 
 var spawn = require('child_process').spawn,
+  util = require('../util'),
   crypto = require('crypto'),
   b64 = require('base64url'),
   Q = require('q');
@@ -144,6 +145,7 @@ function encryptFile(passphrase, filePath) {
   @return {Q.Promise<string>} promise to return clear text string
 */
 function decryptFile(passphrase, cipherFilePath, outputFilePath) {
+  console.log('DEBUG Decrypt');
   var d = Q.defer(),
     gpg = spawn(COMMAND, [
       FLAG_QUIET, FLAG_PASSPHRASE, passphrase, FLAG_OUT, outputFilePath,
@@ -154,6 +156,7 @@ function decryptFile(passphrase, cipherFilePath, outputFilePath) {
 
   gpg.stdout.on('data', (data) => {
     output += data;
+    console.log(data);
   });
 
   gpg.stderr.on('data', (data) => {
@@ -161,6 +164,7 @@ function decryptFile(passphrase, cipherFilePath, outputFilePath) {
   });
 
   gpg.on('close', (code) => {
+    util.info('gpg decrypt ended with ', code);
     if (+code) {
       d.reject(new Error('GPG terminated with exit code: ' + code));
     } else {
