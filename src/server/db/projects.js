@@ -1,5 +1,6 @@
 'use strict';
 
+const BACKENDS = ['static-npm', 'node'];
 const POLL_INTERVAL = 30000;
 
 const Q = require('q'),
@@ -76,6 +77,14 @@ function getProjectsDB(config, pm) {
     return Q.resolve(val);
   }
 
+  function validateBackend(be) {
+    var index = BACKENDS.indexOf(be);
+    if (index === -1) {
+      return BACKENDS[0];
+    }
+    return BACKENDS[index];
+  }
+
   function create(val) {
     const invalid = 'projects new at least an id, and repo';
     if (!val) {
@@ -92,7 +101,8 @@ function getProjectsDB(config, pm) {
       name: val.name || '',
       sharedKey: val.sharedKey || '',
       repoToken: val.repoToken || '',
-      channel: val.channel || val.id
+      channel: val.channel || val.id,
+      backend: validateBackend(val.backend)
     };
 
     return getItem(val.id)
@@ -113,7 +123,8 @@ function getProjectsDB(config, pm) {
     getItem,
     setItem,
     list,
-    init
+    init,
+    BACKENDS
   };
 }
 

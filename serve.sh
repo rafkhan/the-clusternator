@@ -30,4 +30,4 @@ fi
 
 # Start the service
 echo "Starting Service"
-npm start
+exec npm start

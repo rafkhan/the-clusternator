@@ -69,14 +69,16 @@ function sanitizeSha(sha) {
  */
 function prCreateDocker(project, pr, sha, middleware) {
   const image = `${config.dockerRegistryPrefix}${project.id}:${pr}`;
-  return dockernate.create(project.repo, image, sha, middleware)
+  return dockernate.create(
+    project.backend, project.repo, image, sha, middleware)
     .then(() => {
       return image;
     }, (err) => {
       throw err;
     }, (update) => {
-      if (update.data) {
-        console.log(update.data);
+      if (!update) {
+        util.info('prCreateDocker: unexpected lack of data');
+        return;
       }
       if (update.error) {
         console.log(update.error);
@@ -174,12 +176,21 @@ function listProjects(req, res, next) {
   }, getPFail(res))
 }
 
+function validateBackend(be) {
+  var index = projects.BACKENDS.indexOf(be);
+  if (index === -1) {
+    return projects.BACKENDS[0];
+  }
+  return projects.BACKENDS[1];
+}
+
 function setProject(req, res, next) {
   projects.find(req.params.project).then((p) => {
     p.name = req.body.name;
     p.sharedKey = req.body.sharedKey;
     p.repoToken = req.body.repoToken;
     p.channel = req.body.channel;
+    p.backend = validateBackend(req.body.backend);
     return projects
       .setItem(p.id, p)
       .then(() => {
@@ -200,7 +211,9 @@ function getProject(req, res, next) {
         channel: project.channel
       });
     } else {
-      res.render('project', {api: API, project: project});
+      res.render('project', {
+        api: API, project: project, backends: projects.BACKENDS
+      });
     }
   }, () => {
     res.status(404).json({ error: 'Not Found'});

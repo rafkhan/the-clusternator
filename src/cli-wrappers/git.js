@@ -60,14 +60,21 @@ function gitIgnoreHasItem(toIgnore, ignores) {
 }
 
 function addToGitIgnore(toIgnore) {
+  if (!Array.isArray(toIgnore)) {
+    toIgnore = [toIgnore];
+  }
   return readGitIgnore().then((ignores) => {
     var output;
-    if (gitIgnoreHasItem(toIgnore, ignores)) {
-      // item already exists
+    var newIgnores = toIgnore.filter((item) => {
+      return ignores.indexOf(item) === -1;
+    });
+
+    if (!newIgnores.length) {
+      // items already exists
       return;
     }
     return gitIgnorePath().then((ignoreFile) => {
-      ignores.push(toIgnore);
+      ignores = ignores.concat(newIgnores);
       output = ignores.join(NEWLINE);
       return writeFile(ignoreFile, output);
     });

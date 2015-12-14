@@ -1,6 +1,8 @@
 'use strict';
 const UTF8 = 'utf8';
 const DOCKERFILE = 'Dockerfile';
+const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3';
+const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx';
 const DOCKERIGNORE = '.dockerignore';
 const SERVE_SH = 'serve.sh';
 const CIRCLEFILE = 'circle.yml';
@@ -219,10 +221,7 @@ function pickBestName(names) {
 function addPrivateToGitIgnore(fullAnswers) {
   var priv = fullAnswers.answers.private,
     addPromises = priv.map((privItem) => {
-      return Q.all([
-        git.addToGitIgnore(privItem),
-        git.addToGitIgnore('clusternator.tar.gz')
-      ]);
+        return git.addToGitIgnore([privItem, 'clusternator.tar.gz']);
     });
 
   return Q.all(addPromises);
@@ -342,7 +341,7 @@ function initializeDockerFile() {
   return clusternatorJson
     .findProjectRoot()
     .then((root) => {
-      return getSkeletonFile(DOCKERFILE)
+      return getSkeletonFile(DOCKERFILE_NODE_LATEST)
         .then((contents) => {
           return writeFile(path.join(root, DOCKERFILE), contents);
         });
@@ -437,7 +436,7 @@ function makePrivate(y) {
     .makePrivate(y.argv.p)
     .then(() => {
       util.info('Clusternator: Private files/directories encrypted');
-    }).done();
+    });
 }
 
 function readPrivate(y) {
@@ -642,7 +641,7 @@ function dockerBuild(y) {
       });
   }).fail((err) => {
     util.error('Error building local Docker image: ', err.message);
-  });
+  }).done();
 }
 
 module.exports = {

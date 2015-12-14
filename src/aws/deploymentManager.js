@@ -35,33 +35,45 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
       sha
     });
 
-    return Q.all([
-      securityGroup.createDeployment(pid, deployment, sha),
-      cluster.create(clusterName)
-    ]).
-    then(function(results) {
-      var sgDesc = results[0];
+    return Q
+      .all([
+        securityGroup.createDeployment(pid, deployment, sha),
+        cluster.create(clusterName)
+      ])
+      .then(function(results) {
+        var sgDesc = results[0];
 
-      return ec2mgr.createDeployment({
-        clusterName: clusterName,
-        pid: pid,
-        deployment: deployment,
-        sha: sha,
-        sgId: sgDesc.GroupId,
-        subnetId: subnetId,
-        sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
-        apiConfig: {}
-      }).then(function(ec2Results) {
-        var ip = common.findIpFromEc2Describe(ec2Results);
-        return route53.createDeploymentARecord(pid, deployment, ip).fail(() => {
-          // fail over
-          return;
-        });
+        return ec2mgr
+          .createDeployment({
+            clusterName: clusterName,
+            pid: pid,
+            deployment: deployment,
+            sha: sha,
+            sgId: sgDesc.GroupId,
+            subnetId: subnetId,
+            sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
+            apiConfig: {}
+          })
+          .then(function(ec2Results) {
+            var ip = common.findIpFromEc2Describe(ec2Results);
+            return route53
+              .createDeploymentARecord(pid, deployment, ip)
+              .then((urlDesc) => {
+                return urlDesc;
+              })
+              .fail(() => {
+                // fail over
+                return;
+              });
+          });
+      }).
+      then(function(urlDesc) {
+        return task
+          .create(clusterName, clusterName, appDef)
+          .then(() => {
+            return urlDesc;
+          });
       });
-    }).
-    then(function() {
-      return task.create(clusterName, clusterName, appDef);
-    });
     //- start system
   }
 

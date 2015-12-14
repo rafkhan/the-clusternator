@@ -29,6 +29,7 @@ function build(tag, dockerFile) {
     });
 
   docker.stdout.setEncoding('utf8');
+  docker.stderr.setEncoding('utf8');
 
   docker.stdout.on('data', (data) => {
     d.notify({ data: data });
@@ -64,6 +65,7 @@ function push(tag) {
     docker = spawn(COMMAND, [FLAG_PUSH, tag]);
 
   docker.stdout.setEncoding('utf8');
+  docker.stderr.setEncoding('utf8');
 
   docker.stdout.on('data', (data) => {
     d.notify({ data: data });
@@ -95,6 +97,9 @@ function destroy(tag) {
     docker = spawn(COMMAND, [FLAG_RMI, tag]),
     error = '',
     output = '';
+
+  docker.stdout.setEncoding('utf8');
+  docker.stderr.setEncoding('utf8');
 
   docker.stdout.on('data', (data) => {
     output += data;

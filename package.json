@@ -18,6 +18,7 @@
   "bugs": {
     "url": "https://github.com/rangle/the-clusternator/issues"
   },
+  "os": ["!win32"],
   "scripts": {
     "start": "node ./server-init.js",
     "dev": "NODE_ENV=debug; nodemon ./server-init.js",

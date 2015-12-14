@@ -4,6 +4,7 @@ const DOCKER_BUILD_HOOK_TIMEOUT = 120000;
 
 const  Q = require('q'),
   git = require('./cli-wrappers/git'),
+  npm = require('./cli-wrappers/npm'),
   docker = require('./cli-wrappers/docker'),
   util = require('./util');
 
@@ -124,8 +125,24 @@ function validateMiddleware(middleware) {
   return tryMiddleware;
 }
 
+function prepareProject(backend) {
+  if (backend !== 'static-npm') {
+    util.info(`Preparing Project Backend: ${backend}`);
+    return Q.resolve();
+  }
+  util.info(`Preparing Project Backend: ${backend}, CWD: ${process.cwd()}`);
+  var d = Q.defer();
+  npm.install()
+    .then(() => {
+      util.info(`Building Project From CWD: ${process.cwd()}`);
+      return npm.build()
+      .then(d.resolve, d.reject, d.notify);
+    }, d.reject, d.notify)
+  return d.promise;
+}
+
 /**
- *
+ * @param {string} backend type of project backend
  * @param {string} repo repository path/URI
  * @param {string} image name of docker image
  * @param {string=} tag SHA git tag, or actual git tag
@@ -133,7 +150,7 @@ function validateMiddleware(middleware) {
  * @param {string=} dockerFile
  * @returns {Q.Promise<string>} the image name
  */
-function create(repo, image, tag, middleware, dockerFile) {
+function create(backend, repo, image, tag, middleware, dockerFile) {
   if (!repo || !image) {
     return Q.reject(
       new TypeError('Dockernator create requires repo, image'));
@@ -146,11 +163,15 @@ function create(repo, image, tag, middleware, dockerFile) {
   git
     .create(repo, tag)
     .then((repoDesc) => {
-      util.verbose('CWD -> ', repoDesc.path);
+      util.info('CWD -> ', repoDesc.path);
       process.chdir(repoDesc.path);
-      util.info('Building Docker Image: ', image, `(${repoMasked})`, tag);
-      dockerBuild(repo, repoDesc, image, tag, middleware, dockerFile)
-        .then(() => d.resolve(image), d.reject, d.notify);
+      return prepareProject(backend)
+        .then(() => {}, d.reject, d.notify)
+        .then(() => {
+          util.info('Building Docker Image: ', image, `(${repoMasked})`, tag);
+          return dockerBuild(repo, repoDesc, image, tag, middleware, dockerFile)
+            .then(() => d.resolve(image), d.reject, d.notify);
+        });
     }).fail(d.reject);
   return d.promise;
 }
