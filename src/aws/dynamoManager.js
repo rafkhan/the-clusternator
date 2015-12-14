@@ -89,7 +89,7 @@ function getDynamoDBManager(ddb) {
 
   function getItems(tableName, keyConditions) {
     var params = {
-      TableName: tableName
+      TableName: tableName,
       KeyConditions: keyConditions
     };
   }

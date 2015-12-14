@@ -126,8 +126,9 @@ function createServer(prManager, ddbManager) {
       curriedPushHandler
     ]); // CI post-build hook
 
+  var ghMiddleware = githubAuthMiddleware(ddbManager)
   app.post('/github/pr', [
-    githubAuthMiddleware(ddbManager),
+    ghMiddleware,
     curriedPRHandler
   ]);     // github close PR hook
 

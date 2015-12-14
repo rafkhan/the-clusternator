@@ -60,6 +60,8 @@ function middlewareFactory(ddbManager) {
         }
       }, q.reject);
   }
+
+  return middleWare;
 }
 
-module.exports = middleWareFactory;
+module.exports = middlewareFactory;
