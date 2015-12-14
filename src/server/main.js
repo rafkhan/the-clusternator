@@ -34,7 +34,7 @@ var clusternatorApi = require('./clusternator-api');
 
 var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
 
-function createServer(prManager) {
+function createServer(prManager, ddbManager) {
   var app = express();
 
   /**
@@ -126,8 +126,9 @@ function createServer(prManager) {
       curriedPushHandler
     ]); // CI post-build hook
 
+  var ghMiddleware = githubAuthMiddleware(ddbManager)
   app.post('/github/pr', [
-    //githubAuthMiddleware,
+    ghMiddleware,
     curriedPRHandler
   ]);     // github close PR hook
 
@@ -217,7 +218,9 @@ function getServer(config) {
     .then(() => {
       return loadPRManagerAsync(a.ec2, a.ecs, a.r53)
     }, q.reject)
-    .then(createServer, q.reject);
+    .then((prManager) => {
+      return createServer(prManager, ddbManager);
+    }, q.reject);
 }
 
 function startServer(config) {
