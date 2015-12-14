@@ -9,8 +9,31 @@
 <ul>
     <li>
         <form action="/<%= api %>/projects/build" method="post">
-            <input type="hidden" value="<%= project %>" name="project[0]" />
+            <input type="hidden" value="<%= project.id %>" name="project[0]" />
             <input type="submit" value="Build Docker Image" />
+        </form>
+    </li>
+    <li>
+        <form action="/<%= api %>/projects/<%= project.id %>" method="post">
+            <label for="name">Project Name</label>
+            <input type="text" value="<%= project.name %>" name="name" />
+            <label for="channel">Channel</label>
+            <input type="text" value="<%= project.channel %>" name="channel"/>
+            <label for="sharedKey">Shared Key (Project's .private)</label>
+            <input type="password" value="<%= project.sharedKey %>" name="sharedKey"/>
+            <label for="sharedKey">Repo Key (GitHub)</label>
+            <input type="password" value="<%= project.repoToken %>" name="repoToken"/>
+            <label for="backend">Backend</label>
+            <select name="backend">
+              <% backends.forEach(function (be) { %>
+                <% if (be == project.backend) { %>
+                  <option value="<%= be %>" selected><%= be %></option>
+                <% } else { %>
+                  <option value="<%= be %>"><%= be %></option>
+                <% } %>
+              <% }); %>
+            </select>
+            <input type="submit" value="Change" />
         </form>
     </li>
 </ul>

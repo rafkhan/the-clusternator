@@ -84,11 +84,8 @@ function executeCommand(commands) {
       getPFail(res)(new Error('Invalid Command'));
       return;
     }
-    if (!Array.isArray(req.body.params)) {
-      req.body.params = [];
-    }
 
-    fn(req.body.params).then((output) => {
+    fn(req.body).then((output) => {
       if (req.get('ContentType') === 'application/json') {
         res.json(output);
       } else {
@@ -98,33 +95,6 @@ function executeCommand(commands) {
   }
 }
 
-function getListProjects(commands) {
-  return (req, res, next) => {
-    commands.projects.list().then((projects) => {
-      if (req.get('ContentType') === 'application/json') {
-        res.json(projects);
-      } else {
-        res.render('projects', { api: API, projects: projects });
-      }
-    }, getPFail(res))
-  }
-}
-
-function getProject(commands) {
-  return (req, res, next) => {
-    commands.projects.list().then((projects) => {
-      if (projects.indexOf(req.params.project) === -1) {
-        res.status(404).json({ error: req.params.project + ' not found' });
-        return;
-      }
-      if (req.get('ContentType') === 'application/json') {
-        res.json(req.params.project);
-      } else {
-        res.render('project', {api: API, project: req.params.project});
-      }
-    }, getPFail(res));
-  }
-}
 
 function authSwitch(req, res, next) {
   if (req.isAuthenticated()) {
@@ -143,11 +113,15 @@ function init(app) {
     logger.debug(`API ${API} Got CommandObjects`);
     app.get(`/${API}/projects`, [
       authSwitch,
-      getListProjects(commands)
+      commands.projects.list
     ]);
     app.get(`/${API}/projects/:project`, [
       authSwitch,
-      getProject(commands)
+      commands.projects.getProject
+    ]);
+    app.post(`/${API}/projects/:project`, [
+      authSwitch,
+      commands.projects.setProject
     ]);
     app.post(`/${API}/:namespace/:command`, [
       authSwitch,

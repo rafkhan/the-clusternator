@@ -22,9 +22,6 @@ if [ -e ./$ENCRYPTED_TARBALL ]; then
   # extract the configuration tarball
   echo "Extracting Configuration Tarball"
   tar xfz ./$TARBALL
-
-  # run docker login (Clusternator only)
-  ./.private/docker-login.sh
 fi
 
 

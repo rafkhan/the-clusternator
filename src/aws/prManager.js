@@ -18,49 +18,69 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     cluster = Cluster(ecs),
     route53 = Route53(r53, zoneId),
     ec2mgr = Ec2(ec2, vpcId),
-    task = Task(ecs);
+    task = Task(ecs),
+    config = require('../config')();
 
+  function qualifyUrl(url) {
+    var tld = config.tld || '.example.com';
+    if (tld[0] !== '.') {
+      tld = `.${tld}`;
+    }
+    return url + tld;
+  }
 
-  function createCluster(subnetId, pid, pr, appDef) {
+  function createCluster(subnetId, pid, pr, appDef, sshData) {
     var clusterName = rid.generateRID({
       pid: pid,
       pr: pr
-    });
+    }), prUrl = '';
 
-    return Q.all([
-      securityGroup.createPr(pid, pr),
-      cluster.create(clusterName)
-    ]).
-    then(function(results) {
-      var sgDesc = results[0];
+    return Q
+      .all([
+        securityGroup.createPr(pid, pr),
+        cluster.create(clusterName)
+      ])
+      .then((results) => {
+        var sgDesc = results[0];
 
-      return ec2mgr.createPr({
-        clusterName: clusterName,
-        pid: pid,
-        pr: pr,
-        sgId: sgDesc.GroupId,
-        subnetId: subnetId,
-        sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
-        apiConfig: {}
-      }).then(function(ec2Results) {
-        var ip = common.findIpFromEc2Describe(ec2Results);
-        return route53.createPRARecord(pid, pr, ip);
+        return ec2mgr
+          .createPr({
+            clusterName: clusterName,
+            pid: pid,
+            pr: pr,
+            sgId: sgDesc.GroupId,
+            subnetId: subnetId,
+            sshPath: sshData || path.join('.private', constants.SSH_PUBLIC_PATH),
+            apiConfig: {}
+          })
+          .then((ec2Results) => {
+            var ip = common.findIpFromEc2Describe(ec2Results);
+            return route53
+              .createPRARecord(pid, pr, ip)
+              .then((url) => {
+                prUrl = qualifyUrl(url);
+              });
+          });
+      })
+      .then(() => {
+        return task.create(clusterName, clusterName, appDef);
+      })
+      .then(() => {
+        return {
+          url: prUrl
+        }
       });
-    }).
-    then(function() {
-      return task.create(clusterName, clusterName, appDef);
-    });
     //- start system
   }
 
-  function create(pid, pr, appDef) {
+  function create(pid, pr, appDef, sshData) {
 
-    return subnet.describeProject(pid).then(function(list) {
+    return subnet.describeProject(pid).then((list) => {
       if (!list.length) {
         throw new Error('Create Pull Request failed, no subnet found for ' +
           'Project: ' + pid + ' Pull Request # ' + pr);
       }
-      return createCluster(list[0].SubnetId, pid, pr, appDef);
+      return createCluster(list[0].SubnetId, pid, pr, appDef, sshData);
     });
   }
 

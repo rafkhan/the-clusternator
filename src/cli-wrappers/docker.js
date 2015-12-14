@@ -8,6 +8,7 @@ const COMMAND = 'docker',
   BUILD_CWD = './';
 
 const spawn = require('child_process').spawn,
+  util = require('../util'),
   Q = require('q');
 
 /**
@@ -28,6 +29,7 @@ function build(tag, dockerFile) {
     });
 
   docker.stdout.setEncoding('utf8');
+  docker.stderr.setEncoding('utf8');
 
   docker.stdout.on('data', (data) => {
     d.notify({ data: data });
@@ -38,6 +40,7 @@ function build(tag, dockerFile) {
   });
 
   docker.on('close', (code) => {
+    util.info('Docker Build: Process Exited', code);
     if (+code) {
       d.reject(new Error('docker terminated with exit code: ' + code));
     } else {
@@ -62,6 +65,7 @@ function push(tag) {
     docker = spawn(COMMAND, [FLAG_PUSH, tag]);
 
   docker.stdout.setEncoding('utf8');
+  docker.stderr.setEncoding('utf8');
 
   docker.stdout.on('data', (data) => {
     d.notify({ data: data });
@@ -72,6 +76,7 @@ function push(tag) {
   });
 
   docker.on('close', (code) => {
+    util.info('Docker Push: Process Exited', code);
     if (+code) {
       d.reject(new Error('docker terminated with exit code: ' + code));
     } else {
@@ -93,6 +98,9 @@ function destroy(tag) {
     error = '',
     output = '';
 
+  docker.stdout.setEncoding('utf8');
+  docker.stderr.setEncoding('utf8');
+
   docker.stdout.on('data', (data) => {
     output += data;
   });
@@ -102,6 +110,7 @@ function destroy(tag) {
   });
 
   docker.on('close', (code) => {
+    util.info('Docker Destroy: Process Exited', code);
     if (+code) {
       d.reject(new Error('docker terminated with exit code: ' + code));
     } else {

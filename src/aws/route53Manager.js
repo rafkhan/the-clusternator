@@ -157,11 +157,11 @@ function getRoute53(route53, zoneId) {
     @return {Q.Promise}
   */
   function createPRARecord(pid, pr, ip, config) {
-    return findTld().then(function(tld) {
+    return findTld().then((tld) => {
       var domainName = rid.generatePRSubdomain(pid, pr);
-      return route53.changeResourceRecordSets(
-        createAParams(domainName, ip, tld, config)
-      );
+      return route53
+        .changeResourceRecordSets(createAParams(domainName, ip, tld, config))
+        .then(() => domainName);
     });
   }
 
@@ -185,11 +185,12 @@ function getRoute53(route53, zoneId) {
    @return {Q.Promise}
    */
   function createDeploymentARecord(pid, deployment, ip, config) {
-    return findTld().then(function(tld) {
+    return findTld()
+      .then((tld) => {
       var domainName = generateDeploymentDomain(pid, deployment);
-      return route53.changeResourceRecordSets(
-        createAParams(domainName, ip, tld, config)
-      );
+      return route53
+        .changeResourceRecordSets(createAParams(domainName, ip, tld, config))
+        .then(() => domainName);
     });
   }
 

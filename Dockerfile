@@ -1,4 +1,4 @@
-FROM rafkhan/rangle-node:14.04-4.2.2
+FROM rafkhan/rangle-node:14.04-4.2.3
 
 # application installs
 
@@ -6,8 +6,12 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y apt-transport-https
 RUN echo deb http://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list
 RUN apt-key adv --keyserver pgp.mit.edu --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
-RUN sudo apt-get update
-RUN sudo apt-get install -y git lxc-docker-1.6.2
+RUN sudo apt-get update && sudo apt-get install -y git lxc-docker-1.6.2
+RUN sudo apt-get update && sudo apt-get install -y build-essential default-jre unzip wget
+ENV PATH /usr/local/bin:$PATH
+
+# Global NPMs
+RUN npm install -g webpack gulp-cli grunt-cli mocha jasmine karma
 
 RUN mkdir /home/app
 COPY . /home/app/
