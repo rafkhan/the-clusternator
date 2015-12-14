@@ -43,6 +43,7 @@ function getDynamoDBManager(ddb) {
   var ddbCreateTable   = q.nbind(ddb.createTable, ddb);
   var ddbDescribeTable = q.nbind(ddb.describeTable, ddb);
   var ddbPutItem       = q.nbind(ddb.putItem, ddb);
+  var ddbQuery         = q.nbind(ddb.putItem, ddb);
 
   function checkTableExistence(tableName) {
     return ddbListTables()
@@ -86,12 +87,21 @@ function getDynamoDBManager(ddb) {
     return ddbPutItem(params);
   }
 
+  function getItems(tableName, keyConditions) {
+    var params = {
+      TableName: tableName
+      KeyConditions: keyConditions
+    };
+  }
+
+
   return {
     checkTableExistence: checkTableExistence,
     createTable: createTable,
     checkActiveTable: checkActiveTable,
     tableNames: tableNames,
-    insertItem: insertItem
+    insertItem: insertItem,
+    getItems: getItems
   };
 }
 
