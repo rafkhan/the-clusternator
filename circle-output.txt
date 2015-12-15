@@ -1,0 +1,708 @@
+nfo: Found Resources For Project: some-test-project but no database entry.  Added new db entry for some-test-project
+info: Found Resources For Project: angular-redux-starter but no database entry.  Added new db entry for angular-redux-starter
+DEBUG
+DEBUG
+{
+  "payload": {
+    "compare": null,
+    "previous_successful_build": {
+      "build_num": 313,
+      "status": "success",
+      "build_time_millis": 218498
+    },
+    "build_parameters": null,
+    "oss": false,
+    "committer_date": "2015-12-15T13:47:26Z",
+    "steps": [
+      {
+        "name": "Starting the build",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": false,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Starting the build",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:02:02.519Z",
+            "type": "infrastructure",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/76129d97c140f4e925d10765-rangle-sideboard-0-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=f7%2F7daDGFagamodwYW%2FqaNBddRU%3D",
+            "start_time": "2015-12-15T14:01:54.997Z",
+            "exit_code": null,
+            "canceled": null,
+            "step": 0,
+            "run_time_millis": 7522,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Start container",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Start container",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:02:15.260Z",
+            "source": "config",
+            "type": "infrastructure",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/e6129d97c140f4e9a5d10765-rangle-sideboard-1-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=sPhdJjbdZeUwUPPyA1dlGIOGZEs%3D",
+            "start_time": "2015-12-15T14:02:02.531Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 1,
+            "run_time_millis": 12729,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Enable SSH",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Enable SSH",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:02:17.131Z",
+            "type": "infrastructure",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/57129d97c140f4e976d10765-rangle-sideboard-2-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=JwK6zCd0AmM4l44Eee%2BP6SHDLhY%3D",
+            "start_time": "2015-12-15T14:02:15.272Z",
+            "exit_code": null,
+            "canceled": null,
+            "step": 2,
+            "run_time_millis": 1859,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Restore source cache",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": false,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Restore source cache",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:02:19.138Z",
+            "source": "cache",
+            "type": "checkout",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/87129d97c140f4e996d10765-rangle-sideboard-3-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=Yp7KEKavITv5jDtKKmz2fWow2O8%3D",
+            "start_time": "2015-12-15T14:02:17.142Z",
+            "exit_code": null,
+            "canceled": null,
+            "step": 3,
+            "run_time_millis": 1996,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Checkout using deploy key: c1:e6:b9:b6:bb:64:4c:c8:f3:4e:18:94:88:15:c3:6d",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Checkout using deploy key: c1:e6:b9:b6:bb:64:4c:c8:f3:4e:18:94:88:15:c3:6d",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:02:22.127Z",
+            "source": "config",
+            "type": "checkout",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/d7129d97c140f4e9b6d10765-rangle-sideboard-4-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=hhwcY2LAY4gEj0zb27TYMkgvX5Y%3D",
+            "start_time": "2015-12-15T14:02:19.147Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 4,
+            "run_time_millis": 2980,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Configure the build",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": false,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Configure the build",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:02:26.203Z",
+            "source": "cache",
+            "type": "machine",
+            "messages": [],
+            "start_time": "2015-12-15T14:02:22.135Z",
+            "exit_code": null,
+            "canceled": null,
+            "step": 5,
+            "run_time_millis": 4068,
+            "has_output": false
+          }
+        ]
+      },
+      {
+        "name": "Exporting env vars from project settings",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Exporting env vars from project settings",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:02:27.136Z",
+            "source": "db",
+            "type": "machine",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/28129d97c140f4e927d10765-rangle-sideboard-6-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=34%2FImRKMDQVQWhFEWYmX8exNlAY%3D",
+            "start_time": "2015-12-15T14:02:26.209Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 6,
+            "run_time_millis": 927,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "set node.js version to 4.2.3",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "set node.js version to 4.2.3",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:02:31.015Z",
+            "source": "inference",
+            "type": "machine",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/38129d97c140f4e937d10765-rangle-sideboard-7-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=wIidreeVR5jtS9HqHLmqhqfgnuM%3D",
+            "start_time": "2015-12-15T14:02:27.143Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 7,
+            "run_time_millis": 3872,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Restore cache",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": false,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Restore cache",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:02:45.669Z",
+            "source": "cache",
+            "type": "machine",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/78129d97c140f4e977d10765-rangle-sideboard-8-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=0XxXttG3H%2BD0MheGKF%2BoE60fURw%3D",
+            "start_time": "2015-12-15T14:02:31.026Z",
+            "exit_code": null,
+            "canceled": null,
+            "step": 8,
+            "run_time_millis": 14643,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "npm install webpack",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "npm install webpack",
+            "bash_command": "npm install webpack",
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:03:01.343Z",
+            "source": "config",
+            "type": "dependencies",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/f8129d97c140f4e958d10765-rangle-sideboard-9-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=IgdQki9YKvF95XPmoOzG0U8W9dU%3D",
+            "start_time": "2015-12-15T14:02:45.680Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 9,
+            "run_time_millis": 15663,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "npm install babel-eslint",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "npm install babel-eslint",
+            "bash_command": "npm install babel-eslint",
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:03:15.814Z",
+            "source": "config",
+            "type": "dependencies",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/49129d97c140f4e959d10765-rangle-sideboard-10-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=4kNIjRxmrf7GUDzKWxI%2Fsm%2FmSnY%3D",
+            "start_time": "2015-12-15T14:03:01.352Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 10,
+            "run_time_millis": 14462,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Exporting PATH",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Exporting PATH",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:03:16.748Z",
+            "source": "inference",
+            "type": "dependencies",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/a9129d97c140f4e93ad10765-rangle-sideboard-11-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=rYqyh2rGBBjMcUwEHUchvH3VjIA%3D",
+            "start_time": "2015-12-15T14:03:15.822Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 11,
+            "run_time_millis": 926,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "npm install",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "npm install",
+            "bash_command": "npm install",
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:04:17.272Z",
+            "source": "inference",
+            "type": "dependencies",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/c9129d97c140f4e94ad10765-rangle-sideboard-12-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=bMlkMDfD%2BcELQCA%2FjzYAyZ92u%2Bc%3D",
+            "start_time": "2015-12-15T14:03:16.757Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 12,
+            "run_time_millis": 60515,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Exporting RAILS_ENV, RACK_ENV",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Exporting RAILS_ENV, RACK_ENV",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:04:18.209Z",
+            "source": "inference",
+            "type": "dependencies",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/6a129d97c140f4e91ed10765-rangle-sideboard-13-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=DosmtAtMTVcpkQ2CF0jZTfxaz9A%3D",
+            "start_time": "2015-12-15T14:04:17.283Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 13,
+            "run_time_millis": 926,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "bundle install",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "bundle install",
+            "bash_command": "bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3 ",
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:04:19.447Z",
+            "source": "inference",
+            "type": "dependencies",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/7a129d97c140f4e92ed10765-rangle-sideboard-14-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=6aAwT5THhmGiGxun9%2F3KkmAbKZE%3D",
+            "start_time": "2015-12-15T14:04:18.220Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 14,
+            "run_time_millis": 1227,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "./scripts/decrypt.sh",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "./scripts/decrypt.sh",
+            "bash_command": "./scripts/decrypt.sh",
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:04:20.383Z",
+            "source": "config",
+            "type": "dependencies",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/aa129d97c140f4e93ed10765-rangle-sideboard-15-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=i5Fu%2B9u2qLv9KIusPcBTRha8bv0%3D",
+            "start_time": "2015-12-15T14:04:19.455Z",
+            "exit_code": 0,
+            "canceled": null,
+            "step": 15,
+            "run_time_millis": 928,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Save cache",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": false,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Save cache",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:04:21.450Z",
+            "source": "cache",
+            "type": "database",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/ca129d97c140f4e94ed10765-rangle-sideboard-16-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=wI5Gi2Ljtt52A1TLSj3Fn0QOu%2BI%3D",
+            "start_time": "2015-12-15T14:04:20.388Z",
+            "exit_code": null,
+            "canceled": null,
+            "step": 16,
+            "run_time_millis": 1062,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "npm test",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": true,
+            "infrastructure_fail": null,
+            "name": "npm test",
+            "bash_command": "npm test",
+            "status": "failed",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:04:49.871Z",
+            "source": "inference",
+            "type": "test",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/da129d97c140f4e95ed10765-rangle-sideboard-17-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=UmaN4R7tGpihriRu74hJZtNG3lU%3D",
+            "start_time": "2015-12-15T14:04:21.458Z",
+            "exit_code": 1,
+            "canceled": null,
+            "step": 17,
+            "run_time_millis": 28413,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Collect test metadata",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Collect test metadata",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:04:53.032Z",
+            "type": "teardown",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/1b129d97c140f4e910e10765-rangle-sideboard-18-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=7eFUemh3ZddAIxlJWkbRVTLOfL8%3D",
+            "start_time": "2015-12-15T14:04:49.939Z",
+            "exit_code": null,
+            "canceled": null,
+            "step": 18,
+            "run_time_millis": 3093,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Collect artifacts",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Collect artifacts",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:05:01.274Z",
+            "type": "teardown",
+            "messages": [],
+            "output_url": "https://circle-production-action-output.s3.amazonaws.com/4b129d97c140f4e950e10765-rangle-sideboard-19-0?AWSAccessKeyId=AKIAIQ65EYQDTMSJK2DQ&Expires=1608041105&Signature=mycwdbvPun3I9yIzxf8444TpRZQ%3D",
+            "start_time": "2015-12-15T14:04:53.042Z",
+            "exit_code": null,
+            "canceled": null,
+            "step": 19,
+            "run_time_millis": 8232,
+            "has_output": true
+          }
+        ]
+      },
+      {
+        "name": "Disable SSH",
+        "actions": [
+          {
+            "truncated": false,
+            "index": 0,
+            "parallel": true,
+            "failed": null,
+            "infrastructure_fail": null,
+            "name": "Disable SSH",
+            "bash_command": null,
+            "status": "success",
+            "timedout": null,
+            "continue": null,
+            "end_time": "2015-12-15T14:05:01.294Z",
+            "type": "teardown",
+            "messages": [],
+            "start_time": "2015-12-15T14:05:01.281Z",
+            "exit_code": null,
+            "canceled": null,
+            "step": 22,
+            "run_time_millis": 13,
+            "has_output": false
+          }
+        ]
+      }
+    ],
+    "body": "",
+    "usage_queued_at": "2015-12-15T14:01:48.142Z",
+    "retry_of": 323,
+    "reponame": "sideboard",
+    "ssh_users": [],
+    "build_url": "https://circleci.com/gh/rangle/sideboard/324",
+    "parallel": 1,
+    "failed": true,
+    "branch": "pull/75",
+    "username": "rangle",
+    "author_date": "2015-12-15T13:47:26Z",
+    "why": "retry",
+    "user": {
+      "is_user": true,
+      "login": "bennett000",
+      "name": "Michael Bennett",
+      "email": "michael.bennett@rangle.io",
+      "avatar_url": "https://avatars.githubusercontent.com/u/944664?v=3"
+    },
+    "vcs_revision": "9c2fc89984904f1654cdda996b164d121a61b48c",
+    "owners": [],
+    "vcs_tag": null,
+    "build_num": 324,
+    "infrastructure_fail": false,
+    "ssh_enabled": null,
+    "committer_email": "michael.bennett@rangle.io",
+    "previous": {
+      "build_num": 323,
+      "status": "failed",
+      "build_time_millis": 195247
+    },
+    "status": "failed",
+    "committer_name": "Michael J. Bennett",
+    "pull_request_urls": [
+      "https://github.com/rangle/sideboard/pull/75"
+    ],
+    "retries": null,
+    "subject": "Migrated decrypt script",
+    "timedout": false,
+    "dont_build": null,
+    "lifecycle": "finished",
+    "no_dependency_cache": false,
+    "stop_time": "2015-12-15T14:05:04.847Z",
+    "build_time_millis": 190863,
+    "circle_yml": {
+      "string": "machine:\n  node:\n    version: 4.2.3\n\ndependencies:\n  pre:\n    - npm install webpack\n    - npm install babel-eslint\n  post:\n    - ./scripts/decrypt.sh\nnotify:\n  webhooks:\n    - url: http://the-clusternator-alpha.rangleapp.io/0.0.1/pr/create\n"
+    },
+    "messages": [],
+    "is_first_green_build": false,
+    "job_name": null,
+    "start_time": "2015-12-15T14:01:53.984Z",
+    "canceler": null,
+    "all_commit_details": [
+      {
+        "committer_date": "2015-12-15T13:47:26Z",
+        "body": "",
+        "author_date": "2015-12-15T13:47:26Z",
+        "committer_email": "michael.bennett@rangle.io",
+        "commit": "9c2fc89984904f1654cdda996b164d121a61b48c",
+        "committer_login": "bennett000",
+        "committer_name": "Michael J. Bennett",
+        "subject": "Migrated decrypt script",
+        "commit_url": "https://github.com/rangle/sideboard/commit/9c2fc89984904f1654cdda996b164d121a61b48c",
+        "author_login": "bennett000",
+        "author_name": "Michael J. Bennett",
+        "author_email": "michael.bennett@rangle.io"
+      }
+    ],
+    "outcome": "failed",
+    "vcs_url": "https://github.com/rangle/sideboard",
+    "author_name": "Michael J. Bennett",
+    "node": [
+      {
+        "public_ip_addr": "54.163.62.10",
+        "port": 64658,
+        "username": "ubuntu",
+        "image_id": "circletar-1347-b4bf5-20151130T080640Z",
+        "ssh_enabled": null
+      }
+    ],
+    "queued_at": "2015-12-15T14:01:53.929Z",
+    "canceled": false,
+    "author_email": "michael.bennett@rangle.io"
+  }
+}
+DEBUG
+DEBUG
+{
+  "res": {
+    "statusCode": 302
+  },
+  "req": {
+    "url": "/0.0.1/pr/create",
+    "headers": {
+      "content-type": "application/json",
+      "accept-encoding": "gzip, deflate",
+      "content-length": "16057",
+      "host": "the-clusternator-alpha.rangleapp.io",
+      "connection": "Keep-Alive",
+      "user-agent": "Apache-HttpClient/4.4 (Java/1.8.0_40)"
+    },
+    "method": "POST",
+    "httpVersion": "1.1",
+    "originalUrl": "/0.0.1/pr/create",
+    "query": {}
+  },
+  "responseTime": 19,
+  "level": "info",
+  "message": "POST /0.0.1/pr/create 302 19ms"
+}
