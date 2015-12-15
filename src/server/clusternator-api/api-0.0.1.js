@@ -97,6 +97,13 @@ function executeCommand(commands) {
 
 
 function authSwitch(req, res, next) {
+  if (req.params.namespace === 'pr') {
+    console.log('DEBUG');
+    console.log('DEBUG');
+    console.log(JSON.stringify(req.body, null, 2));
+    console.log('DEBUG');
+    console.log('DEBUG');
+  }
   if (req.isAuthenticated()) {
     next();
   } else {

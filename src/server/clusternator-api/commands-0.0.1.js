@@ -86,12 +86,36 @@ function prCreateDocker(project, pr, sha, middleware) {
     });
 }
 
+function makePrCreate(pm) {
+  return (body) => {
+    var pr = sanitizePr(body.pr),
+    appDef = JSON.parse(body.appDef),
+    projectId = body.repo
+
+    console.log('DEBUG');
+    console.log(JSON.stringify(body,  null, 2));
+    console.log('DEBUG');
+
+    return pm.pr.create(projectId, pr + '', appDef)
+    .then((prResult) => {
+          return slack.message(`Create: ${projectId}, PR ${pr} ` +
+            `successful.  Application will be available at ` +
+            `<http://${prResult.url}>`,
+            project.channel);
+        })
+        .fail((err) => {
+          slack.message(`Create: ${projectId}, PR ${pr} ` +
+            `failed: ${err.message}`, project.channel);
+          throw err;
+        });
+  };
+}
 
 /**
  * @param {ProjectManager} pm
  * @returns {Function(Object)}
  */
-function makePrCreate(pm) {
+function makePrCreateFull(pm) {
   return (body) => {
     var pr = sanitizePr(body.pr),
       sha = sanitizeSha(body.sha),
@@ -135,7 +159,8 @@ function makePrCreate(pm) {
           return pm.createPR(project.id, pr + '', appDef, sshData);
         }).then((prResult) => {
           return slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha} ` +
-            `successful.  Application will be available at <${prResult.url}>`,
+            `successful.  Application will be available at ` +
+            `<http://${prResult.url}>`,
             project.channel);
         }).fail((err) => {
           slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha} ` +
@@ -245,7 +270,10 @@ function getCommands(credentials) {
           }
         },
         pr: {
-          create: makePrCreate(pm),
+          create: (body) => {
+            makePrCreate(pm)(body);
+            return Q.resolve();
+          },
           list: noopP,
           describe: noopP,
           destroy: makePrDestroy(pm)

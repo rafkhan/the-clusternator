@@ -424,8 +424,6 @@ function getEC2Manager(ec2, vpcId) {
       apiConfig = config.apiConfig,
       sshPath = config.sshPath;
 
-    apiConfig.InstanceType = 't2.small';
-
     return getECSContainerInstanceUserData(clusterName, auth, sshPath).
     then((data) => {
       apiConfig.UserData = data;

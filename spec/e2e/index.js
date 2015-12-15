@@ -37,6 +37,5 @@ module.exports = {
   vpc: require('./vpc.spec'),
   log: logOutput,
   error: logError,
-  appDef: require('../../examples/node-mongo/appdef.json'),
-  cDef: require('../../clusternator-server-definition.json')
+  appDef: require('../../examples/node-mongo/appdef.json')
 };

@@ -19,7 +19,7 @@ function checkHmac(key, text, digest) {
     log.info('Github signature match.');
     return true;
   } else {
-    var msg = 'Invalid signature. ' + 
+    var msg = 'Invalid signature. ' +
               'Got: ' + hash + ' ' +
               'Expected: ' + digest;
 
@@ -41,7 +41,9 @@ function middlewareFactory(ddbManager) {
 
 
     var text = req.rawBody;
-    var prBody = body['pull_request'];
+    /** @todo what is body? */
+    //var prBody = body['pull_request'];
+    var prBody = req.rawBody['pull_request'];
     var projectName = prBody.head.repo.name;
 
     ddbManager.getItems(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE,
