@@ -1,5 +1,15 @@
 machine:
   node:
     version: 4.2.3
-  webhooks:
-    - url: https://the-clusternator-pr-1.rangleapp.io
+  services:
+    - docker
+
+dependencies:
+  post:
+    - ./scripts/clusternator-decrypt.sh
+
+test:
+  post:
+    - ./scripts/clusternator-docker-build.sh
+    - ./scripts/clusternator-decrypt.sh
+    - node ./scripts/clusternator-notify.js

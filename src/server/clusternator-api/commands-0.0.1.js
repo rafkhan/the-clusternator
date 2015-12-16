@@ -96,19 +96,21 @@ function makePrCreate(pm) {
     console.log(JSON.stringify(body,  null, 2));
     console.log('DEBUG');
 
-    return pm.pr.create(projectId, pr + '', appDef)
-    .then((prResult) => {
-          return slack.message(`Create: ${projectId}, PR ${pr} ` +
-            `successful.  Application will be available at ` +
-            `<http://${prResult.url}>`,
-            project.channel);
+    return projects.find(projectId).then((project) => {
+      return pm.pr.create(projectId, pr + '', appDef)
+      .then((prResult) => {
+        return slack.message(`Create: ${projectId}, PR ${pr} ` +
+          `successful.  Application will be available at ` +
+          `<http://${prResult.url}>`,
+          project.channel);
         })
         .fail((err) => {
           slack.message(`Create: ${projectId}, PR ${pr} ` +
             `failed: ${err.message}`, project.channel);
-          throw err;
+            throw err;
+          });
         });
-  };
+      };
 }
 
 /**
