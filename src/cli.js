@@ -497,7 +497,7 @@ function deploy(y) {
         if (argv.d === 'master') {
           label = '';
         }
-        util.info('Deployment will be available at ', result.url);
+        util.info('Deployment will be available at ', result);
       });
     }).fail((err) => {
       util.info('Clusternator: Error creating deployment: ' + err.message);
