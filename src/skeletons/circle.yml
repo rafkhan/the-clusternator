@@ -6,10 +6,10 @@ machine:
 
 dependencies:
   post:
-    - ./scripts/clusternator-decrypt.sh
+    - ./$CLUSTERNATOR_DIR/decrypt.sh
 
 test:
   post:
-    - ./scripts/clusternator-docker-build.sh
-    - ./scripts/clusternator-decrypt.sh
-    - node ./scripts/clusternator-notify.js
+    - ./$CLUSTERNATOR_DIR/docker-build.sh
+    - ./$CLUSTERNATOR_DIR/decrypt.sh
+    - node ./$CLUSTERNATOR_DIR/notify.js

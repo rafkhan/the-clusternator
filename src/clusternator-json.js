@@ -203,34 +203,17 @@ function promisePrompt(qs) {
  * @returns {Q.Promise<Array>}
  */
 function createInteractive(params) {
-  var mandatory = questions.mandatory(params),
-    gitHooks = questions.gitHookChoice(),
-    enc = questions.encryptionChoice();
+  var mandatory = questions.mandatory(params);
 
   return promisePrompt(mandatory).then((answers) => {
-    if (!answers.passphrase) {
-      return answers;
-    }
-    return promisePrompt(enc).then((encAnswer) => {
-      if (encAnswer.passphraseInput === 'gen') {
-        // generate
-        return gpg.generatePass().then((pass) => {
-          answers.passphrase = pass;
-          return answers;
-        });
-      }
-      answers.passphrase = encAnswer.passphraseInput;
-      return answers;
-    }).then((answers) => {
-      return promisePrompt(gitHooks).then((ghAnswers) => {
-        if (ghAnswers.gitHooks) {
-          answers.gitHooks = true;
-        } else {
-          answers.gitHooks = false;
-        }
+    if (answers.passphraseInput === 'gen') {
+      // generate
+      return gpg.generatePass().then((pass) => {
+        answers.passphrase = pass;
         return answers;
       });
-    });
+    }
+    return answers;
   });
 }
 

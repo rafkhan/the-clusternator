@@ -10,12 +10,16 @@ const KEY = process.env.CLUSTERNATOR_SHARED_KEY,
       PR = process.env.CIRCLE_BUILD_NUM,
       REPO = process.env.CIRCLE_PROJECT_REPONAME,
       IMAGE = `rafkhan/${REPO}:pr-${PR}`,
-      HOST = `###HOSTNAME###`,
+      HOST = `$HOST`,
       CLUSTERNATOR = `the-clusternator-alpha.${HOST}`,
       PORT = 80,
       PATH = '/0.0.1/pr/create',
       CONFIG_FILE = 'clusternator.json';
 
+
+function die() {
+    process.exit(1);
+}
 
 function getAppDefPath() {
   let config;
@@ -23,7 +27,7 @@ function getAppDefPath() {
     config = require(path.join('..', CONFIG_FILE));
   } catch (err) {
     console.log('Error loading', CONFIG_FILE);
-    process.exit(1);
+    die();
   }
   return path.join(
     __dirname, '..', '.private', 'deployments', 'pr'
@@ -36,7 +40,7 @@ function requireAppDef() {
     return require(appDefPath);
   } catch (err) {
     console.log('Error loading application definition', appDefPath);
-    process.exit(1);
+    die();
   }
 }
 

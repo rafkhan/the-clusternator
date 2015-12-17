@@ -5,7 +5,13 @@ const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3';
 const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx';
 const DOCKERIGNORE = '.dockerignore';
 const SERVE_SH = 'serve.sh';
+const DECRYPT_SH = 'decrypt.sh';
+const DOCKER_BUILD_SH = 'docker-build.sh';
+const NOTIFY_JS = 'notify.js';
 const CIRCLEFILE = 'circle.yml';
+const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
+const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
+const HOST = /\$HOST/g;
 
 var fs = require('fs'),
   Q = require('q'),
@@ -219,10 +225,11 @@ function pickBestName(names) {
  * @returns {Q.Promise}
  */
 function addPrivateToGitIgnore(fullAnswers) {
-  var priv = fullAnswers.answers.private,
-    addPromises = priv.map((privItem) => {
-        return git.addToGitIgnore([privItem, 'clusternator.tar.gz']);
-    });
+  const priv = Array.isArray(fullAnswers.answers.private) ?
+    fullAnswers.answers.private : [fullAnswers.answers.private],
+  addPromises = priv.map((privItem) => {
+    return git.addToGitIgnore([privItem, 'clusternator.tar.gz']);
+  });
 
   return Q.all(addPromises);
 }
@@ -232,19 +239,22 @@ function addPrivateToGitIgnore(fullAnswers) {
  * @param {string} root - the project's root folder
  * @returns {Q.Promise}
  */
-function processInitUserOptions(results, root) {
-  // parse results
-  return clusternatorJson.writeFromFullAnswers({
-    projectDir: root,
-    answers: results
-  }).then((fullAnswers) => {
-    return addPrivateToGitIgnore(fullAnswers).then(() => {
-      return {
-        root,
-        fullAnswers
-      };
-    });
-  });
+ function processInitUserOptions(results, root) {
+   // parse results
+   return clusternatorJson
+   .writeFromFullAnswers({
+     projectDir: root,
+     answers: results
+   })
+   .then((fullAnswers) => {
+     return addPrivateToGitIgnore(fullAnswers)
+     .then(() => {
+       return {
+         root,
+         fullAnswers
+       };
+     });
+   });
 }
 
 /**
@@ -256,12 +266,18 @@ function getProjectRootRejectIfClusternatorJsonExists() {
   })
 }
 
+function installExecutable(destFilePath, fileContents, perms) {
+  perms = perms || '700';
+  return writeFile(destFilePath, fileContents).then(() => {
+    return chmod(destFilePath, '700');
+  });
+}
+
 function installGitHook(root, name, passphrase) {
-  return getSkeletonFile('git-' + name).then((contents) => {
-    contents = contents.replace('\$CLUSTERNATOR_PASS', passphrase);
-    return writeFile(path.join(root, '.git', 'hooks', name), contents);
-  }).then(() => {
-    return chmod(path.join(root, '.git', 'hooks', name), '700');
+  return getSkeletonFile('git-' + name)
+  .then((contents) => {
+    contents = contents.replace(CLUSTERNATOR_PASS, passphrase);
+    return installExecutable(path.join(root, '.git', 'hooks', name), contents);
   });
 }
 
@@ -287,20 +303,38 @@ function processGitHooks(results, root) {
  * @returns {Q.Promise<Object>}
  */
 function getInitUserOptions() {
-  return getProjectRootRejectIfClusternatorJsonExists().
-  then((root) => {
-    return clusternatorJson.findProjectNames(root).
-    then(pickBestName).
-    then(clusternatorJson.createInteractive).
-    then((results) => {
-      return Q.allSettled([
-        processInitUserOptions(results, root),
-        processGitHooks(results, root)
-      ]).then((results) => {
-        return results[0].value;
-      });
-    });
-  })
+  return getProjectRootRejectIfClusternatorJsonExists()
+   .then((root) => {
+     return clusternatorJson.findProjectNames(root)
+     .then(pickBestName)
+     .then(clusternatorJson.createInteractive)
+     .then((results) => {
+       return Q.all([
+         processInitUserOptions(results, root),
+         processGitHooks(results, root)
+       ]).then((results) => {
+         return results[0];
+       });
+     });
+ });
+}
+
+function initializeScripts(clustDir, tld) {
+  return mkdirp(clustDir).then(() => {
+    return Q.allSettled([
+      getSkeletonFile(DECRYPT_SH).then((contents) => {
+        return installExecutable(path.join(clustDir, DECRYPT_SH), contents);
+      }),
+      getSkeletonFile(DOCKER_BUILD_SH).then((contents) => {
+        return installExecutable(
+          path.join(clustDir, DOCKER_BUILD_SH), contents);
+      }),
+      getSkeletonFile(NOTIFY_JS).then((contents) => {
+        contents = contents.replace(HOST, tld);
+        return writeFile(path.join(clustDir, NOTIFY_JS), contents);
+      }),
+    ]);
+  });
 }
 
 /**
@@ -308,7 +342,7 @@ function getInitUserOptions() {
  * @param {string} projectId
  * @returns {Q.Promise}
  */
-function initializeDeployments(depDir, projectId) {
+function initializeDeployments(depDir, clustDir, projectId) {
   return mkdirp(depDir).then(() => {
     var prAppDef = util.clone(appDefSkeleton);
     prAppDef.name = projectId;
@@ -318,10 +352,8 @@ function initializeDeployments(depDir, projectId) {
       mkdirp(path.join(depDir, '..', constants.SSH_PUBLIC_PATH)),
       writeFile(path.join(depDir, 'pr.json'), prAppDef),
       writeFile(path.join(depDir, 'master.json'), prAppDef),
-      initializeDockerFile(),
-      initializeCircleCIFile(),
-      initializeDockerIgnoreFile(),
-      initializeServeSh()
+      initializeDockerFile(clustDir),
+      initializeDockerIgnoreFile()
     ]);
   });
 }
@@ -337,43 +369,49 @@ function initializeDockerIgnoreFile() {
     });
 }
 
-function initializeDockerFile() {
+function initializeDockerFile(clustDir) {
   return clusternatorJson
     .findProjectRoot()
     .then((root) => {
       return getSkeletonFile(DOCKERFILE_NODE_LATEST)
         .then((contents) => {
+          contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
           return writeFile(path.join(root, DOCKERFILE), contents);
         });
     });
 }
 
-function initializeServeSh() {
-  return clusternatorJson
-    .findProjectRoot()
-    .then((root) => {
-      var sPath = path.join(root, SERVE_SH);
-      return getSkeletonFile(SERVE_SH)
-        .then((contents) => {
-          return writeFile(sPath, contents);
-        })
-        .then(() => {
-          return chmod(sPath, '755');
-        });
-    });
+function initializeServeSh(root) {
+  var sPath = path.join(root, SERVE_SH);
+  return getSkeletonFile(SERVE_SH)
+  .then((contents) => {
+    return writeFile(sPath, contents);
+  })
+  .then(() => {
+    return chmod(sPath, '755');
+  });
 }
 
-function initializeCircleCIFile() {
-  return clusternatorJson
-    .findProjectRoot()
-    .then((root) => {
-      return getSkeletonFile(CIRCLEFILE)
-        .then((contents) => {
-          return writeFile(path.join(root, CIRCLEFILE), contents);
-        });
-    });
+function initializeCircleCIFile(root, clustDir) {
+  return getSkeletonFile(CIRCLEFILE)
+  .then((contents) => {
+    contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
+    return writeFile(path.join(root, CIRCLEFILE), contents);
+  });
 }
 
+function initializeOptionalDeployments(answers, projectRoot) {
+  let promises = [];
+
+  if (answers.circleCI) {
+    promises.push(initializeCircleCIFile(projectRoot, answers.clusternatorDir));
+  }
+  if (answers.backend === 'node') {
+      promises.push(initializeServeSh(
+        path.join(projectRoot, answers.clusternatorDir)));
+  }
+  return Q.allSettled(promises);
+}
 
 
 function initializeProject(y) {
@@ -384,32 +422,41 @@ function initializeProject(y) {
       'check the cloud infrastructure')
     .argv;
 
-  return getInitUserOptions().then((initDetails) => {
+  return getInitUserOptions()
+    .then((initDetails) => {
     var output = 'Clusternator Initialized With Config: ' +
         clusternatorJson.fullPath(initDetails.root),
       dDir = initDetails.fullAnswers.answers.deploymentsDir,
+      cDir = initDetails.fullAnswers.answers.clusternatorDir,
       projectId = initDetails.fullAnswers.answers.projectId;
 
-    return initializeDeployments(dDir, projectId).then(() => {
-      if (argv.o) {
-        util.info(output + ' Network Resources *NOT* Checked');
-        return;
-      }
+      return Q.allSettled([
+        initializeDeployments(dDir, cDir, projectId),
+        initializeScripts(cDir, initDetails.fullAnswers.answers.tld),
+        initializeOptionalDeployments(initDetails.fullAnswers.answers,
+          initDetails.root)
+      ])
+      .then(() => {
+        if (argv.o) {
+          util.info(output + ' Network Resources *NOT* Checked');
+          return;
+        }
 
-      return getProjectAPI().then((pm) => {
-        return pm.create(projectId).then(() => {
-          util.info(output + ' Network Resources Checked');
-        }, Q.reject)
+        return getProjectAPI()
+        .then((pm) => {
+          return pm.create(projectId).then(() => {
+            util.info(output + ' Network Resources Checked');
+          }, Q.reject)
 
-        .then(() => {
-          return pm.initializeGithubWebhookToken(projectId);
-        }, Q.reject)
+          .then(() => {
+            return pm.initializeGithubWebhookToken(projectId);
+          }, Q.reject)
 
-        .then((token) => {
-          console.log('STORE THIS TOKEN ON GITHUB', token);
-        }, Q.reject);
+          .then((token) => {
+            console.log('STORE THIS TOKEN ON GITHUB', token);
+          }, Q.reject);
 
-      })
+        })
     });
   }).fail((err) => {
     util.info('Clusternator: Initialization Error: ' + err.message);
