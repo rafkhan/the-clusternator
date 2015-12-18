@@ -1,34 +1,31 @@
 'use strict';
 
-var Q = require('q');
-var R = require('ramda');
-var rid = require('../resourceIdentifier');
-var util = require('../util');
-
-var DEFAULT_CLUSTER_PARAMS = {
-};
+const Q = require('q'),
+  R = require('ramda'),
+  rid = require('../resourceIdentifier'),
+  util = require('../util');
 
 function filterValidArns(arn) {
   var splits = arn.split('/'),
-  name = splits[splits.length - 1];
+    name = splits[splits.length - 1];
   return rid.parseRID(name);
 }
 
 function getClusterManager(ecs) {
+  ecs = util.makePromiseApi(ecs);
 
   function createCluster(clusterName) {
     if (!clusterName) {
       return Q.reject(new Error('createCluster: missing, or invalid config'));
     }
-    var params = R.merge(DEFAULT_CLUSTER_PARAMS, {
+    var params = {
       clusterName: clusterName
-    });
+    };
 
-    // must bind to ecs
-    return Q.nbind(ecs.createCluster, ecs)(params);
+    return ecs.createCluster(params);
   }
 
-function deleteCluster(name) {
+  function deleteCluster(name) {
     if (!name) {
       return Q.reject(new Error('deleteCluster: missing, or invalid config'));
     }
@@ -36,83 +33,86 @@ function deleteCluster(name) {
       cluster: name
     };
 
-    // must bind to ecs
-    return Q.nbind(ecs.deleteCluster, ecs)(params);
-}
+    return ecs.deleteCluster(params);
+  }
   /**
-  * List all clusters
-  */
+   * List all clusters
+   */
   function listClusters() {
-    return Q.nbind(ecs.listClusters, ecs)({}).then(function (list) {
-      return list.clusterArns.filter(filterValidArns);
-    });
+    return ecs.listClusters({})
+      .then(function(list) {
+        return list.clusterArns
+          .filter(filterValidArns);
+      });
   }
 
   /**
-  * Get information on a cluster by name or ARN
-  *
-  * @param cluster String
-  */
+   * Get information on a cluster by name or ARN
+   *
+   * @param cluster String
+   */
   function describeCluster(clusterName) {
-    var params = { clusters: [ clusterName ] };
-    return Q.nbind(ecs.describeClusters, ecs)(params)
-    .then(function(results) {
-      var result = R.filter(function(c) {
-        return c.clusterName === clusterName;
-      }, results.clusters);
+    var params = {
+      clusters: [clusterName]
+    };
+    return ecs
+      .describeClusters(params)
+      .then(function(results) {
+        var result = R.filter(function(c) {
+          return c.clusterName === clusterName;
+        }, results.clusters);
 
-      if(!result[0]) {
-        throw new Error('Cluster does not exist');
-      }
+        if (!result[0]) {
+          throw new Error('Cluster does not exist');
+        }
 
-      return result[0];
-    });
+        return result[0];
+      });
   }
 
   function deregister(instanceArn, clusterId) {
-    return Q.nfbind(ecs.deregisterContainerInstance.bind(ecs), {
-        cluster: clusterId,
-        containerInstance: instanceArn
-    })();
+    return ecs.deregisterContainerInstance({
+      cluster: clusterId,
+      containerInstance: instanceArn
+    });
   }
 
   function listContainers(clusterId) {
-    return Q.nbind(ecs.listContainerInstances, ecs)({
-      cluster: clusterId
-    }).then(function (result) {
+    return ecs
+      .listContainerInstances({
+        cluster: clusterId
+      })
+      .then(function(result) {
         if (result.containerInstanceArns) {
           return result.containerInstanceArns;
         }
         throw new Error('Cluster: listContainers: unexpected data');
-    });
+      });
   }
 
 
   function listServices(cluster) {
-    return Q.nfbind(ecs.listServices.bind(ecs), {
-      cluster
-    })().then((services) => {
-      return services.serviceArns.filter((service) => {
-        if (service.length) {
-          return true;
-        }
-        return false;
+    return ecs
+      .listServices({
+        cluster
+      }).then((services) => {
+        return services.serviceArns.filter((service) => service.length);
       });
-    });
   }
 
   function describeServices(cluster, services) {
-    return Q.nfbind(ecs.describeServices.bind(ecs), {
-      cluster,
-      services
-    })();
+    return ecs
+      .describeServices({
+        cluster,
+        services
+      });
   }
 
-  function describePr(pid, pr) {
+  function describePr(projectId, pr) {
 
   }
 
-  function describeDeployment(pid, sha) {
+  function describeDeployment(projectId, sha) {
 
   }
 
@@ -120,41 +120,52 @@ function deleteCluster(name) {
     return o;
   }
 
-  function describeProject(pid) {
-    return listClusters().then((list) => {
-      var sLists = list.filter((arn) => {
-        var arnParts = arn.split('/').filter(identity),
-          parts = rid.parseRID(arnParts[arnParts.length - 1]);
-        if (parts.pid === pid) {
-          return true;
-        }
-        return false;
-      }).map((relevant) => {
-        return listServices(relevant).then((services) => {
-          if (services.length) {
-            return describeServices(relevant, services);
-          }
-          return null;
-        });
-      });
+  function getProjectIdFilter(projectId) {
+    return (arn) => {
+      var arnParts = arn.split('/').filter(identity),
+        parts = rid.parseRID(arnParts[arnParts.length - 1]);
+      if (parts.pid === projectId) {
+        return true;
+      }
+      return false;
+    };
+  }
 
-      return Q.all(sLists).then((results) => {
-        var formatted = results.map((result) => {
-          if (result && result.services) {
-            return {
-              arn: result.services[0].serviceArn,
-              events: result.services[0].events.shift().message
-            }
-          }
-          return null;
-        }).filter((el) => {
-          return el;
-        });
-        util.info(JSON.stringify(formatted, null, 2));
-        //util.info('results', JSON.stringify(
-        //  results.filter(identity), null, 2));
+  function promiseServiceDescription(cluster) {
+    return listServices(cluster)
+      .then((services) => {
+        if (services.length) {
+          return describeServices(cluster, services);
+        }
+        return null;
       });
-    });
+  }
+
+  function processServiceDescription(description) {
+    if (description && description.services) {
+      return {
+        arn: description.services[0].serviceArn,
+        events: description.services[0].events.shift().message
+      }
+    }
+    return null;
+  }
+
+  function processServiceDescriptions(descriptions) {
+    var formatted = descriptions
+      .map(processServiceDescription)
+      .filter(identity);
+    util.info(JSON.stringify(formatted, null, 2));
+  }
+
+  function describeProject(projectId) {
+    return listClusters()
+      .then((list) => Q
+        .all(list
+          .filter(getProjectIdFilter(projectId))
+          .map(promiseServiceDescription))
+      )
+      .then(processServiceDescriptions);
   }
 
   return {

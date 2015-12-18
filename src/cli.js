@@ -515,7 +515,6 @@ function safeParse(string) {
 function deploy(y) {
   var argv = y.demand('d').
   alias('d', 'deployment-name').
-  default('d', 'master', 'The "master" deployment').
   describe('d', 'Requires a deployment name').
     argv;
 
@@ -558,7 +557,6 @@ function deploy(y) {
 function stop(y) {
   var argv = y.demand('d').
   alias('d', 'deployment-name').
-  default('d', 'master', 'The "master" deployment').
   describe('d', 'Requires a deployment name').
   alias('s', 'SHA (git hash)').
   default('s', '', 'HEAD').
