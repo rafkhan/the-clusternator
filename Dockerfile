@@ -20,5 +20,6 @@ RUN cd /home/app/; npm install
 
 ## Expose the ports
 EXPOSE 9090
+EXPOSE 3000
 
 CMD ["/home/app/serve.sh"]

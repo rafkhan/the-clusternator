@@ -11,9 +11,10 @@ const NOTIFY_JS = 'notify.js';
 const CIRCLEFILE = 'circle.yml';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
+const PRIVATE_CHECKSUM = '.private-checksum';
 const HOST = /\$HOST/g;
 
-var fs = require('fs'),
+const fs = require('fs'),
   Q = require('q'),
   path = require('path'),
   mkdirp = Q.nfbind(require('mkdirp')),
@@ -25,9 +26,10 @@ var fs = require('fs'),
   clusternatorJson = require('./clusternator-json'),
   gpg = require('./cli-wrappers/gpg'),
   git = require('./cli-wrappers/git'),
+  shaDir = require('./cli-wrappers/generate-private-sha.js'),
   docker = require('./cli-wrappers/docker'),
   sshKey = require('./cli-wrappers/ssh-keygen'),
-  appDefSkeleton = require('./aws/appDefSkeleton'),
+  appDefSkeleton = require('./skeletons/app-def'),
   cnProjectManager = require('./clusternator/projectManager'),
   awsProjectManager = require('./aws/project-init'),
   constants = require('./constants');
@@ -691,6 +693,70 @@ function dockerBuild(y) {
   }).done();
 }
 
+function getPrivateChecksumPaths() {
+    return Q.all([
+      clusternatorJson.get(),
+      clusternatorJson.findProjectRoot()
+    ])
+    .then((results) => {
+      const privatePath = results[0].private[0],
+        checksumPath = path.join(results[1], results[0].clusternatorDir,
+          PRIVATE_CHECKSUM);
+          return {
+            priv: privatePath,
+            checksum: checksumPath,
+            clusternator: results[0].clusternatorDir,
+            root: results[1]
+          }
+        });
+}
+
+function privateChecksum() {
+  return getPrivateChecksumPaths()
+  .then((paths) => {
+    return mkdirp(paths.clusternator).then(() => paths);
+  }).then((paths) => {
+    process.chdir(paths.root);
+    return shaDir
+    .genSha(paths.priv)
+    .then((sha) => {
+      return writeFile(paths.checksum, sha)
+      .then(() => {
+        util.info(`Generated shasum of ${paths.priv} => ${sha}`);
+      });
+    });
+  })
+  .done();
+}
+
+function privateDiff() {
+  return getPrivateChecksumPaths()
+  .then((paths) => {
+    return shaDir
+    .genSha(paths.priv)
+    .then((sha) => {
+      return readFile(paths.checksum, UTF8)
+      .then((storedSha) => {
+        if (sha.trim() === storedSha.trim()) {
+          process.exit(0);
+        }
+        util.info(`Diff: ${sha.trim()} vs ${storedSha.trim()}`);
+        process.exit(1);
+      })
+      .fail(() => {
+        // read file errors are expected
+        util.info(`Diff: no checksum to compare against`);
+        process.exit(2);
+      });
+    })
+  })
+  .fail((err) => {
+    util.error(err);
+    process.exit(2);
+  })
+  .done();
+}
+
 module.exports = {
   newApp: newApp,
   updateApp: updateApp,
@@ -721,5 +787,8 @@ module.exports = {
   listProjects,
 
   newSSH,
-  dockerBuild
+  dockerBuild,
+
+  privateChecksum,
+  privateDiff
 };

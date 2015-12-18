@@ -1,9 +1,19 @@
 {
   "description":"Update this with production values, or use a config.local.json (same structure as this file)",
+  "adminEmail":"user@example.com",
+  "config.hasReadLetsEncryptTOS": false,
   "port":9090,
+  "portSSL":3000,
   "sessionSecret":"Make This UNIQUE and crypto random on install/deployment",
   "sessionCookieName":"clusternator.sid",
+  "tld":".example.com",
   "slackURI":"",
+  "dockerRegistryPrefix":"",
+  "defaultRepo": {
+    "protocol":"https://",
+    "token":"",
+    "prefix":"github.com/"
+  },
   "privilegeGroups": {
     "0": "admins",
     "1": "managers",

@@ -3,5 +3,6 @@
   "private": [
     ".private"
   ],
-  "deploymentsDir": ".private/deployments"
+  "deploymentsDir": ".private/deployments",
+  "clusternatorDir": ".clusternator"
 }
