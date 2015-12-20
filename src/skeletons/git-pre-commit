@@ -3,7 +3,7 @@
 if clusternator private-diff;
 then
   echo "No Changes to private files, skipping encryption.  Please ensure your \
-  private folder is ignored by version controlled"
+  private folder is ignored by version control"
 else
   DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   cd $DIR
