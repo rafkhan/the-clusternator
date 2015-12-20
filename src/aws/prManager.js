@@ -33,118 +33,110 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
     var clusterName = rid.generateRID({
       pid: pid,
       pr: pr
-    }), prUrl = '';
+    }), urlData = { url: '' };
 
     return Q
       .all([
         securityGroup.createPr(pid, pr),
         cluster.create(clusterName)
       ])
-      .then((results) => {
-        var sgDesc = results[0];
-
-        return ec2mgr
-          .createPr({
-            clusterName: clusterName,
-            pid: pid,
-            pr: pr,
-            sgId: sgDesc.GroupId,
-            subnetId: subnetId,
-            sshPath: sshData || path.join('.private', constants.SSH_PUBLIC_PATH),
-            apiConfig: {}
-          })
-          .then((ec2Results) => {
-            var ip = common.findIpFromEc2Describe(ec2Results);
-            return route53
-              .createPRARecord(pid, pr, ip)
-              .then((url) => {
-                prUrl = qualifyUrl(url);
-              });
-          });
-      })
-      .then(() => {
-        return task.create(clusterName, clusterName, appDef);
-      })
-      .then(() => {
-        return {
-          url: prUrl
-        }
-      });
+      .then((results) => ec2mgr
+        .createPr({
+          clusterName: clusterName,
+          pid: pid,
+          pr: pr,
+          sgId: results[0].GroupId,
+          subnetId: subnetId,
+          sshPath: sshData || path.join('.private', constants.SSH_PUBLIC_PATH),
+          apiConfig: {}
+        })
+        .then((ec2Results) => route53
+          .createPRARecord(pid, pr, common.findIpFromEc2Describe(ec2Results))
+          .then((url) => {
+            urlData.url = qualifyUrl(url);
+          })))
+      .then(() => task
+        .create(clusterName, clusterName, appDef))
+      .then(() => urlData);
     //- start system
   }
 
-  function create(pid, pr, appDef, sshData) {
+  /**
+   * @param {string} projectId
+   * @param {string} pr
+   * @param {Object} appDef
+   * @param {Array=} sshData
+   * @returns {Request|Promise.<T>}
+   */
+  function create(projectId, pr, appDef, sshData) {
 
-    return subnet.describeProject(pid).then((list) => {
+    return subnet.describeProject(projectId).then((list) => {
       if (!list.length) {
         throw new Error('Create Pull Request failed, no subnet found for ' +
-          'Project: ' + pid + ' Pull Request # ' + pr);
+          'Project: ' + projectId + ' Pull Request # ' + pr);
       }
-      return createCluster(list[0].SubnetId, pid, pr, appDef, sshData);
+      return createCluster(list[0].SubnetId, projectId, pr, appDef, sshData);
     });
   }
 
-  function destroyEc2(pid, pr, clusterName) {
+  /**
+   * @param {string} projectId
+   * @param {string} pr
+   * @param {string} clusterName
+   * @returns {Promise.<string[]>}
+   */
+  function destroyEc2(projectId, pr, clusterName) {
     if (!clusterName) {
       throw new Error('destroyEc2: requires valid clusterName');
     }
-    return cluster.listContainers(clusterName).then(function(result) {
-      var deregisterPromises = [];
-      result.forEach(function(arn) {
-        deregisterPromises.push(cluster.deregister(
-          arn, clusterName
-        ).fail(function(err) {
-          //util.info('PR: destroy EC2: Warning, Deregistration for instance ' +
-          //  arn + ' failed, project: ' + pid + ' pr #' + pr +
-          //  ' error: ' + err.message);
-          // do nothing on failure, deregistration _should_ actually work
-          // automagically
-          return;
-        }));
-      });
-      return Q.all(deregisterPromises).then(function() {
-        return ec2mgr.destroyPr(pid, pr).fail(function(err) {
-          util.info('PR Destruction Problem Destroying Ec2: ' + err.message);
-        });
-      });
-    });
+    return cluster
+      .listContainers(clusterName)
+      .then((result) => Q
+        .all(result.map(common.getDeregisterClusterFn(cluster, clusterName)))
+        .then(() => ec2mgr
+          .destroyPr(projectId, pr)
+          .fail((err) => util
+            .info(`PR Destruction Problem Destroying Ec2: ${err.message}`))
+        )
+      );
   }
 
-  function destroyRoutes(pid, pr) {
-    return ec2mgr.describePr(pid, pr).then(function(results) {
-      var ip = common.findIpFromEc2Describe(results);
-      return route53.destroyPRARecord(pid, pr, ip);
-    });
+  /**
+   * @param {string} projectId
+   * @param {string} pr
+   * @returns {Request|Promise.<T>}
+   */
+  function destroyRoutes(projectId, pr) {
+    return ec2mgr.describePr(projectId, pr)
+      .then((results) => route53
+        .destroyPRARecord(
+          projectId, pr, common.findIpFromEc2Describe(results)));
   }
 
-  function destroy(pid, pr) {
+  /**
+   * @param {string} projectId
+   * @param {string} pr
+   * @returns {Request}
+   */
+  function destroy(projectId, pr) {
     var clusterName = rid.generateRID({
-      pid: pid,
+      pid: projectId,
       pr: pr
     });
-    return destroyRoutes(pid, pr).
-    then(() => {
-      return destroyEc2(pid, pr, clusterName);
-    }, () => {
-      return destroyEc2(pid, pr, clusterName);
-    }).then(function(r) {
-      return task.destroy(clusterName).fail(function(err) {
-        util.info('PR Destruction Problem Destroying Task: ' + err.message);
-        return r;
-      }).fail(() => {
-        return;
-      });
-    }).then(function() {
-      var clusterName = rid.generateRID({
-        pid: pid,
-        pr: pr
-      });
-      return cluster.destroy(clusterName).fail(() => {
-        return;
-      });
-    }).then(function() {
-      return securityGroup.destroyPr(pid, pr);
-    });
+    return destroyRoutes(projectId, pr)
+      .then(() => destroyEc2(projectId, pr, clusterName),
+        () => destroyEc2(projectId, pr, clusterName))
+      .then((r) => task
+        .destroy(clusterName)
+        .fail((err) => {
+          util.info(`PR Destruction Problem Destroying Task: ${err.message}`);
+          return r;
+        }))
+      .then(() => cluster
+        .destroy(clusterName)
+        .fail(() => undefined))
+      .then(() => securityGroup
+        .destroyPr(projectId, pr));
   }
 
   return {

@@ -264,6 +264,26 @@ function findIpFromEc2Describe(results) {
   return ip;
 }
 
+
+/**
+ * @param {AWSPromiseWrappedCluster} cluster
+ * @param {string} clusterName
+ * @returns {function(...):Q.Promise}
+ */
+function getDeregisterClusterFn(cluster, clusterName) {
+  return (arn) => {
+    return cluster.deregister(
+      arn, clusterName
+    ).fail((err) => {
+      //util.info('Deployment: destroy EC2: Warning, Deregistration for ' +
+      //  'instance ' + arn + ' failed, project: ' + pid + ' deployment ' +
+      //  deployment + ' error: ' + err.message);
+      // do nothing on failure, deregistration _should_ actually work
+      // automagically
+    });
+  };
+}
+
 module.exports = {
   areTagsPidPrValid,
   areTagsPidValid,
@@ -280,5 +300,6 @@ module.exports = {
   makeEc2DescribeProjectFn,
   makeEc2DescribePrFn,
   makeEc2DescribeDeployment,
-  findIpFromEc2Describe
+  findIpFromEc2Describe,
+  getDeregisterClusterFn
 };

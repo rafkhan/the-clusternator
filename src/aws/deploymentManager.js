@@ -78,24 +78,6 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
   }
 
   /**
-   * @param {string} clusterName
-   * @returns {function(...):Q.Promise}
-   */
-  function getDeregisterClusterFn(clusterName) {
-    return (arn) => {
-      return cluster.deregister(
-        arn, clusterName
-      ).fail((err) => {
-        //util.info('Deployment: destroy EC2: Warning, Deregistration for ' +
-        //  'instance ' + arn + ' failed, project: ' + pid + ' deployment ' +
-        //  deployment + ' error: ' + err.message);
-        // do nothing on failure, deregistration _should_ actually work
-        // automagically
-      });
-    };
-  }
-
-  /**
    * @param {string} projectId
    * @param {string} deployment
    * @param {string} clusterName
@@ -108,7 +90,7 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
     return cluster
       .listContainers(clusterName)
       .then((result) => Q
-        .all(result.map(getDeregisterClusterFn(clusterName)))
+        .all(result.map(common.getDeregisterClusterFn(cluster, clusterName)))
         .then(() => ec2mgr
           .destroyDeployment(projectId, deployment)
           .fail((err) => {
