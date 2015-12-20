@@ -184,6 +184,8 @@ yargs.command('private-checksum', 'Calculates the hash of .private, and ' + 'wri
 
 yargs.command('private-diff', 'Exits 0 if there is no difference between ' + '.clusternator/.private-checksum and a fresh checksum; Exits 1 on mismatch, ' + 'and exits 2 if private-checksum is not found', cli.privateDiff);
 
+yargs.command('config', 'Configure the local clusternator user', cli.configUser);
+
 /**
  * @todo yargify everything from here down.  Manual if/else *not* required
  */

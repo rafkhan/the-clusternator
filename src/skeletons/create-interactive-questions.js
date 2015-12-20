@@ -6,6 +6,46 @@ function truthy(value) {
   return value ? true : false;
 }
 
+function userInit(defaults) {
+  return [
+    {
+      type: 'input',
+      name: 'name',
+      message: 'Your Name',
+      default: defaults.name || 'Mysterious Stranger',
+      validate: truthy
+    },
+    {
+      type: 'input',
+      name: 'email',
+      message: 'Email address',
+      default: defaults.email || '',
+      validate: truthy
+    },
+    {
+      type: 'input',
+      name: 'host',
+      message: 'Clusternator Server Address',
+      default: defaults.host || '',
+      validate: truthy
+    },
+    {
+      type: 'input',
+      name: 'username',
+      message: 'Clusternator User Name',
+      default: defaults.username || '',
+      validate: truthy
+    },
+    {
+      type: 'input',
+      name: 'token',
+      message: 'Clusternator token',
+      default: defaults.token || '',
+      validate: truthy
+    }
+  ];
+}
+
 /**
  * @param {Object} defaults
  * @returns {[]}
@@ -129,5 +169,6 @@ function projectInit(defaults) {
 }
 
 module.exports = {
-  projectInit
+  projectInit,
+  userInit
 };

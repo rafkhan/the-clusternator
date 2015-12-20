@@ -7,12 +7,17 @@ a "local server".
 const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID';
 const AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY';
 
-var util = require('./util'),
+const util = require('./util'),
+  Q = require('Q'),
+  fs = require('fs'),
   path = require('path'),
-  semver = require('semver');
+  semver = require('semver'),
+  questions = require('./skeletons/create-interactive-questions');
 
 const DOT_CLUSTERNATOR_CONFIG =
-  path.join(getUserHome(), '.clusternator_config.json');
+  path.join(getUserHome(), '.clusternator_config.json'),
+  writeFile = Q.nbind(fs.writeFile, fs),
+  chmod = Q.nbind(fs.chmod, fs);
 
 var credFileName = 'credentials',
   configFileName = 'config',
@@ -88,14 +93,17 @@ function checkAwsCreds() {
   return getAwsCredsFromProc();
 }
 
-function validateClusternatorCreds(c) {
-  if (!c.host) {
+function validateUserConfig(c) {
+  if (!c.credentials) {
     return null;
   }
-  if (!c.user) {
+  if (!c.credentials.host) {
     return null;
   }
-  if (!c.pass) {
+  if (!c.credentials.user) {
+    return null;
+  }
+  if (!c.credentials.token) {
     return null;
   }
   if (!c.apiVersion) {
@@ -106,17 +114,12 @@ function validateClusternatorCreds(c) {
   return c;
 }
 
-function checkClusternatorCreds() {
+function checkUser() {
   try {
     var c = require(DOT_CLUSTERNATOR_CONFIG);
-    return validateClusternatorCreds(c);
+    return validateUserConfig(c);
   } catch (err) {
-    return {
-      user: null,
-      pass: null,
-      host: null,
-      apiVersion: null
-    };
+    return null;
   }
 }
 
@@ -148,9 +151,55 @@ function getConfig() {
   var config = checkConfig();
 
   config.awsCredentials = checkAwsCreds();
-  config.clusternatorCredentials = checkClusternatorCreds();
+  config.user = checkUser();
 
   return config;
 }
 
+/**
+ * @param {{ host: string, username: string, token: string, name: string=,
+ email: string= }} options
+ * @return {Q.Promise}
+ */
+function writeUserConfig(options) {
+  if (!options) {
+    throw new TypeError('User config requires a parameters object');
+  }
+  if (!options.host || !options.username || !options.token) {
+    throw new TypeError('User config requires a host/user/token');
+  }
+  return writeFile(DOT_CLUSTERNATOR_CONFIG, JSON.stringify({
+    name: options.name || 'Mysterious Stranger',
+    email: options.email || '',
+    credentials: {
+      user: options.username,
+      token: options.token,
+      host: options.host
+    }
+  }, null, 2))
+    .then(() => chmod(DOT_CLUSTERNATOR_CONFIG, '600'));
+}
+
+function maskString(str) {
+  if (!str) { return ''; }
+  return 'XXXXXXXXXXXXXXXXXXXXXXXXXXXX' + str.slice(str.length - 5);
+}
+
+function interactiveUser() {
+  var user = getConfig().user;
+  if (!user) {
+    user = { credentials: {} };
+  }
+  return util
+    .inquirerPrompt(questions.userInit({
+      name: user.name || 'Mysterious Stranger',
+      email: user.email || '',
+      host: user.credentials.host || '',
+      username: user.credentials.user || '',
+      token: maskString(user.credentials.token) || ''
+  }))
+  .then(writeUserConfig);
+}
+
+getConfig.interactiveUser = interactiveUser;
 module.exports = getConfig;

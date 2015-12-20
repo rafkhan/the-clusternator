@@ -278,7 +278,8 @@ function installGitHook(root, name, passphrase) {
   return getSkeletonFile('git-' + name)
   .then((contents) => {
     contents = contents.replace(CLUSTERNATOR_PASS, passphrase);
-    return installExecutable(path.join(root, '.git', 'hooks', name), contents);
+    return installExecutable(
+      path.join(root, '.git', 'hooks', name), contents, 300);
   });
 }
 
@@ -748,13 +749,17 @@ function privateDiff() {
         util.info(`Diff: no checksum to compare against`);
         process.exit(2);
       });
-    })
+    });
   })
   .fail((err) => {
     util.error(err);
     process.exit(2);
   })
   .done();
+}
+
+function configUser() {
+  Config.interactiveUser().done();
 }
 
 module.exports = {
@@ -790,5 +795,7 @@ module.exports = {
   dockerBuild,
 
   privateChecksum,
-  privateDiff
+  privateDiff,
+
+  configUser
 };

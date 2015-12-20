@@ -2,9 +2,11 @@
 
 const WAIT_DEFAULT_INTERVAL = 10000;
 
-var Q = require('q'),
-  Winston = require('winston'),
-  winston;
+const Q = require('q'),
+  inquirer = require('inquirer'),
+  Winston = require('winston');
+
+var winston;
 
 initWinston();
 
@@ -126,6 +128,15 @@ function clone(obj) {
   }
 }
 
+function inquirerPrompt(qs) {
+  var d = Q.defer();
+  inquirer.prompt(qs, (answers) => {
+    d.resolve(answers);
+  });
+  return d.promise;
+}
+
+
 module.exports = {
   errLog: errLog,
   plog: plog,
@@ -139,5 +150,6 @@ module.exports = {
   verbose,
   warn,
   error,
-  winston
+  winston,
+  inquirerPrompt
 };

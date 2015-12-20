@@ -17,7 +17,6 @@ var Q = require('q'),
   git = Q.nfbind(require('parse-git-config')),
   path = require('path'),
   fs = require('fs'),
-  inquirer = require('inquirer'),
   util = require('./util'),
   questions = require('./skeletons/create-interactive-questions'),
   gpg = require('./cli-wrappers/gpg'),
@@ -190,14 +189,6 @@ function validate(cJson) {
   return results;
 }
 
-function promisePrompt(qs) {
-  var d = Q.defer();
-  inquirer.prompt(qs, (answers) => {
-    d.resolve(answers);
-  });
-  return d.promise;
-}
-
 /**
  * @param {Object=} params
  * @returns {Q.Promise<Array>}
@@ -205,7 +196,7 @@ function promisePrompt(qs) {
 function createInteractive(params) {
   var init = questions.projectInit(params);
 
-  return promisePrompt(init).then((answers) => {
+  return util.inquirerPrompt(init).then((answers) => {
     if (answers.passphraseInput === 'gen') {
       // generate
       return gpg.generatePass().then((pass) => {
@@ -354,27 +345,29 @@ function makePrivate(passPhrase, root) {
   return getConfig()
     .then((config) => {
       if (!config.private) {
-        throw new Error('Clusternator: No private assets marked in config file');
+        throw new Error(
+          'Clusternator: No private assets marked in config file');
       }
 
       function makePrivateFromRoot(root) {
         var tarFile = path.join(root, CLUSTERNATOR_TAR);
 
-        return tar.ball(tarFile, config.private).then(() => {
-          return gpg.encryptFile(passPhrase, tarFile)
-        }).then(() => {
-          var rmPromises = config.private.map((fileOrFolder) => {
-            return rimraf(path.join(root, fileOrFolder));
-          });
-          rmPromises.push(rimraf(tarFile));
-          return Q.allSettled(rmPromises);
-        });
+        return tar
+          .ball(tarFile, config.private)
+          .then(() => gpg
+            .encryptFile(passPhrase, tarFile))
+          .then(() => Q
+            .allSettled(
+              config.private
+                .map((fileOrFolder) => rimraf(path.join(root, fileOrFolder)))
+                .concat([rimraf(tarFile)])));
       }
 
       if (root) {
         return makePrivateFromRoot(root);
       }
-      return findProjectRoot().then(makePrivateFromRoot);
+      return findProjectRoot()
+        .then(makePrivateFromRoot);
     });
 }
 

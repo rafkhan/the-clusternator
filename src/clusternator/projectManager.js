@@ -102,12 +102,12 @@ function getProjectManager(config) {
   }
 
   function init() {
-    if (!config.clusternatorCredentials) {
+    if (!config.user || !config.user.credentials) {
       d.reject(new Error('No clusternator credentials found.  Try ' +
         '`clusternator login`'));
       return;
     }
-    credentials = config.clusternatorCredentials;
+    credentials = config.user.credentials;
     d.resolve({
       create,
       createPR,
