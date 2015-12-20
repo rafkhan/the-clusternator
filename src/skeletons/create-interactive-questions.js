@@ -10,7 +10,7 @@ function truthy(value) {
  * @param {Object} defaults
  * @returns {[]}
  */
-function mandatory(defaults) {
+function projectInit(defaults) {
   defaults = defaults || {};
 
   if (!defaults.deploymentsDir) {
@@ -25,9 +25,8 @@ function mandatory(defaults) {
     defaults.clusternatorDir = util.clone(skeleton.clusternatorDir)
   }
 
-  if (!defaults.private || !defaults.private.length) {
+  if (!defaults.private) {
     defaults.private = util.clone(skeleton.private);
-    defaults.private.push('.private');
   }
 
   function hasPassphrase(response) {
@@ -130,5 +129,5 @@ function mandatory(defaults) {
 }
 
 module.exports = {
-  mandatory
+  projectInit
 };

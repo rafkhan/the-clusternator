@@ -27,6 +27,7 @@ function getAppDefPath() {
     config = require(path.join('..', CONFIG_FILE));
   } catch (err) {
     console.log('Error loading', CONFIG_FILE);
+    console.log(err);
     die();
   }
   return path.join(
@@ -40,6 +41,7 @@ function requireAppDef() {
     return require(appDefPath);
   } catch (err) {
     console.log('Error loading application definition', appDefPath);
+    console.log(err);
     die();
   }
 }

@@ -18,22 +18,20 @@ function getClusterManager(ecs) {
     if (!clusterName) {
       return Q.reject(new Error('createCluster: missing, or invalid config'));
     }
-    var params = {
-      clusterName: clusterName
-    };
 
-    return ecs.createCluster(params);
+    return ecs.createCluster({
+      clusterName
+    });
   }
 
-  function deleteCluster(name) {
-    if (!name) {
+  function deleteCluster(cluster) {
+    if (!cluster) {
       return Q.reject(new Error('deleteCluster: missing, or invalid config'));
     }
-    var params = {
-      cluster: name
-    };
 
-    return ecs.deleteCluster(params);
+    return ecs.deleteCluster({
+      cluster
+    });
   }
   /**
    * List all clusters
@@ -144,8 +142,13 @@ function getClusterManager(ecs) {
   function processServiceDescription(description) {
     if (description && description.services) {
       return {
-        arn: description.services[0].serviceArn,
-        events: description.services[0].events.shift().message
+        serviceArn: description.services[0].serviceArn,
+        clusterArn: description.services[0].clusterArn,
+        desiredCount: description.services[0].desiredCount,
+        pendingCount: description.services[0].pendingCount,
+        status: description.services[0].status,
+        deployments: description.services[0].deployments,
+        lastEvent: description.services[0].events.shift().message
       }
     }
     return null;
@@ -155,7 +158,8 @@ function getClusterManager(ecs) {
     var formatted = descriptions
       .map(processServiceDescription)
       .filter(identity);
-    util.info(JSON.stringify(formatted, null, 2));
+
+    return formatted;
   }
 
   function describeProject(projectId) {
@@ -176,6 +180,7 @@ function getClusterManager(ecs) {
     describePr,
     describeDeployment,
     describe: describeCluster,
+    describeServices,
     destroy: deleteCluster,
     deregister: deregister
   };

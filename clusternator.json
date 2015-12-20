@@ -1,8 +1,6 @@
 {
   "projectId": "the-clusternator",
-  "private": [
-    ".private"
-  ],
+  "private": ".private",
   "deploymentsDir": ".private/deployments",
   "clusternatorDir": ".clusternator"
 }

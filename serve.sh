@@ -27,7 +27,6 @@ if [ -e ./$ENCRYPTED_TARBALL ]; then
   ./.private/docker-login.sh
 fi
 
-
 # Start the service
 echo "Starting Service"
 exec npm start

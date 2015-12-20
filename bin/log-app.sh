@@ -16,7 +16,7 @@ then
   exit -1
 fi
 
-SSH="ssh ${USER}@${1}"
+SSH="ssh ${USER}@${1} -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null " 
 LINE_COUNT=`${SSH} docker ps | wc -l`
 
 if [ ${LINE_COUNT} -lt 3 ]

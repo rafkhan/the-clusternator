@@ -203,9 +203,9 @@ function promisePrompt(qs) {
  * @returns {Q.Promise<Array>}
  */
 function createInteractive(params) {
-  var mandatory = questions.mandatory(params);
+  var init = questions.projectInit(params);
 
-  return promisePrompt(mandatory).then((answers) => {
+  return promisePrompt(init).then((answers) => {
     if (answers.passphraseInput === 'gen') {
       // generate
       return gpg.generatePass().then((pass) => {
@@ -353,7 +353,7 @@ function readPrivate(passPhrase, root) {
 function makePrivate(passPhrase, root) {
   return getConfig()
     .then((config) => {
-      if (!config.private || !(Array.isArray(config.private) || !config.private.length)) {
+      if (!config.private) {
         throw new Error('Clusternator: No private assets marked in config file');
       }
 

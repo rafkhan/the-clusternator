@@ -22,7 +22,8 @@
     "!win32"
   ],
   "scripts": {
-    "start": "node ./server-init.js",
+    "start": "NODE_ENV=production; node ./server-init.js",
+    "staging": "NODE_ENV=staging; node ./server-init.js",
     "dev": "NODE_ENV=debug; nodemon ./server-init.js",
     "test": "./node_modules/gulp/bin/gulp.js test-unit",
     "build": "./node_modules/gulp/bin/gulp.js transpile",

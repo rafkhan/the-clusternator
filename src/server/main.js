@@ -48,9 +48,11 @@ function startSSL(app) {
   }
 
   const config = Config();
+  /** @todo fetch .private from clusternator.json this might not be valid */
+  const configDir = path.join(__dirname, '..', '..', '.private');
 
   return lex.create({
-    configDir: path.join(__dirname, '..', '..', '.private'),
+    configDir,
     onRequest: app,
         approveRegistration: (hostname, cb) => {
           if (!config.hasReadLetsEncryptTOS) {

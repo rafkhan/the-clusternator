@@ -199,7 +199,7 @@ function writeDeployment(name, dDir, appDef) {
 function demandPassphrase(y){
   return y.demand('p').
   alias('p', 'passphrase').
-  describe('p', 'Requires a passphrase to encrypt private files/directories');
+  describe('p', 'Requires a passphrase to encrypt private directory');
 }
 
 function generateDeploymentFromName(name) {
@@ -227,8 +227,7 @@ function pickBestName(names) {
  * @returns {Q.Promise}
  */
 function addPrivateToGitIgnore(fullAnswers) {
-  const priv = Array.isArray(fullAnswers.answers.private) ?
-    fullAnswers.answers.private : [fullAnswers.answers.private],
+  const priv = fullAnswers.answers.private,
   addPromises = priv.map((privItem) => {
     return git.addToGitIgnore([privItem, 'clusternator.tar.gz']);
   });
@@ -595,7 +594,10 @@ function generateDeployment(y) {
 function describeServices() {
   return getProjectAPI().then((pm) => {
     return clusternatorJson.get().then((config) => {
-      return pm.describeProject(config.projectId);
+      return pm.describeProject(config.projectId)
+      .then((desc) => {
+          util.info(JSON.stringify(desc, null, 2));
+      });
     });
   }).done();
 }
@@ -697,7 +699,7 @@ function getPrivateChecksumPaths() {
       clusternatorJson.findProjectRoot()
     ])
     .then((results) => {
-      const privatePath = results[0].private[0],
+      const privatePath = results[0].private,
         checksumPath = path.join(results[1], results[0].clusternatorDir,
           PRIVATE_CHECKSUM);
           return {
