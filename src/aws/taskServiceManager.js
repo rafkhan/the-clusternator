@@ -7,6 +7,7 @@ var util = require('../util');
 var TaskDefinitionManager = require('./taskDefinitionManager');
 
 function getTaskServiceManager(ecs) {
+  ecs = util.makePromiseApi(ecs);
 
   var taskDefinitionManager = TaskDefinitionManager(ecs);
 
@@ -19,7 +20,7 @@ function getTaskServiceManager(ecs) {
       cluster: clusterArn
     };
 
-    return q.nbind(ecs.listServices, ecs)(params);
+    return ecs.listServices(params);
   }
 
   function updateService(clusterArn, serviceArn, update) {
@@ -38,7 +39,7 @@ function getTaskServiceManager(ecs) {
 
     params = R.merge(params, update);
 
-    return q.nbind(ecs.updateService, ecs)(params);
+    return ecs.updateService(params);
   }
 
   function deleteService(clusterArn, serviceArn) {
@@ -55,7 +56,7 @@ function getTaskServiceManager(ecs) {
       service: serviceArn,
     };
 
-    return q.nbind(ecs.deleteService, ecs)(params);
+    return ecs.deleteService(params);
   }
 
   /**
@@ -108,7 +109,7 @@ function getTaskServiceManager(ecs) {
         serviceName: serviceName
       };
 
-      return q.nbind(ecs.createService, ecs)(params);
+      return ecs.createService(params);
     }
 
     function createTaskAndService(task) {

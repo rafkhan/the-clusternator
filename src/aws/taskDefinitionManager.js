@@ -1,15 +1,17 @@
 'use strict';
 
-var Q = require('q');
+var Q = require('q'),
+  util = require('../util');
 
 function getTaskDefinitionManager(ecs) {
+  ecs = util.makePromiseApi(ecs);
 
   function createTaskDefinition(taskDef) {
     if(!taskDef) {
       throw 'This function requires a configuration object';
     }
 
-    return Q.nbind(ecs.registerTaskDefinition, ecs)(taskDef);
+    return ecs.registerTaskDefinition(taskDef);
   }
 
   return {

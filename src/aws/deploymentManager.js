@@ -40,129 +40,128 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
         securityGroup.createDeployment(pid, deployment, sha),
         cluster.create(clusterName)
       ])
-      .then(function(results) {
-        var sgDesc = results[0];
-
-        return ec2mgr
-          .createDeployment({
-            clusterName: clusterName,
-            pid: pid,
-            deployment: deployment,
-            sha: sha,
-            sgId: sgDesc.GroupId,
-            subnetId: subnetId,
-            sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
-            apiConfig: {}
-          })
-          .then(function(ec2Results) {
-            var ip = common.findIpFromEc2Describe(ec2Results);
-            return route53
-              .createDeploymentARecord(pid, deployment, ip)
-              .then((urlDesc) => {
-                return urlDesc;
-              })
-              .fail(() => {
-                // fail over
-                return;
-              });
-          });
-      }).
-      then(function(urlDesc) {
-        return task
-          .create(clusterName, clusterName, appDef)
-          .then(() => {
-            return urlDesc;
-          });
-      });
+      .then((results) => ec2mgr
+        .createDeployment({
+          clusterName: clusterName,
+          pid: pid,
+          deployment: deployment,
+          sha: sha,
+          sgId: results[0].GroupId,
+          subnetId: subnetId,
+          sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
+          apiConfig: {}
+        })
+        .then((ec2Results) => route53
+          .createDeploymentARecord(
+            pid, deployment, common.findIpFromEc2Describe(ec2Results))
+          .then((urlDesc) => urlDesc)
+          // fail over
+          .fail(() => undefined)))
+      .then((urlDesc) => task
+        .create(clusterName, clusterName, appDef)
+        .then(() => urlDesc));
     //- start system
   }
 
-  function create(pid, deployment, sha, appDef) {
+  function create(projectId, deployment, sha, appDef) {
 
-    return subnet.describeProject(pid).then(function(list) {
-      if (!list.length) {
-        throw new Error('Create Deployment failed, no subnet found for ' +
-          'Project: ' + pid + ' Deployment ' + deployment);
-      }
-      return createCluster(list[0].SubnetId, pid, deployment, sha, appDef);
-    });
+    return subnet
+      .describeProject(projectId)
+      .then((list) => {
+        if (!list.length) {
+          throw new Error('Create Deployment failed, no subnet found for ' +
+            `Project: ${projectId} Deployment ${deployment}`);
+        }
+        return createCluster(
+          list[0].SubnetId, projectId, deployment, sha, appDef);
+      });
   }
 
-  function destroyEc2(pid, deployment, clusterName) {
+  /**
+   * @param {string} clusterName
+   * @returns {function(...):Q.Promise}
+   */
+  function getDeregisterClusterFn(clusterName) {
+    return (arn) => {
+      return cluster.deregister(
+        arn, clusterName
+      ).fail((err) => {
+        //util.info('Deployment: destroy EC2: Warning, Deregistration for ' +
+        //  'instance ' + arn + ' failed, project: ' + pid + ' deployment ' +
+        //  deployment + ' error: ' + err.message);
+        // do nothing on failure, deregistration _should_ actually work
+        // automagically
+      });
+    };
+  }
+
+  /**
+   * @param {string} projectId
+   * @param {string} deployment
+   * @param {string} clusterName
+   * @returns {Promise.<string[]>}
+   */
+  function destroyEc2(projectId, deployment, clusterName) {
     if (!clusterName) {
       throw new Error('destroyEc2: requires valid clusterName');
     }
-    return cluster.listContainers(clusterName).then(function(result) {
-      var deregisterPromises = [];
-      result.forEach(function(arn) {
-        deregisterPromises.push(cluster.deregister(
-          arn, clusterName
-        ).fail(function(err) {
-          //util.info('Deployment: destroy EC2: Warning, Deregistration for ' +
-          //  'instance ' + arn + ' failed, project: ' + pid + ' deployment ' +
-          //  deployment + ' error: ' + err.message);
-          // do nothing on failure, deregistration _should_ actually work
-          // automagically
-        }));
-      });
-      return Q.all(deregisterPromises).then(function() {
-        return ec2mgr.destroyDeployment(pid, deployment).fail(function(err) {
-          util.info('Deployment Destruction Problem Destroying Ec2: ' +
-            err.message);
-        });
-      });
-    });
+    return cluster
+      .listContainers(clusterName)
+      .then((result) => Q
+        .all(result.map(getDeregisterClusterFn(clusterName)))
+        .then(() => ec2mgr
+          .destroyDeployment(projectId, deployment)
+          .fail((err) => {
+            util.info('Deployment Destruction Problem Destroying Ec2: ' +
+              err.message);
+          })
+        )
+      );
   }
 
-  function destroyRoutes(pid, deployment) {
-    return ec2mgr.describeDeployment(pid, deployment).then(function(results) {
+  /**
+   * @param {string} projectId
+   * @param {string} deployment
+   * @returns {Request|Promise.<T>}
+   */
+  function destroyRoutes(projectId, deployment) {
+    return ec2mgr
+      .describeDeployment(projectId, deployment)
+      .then((results) => {
       var ip = common.findIpFromEc2Describe(results);
-      return route53.destroyDeploymentARecord(pid, deployment, ip);
+      return route53.destroyDeploymentARecord(projectId, deployment, ip);
     });
   }
 
   /**
-   * @param {string} pid
+   * @param {string} projectId
    * @param {string} deployment
    * @param {string} sha
    * @returns {Request}
    */
-  function destroy(pid, deployment, sha) {
+  function destroy(projectId, deployment, sha) {
     var clusterName = rid.generateRID({
-      pid,
+      projectId,
       deployment,
       sha
     });
-    return destroyRoutes(pid, deployment).
-    then(() => {
-      return destroyEc2(pid, deployment, clusterName);
-    }, () => {
-      return destroyEc2(pid, deployment, clusterName);
-    }).then(function(r) {
-      return task.destroy(clusterName).fail(function(err) {
-        util.info('Deployment Destruction Problem Destroying Task: ' +
-          err.message);
-        return;
-      });
-    }).then(function() {
-      var clusterName = rid.generateRID({
-        pid,
-        deployment,
-        sha
-      });
-      return cluster.destroy(clusterName).fail(() => {
-        // fail over, keep cleaning
-        return;
-      });
-    }, () => {
-      // keep cleaning up
-      return;
-    }).then(function() {
-      return securityGroup.destroyDeployment(pid, deployment).fail(() => {
+    return destroyRoutes(projectId, deployment)
+      .then(() => destroyEc2(projectId, deployment, clusterName),
+        () => destroyEc2(projectId, deployment, clusterName))
+      .then((r) => task
+        .destroy(clusterName)
+        .fail((err) => {
+          util.info('Deployment Destruction Problem Destroying Task: ' +
+            err.message);
+        }))
+      .then(() => cluster
+        .destroy(clusterName)
         // fail over
-        return;
-      });
-    });
+        .fail(() => undefined))
+      .then(() => securityGroup
+        .destroyDeployment(projectId, deployment)
+        // fail over
+        .fail(() => undefined));
   }
 
   return {

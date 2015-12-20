@@ -14,6 +14,10 @@ function filterValidArns(arn) {
 function getClusterManager(ecs) {
   ecs = util.makePromiseApi(ecs);
 
+  /**
+   * @param {string} clusterName
+   * @returns {Q.Promise}
+   */
   function createCluster(clusterName) {
     if (!clusterName) {
       return Q.reject(new Error('createCluster: missing, or invalid config'));
@@ -24,6 +28,10 @@ function getClusterManager(ecs) {
     });
   }
 
+  /**
+   * @param {string} cluster
+   * @returns {Q.Promise}
+   */
   function deleteCluster(cluster) {
     if (!cluster) {
       return Q.reject(new Error('deleteCluster: missing, or invalid config'));
@@ -33,8 +41,10 @@ function getClusterManager(ecs) {
       cluster
     });
   }
+
   /**
    * List all clusters
+   * @return {Q.Promise.<string[]>}
    */
   function listClusters() {
     return ecs.listClusters({})
@@ -47,7 +57,7 @@ function getClusterManager(ecs) {
   /**
    * Get information on a cluster by name or ARN
    *
-   * @param cluster String
+   * @param {string} clusterName
    */
   function describeCluster(clusterName) {
     var params = {
@@ -68,6 +78,11 @@ function getClusterManager(ecs) {
       });
   }
 
+  /**
+   * @param {string} instanceArn
+   * @param {string} clusterId
+   * @returns {Q.Promise}
+   */
   function deregister(instanceArn, clusterId) {
     return ecs.deregisterContainerInstance({
       cluster: clusterId,
@@ -75,12 +90,16 @@ function getClusterManager(ecs) {
     });
   }
 
+  /**
+   * @param {string} clusterId
+   * @returns {Promise.<string[]>}
+   */
   function listContainers(clusterId) {
     return ecs
       .listContainerInstances({
         cluster: clusterId
       })
-      .then(function(result) {
+      .then((result) => {
         if (result.containerInstanceArns) {
           return result.containerInstanceArns;
         }
@@ -89,6 +108,10 @@ function getClusterManager(ecs) {
   }
 
 
+  /**
+   * @param {string} cluster
+   * @returns {Promise.<string[]>}
+   */
   function listServices(cluster) {
     return ecs
       .listServices({
@@ -98,6 +121,11 @@ function getClusterManager(ecs) {
       });
   }
 
+  /**
+   * @param {string} cluster
+   * @param {string[]} services
+   * @returns {*}
+   */
   function describeServices(cluster, services) {
     return ecs
       .describeServices({
@@ -114,13 +142,23 @@ function getClusterManager(ecs) {
 
   }
 
+  /**
+   * @param {*<T>} o
+   * @returns {*<T>}
+   */
   function identity(o) {
     return o;
   }
 
+  /**
+   * @param {string} projectId
+   * @returns {function(...):boolean}
+   */
   function getProjectIdFilter(projectId) {
     return (arn) => {
-      var arnParts = arn.split('/').filter(identity),
+      var arnParts = arn
+        .split('/')
+        .filter(identity),
         parts = rid.parseRID(arnParts[arnParts.length - 1]);
       if (parts.pid === projectId) {
         return true;
@@ -129,6 +167,10 @@ function getClusterManager(ecs) {
     };
   }
 
+  /**
+   * @param {string} cluster
+   * @returns {Promise.<AWSServiceDescription>}
+   */
   function promiseServiceDescription(cluster) {
     return listServices(cluster)
       .then((services) => {
@@ -139,6 +181,10 @@ function getClusterManager(ecs) {
       });
   }
 
+  /**
+   * @param {AWSServiceDescription} description
+   * @returns {ClusternatorServiceDescription}
+   */
   function processServiceDescription(description) {
     if (description && description.services) {
       return {
@@ -154,6 +200,10 @@ function getClusterManager(ecs) {
     return null;
   }
 
+  /**
+   * @param {AWSServiceDescription[]} descriptions
+   * @returns {ClusternatorServiceDescription[]}
+   */
   function processServiceDescriptions(descriptions) {
     var formatted = descriptions
       .map(processServiceDescription)
@@ -162,6 +212,10 @@ function getClusterManager(ecs) {
     return formatted;
   }
 
+  /**
+   * @param {string} projectId
+   * @returns {Request}
+   */
   function describeProject(projectId) {
     return listClusters()
       .then((list) => Q

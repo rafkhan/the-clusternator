@@ -1,3 +1,5 @@
+'use strict';
+
 const spawn = require('child_process').spawn,
   path = require('path'),
   util = require('../util'),
@@ -23,9 +25,9 @@ function logApp(host) {
   log.on('close', (code) => {
     if (+code) {
       d.reject(
-        new Error(`logApp terminated with exit code: ${code} msg: ${error}`));
+        new Error(`logApp terminated with exit code: ${code}`));
     } else {
-      d.resolve(output);
+      d.resolve();
     }
   });
 
@@ -47,9 +49,9 @@ function logEcs(host) {
   log.on('close', (code) => {
     if (+code) {
       d.reject(
-        new Error(`logEcs terminated with exit code: ${code} msg: ${error}`));
+        new Error(`logEcs terminated with exit code: ${code}`));
     } else {
-      d.resolve(output);
+      d.resolve();
     }
   });
 
