@@ -220,6 +220,23 @@ yargs.command('add-new-ssh-key', 'Adds a new SSH Key', cli.newSSH);
 
 yargs.command('build', 'Local Docker Build', cli.dockerBuild);
 
+yargs.command('private-checksum', 'Calculates the hash of .private, and ' +
+'writes it to .clusternator/.private-checksum', cli.privateChecksum);
+
+yargs.command('private-diff', 'Exits 0 if there is no difference between ' +
+'.clusternator/.private-checksum and a fresh checksum; Exits 1 on mismatch, ' +
+'and exits 2 if private-checksum is not found',
+cli.privateDiff);
+
+yargs.command('config', 'Configure the local clusternator user',
+  cli.configUser);
+
+yargs.command('log', 'Application logs from a user selected server',
+  cli.logApp);
+
+yargs.command('log-ecs', 'ECS logs from a user selected server',
+  cli.logEcs);
+
 
 /**
  * @todo yargify everything from here down.  Manual if/else *not* required

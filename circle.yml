@@ -1,5 +1,3 @@
 machine:
   node:
     version: 4.2.3
-  webhooks:
-    - url: https://the-clusternator-pr-1.rangleapp.io

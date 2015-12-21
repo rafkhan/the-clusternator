@@ -13,6 +13,9 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # change to this directory
 cd $DIR
 
+# change to parent folder
+cd ..
+
 # check if decryption is necessary
 if [ -e ./$ENCRYPTED_TARBALL ]; then
   # decrypt the configuration(s)

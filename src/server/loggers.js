@@ -10,10 +10,10 @@ var logLevelsByLogger = {
 
 switch (process.env.NODE_ENV) {
   case 'debug':
-    logLevelsByLogger.logger = 5;
+    logLevelsByLogger.logger = 'debug';
     break;
   case 'production':
-    logLevelsByLogger.logger = 0;
+    logLevelsByLogger.logger = 'warn';
     break;
 }
 

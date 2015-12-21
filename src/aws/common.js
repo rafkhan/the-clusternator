@@ -1,6 +1,6 @@
 'use strict';
 var constants = require('../constants'),
-  Q = require('q');
+  rid = require('../resourceIdentifier');
 
 /**
  * @param {string} pid
@@ -264,6 +264,95 @@ function findIpFromEc2Describe(results) {
   return ip;
 }
 
+
+/**
+ * @param {AWSPromiseWrappedCluster} cluster
+ * @param {string} clusterName
+ * @returns {function(...):Q.Promise}
+ */
+function getDeregisterClusterFn(cluster, clusterName) {
+  return (arn) => {
+    return cluster.deregister(
+      arn, clusterName
+    ).fail((err) => {
+      //util.info('Deployment: destroy EC2: Warning, Deregistration for ' +
+      //  'instance ' + arn + ' failed, project: ' + pid + ' deployment ' +
+      //  deployment + ' error: ' + err.message);
+      // do nothing on failure, deregistration _should_ actually work
+      // automagically
+    });
+  };
+}
+
+
+/**
+ * @param {string} arn
+ * @returns {*}
+ */
+function filterValidArns(arn) {
+  var splits = arn.split('/'),
+    name = splits[splits.length - 1];
+  return rid.isRID(name);
+}
+
+/**
+ * @param {string} arn
+ * @returns {*}
+ * @private
+ */
+function getArnParts_(arn) {
+  var arnParts = arn
+    .split('/')
+    .filter((i) => i);
+
+  return rid.parseRID(arnParts[arnParts.length - 1]);
+}
+
+/**
+ * @param {string} projectId
+ * @returns {function(...):boolean}
+ */
+function getProjectIdFilter(projectId) {
+  return (arn) => {
+    var parts = getArnParts_(arn);
+    if (parts.pid === projectId) {
+      return true;
+    }
+    return false;
+  };
+}
+
+/**
+ * @param {string} projectId
+ * @param {string} pr
+ * @returns {function(...):boolean}
+ */
+function getPrFilter(projectId, pr) {
+  return (arn) => {
+    var parts = getArnParts_(arn);
+    if (parts.pid === projectId && parts.pr === pr) {
+      return true;
+    }
+    return false;
+  };
+}
+
+/**
+ * @param {string} projectId
+ * @param {string} deploymnet
+ * @returns {function(...):boolean}
+ */
+function getDeploymentFilter(projectId, deployment) {
+  return (arn) => {
+    var parts = getArnParts_(arn);
+    if (parts.pid === projectId && parts.deployment === deployment) {
+      return true;
+    }
+    return false;
+  };
+}
+
+
 module.exports = {
   areTagsPidPrValid,
   areTagsPidValid,
@@ -280,5 +369,10 @@ module.exports = {
   makeEc2DescribeProjectFn,
   makeEc2DescribePrFn,
   makeEc2DescribeDeployment,
-  findIpFromEc2Describe
+  findIpFromEc2Describe,
+  getDeregisterClusterFn,
+  filterValidArns,
+  getProjectIdFilter,
+  getPrFilter,
+  getDeploymentFilter
 };

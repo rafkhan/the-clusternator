@@ -5,7 +5,9 @@ const PROJECT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project';
 const PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr';
 const DEPLOYMENT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'deployment';
 const SHA_TAG = CLUSTERNATOR_PREFIX + DELIM + 'sha';
-const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
+/** NOTE EC2 AMI's are region specific */
+//const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
+const AWS_DEFAULT_EC2_AMI = 'ami-e2b1f988';
 const AWS_DEFAULT_EC2_TYPE = 't2.micro';
 const SSH_PUBLIC_PATH = 'ssh-public';
 

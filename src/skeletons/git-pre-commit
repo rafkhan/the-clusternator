@@ -1,3 +1,18 @@
 #!/bin/sh
-clusternator make-private -p $CLUSTERNATOR_PASS
-git add ./clusternator.tar.gz.asc
+
+if clusternator private-diff;
+then
+  echo "No Changes to private files, skipping encryption.  Please ensure your \
+  private folder is ignored by version control"
+else
+  DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  cd $DIR
+  cd ../../
+  rm ./clusternator.tar.gz
+  clusternator make-private -p $CLUSTERNATOR_PASS
+  clusternator private-checksum
+  git add ./clusternator.tar.gz.asc
+  # note adding .private-checksum to .clusternator litarally
+  # is _not_ good practice as .clusternator is "configurable"
+  git add ./.clusternator/.private-checksum
+fi

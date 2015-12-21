@@ -1,6 +1,14 @@
 #!/bin/sh
-FILE=clusternator.tar.gz.asc
+
+# Locate *this* file
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+TARBALL=clusternator.tar.gz
+ENCRYPTED_TARBALL="$TARBALL.asc"
 if [ -f "$FILE" ]
 then
-clusternator read-private -p $CLUSTERNATOR_PASS
+cd $DIR
+cd ../../
+gpg --passphrase $CLUSTERNATOR_PASS --output ./${TARBALL}\
+   --decrypt ./${ENCRYPTED_TARBALL}
 fi

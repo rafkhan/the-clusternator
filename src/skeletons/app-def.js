@@ -10,12 +10,17 @@ module.exports = Object.freeze({
               'hostPort': 80,
               'containerPort': 3000,
               'protocol': 'tcp'
+            },
+            {
+              'hostPort': 443,
+              'containerPort': 3000,
+              'protocol': 'tcp'
             }
           ],
           'command': [],
           'environment': [{
-            'name': 'PASSPHRASE',
-            'value': ''
+            'name': 'NODE_ENV',
+            'value': 'production'
           }],
           essential: true,
           entryPoint: [],
