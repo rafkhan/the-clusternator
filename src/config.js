@@ -8,7 +8,7 @@ const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID';
 const AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY';
 
 const util = require('./util'),
-  Q = require('Q'),
+  Q = require('q'),
   fs = require('fs'),
   path = require('path'),
   semver = require('semver'),
