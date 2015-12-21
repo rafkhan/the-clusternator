@@ -793,7 +793,7 @@ function dockerBuild(y) {
         return readPrivate(y);
       });
   }).fail((err) => {
-    util.error('Error building local Docker image: ', err.message);
+    util.error('Error building local Docker image: ', err);
   }).done();
 }
 
