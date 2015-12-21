@@ -424,9 +424,10 @@ function initializeScripts(clustDir, tld) {
 /**
  * @param {string} depDir
  * @param {string} projectId
+ * @param {string} dockerType
  * @returns {Q.Promise}
  */
-function initializeDeployments(depDir, clustDir, projectId) {
+function initializeDeployments(depDir, clustDir, projectId, dockerType) {
   return mkdirp(depDir).then(() => {
     var prAppDef = util.clone(appDefSkeleton);
     prAppDef.name = projectId;
@@ -436,7 +437,7 @@ function initializeDeployments(depDir, clustDir, projectId) {
       mkdirp(path.join(depDir, '..', constants.SSH_PUBLIC_PATH)),
       writeFile(path.join(depDir, 'pr.json'), prAppDef),
       writeFile(path.join(depDir, 'master.json'), prAppDef),
-      initializeDockerFile(clustDir),
+      initializeDockerFile(clustDir, dockerType),
       initializeDockerIgnoreFile()
     ]);
   });
@@ -453,11 +454,14 @@ function initializeDockerIgnoreFile() {
     });
 }
 
-function initializeDockerFile(clustDir) {
+function initializeDockerFile(clustDir, dockerType) {
+  /** @todo do not overwrite existing Dockerfile */
+  const template = dockerType === 'static' ?
+    DOCKERFILE_STATIC_LATEST : DOCKERFILE_NODE_LATEST;
   return clusternatorJson
     .findProjectRoot()
     .then((root) => {
-      return getSkeletonFile(DOCKERFILE_NODE_LATEST)
+      return getSkeletonFile(template)
         .then((contents) => {
           contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
           return writeFile(path.join(root, DOCKERFILE), contents);
@@ -512,10 +516,11 @@ function initializeProject(y) {
           clusternatorJson.fullPath(initDetails.root),
         dDir = initDetails.fullAnswers.answers.deploymentsDir,
         cDir = initDetails.fullAnswers.answers.clusternatorDir,
-        projectId = initDetails.fullAnswers.answers.projectId;
+        projectId = initDetails.fullAnswers.answers.projectId,
+        dockerType = initDetails.fullAnswers.answers.backend;
 
       return Q.allSettled([
-          initializeDeployments(dDir, cDir, projectId),
+          initializeDeployments(dDir, cDir, projectId, dockerType),
           initializeScripts(cDir, initDetails.fullAnswers.answers.tld),
           initializeOptionalDeployments(initDetails.fullAnswers.answers,
             initDetails.root)
