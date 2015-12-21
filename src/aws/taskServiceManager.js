@@ -1,5 +1,7 @@
 'use strict';
 
+const SERVICE_POLL_DELAY = 15000;
+
 var q = require('q');
 var R = require('ramda');
 var util = require('../util');
@@ -93,6 +95,46 @@ function getTaskServiceManager(ecs) {
       .then(destroyAllServices, q.reject);
   }
 
+  function serviceStatus(result) {
+    if (!result.services || !result.services.length) {
+      return -1;
+    }
+    var isSteady = 1;
+    result.services[0].events.forEach((event) => {
+      util.debug(`Polling service for ready check: ${event.message}`);
+      if (event.message.indexOf('steady state') === -1) {
+        return;
+      }
+      isSteady = 0;
+    });
+    return isSteady;
+  }
+
+  function serviceReady(arns) {
+    var d = q.defer();
+    ecs
+      .describeServices({
+        services: [ arns.service ],
+        cluster: arns.cluster })
+      .then((result) => {
+        var status = serviceStatus(result);
+        if (status < 0) {
+          d.reject(new Error('Error polling new service: ' + arns));
+          return;
+        }
+        if (status === 0) {
+          util.info('Service has reached a steady state');
+          d.resolve();
+        } else {
+          setTimeout(() => {
+            serviceReady(arns)
+              .then(d.resolve, d.reject);
+          }, SERVICE_POLL_DELAY);
+        }})
+      .fail(d.reject);
+    return d.promise;
+  }
+
   /**
    * This is the cool part.
    */
@@ -109,7 +151,11 @@ function getTaskServiceManager(ecs) {
         serviceName: serviceName
       };
 
-      return ecs.createService(params);
+      return ecs.createService(params)
+        .then((result) => serviceReady({
+          service: result.service.serviceArn,
+          cluster: result.service.clusterArn })
+          .then(() => result ));
     }
 
     function createTaskAndService(task) {

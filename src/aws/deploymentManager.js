@@ -87,6 +87,7 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
     if (!clusterName) {
       throw new Error('destroyEc2: requires valid clusterName');
     }
+    console.log(clusterName);
     return cluster
       .listContainers(clusterName)
       .then((result) => Q
@@ -96,9 +97,7 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
           .fail((err) => {
             util.info('Deployment Destruction Problem Destroying Ec2: ' +
               err.message);
-          })
-        )
-      );
+          })));
   }
 
   /**
@@ -123,7 +122,7 @@ function getDeploymentManager(ec2, ecs, r53, vpcId, zoneId) {
    */
   function destroy(projectId, deployment, sha) {
     var clusterName = rid.generateRID({
-      projectId,
+      pid: projectId,
       deployment,
       sha
     });

@@ -5,7 +5,7 @@ const SETUP_SSH = 'mkdir -p /home/ec2-user/.ssh';
 const CHOWN_SSH ='chown -R ec2-user:ec2-user /home/ec2-user/.ssh && chmod -R ' +
   'go-rwx /home/ec2-user/.ssh';
 const OUTPUT_SSH = '>> /home/ec2-user/.ssh/authorized_keys';
-const configAttributes = ['clusterName', 'sgId', 'subnetId', 'pid', 'pr'];
+const configAttributes = ['clusterName', 'sgId', 'subnetId', 'pid'];
 const prConfigAttributes = configAttributes.concat(['pr']);
 const deploymentConfigAttributes = configAttributes.concat(
   ['deployment', 'sha']);
