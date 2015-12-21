@@ -7,6 +7,7 @@ var Subnet = require('./subnetManager'),
   Acl = require('./aclManager'),
   Cluster = require('./clusterManager'),
   Pr = require('./prManager'),
+  Ec2 = require('./ec2Manager'),
   Deployment = require('./deploymentManager'),
   DynamoManager = require('./dynamoManager'),
   gpg = require('../cli-wrappers/gpg'),
@@ -21,6 +22,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
     vpc = Vpc(ec2),
     r53 = Route53(awsRoute53),
     ddbManager = DynamoManager(dynamoDB),
+    ec2mgr,
     route,
     subnet,
     acl;
@@ -170,6 +172,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
     acl = Acl(ec2, vpcId);
     pullRequest = Pr(ec2, ecs, awsRoute53, vpcId, zoneId);
     deployment = Deployment(ec2, ecs, awsRoute53, vpcId, zoneId);
+    ec2mgr = Ec2(ec2, vpcId);
     return {
       create,
       createPR,
@@ -182,6 +185,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
 
       deployment,
       pr: pullRequest,
+      ec2: ec2mgr,
       initializeGithubWebhookToken
     };
   });

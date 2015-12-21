@@ -2,7 +2,10 @@
 
 /*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions:0*/
-describe('Users interface', () => {
+describe('Users interface', function() {
+  /** Make sure `this` is in traditional function, _not_ an arrow */
+  this.timeout(10000);
+
   var C = require('../../chai'),
     users = require('../../../../src/server/auth/users'),
     testUser1, testUser2, testUser3, testUser4;

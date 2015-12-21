@@ -1,160 +1,207 @@
 'use strict';
 
-var Q = require('q');
-var R = require('ramda');
-var rid = require('../resourceIdentifier');
-var util = require('../util');
-
-var DEFAULT_CLUSTER_PARAMS = {
-};
-
-function filterValidArns(arn) {
-  var splits = arn.split('/'),
-  name = splits[splits.length - 1];
-  return rid.parseRID(name);
-}
+const Q = require('q'),
+  R = require('ramda'),
+  rid = require('../resourceIdentifier'),
+  common = require('./common'),
+  util = require('../util');
 
 function getClusterManager(ecs) {
+  ecs = util.makePromiseApi(ecs);
 
+  /**
+   * @param {string} clusterName
+   * @returns {Q.Promise}
+   */
   function createCluster(clusterName) {
     if (!clusterName) {
       return Q.reject(new Error('createCluster: missing, or invalid config'));
     }
-    var params = R.merge(DEFAULT_CLUSTER_PARAMS, {
-      clusterName: clusterName
-    });
 
-    // must bind to ecs
-    return Q.nbind(ecs.createCluster, ecs)(params);
+    return ecs.createCluster({
+      clusterName
+    });
   }
 
-function deleteCluster(name) {
-    if (!name) {
+  /**
+   * @param {string} cluster
+   * @returns {Q.Promise}
+   */
+  function deleteCluster(cluster) {
+    if (!cluster) {
       return Q.reject(new Error('deleteCluster: missing, or invalid config'));
     }
-    var params = {
-      cluster: name
-    };
 
-    // must bind to ecs
-    return Q.nbind(ecs.deleteCluster, ecs)(params);
-}
+    return ecs.deleteCluster({
+      cluster
+    });
+  }
+
   /**
-  * List all clusters
-  */
+   * List all clusters
+   * @return {Q.Promise.<string[]>}
+   */
   function listClusters() {
-    return Q.nbind(ecs.listClusters, ecs)({}).then(function (list) {
-      return list.clusterArns.filter(filterValidArns);
+    return ecs.listClusters({})
+      .then((list) => list
+        .clusterArns
+        .filter(common.filterValidArns)
+      );
+  }
+
+  /**
+   * Get information on a cluster by name or ARN
+   *
+   * @param {string} clusterName
+   */
+  function describeCluster(clusterName) {
+    var params = {
+      clusters: [clusterName]
+    };
+    return ecs
+      .describeClusters(params)
+      .then(function(results) {
+        var result = R.filter(function(c) {
+          return c.clusterName === clusterName;
+        }, results.clusters);
+
+        if (!result[0]) {
+          throw new Error('Cluster does not exist');
+        }
+
+        return result[0];
+      });
+  }
+
+  /**
+   * @param {string} instanceArn
+   * @param {string} clusterId
+   * @returns {Q.Promise}
+   */
+  function deregister(instanceArn, clusterId) {
+    return ecs.deregisterContainerInstance({
+      cluster: clusterId,
+      containerInstance: instanceArn
     });
   }
 
   /**
-  * Get information on a cluster by name or ARN
-  *
-  * @param cluster String
-  */
-  function describeCluster(clusterName) {
-    var params = { clusters: [ clusterName ] };
-    return Q.nbind(ecs.describeClusters, ecs)(params)
-    .then(function(results) {
-      var result = R.filter(function(c) {
-        return c.clusterName === clusterName;
-      }, results.clusters);
-
-      if(!result[0]) {
-        throw new Error('Cluster does not exist');
-      }
-
-      return result[0];
-    });
-  }
-
-  function deregister(instanceArn, clusterId) {
-    return Q.nfbind(ecs.deregisterContainerInstance.bind(ecs), {
-        cluster: clusterId,
-        containerInstance: instanceArn
-    })();
-  }
-
+   * @param {string} clusterId
+   * @returns {Promise.<string[]>}
+   */
   function listContainers(clusterId) {
-    return Q.nbind(ecs.listContainerInstances, ecs)({
-      cluster: clusterId
-    }).then(function (result) {
+    return ecs
+      .listContainerInstances({
+        cluster: clusterId
+      })
+      .then((result) => {
         if (result.containerInstanceArns) {
           return result.containerInstanceArns;
         }
         throw new Error('Cluster: listContainers: unexpected data');
-    });
-  }
-
-
-  function listServices(cluster) {
-    return Q.nfbind(ecs.listServices.bind(ecs), {
-      cluster
-    })().then((services) => {
-      return services.serviceArns.filter((service) => {
-        if (service.length) {
-          return true;
-        }
-        return false;
       });
-    });
   }
 
+
+  /**
+   * @param {string} cluster
+   * @returns {Promise.<string[]>}
+   */
+  function listServices(cluster) {
+    return ecs
+      .listServices({
+        cluster
+      }).then((services) => {
+        return services.serviceArns.filter((service) => service.length);
+      });
+  }
+
+  /**
+   * @param {string} cluster
+   * @param {string[]} services
+   * @returns {*}
+   */
   function describeServices(cluster, services) {
-    return Q.nfbind(ecs.describeServices.bind(ecs), {
-      cluster,
-      services
-    })();
+    return ecs
+      .describeServices({
+        cluster,
+        services
+      });
   }
 
-  function describePr(pid, pr) {
-
-  }
-
-  function describeDeployment(pid, sha) {
+  function describePr(projectId, pr) {
 
   }
 
+  function describeDeployment(projectId, sha) {
+
+  }
+
+  /**
+   * @param {*<T>} o
+   * @returns {*<T>}
+   */
   function identity(o) {
     return o;
   }
 
-  function describeProject(pid) {
-    return listClusters().then((list) => {
-      var sLists = list.filter((arn) => {
-        var arnParts = arn.split('/').filter(identity),
-          parts = rid.parseRID(arnParts[arnParts.length - 1]);
-        if (parts.pid === pid) {
-          return true;
+  /**
+   * @param {string} cluster
+   * @returns {Promise.<AWSServiceDescription>}
+   */
+  function promiseServiceDescription(cluster) {
+    return listServices(cluster)
+      .then((services) => {
+        if (services.length) {
+          return describeServices(cluster, services);
         }
-        return false;
-      }).map((relevant) => {
-        return listServices(relevant).then((services) => {
-          if (services.length) {
-            return describeServices(relevant, services);
-          }
-          return null;
-        });
+        return null;
       });
+  }
 
-      return Q.all(sLists).then((results) => {
-        var formatted = results.map((result) => {
-          if (result && result.services) {
-            return {
-              arn: result.services[0].serviceArn,
-              events: result.services[0].events.shift().message
-            }
-          }
-          return null;
-        }).filter((el) => {
-          return el;
-        });
-        util.info(JSON.stringify(formatted, null, 2));
-        //util.info('results', JSON.stringify(
-        //  results.filter(identity), null, 2));
-      });
-    });
+  /**
+   * @param {AWSServiceDescription} description
+   * @returns {ClusternatorServiceDescription}
+   */
+  function processServiceDescription(description) {
+    if (description && description.services) {
+      return {
+        serviceArn: description.services[0].serviceArn,
+        clusterArn: description.services[0].clusterArn,
+        desiredCount: description.services[0].desiredCount,
+        pendingCount: description.services[0].pendingCount,
+        status: description.services[0].status,
+        deployments: description.services[0].deployments,
+        lastEvent: description.services[0].events.shift().message
+      };
+    }
+    return null;
+  }
+
+  /**
+   * @param {AWSServiceDescription[]} descriptions
+   * @returns {ClusternatorServiceDescription[]}
+   */
+  function processServiceDescriptions(descriptions) {
+    var formatted = descriptions
+      .map(processServiceDescription)
+      .filter(identity);
+
+    return formatted;
+  }
+
+  /**
+   * @param {string} projectId
+   * @returns {Request}
+   */
+  function describeProject(projectId) {
+    return listClusters()
+      .then((list) => Q
+        .all(list
+          .filter(common.getProjectIdFilter(projectId))
+          .map(promiseServiceDescription))
+      )
+      .then(processServiceDescriptions);
   }
 
   return {
@@ -165,6 +212,7 @@ function deleteCluster(name) {
     describePr,
     describeDeployment,
     describe: describeCluster,
+    describeServices,
     destroy: deleteCluster,
     deregister: deregister
   };

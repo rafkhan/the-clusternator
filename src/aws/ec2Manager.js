@@ -1,10 +1,14 @@
 'use strict';
 
-const UTF8 = 'utf8'
+const UTF8 = 'utf8';
 const SETUP_SSH = 'mkdir -p /home/ec2-user/.ssh';
 const CHOWN_SSH ='chown -R ec2-user:ec2-user /home/ec2-user/.ssh && chmod -R ' +
   'go-rwx /home/ec2-user/.ssh';
 const OUTPUT_SSH = '>> /home/ec2-user/.ssh/authorized_keys';
+const configAttributes = ['clusterName', 'sgId', 'subnetId', 'pid'];
+const prConfigAttributes = configAttributes.concat(['pr']);
+const deploymentConfigAttributes = configAttributes.concat(
+  ['deployment', 'sha']);
 
 var Q = require('q'),
   R = require('ramda'),
@@ -50,7 +54,7 @@ function loadUserPublicKeys(keyPath) {
  * @returns {string}
  */
 function makeDockerAuthType(type) {
-  return `echo ECS_ENGINE_AUTH_TYPE=${ type } >> /etc/ecs/ecs.config;`
+  return `echo ECS_ENGINE_AUTH_TYPE=${ type } >> /etc/ecs/ecs.config;`;
 }
 
 /**
@@ -58,7 +62,7 @@ function makeDockerAuthType(type) {
  * @returns {string}
  */
 function makeDockerAuthData(data) {
-  return `echo ECS_ENGINE_AUTH_DATA=${ data } >> /etc/ecs/ecs.config;`
+  return `echo ECS_ENGINE_AUTH_DATA=${ data } >> /etc/ecs/ecs.config;`;
 }
 
 /**
@@ -134,7 +138,8 @@ function stringArrayToNewLineBase64(arr) {
 
 /**
  * @param {string} clusterName
- * @param {{ username: string, password: string, email:string}|{cfg:string}} auth
+ * @param {{ username: string, password: string,
+ email:string}|{cfg:string}} auth
  * @param {string|Buffer}sshDataOrPath
  * @returns {Q.Promise<string>}
  */
@@ -313,25 +318,12 @@ function getEC2Manager(ec2, vpcId) {
     if (!config) {
       throw new TypeError('This function requires a configuration object');
     }
-    if (!config.clusterName) {
-      throw new TypeError('Instance requires cluster name');
-    }
-    if (!config.sgId) {
-      throw new TypeError('Instance Requires sgId Group Id');
-    }
-    if (!config.subnetId) {
-      throw new TypeError('Instance Requires subnetId Id');
-    }
-    if (!config.pid) {
-      throw new TypeError('Instance Requires a pid');
-    }
-    if (!config.deployment) {
-      throw new TypeError('Instance Requires a deployment label');
-    }
-    if (!config.sha) {
-      throw new TypeError('Instance Requires a SHA label');
-    }
+    deploymentConfigAttributes.forEach((attr) => {
+      if (config[attr]) { return; }
+      throw new TypeError(`Instance requires ${attr}`);
+    });
   }
+
 
   /**
    * @param {{ clusterName: string, sgId: string, subnetId: string,
@@ -342,21 +334,10 @@ function getEC2Manager(ec2, vpcId) {
     if (!config) {
       throw new TypeError('This function requires a configuration object');
     }
-    if (!config.clusterName) {
-      throw new TypeError('Instance requires cluster name');
-    }
-    if (!config.sgId) {
-      throw new TypeError('Instance Requires sgId Group Id');
-    }
-    if (!config.subnetId) {
-      throw new TypeError('Instance Requires subnetId Id');
-    }
-    if (!config.pid) {
-      throw new TypeError('Instance Requires a pid');
-    }
-    if (!config.pr) {
-      throw new TypeError('Instance Requires a pr #');
-    }
+    prConfigAttributes.forEach((attr) => {
+      if (config[attr]) { return; }
+      throw new TypeError(`Instance requires ${attr}`);
+    });
   }
 
   /**
@@ -423,6 +404,8 @@ function getEC2Manager(ec2, vpcId) {
       auth = config.auth,
       apiConfig = config.apiConfig,
       sshPath = config.sshPath;
+
+      //apiConfig.InstanceType = 't2.small';
 
     return getECSContainerInstanceUserData(clusterName, auth, sshPath).
     then((data) => {

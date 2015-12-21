@@ -3,39 +3,73 @@
 const TEST_VPC = 'vpc-ab07b4cf';
 const TEST_ZONE = '/hostedzone/Z1K98SX385PNRP';
 const LOGIN_PATH = '/login';
+const HOST = process.env.HOST;
+const PRODUCTION = 'production';
+const DEBUG = 'debug';
+const NODE_ENV = process.env.NODE_ENV;
 
-var R = require('ramda');
-var q = require('q');
-var express = require('express');
-var bodyParser = require('body-parser-rawbody');
-var aws = require('aws-sdk');
-var path = require('path');
+const R = require('ramda');
+const q = require('q');
+const path = require('path');
+const express = require('express');
+const aws = require('aws-sdk');
+const Config = require('../config');
+const getPRManager = require('../aws/prManager');
+const getDynamoDBManager = require('../aws/dynamoManager');
+const waitFor = require('../util').waitFor;
+const loggers = require('./loggers');
+const log = loggers.logger;
+const prHandler = require('./pullRequest');
+const pushHandler = require('./push');
+const authentication = require('./auth/authentication');
+const githubAuthMiddleware = require('./auth/githubHook');
+const users = require('./auth/users');
+const util = require('../util');
+const clusternatorApi = require('./clusternator-api');
 
-var getPRManager = require('../aws/prManager');
-var getDynamoDBManager = require('../aws/dynamoManager');
-
-var prHandler = require('./pullRequest');
-var pushHandler = require('./push');
-var loggers = require('./loggers');
-var log = loggers.logger;
-
-var waitFor = require('../util').waitFor;
-
-var githubAuthMiddleware = require('./auth/githubHook');
-
-var nodePath = require('path');
 var compression = require('compression');
-var authentication = require('./auth/authentication');
 var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
-var users = require('./auth/users');
-var util = require('../util');
-var clusternatorApi = require('./clusternator-api');
-
 
 var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
 
+var bodyParser = require('body-parser-rawbody');
+var lex;
+
+function startSSL(app) {
+  if (NODE_ENV === PRODUCTION) {
+    log.info('Clusternator SSL set for production');
+    lex = require('letsencrypt-express');
+  } else if (NODE_ENV === DEBUG) {
+    log.info('Clusternator SSL disabled for debug/dev');
+    return null;
+  } else {
+    log.info('Clusternator SSL set for testing');
+    lex = require('letsencrypt-express').testing();
+  }
+
+  const config = Config();
+  /** @todo fetch .private from clusternator.json this might not be valid */
+  const configDir = path.join(__dirname, '..', '..', '.private');
+
+  return lex.create({
+    configDir,
+    onRequest: app,
+        approveRegistration: (hostname, cb) => {
+          if (!config.hasReadLetsEncryptTOS) {
+            return;
+          }
+          cb(null, {
+            domains: [hostname],
+            email: config.adminEmail,
+            agreeTos: true
+          });
+        }
+    });
+}
+
 function createServer(prManager, ddbManager) {
-  var app = express();
+  var app = express(),
+    leApp = startSSL(app);
 
   /**
    *  @todo the authentication package could work with a "mount", or another
@@ -45,7 +79,7 @@ function createServer(prManager, ddbManager) {
 
   app.use(compression());
   app.use(express['static'](
-    nodePath.join(__dirname, '..', 'www'))
+    path.join(__dirname, '..', 'www'))
   );
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
@@ -134,7 +168,10 @@ function createServer(prManager, ddbManager) {
 
   app.use(loggers.error);
 
-  return app;
+  if (NODE_ENV === DEBUG) {
+    return app;
+  }
+  return leApp;
 }
 
 function getAwsResources(config) {
@@ -225,12 +262,19 @@ function getServer(config) {
 
 function startServer(config) {
   return getServer(config)
-    .then((server) => {
+  .then((server) => {
+    if (NODE_ENV === DEBUG) {
       server.listen(config.port);
-      log.info('Clusternator listening on port', config.port)
-    }, (err) => {
-      log.error(err, err.stack);
-    });
+      log.info(
+        `Clusternator listening on port: ${config.port}`);
+      } else {
+        server.listen([config.port], [config.portSSL]);
+        log.info(
+          `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
+        }
+      }, (err) => {
+        log.error(err, err.stack);
+      });
 }
 
 module.exports = {
