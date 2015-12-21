@@ -29,10 +29,8 @@ function dockerBuild(repo, repoDesc, image, tag, middleware, dockerFile) {
     .then(dockerBuildSuccess, null, dockerProgress)
     .then(cleanGit)
     .then(d.resolve)
-    .fail((err) => {
-      pfail('build', repoDesc.id)(err)
-        .fail(d.reject);
-    });
+    .fail((err) => pfail('build', repoDesc.id)(err)
+      .fail(d.reject));
 
 
   function dockerPushSuccess() {
@@ -65,11 +63,9 @@ function dockerBuild(repo, repoDesc, image, tag, middleware, dockerFile) {
     util.info('Running Dockernator Middleware');
     return middleware(repoDesc)
       .then(cleanup)
-      .fail((err) => {
-        return cleanup().then(() => {
-          throw err;
-        });
-      });
+      .fail((err) => cleanup()
+        .then(() => { throw err; })
+      );
   }
 
   // progress output is essential for debugging

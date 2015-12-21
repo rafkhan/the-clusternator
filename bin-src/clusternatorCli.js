@@ -231,6 +231,12 @@ cli.privateDiff);
 yargs.command('config', 'Configure the local clusternator user',
   cli.configUser);
 
+yargs.command('log', 'Application logs from a user selected server',
+  cli.logApp);
+
+yargs.command('log-ecs', 'ECS logs from a user selected server',
+  cli.logEcs);
+
 
 /**
  * @todo yargify everything from here down.  Manual if/else *not* required

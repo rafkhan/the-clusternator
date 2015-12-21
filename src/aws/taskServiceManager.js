@@ -53,7 +53,7 @@ function getTaskServiceManager(ecs) {
 
     var params = {
       cluster: clusterArn,
-      service: serviceArn,
+      service: serviceArn
     };
 
     return ecs.deleteService(params);

@@ -1,6 +1,6 @@
 'use strict';
 var constants = require('../constants'),
-  Q = require('q');
+  rid = require('../resourceIdentifier');
 
 /**
  * @param {string} pid
@@ -284,6 +284,75 @@ function getDeregisterClusterFn(cluster, clusterName) {
   };
 }
 
+
+/**
+ * @param {string} arn
+ * @returns {*}
+ */
+function filterValidArns(arn) {
+  var splits = arn.split('/'),
+    name = splits[splits.length - 1];
+  return rid.isRID(name);
+}
+
+/**
+ * @param {string} arn
+ * @returns {*}
+ * @private
+ */
+function getArnParts_(arn) {
+  var arnParts = arn
+    .split('/')
+    .filter((i) => i);
+
+  return rid.parseRID(arnParts[arnParts.length - 1]);
+}
+
+/**
+ * @param {string} projectId
+ * @returns {function(...):boolean}
+ */
+function getProjectIdFilter(projectId) {
+  return (arn) => {
+    var parts = getArnParts_(arn);
+    if (parts.pid === projectId) {
+      return true;
+    }
+    return false;
+  };
+}
+
+/**
+ * @param {string} projectId
+ * @param {string} pr
+ * @returns {function(...):boolean}
+ */
+function getPrFilter(projectId, pr) {
+  return (arn) => {
+    var parts = getArnParts_(arn);
+    if (parts.pid === projectId && parts.pr === pr) {
+      return true;
+    }
+    return false;
+  };
+}
+
+/**
+ * @param {string} projectId
+ * @param {string} deploymnet
+ * @returns {function(...):boolean}
+ */
+function getDeploymentFilter(projectId, deployment) {
+  return (arn) => {
+    var parts = getArnParts_(arn);
+    if (parts.pid === projectId && parts.deployment === deployment) {
+      return true;
+    }
+    return false;
+  };
+}
+
+
 module.exports = {
   areTagsPidPrValid,
   areTagsPidValid,
@@ -301,5 +370,9 @@ module.exports = {
   makeEc2DescribePrFn,
   makeEc2DescribeDeployment,
   findIpFromEc2Describe,
-  getDeregisterClusterFn
+  getDeregisterClusterFn,
+  filterValidArns,
+  getProjectIdFilter,
+  getPrFilter,
+  getDeploymentFilter
 };

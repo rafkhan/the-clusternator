@@ -3,13 +3,8 @@
 const Q = require('q'),
   R = require('ramda'),
   rid = require('../resourceIdentifier'),
+  common = require('./common'),
   util = require('../util');
-
-function filterValidArns(arn) {
-  var splits = arn.split('/'),
-    name = splits[splits.length - 1];
-  return rid.parseRID(name);
-}
 
 function getClusterManager(ecs) {
   ecs = util.makePromiseApi(ecs);
@@ -48,10 +43,10 @@ function getClusterManager(ecs) {
    */
   function listClusters() {
     return ecs.listClusters({})
-      .then(function(list) {
-        return list.clusterArns
-          .filter(filterValidArns);
-      });
+      .then((list) => list
+        .clusterArns
+        .filter(common.filterValidArns)
+      );
   }
 
   /**
@@ -151,23 +146,6 @@ function getClusterManager(ecs) {
   }
 
   /**
-   * @param {string} projectId
-   * @returns {function(...):boolean}
-   */
-  function getProjectIdFilter(projectId) {
-    return (arn) => {
-      var arnParts = arn
-        .split('/')
-        .filter(identity),
-        parts = rid.parseRID(arnParts[arnParts.length - 1]);
-      if (parts.pid === projectId) {
-        return true;
-      }
-      return false;
-    };
-  }
-
-  /**
    * @param {string} cluster
    * @returns {Promise.<AWSServiceDescription>}
    */
@@ -195,7 +173,7 @@ function getClusterManager(ecs) {
         status: description.services[0].status,
         deployments: description.services[0].deployments,
         lastEvent: description.services[0].events.shift().message
-      }
+      };
     }
     return null;
   }
@@ -220,7 +198,7 @@ function getClusterManager(ecs) {
     return listClusters()
       .then((list) => Q
         .all(list
-          .filter(getProjectIdFilter(projectId))
+          .filter(common.getProjectIdFilter(projectId))
           .map(promiseServiceDescription))
       )
       .then(processServiceDescriptions);

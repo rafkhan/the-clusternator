@@ -196,16 +196,20 @@ function validate(cJson) {
 function createInteractive(params) {
   var init = questions.projectInit(params);
 
-  return util.inquirerPrompt(init).then((answers) => {
-    if (answers.passphraseInput === 'gen') {
-      // generate
-      return gpg.generatePass().then((pass) => {
-        answers.passphrase = pass;
-        return answers;
-      });
-    }
-    return answers;
-  });
+  return util
+    .inquirerPrompt(init)
+    .then((answers) => {
+      if (answers.passphraseInput === 'gen') {
+        // generate
+        return gpg
+          .generatePass()
+          .then((pass) => {
+            answers.passphrase = pass;
+            return answers;
+          });
+      }
+      return answers;
+    });
 }
 
 /**

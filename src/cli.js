@@ -29,6 +29,7 @@ const fs = require('fs'),
   shaDir = require('./cli-wrappers/generate-private-sha.js'),
   docker = require('./cli-wrappers/docker'),
   sshKey = require('./cli-wrappers/ssh-keygen'),
+  logRemote = require('./cli-wrappers/logs'),
   appDefSkeleton = require('./skeletons/app-def'),
   cnProjectManager = require('./clusternator/projectManager'),
   awsProjectManager = require('./aws/project-init'),
@@ -63,7 +64,7 @@ function getProjectAPI() {
 }
 
 function newApp(argv) {
-  return function() {
+  return () => {
     var clusterName = argv.cluster;
     var appDefPath = argv.app;
 
@@ -204,12 +205,91 @@ function demandPassphrase(y){
 
 function generateDeploymentFromName(name) {
   util.info('Generating deployment: ',  name);
-    return clusternatorJson.get().then((config) => {
-      var appDef = util.clone(appDefSkeleton);
-      appDef.projectId = config.projectId;
-      appDef = JSON.stringify(appDef, null, 2);
-      return writeDeployment(name, config.deploymentsDir, appDef);
-    });
+  return clusternatorJson.get().then((config) => {
+    var appDef = util.clone(appDefSkeleton);
+    appDef.projectId = config.projectId;
+    appDef = JSON.stringify(appDef, null, 2);
+    return writeDeployment(name, config.deploymentsDir, appDef);
+  });
+}
+
+function mapEc2ProjectDetails(instance) {
+  var result = {
+    type: 'type',
+    identifier: '?',
+    str: '',
+    ip: '',
+    state: ''
+  }, inst, tags;
+  if (!instance.Instances.length) {
+    return result;
+  }
+  inst = instance.Instances[0];
+  tags = inst.Tags;
+  result.ip = inst.PublicIpAddress;
+  result.state = inst.State.Name;
+
+  tags.forEach((tag) => {
+    if (tag.Key === constants.PR_TAG) {
+      result.type = 'PR';
+      result.identifier = tag.Value;
+    }
+    if (tag.Key === constants.DEPLOYMENT_TAG) {
+      result.type = 'Deployment';
+      result.identifier = tag.Value;
+    }
+  });
+
+  result.str = `${result.type} ${result.identifier} ` +
+    `(${result.ip}/${result.state})`;
+
+  return result;
+}
+
+function listSSHAbleInstancesByProject(projectId) {
+  return getProjectAPI()
+    .then((pm) => pm
+      .ec2
+      .describeProject(projectId)
+      .then((instances) => instances
+          .map(mapEc2ProjectDetails)
+      ));
+}
+
+function listSSHAbleInstances() {
+  return clusternatorJson
+    .get()
+    .then((cJson) => listSSHAbleInstancesByProject(cJson.projectId));
+}
+
+/**
+ * @param {function(...):Q.Promise} logFn
+ */
+function logR(logFn) {
+  return listSSHAbleInstances()
+    .then((instanceDetails) => {
+      if (!instanceDetails.length) {
+        util.info('Sorry no instances available to log into');
+        return;
+      }
+      return util
+        .inquirerPrompt([{
+          name: 'chosenBox',
+          type: 'list',
+          choices: instanceDetails.map((id) => id.str),
+          message: 'Choose a Box to Log' }])
+        .then((answers) => logFn(instanceDetails
+            .filter((id) => id.str === answers.chosenBox)
+            .map((id) => id.ip )[0])); })
+    .done();
+}
+
+function logApp() {
+  return logR(logRemote.logApp);
+}
+
+function logEcs() {
+  return logR(logRemote.logEcs);
 }
 
 /**
@@ -228,9 +308,9 @@ function pickBestName(names) {
  */
 function addPrivateToGitIgnore(fullAnswers) {
   const priv = fullAnswers.answers.private,
-  addPromises = priv.map((privItem) => {
-    return git.addToGitIgnore([privItem, 'clusternator.tar.gz']);
-  });
+    addPromises = priv.map((privItem) => {
+      return git.addToGitIgnore([privItem, 'clusternator.tar.gz']);
+    });
 
   return Q.all(addPromises);
 }
@@ -240,31 +320,33 @@ function addPrivateToGitIgnore(fullAnswers) {
  * @param {string} root - the project's root folder
  * @returns {Q.Promise}
  */
- function processInitUserOptions(results, root) {
-   // parse results
-   return clusternatorJson
-   .writeFromFullAnswers({
-     projectDir: root,
-     answers: results
-   })
-   .then((fullAnswers) => {
-     return addPrivateToGitIgnore(fullAnswers)
-     .then(() => {
-       return {
-         root,
-         fullAnswers
-       };
-     });
-   });
+function processInitUserOptions(results, root) {
+  // parse results
+  return clusternatorJson
+    .writeFromFullAnswers({
+      projectDir: root,
+      answers: results
+    })
+    .then((fullAnswers) => {
+      return addPrivateToGitIgnore(fullAnswers)
+        .then(() => {
+          return {
+            root,
+            fullAnswers
+          };
+        });
+    });
 }
 
 /**
  * @returns {Q.Promise<string>}
  */
 function getProjectRootRejectIfClusternatorJsonExists() {
-  return clusternatorJson.findProjectRoot().then((root) => {
-    return clusternatorJson.skipIfExists(root).then(() => { return root; });
-  })
+  return clusternatorJson
+    .findProjectRoot()
+    .then((root) => clusternatorJson
+      .skipIfExists(root)
+      .then(() => root ));
 }
 
 function installExecutable(destFilePath, fileContents, perms) {
@@ -276,11 +358,11 @@ function installExecutable(destFilePath, fileContents, perms) {
 
 function installGitHook(root, name, passphrase) {
   return getSkeletonFile('git-' + name)
-  .then((contents) => {
-    contents = contents.replace(CLUSTERNATOR_PASS, passphrase);
-    return installExecutable(
-      path.join(root, '.git', 'hooks', name), contents, 300);
-  });
+    .then((contents) => {
+      contents = contents.replace(CLUSTERNATOR_PASS, passphrase);
+      return installExecutable(
+        path.join(root, '.git', 'hooks', name), contents, 300);
+    });
 }
 
 function processGitHooks(results, root) {
@@ -306,19 +388,19 @@ function processGitHooks(results, root) {
  */
 function getInitUserOptions() {
   return getProjectRootRejectIfClusternatorJsonExists()
-   .then((root) => {
-     return clusternatorJson.findProjectNames(root)
-     .then(pickBestName)
-     .then(clusternatorJson.createInteractive)
-     .then((results) => {
-       return Q.all([
-         processInitUserOptions(results, root),
-         processGitHooks(results, root)
-       ]).then((results) => {
-         return results[0];
-       });
-     });
- });
+    .then((root) => {
+      return clusternatorJson.findProjectNames(root)
+        .then(pickBestName)
+        .then(clusternatorJson.createInteractive)
+        .then((results) => {
+          return Q.all([
+            processInitUserOptions(results, root),
+            processGitHooks(results, root)
+          ]).then((results) => {
+            return results[0];
+          });
+        });
+    });
 }
 
 function initializeScripts(clustDir, tld) {
@@ -386,20 +468,20 @@ function initializeDockerFile(clustDir) {
 function initializeServeSh(root) {
   var sPath = path.join(root, SERVE_SH);
   return getSkeletonFile(SERVE_SH)
-  .then((contents) => {
-    return writeFile(sPath, contents);
-  })
-  .then(() => {
-    return chmod(sPath, '755');
-  });
+    .then((contents) => {
+      return writeFile(sPath, contents);
+    })
+    .then(() => {
+      return chmod(sPath, '755');
+    });
 }
 
 function initializeCircleCIFile(root, clustDir) {
   return getSkeletonFile(CIRCLEFILE)
-  .then((contents) => {
-    contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
-    return writeFile(path.join(root, CIRCLEFILE), contents);
-  });
+    .then((contents) => {
+      contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
+      return writeFile(path.join(root, CIRCLEFILE), contents);
+    });
 }
 
 function initializeOptionalDeployments(answers, projectRoot) {
@@ -409,8 +491,8 @@ function initializeOptionalDeployments(answers, projectRoot) {
     promises.push(initializeCircleCIFile(projectRoot, answers.clusternatorDir));
   }
   if (answers.backend === 'node') {
-      promises.push(initializeServeSh(
-        path.join(projectRoot, answers.clusternatorDir)));
+    promises.push(initializeServeSh(
+      path.join(projectRoot, answers.clusternatorDir)));
   }
   return Q.allSettled(promises);
 }
@@ -426,44 +508,44 @@ function initializeProject(y) {
 
   return getInitUserOptions()
     .then((initDetails) => {
-    var output = 'Clusternator Initialized With Config: ' +
-        clusternatorJson.fullPath(initDetails.root),
-      dDir = initDetails.fullAnswers.answers.deploymentsDir,
-      cDir = initDetails.fullAnswers.answers.clusternatorDir,
-      projectId = initDetails.fullAnswers.answers.projectId;
+      var output = 'Clusternator Initialized With Config: ' +
+          clusternatorJson.fullPath(initDetails.root),
+        dDir = initDetails.fullAnswers.answers.deploymentsDir,
+        cDir = initDetails.fullAnswers.answers.clusternatorDir,
+        projectId = initDetails.fullAnswers.answers.projectId;
 
       return Q.allSettled([
-        initializeDeployments(dDir, cDir, projectId),
-        initializeScripts(cDir, initDetails.fullAnswers.answers.tld),
-        initializeOptionalDeployments(initDetails.fullAnswers.answers,
-          initDetails.root)
-      ])
-      .then(() => {
-        if (argv.o) {
-          util.info(output + ' Network Resources *NOT* Checked');
-          return;
-        }
+          initializeDeployments(dDir, cDir, projectId),
+          initializeScripts(cDir, initDetails.fullAnswers.answers.tld),
+          initializeOptionalDeployments(initDetails.fullAnswers.answers,
+            initDetails.root)
+        ])
+        .then(() => {
+          if (argv.o) {
+            util.info(output + ' Network Resources *NOT* Checked');
+            return;
+          }
 
-        return getProjectAPI()
-        .then((pm) => {
-          return pm.create(projectId).then(() => {
-            util.info(output + ' Network Resources Checked');
-          }, Q.reject)
+          return getProjectAPI()
+            .then((pm) => {
+              return pm.create(projectId).then(() => {
+                  util.info(output + ' Network Resources Checked');
+                }, Q.reject)
 
-          .then(() => {
-            return pm.initializeGithubWebhookToken(projectId);
-          }, Q.reject)
+                .then(() => {
+                  return pm.initializeGithubWebhookToken(projectId);
+                }, Q.reject)
 
-          .then((token) => {
-            console.log('STORE THIS TOKEN ON GITHUB', token);
-          }, Q.reject);
+                .then((token) => {
+                  console.log('STORE THIS TOKEN ON GITHUB', token);
+                }, Q.reject);
 
-        })
-    });
-  }).fail((err) => {
-    util.info('Clusternator: Initialization Error: ' + err.message);
-    util.info(err.stack);
-  }).done();
+            });
+        });
+    }).fail((err) => {
+      util.info('Clusternator: Initialization Error: ' + err.message);
+      util.info(err.stack);
+    }).done();
 }
 
 function pullRequest(y) {
@@ -512,46 +594,62 @@ function safeParse(string) {
   }
 }
 
+/**
+ * @param {ProjectManager} pm
+ * @param {Object} cJson
+ * @param {string} appDefStr
+ * @param {string} deployment
+ * @param {string} sha
+ * @returns {Request|Promise.<T>}
+ * @private
+ */
+function deploy_(pm, cJson, appDefStr, deployment, sha) {
+  util.info('Requirements met, creating deployment...');
+  var appDef = safeParse(appDefStr);
+  if (!appDef) {
+    throw new Error('Deployment failed, error parsing appDef');
+  }
+  return pm.createDeployment(
+    cJson.projectId,
+    deployment,
+    sha,
+    appDef
+  ).then((result) => {
+    util.info('Deployment will be available at ', result);
+  });
+}
+
+function getAppDefNotFound(dPath) {
+  return (err) => {
+    util.info(`Deployment AppDef Not Found In: ${dPath}: ${err.message}`);
+    throw err;
+  };
+}
+
 function deploy(y) {
   var argv = y.demand('d').
   alias('d', 'deployment-name').
   describe('d', 'Requires a deployment name').
     argv;
 
-  return clusternatorJson.get().then((cJson) => {
-    var dPath = path.join(cJson.deploymentsDir, argv.d + '.json');
-    return Q.all([
-      getProjectAPI(),
-      git.shaHead(),
-      readFile(dPath, UTF8).
-        fail((err) => {
-        util.info('Deployment AppDef Not Found In: ' + dPath + ' ' +
-          err.message);
-        throw err;
-      })
-    ]).then((results) => {
-      util.info('Requirements met, creating deployment...');
-      var appDef = safeParse(results[2]);
-      if (!appDef) {
-        throw new Error('Deployment failed, error parsing appDef: ' + dPath);
-      }
-      return results[0].createDeployment(
-        cJson.projectId,
-        argv.d,
-        results[1],
-        appDef
-      ).then((result) => {
-        var label = '-' + argv.d;
-        if (argv.d === 'master') {
-          label = '';
-        }
-        util.info('Deployment will be available at ', result);
-      });
-    }).fail((err) => {
-      util.info('Clusternator: Error creating deployment: ' + err.message);
-      util.info(err.stack);
+  return clusternatorJson
+    .get()
+    .then((cJson) => {
+      var dPath = path.join(cJson.deploymentsDir, argv.d + '.json');
+      return Q
+        .all([
+          getProjectAPI(),
+          git.shaHead(),
+          readFile(dPath, UTF8)
+            .fail(getAppDefNotFound(dPath))
+        ])
+        .then((results) => deploy_(
+          results[0], cJson, results[2], argv.d, results[1]))
+        .fail((err) => {
+          util.info('Clusternator: Error creating deployment: ' + err.message);
+          util.info(err.stack);
+        });
     });
-  });
 }
 
 function stop(y) {
@@ -596,9 +694,9 @@ function describeServices() {
   return getProjectAPI().then((pm) => {
     return clusternatorJson.get().then((config) => {
       return pm.describeProject(config.projectId)
-      .then((desc) => {
+        .then((desc) => {
           util.info(JSON.stringify(desc, null, 2));
-      });
+        });
     });
   }).done();
 }
@@ -695,7 +793,7 @@ function dockerBuild(y) {
 }
 
 function getPrivateChecksumPaths() {
-    return Q.all([
+  return Q.all([
       clusternatorJson.get(),
       clusternatorJson.findProjectRoot()
     ])
@@ -703,59 +801,59 @@ function getPrivateChecksumPaths() {
       const privatePath = results[0].private,
         checksumPath = path.join(results[1], results[0].clusternatorDir,
           PRIVATE_CHECKSUM);
-          return {
-            priv: privatePath,
-            checksum: checksumPath,
-            clusternator: results[0].clusternatorDir,
-            root: results[1]
-          }
-        });
+      return {
+        priv: privatePath,
+        checksum: checksumPath,
+        clusternator: results[0].clusternatorDir,
+        root: results[1]
+      };
+    });
 }
 
 function privateChecksum() {
   return getPrivateChecksumPaths()
-  .then((paths) => {
-    return mkdirp(paths.clusternator).then(() => paths);
-  }).then((paths) => {
-    process.chdir(paths.root);
-    return shaDir
-    .genSha(paths.priv)
-    .then((sha) => {
-      return writeFile(paths.checksum, sha)
-      .then(() => {
-        util.info(`Generated shasum of ${paths.priv} => ${sha}`);
-      });
-    });
-  })
-  .done();
+    .then((paths) => {
+      return mkdirp(paths.clusternator).then(() => paths);
+    }).then((paths) => {
+      process.chdir(paths.root);
+      return shaDir
+        .genSha(paths.priv)
+        .then((sha) => {
+          return writeFile(paths.checksum, sha)
+            .then(() => {
+              util.info(`Generated shasum of ${paths.priv} => ${sha}`);
+            });
+        });
+    })
+    .done();
 }
 
 function privateDiff() {
   return getPrivateChecksumPaths()
-  .then((paths) => {
-    return shaDir
-    .genSha(paths.priv)
-    .then((sha) => {
-      return readFile(paths.checksum, UTF8)
-      .then((storedSha) => {
-        if (sha.trim() === storedSha.trim()) {
-          process.exit(0);
-        }
-        util.info(`Diff: ${sha.trim()} vs ${storedSha.trim()}`);
-        process.exit(1);
-      })
-      .fail(() => {
-        // read file errors are expected
-        util.info(`Diff: no checksum to compare against`);
-        process.exit(2);
-      });
-    });
-  })
-  .fail((err) => {
-    util.error(err);
-    process.exit(2);
-  })
-  .done();
+    .then((paths) => {
+      return shaDir
+        .genSha(paths.priv)
+        .then((sha) => {
+          return readFile(paths.checksum, UTF8)
+            .then((storedSha) => {
+              if (sha.trim() === storedSha.trim()) {
+                process.exit(0);
+              }
+              util.info(`Diff: ${sha.trim()} vs ${storedSha.trim()}`);
+              process.exit(1);
+            })
+            .fail(() => {
+              // read file errors are expected
+              util.info(`Diff: no checksum to compare against`);
+              process.exit(2);
+            });
+        });
+    })
+    .fail((err) => {
+      util.error(err);
+      process.exit(2);
+    })
+    .done();
 }
 
 function configUser() {
@@ -797,5 +895,7 @@ module.exports = {
   privateChecksum,
   privateDiff,
 
-  configUser
+  configUser,
+  logApp,
+  logEcs
 };

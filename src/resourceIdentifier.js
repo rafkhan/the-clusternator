@@ -7,17 +7,23 @@ constants = require('./constants');
 var VALID_ID_TYPES = ['pr', 'sha', 'time', 'ttl', 'pid', 'deployment'];
 
 
-// TODO add clusternator prefix
+/**
+ * @param {string} rid
+ * @returns {boolean}
+ */
+function isRID(rid) {
+  return rid.indexOf(constants.CLUSTERNATOR_PREFIX) === 0;
+}
 
 /**
  * RID format: typeA-valueA--typeB-valueB
  */
 function parseRID(rid) {
-  if (rid.indexOf(constants.CLUSTERNATOR_PREFIX) !== 0) {
+  if (!isRID(rid)) {
     return null;
   }
   rid = rid.slice(constants.CLUSTERNATOR_PREFIX.length + 1);
-  var doubleDashRegex = /--/g;
+  const doubleDashRegex = /--/g;
 
   var splits = rid.split(doubleDashRegex);
 
@@ -88,5 +94,6 @@ module.exports = {
   parseRID,
   generateRID,
   generatePRSubdomain,
-  generateSubdomain
+  generateSubdomain,
+  isRID
 };
