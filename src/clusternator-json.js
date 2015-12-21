@@ -362,8 +362,7 @@ function makePrivate(passPhrase, root) {
             .encryptFile(passPhrase, tarFile))
           .then(() => Q
             .allSettled(
-              config.private
-                .map((fileOrFolder) => rimraf(path.join(root, fileOrFolder)))
+              [config.private]
                 .concat([rimraf(tarFile)])));
       }
 
