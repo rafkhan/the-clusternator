@@ -7,8 +7,6 @@ const FLAG_HEAD = 'HEAD';
 const FLAG_CLONE = 'clone';
 const FLAG_CHECKOUT = 'checkout';
 const GITIGNORE = '.gitignore';
-const NEWLINE = '\n';
-const UTF8 = 'utf8';
 
 var spawn = require('child_process').spawn,
   fs = require('fs'),
@@ -21,65 +19,6 @@ var spawn = require('child_process').spawn,
 
 var writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs);
-
-/**
- * @returns {Q.Promise<string>}
- */
-function gitIgnorePath() {
-  return clusternatorJson.findProjectRoot().then((root) => {
-    return path.join(root, GITIGNORE);
-  });
-}
-/**
- * @returns {Q.Promise<string[]>}
- */
-function readGitIgnore() {
-  return gitIgnorePath().then((ignoreFile) => {
-    return readFile(ignoreFile, UTF8).then((file) => {
-      return file.split(NEWLINE);
-    }, () => {
-      // fail over
-      return [];
-    });
-  });
-}
-
-/**
- * @param {string} toIgnore
- * @param {string[]} ignores
- * @returns {boolean}
- */
-function gitIgnoreHasItem(toIgnore, ignores) {
-  var found = false;
-  ignores.forEach((str) => {
-    if (str.indexOf(toIgnore) === 0) {
-      found = true;
-    }
-  });
-  return found;
-}
-
-function addToGitIgnore(toIgnore) {
-  if (!Array.isArray(toIgnore)) {
-    toIgnore = [toIgnore];
-  }
-  return readGitIgnore().then((ignores) => {
-    var output;
-    var newIgnores = toIgnore.filter((item) => {
-      return ignores.indexOf(item) === -1;
-    });
-
-    if (!newIgnores.length) {
-      // items already exists
-      return;
-    }
-    return gitIgnorePath().then((ignoreFile) => {
-      ignores = ignores.concat(newIgnores);
-      output = ignores.join(NEWLINE);
-      return writeFile(ignoreFile, output);
-    });
-  });
-}
 
 /**
  * @returns {Q.Promise}
@@ -243,13 +182,9 @@ module.exports = {
   GITIGNORE,
   shaHead,
   clone,
-  addToGitIgnore,
   create,
   destroy,
   helpers: {
-    gitIgnorePath,
-    readGitIgnore,
-    gitIgnoreHasItem,
     checkout
   }
 };

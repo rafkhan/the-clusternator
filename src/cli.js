@@ -1,18 +1,20 @@
 'use strict';
-const UTF8 = 'utf8';
-const DOCKERFILE = 'Dockerfile';
-const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3';
-const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx';
-const DOCKERIGNORE = '.dockerignore';
-const SERVE_SH = 'serve.sh';
-const DECRYPT_SH = 'decrypt.sh';
-const DOCKER_BUILD_SH = 'docker-build.sh';
-const NOTIFY_JS = 'notify.js';
-const CIRCLEFILE = 'circle.yml';
-const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
-const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
-const PRIVATE_CHECKSUM = '.private-checksum';
-const HOST = /\$HOST/g;
+const UTF8 = 'utf8',
+  DOCKERFILE = 'Dockerfile',
+  DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3',
+  DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx',
+  DOCKER_IGNORE = '.dockerignore',
+  GIT_IGNORE = '.gitignore',
+  NPM_IGNORE = '.npmignore',
+  SERVE_SH = 'serve.sh',
+  DECRYPT_SH = 'decrypt.sh',
+  DOCKER_BUILD_SH = 'docker-build.sh',
+  NOTIFY_JS = 'notify.js',
+  CIRCLEFILE = 'circle.yml',
+  CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g,
+  CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g,
+  PRIVATE_CHECKSUM = '.private-checksum',
+  HOST = /\$HOST/g;
 
 const fs = require('fs'),
   Q = require('q'),
@@ -30,6 +32,7 @@ const fs = require('fs'),
   docker = require('./cli-wrappers/docker'),
   sshKey = require('./cli-wrappers/ssh-keygen'),
   logRemote = require('./cli-wrappers/logs'),
+  ssh = require('./cli-wrappers/ssh'),
   appDefSkeleton = require('./skeletons/app-def'),
   cnProjectManager = require('./clusternator/projectManager'),
   awsProjectManager = require('./aws/project-init'),
@@ -265,7 +268,7 @@ function listSSHAbleInstances() {
 /**
  * @param {function(...):Q.Promise} logFn
  */
-function logR(logFn) {
+function remoteFn(logFn) {
   return listSSHAbleInstances()
     .then((instanceDetails) => {
       if (!instanceDetails.length) {
@@ -280,16 +283,22 @@ function logR(logFn) {
           message: 'Choose a Box to Log' }])
         .then((answers) => logFn(instanceDetails
             .filter((id) => id.str === answers.chosenBox)
-            .map((id) => id.ip )[0])); })
-    .done();
+            .map((id) => id.ip )[0])); });
+}
+
+function sshShell() {
+  return remoteFn(ssh.shell)
+  .done();
 }
 
 function logApp() {
-  return logR(logRemote.logApp);
+  return remoteFn(logRemote.logApp)
+    .done();
 }
 
 function logEcs() {
-  return logR(logRemote.logEcs);
+  return remoteFn(logRemote.logEcs)
+    .done();
 }
 
 /**
@@ -303,16 +312,42 @@ function pickBestName(names) {
 }
 
 /**
+ * @param {string} ignoreFile
+ * @param {Object} fullAnswers
+ * @returns {Q.Promise}
+ */
+function addPrivateToIgnore(ignoreFile, fullAnswers) {
+  const priv = fullAnswers.answers.private;
+
+  return clusternatorJson
+    .readIgnoreFile(path.join(__dirname, 'skeletons', ignoreFile), true)
+    .then((ignores) => ignores.concat(priv))
+    .then((ignores) => clusternatorJson
+      .addToIgnore(ignoreFile, ignores));
+}
+
+/**
  * @param {Object} fullAnswers
  * @returns {Q.Promise}
  */
 function addPrivateToGitIgnore(fullAnswers) {
-  const priv = fullAnswers.answers.private,
-    addPromises = priv.map((privItem) => {
-      return git.addToGitIgnore([privItem, 'clusternator.tar.gz']);
-    });
+  return addPrivateToIgnore(GIT_IGNORE, fullAnswers);
+}
 
-  return Q.all(addPromises);
+/**
+ * @param {Object} fullAnswers
+ * @returns {Q.Promise}
+ */
+function addPrivateToNpmIgnore(fullAnswers) {
+  return addPrivateToIgnore(NPM_IGNORE, fullAnswers);
+}
+
+/**
+ * @param {Object} fullAnswers
+ * @returns {Q.Promise}
+ */
+function addPrivateToDockerIgnore(fullAnswers) {
+  return addPrivateToIgnore(DOCKER_IGNORE, fullAnswers);
 }
 
 /**
@@ -327,15 +362,16 @@ function processInitUserOptions(results, root) {
       projectDir: root,
       answers: results
     })
-    .then((fullAnswers) => {
-      return addPrivateToGitIgnore(fullAnswers)
-        .then(() => {
-          return {
-            root,
-            fullAnswers
-          };
-        });
-    });
+    .then((fullAnswers) => Q.all([
+      addPrivateToGitIgnore(fullAnswers),
+      addPrivateToNpmIgnore(fullAnswers),
+      addPrivateToDockerIgnore(fullAnswers)
+    ]).then(() => {
+      return {
+        root,
+        fullAnswers
+      };
+    }));
 }
 
 /**
@@ -437,22 +473,11 @@ function initializeDeployments(depDir, clustDir, projectId, dockerType) {
       mkdirp(path.join(depDir, '..', constants.SSH_PUBLIC_PATH)),
       writeFile(path.join(depDir, 'pr.json'), prAppDef),
       writeFile(path.join(depDir, 'master.json'), prAppDef),
-      initializeDockerFile(clustDir, dockerType),
-      initializeDockerIgnoreFile()
+      initializeDockerFile(clustDir, dockerType)
     ]);
   });
 }
 
-function initializeDockerIgnoreFile() {
-  return clusternatorJson
-    .findProjectRoot()
-    .then((root) => {
-      return getSkeletonFile(DOCKERIGNORE)
-        .then((contents) => {
-          return writeFile(path.join(root, DOCKERIGNORE), contents);
-        });
-    });
-}
 
 function initializeDockerFile(clustDir, dockerType) {
   /** @todo do not overwrite existing Dockerfile */
@@ -902,5 +927,6 @@ module.exports = {
 
   configUser,
   logApp,
-  logEcs
+  logEcs,
+  ssh: sshShell
 };

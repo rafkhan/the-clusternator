@@ -1,4 +1,11 @@
 src/
+.clusternator/
+bin-src/
+coverage/
+examples/
+spec/
+tmp/
+
 clusternator.tar.gz
 clusternator.tar.gz.asc
-.private
+.private/

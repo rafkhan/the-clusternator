@@ -1,6 +1,7 @@
 'use strict';
 
 var rewire = require('rewire'),
+  fs = require('fs'),
   Q = require('q'),
   mockFs = require('mock-fs');
 
@@ -23,9 +24,10 @@ describe('clusternator.json handling', () => {
     project = 'home/user/workspaces/rangle/the-clusternator';
     other = 'home/user/workspaces/rangle/some-project/src';
     oldGit = cn.__get__('git');
-    oldInq = cn.__get__('inquirer');
+    oldInq = cn.__get__('util');
     cn.__set__('git', mockGit);
-    cn.__set__('inquirer', { prompt: (p, cb) => { cb({ private: ''}); } });
+
+    cn.__set__('util.inquirerPrompt', () => Q.resolve({ private: ''}) );
 
     mockFs({
       'home/user/workspaces/rangle/the-clusternator': {
@@ -49,7 +51,7 @@ describe('clusternator.json handling', () => {
   afterEach(() => {
     mockFs.restore();
     cn.__set__('git', oldGit);
-    cn.__set__('inquirer', oldInq);
+    cn.__set__('util.inquirerPrompt', oldInq);
   });
 
   it('parent should return the full path to a parent folder', () => {
@@ -197,3 +199,82 @@ describe('clusternator.json handling', () => {
     expect(typeof cn.writeFromFullAnswers({ answers: { projectId: '', appDefPr: '' }, projectDir: '/'}).then).to.equal('function');
   });
 });
+
+describe('ignore file tests', () => {
+  var projectRoot = '/', oldFindRoot;
+
+  /*global describe, it, expect, beforeEach, afterEach */
+  /*eslint no-unused-expressions:0*/
+  beforeEach(() => {
+    projectRoot = '/';
+    oldFindRoot = cn.__get__('findProjectRoot');
+    cn.__set__('findProjectRoot', () => Q.resolve(projectRoot) );
+    mockFs({
+      '/.gitignore':  new Buffer([ 1, 2, 3])
+    });
+  });
+
+  afterEach(() => {
+    cn.__set__('findProjectRoot', oldFindRoot);
+  });
+
+  it('ignoreHasItem should return true if a string *starts* a line in an' +
+    ' array of strings', () => {
+    expect(
+      cn.helpers.ignoreHasItem('test', ['a', 'b', 'c', 'test235', 'd'])
+    ).to.be.ok;
+  });
+
+  it('ignoreHasItem should return false if no strings are found', () => {
+    expect(
+      cn.helpers.ignoreHasItem('test', ['a', 'b', 'c', '23test', 'd'])
+    ).to.not.be.ok;
+  });
+
+  it('readIgnoreFile should resolve an array of strings', (done) => {
+    cn.helpers.readIgnoreFile('.gitignore').then((result) => {
+      C.check(done, () => {
+        expect(Array.isArray(result)).to.be.ok;
+        expect(typeof result[0]).to.equal('string');
+      });
+    }, C.getFail(done));
+  });
+
+  it('readIgnoreFile should resolve even if there is not .gitignore', (done) => {
+    projectRoot = 'some/invalid/path';
+    cn.helpers.readIgnoreFile('.gitignore').then((result) => {
+      C.check(done, () => {
+        expect(Array.isArray(result)).to.be.ok;
+      });
+    }, C.getFail(done));
+  });
+
+  it('addToIgnore should add a *new* entry to the .gitignore file',
+    (done) => {
+      cn.addToIgnore('.gitignore', 'someFile').then(() => {
+        fs.readFile('/.gitignore', 'utf8', (err, file) => {
+          if (err) {
+            C.getFail(done)(err);
+            return;
+          }
+          var ignores = file.split('\n');
+          C.check(done, () => {
+            expect(cn.helpers.ignoreHasItem('someFile', ignores))
+              .to.be.ok;
+          });
+        });
+      }, C.getFail(done));
+    });
+
+  it('addToIgnore should resolve if an entry already exists',
+    (done) => {
+      cn.addToIgnore('.gitignore', 'someFile').then(() => {
+        return cn.addToIgnore('.gitignore', 'someFile').then(() => {
+          C.check(done, () => {
+            expect(true).to.be.ok;
+          });
+        });
+      }, C.getFail(done));
+    });
+});
+

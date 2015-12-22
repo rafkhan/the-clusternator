@@ -22,7 +22,7 @@
     "!win32"
   ],
   "scripts": {
-    "start": "NODE_ENV=production; node ./server-init.js",
+    "start": "node ./server-init.js",
     "staging": "NODE_ENV=staging; node ./server-init.js",
     "dev": "NODE_ENV=debug; nodemon ./server-init.js",
     "test": "./node_modules/gulp/bin/gulp.js test-unit",
@@ -49,8 +49,7 @@
     "express-winston": "^0.4.1",
     "inquirer": "^0.11.0",
     "kbpgp": "^2.0.48",
-    "letsencrypt": "^1.2.0",
-    "letsencrypt-express": "^1.0.1",
+    "letsencrypt-express": "^1.0.3",
     "localhost.daplie.com-certificates": "^1.1.2",
     "media-typer": "^0.3.0",
     "mkdirp": "^0.5.1",

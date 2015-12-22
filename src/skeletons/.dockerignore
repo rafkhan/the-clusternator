@@ -1,4 +1,4 @@
+# clusternator ignores
 node_modules
 bower_components
-.private
 clusternator.tar.gz

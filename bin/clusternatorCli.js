@@ -190,6 +190,8 @@ yargs.command('log', 'Application logs from a user selected server', cli.logApp)
 
 yargs.command('log-ecs', 'ECS logs from a user selected server', cli.logEcs);
 
+yargs.command('ssh', 'SSH to a selected server', cli.ssh);
+
 /**
  * @todo yargify everything from here down.  Manual if/else *not* required
  */

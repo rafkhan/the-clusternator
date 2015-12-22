@@ -1,61 +1,25 @@
 'use strict';
 
-const COMMAND = 'ssh';
-const FLAG_DOCKER = 'docker';
-const FLAG_PS = 'ps';
-const FLAG_LOGS = 'logs';
-const FLAG_FOLLOW = '--follow';
+const COMMAND = 'ssh',
+  USER = 'ec2-user@',
+  FLAG_PORT = '-p',
+  BASE_SSH_ARGS = [
+    '-oStrictHostKeyChecking=no', '-oUserKnownHostsFile=/dev/null'];
 
 var spawn = require('child_process').spawn,
-  fs = require('fs'),
   Q = require('q');
 
 /**
+ * ssh's as ec2-user
+ * @param {string} host
+ * @param {string=} port
  * @returns {Q.Promise}
  */
-function sshPs() {
+function shell(host, port) {
+  host = USER + host;
   var d = Q.defer(),
-    ssh = spawn(COMMAND, [FLAG_DOCKER, FLAG_PS]),
-    output = '', error = '';
-
-  ssh.stdout.setEncoding('utf8');
-  ssh.stderr.setEncoding('utf8');
-
-  ssh.stdout.on('data', (data) => {
-    output += 'data';
-  });
-
-  ssh.stderr.on('data', (data) => {
-    error += data;
-  });
-
-  ssh.on('close', (code) => {
-    if (+code) {
-      d.reject(new Error('npm terminated with exit code: ' + code));
-    } else {
-      d.resolve(output);
-    }
-  });
-
-  ssh.stdin.end();
-
-  return d.promise;
-}
-
-function sshLogs(id) {
-  var d = Q.defer(),
-    ssh = spawn(COMMAND, [FLAG_DOCKER, FLAG_LOGS, FLAG_FOLLOW, id]);
-
-  ssh.stdout.setEncoding('utf8');
-  ssh.stderr.setEncoding('utf8');
-
-  ssh.stdout.on('data', (data) => {
-    d.notify({ data: data });
-  });
-
-  ssh.stderr.on('data', (data) => {
-    d.notify({ error: data });
-  });
+    args = port ? [FLAG_PORT, port, host] : [host],
+    ssh = spawn(COMMAND, args.concat(BASE_SSH_ARGS), { stdio: 'inherit' });
 
   ssh.on('close', (code) => {
     if (+code) {
@@ -65,12 +29,10 @@ function sshLogs(id) {
     }
   });
 
-  ssh.stdin.end();
-
   return d.promise;
 }
 
+
 module.exports = {
-  sshPs,
-  sshLogs
+  shell
 };

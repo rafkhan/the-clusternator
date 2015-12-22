@@ -1,17 +1,18 @@
 'use strict';
 
 /** @todo make VCS_DIR configurable */
-const VCS_DIR = '.git';
-const GIT_EXTENSION = '.git';
-const GIT_ORIGIN = 'remote "origin"';
-const URL_SEP = '/';
-const PACKAGE_JSON = 'package.json';
-const BOWER_JSON = 'bower.json';
-const FILENAME = 'clusternator.json';
-const UTF8 = 'utf8';
-const CLUSTERNATOR_TAR = 'clusternator.tar.gz';
-const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
-const SKELETON = require('./skeletons/clusternator-json-skeleton');
+const VCS_DIR = '.git',
+  GIT_EXTENSION = '.git',
+  GIT_ORIGIN = 'remote "origin"',
+  URL_SEP = '/',
+  PACKAGE_JSON = 'package.json',
+  BOWER_JSON = 'bower.json',
+  FILENAME = 'clusternator.json',
+  UTF8 = 'utf8',
+  CLUSTERNATOR_TAR = 'clusternator.tar.gz',
+  CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc',
+  SKELETON = require('./skeletons/clusternator-json-skeleton'),
+  NEWLINE = '\n';
 
 var Q = require('q'),
   git = Q.nfbind(require('parse-git-config')),
@@ -374,6 +375,86 @@ function makePrivate(passPhrase, root) {
     });
 }
 
+/**
+ * @param {string} ignoreFileName
+ * @returns {Q.Promise<string>}
+ */
+function ignorePath(ignoreFileName) {
+  return findProjectRoot()
+    .then((root) => path.join(root, ignoreFileName));
+}
+
+
+function splitIgnoreFile(file) {
+  console.log('split', file);
+  return file.split(NEWLINE);
+}
+
+function readAndSplitIgnore(file) {
+  console.log('read', file);
+  return readFile(file, UTF8)
+    .then(splitIgnoreFile)
+    .fail(() => []);
+}
+
+/**
+ * @param {string} ignoreFileName
+ * @param {boolean=} isFullPath defaults to false
+ * @returns {Q.Promise<string[]>}
+ */
+function readIgnoreFile(ignoreFileName, isFullPath) {
+  if (isFullPath) {
+    return readAndSplitIgnore(ignoreFileName);
+  }
+  return ignorePath(ignoreFileName)
+    .then(readAndSplitIgnore);
+}
+
+/**
+ * @param {string} toIgnore
+ * @param {string[]} ignores
+ * @returns {boolean}
+ */
+function ignoreHasItem(toIgnore, ignores) {
+  var found = false;
+  ignores.forEach((str) => {
+    if (str.indexOf(toIgnore) === 0) {
+      found = true;
+    }
+  });
+  return found;
+}
+
+/**
+ * @param {string} ignoreFileName
+ * @param {string} toIgnore
+ * @returns {Request|Promise.<T>|*}
+ */
+function addToIgnore(ignoreFileName, toIgnore) {
+  if (!Array.isArray(toIgnore)) {
+    toIgnore = [toIgnore];
+  }
+  return readIgnoreFile(ignoreFileName)
+    .then((ignores) => {
+      var output,
+        newIgnores = toIgnore
+          .filter((item) => ignores.indexOf(item) === -1);
+
+      if (!newIgnores.length) {
+        // items already exists
+        return;
+      }
+
+      return ignorePath(ignoreFileName)
+        .then((ignoreOutputFile) => {
+          ignores = ignores.concat(newIgnores);
+          output = ignores.join(NEWLINE);
+          return writeFile(ignoreOutputFile, output);
+        });
+    });
+}
+
+
 module.exports = {
   createInteractive,
   skipIfExists,
@@ -387,6 +468,8 @@ module.exports = {
   makePrivate,
   validate,
   writeFromFullAnswers,
+  addToIgnore,
+  readIgnoreFile,
   FILENAME,
   CLUSTERNATOR_PRIVATE,
   helpers: {
@@ -396,6 +479,9 @@ module.exports = {
     findPackageName,
     findBowerName,
     deDupe,
-    answersToClusternatorJSON
+    answersToClusternatorJSON,
+    ignorePath,
+    readIgnoreFile,
+    ignoreHasItem,
   }
 };
