@@ -4,7 +4,8 @@ const WAIT_DEFAULT_INTERVAL = 10000;
 
 const Q = require('q'),
   inquirer = require('inquirer'),
-  Winston = require('winston');
+  Winston = require('winston'),
+  constants = require('./constants');
 
 var winston;
 
@@ -80,16 +81,17 @@ function waitFor(asyncPredicateFunction, interval, max, label) {
     count = 0;
 
   function poll() {
-    asyncPredicateFunction().then(function() {
-      defer.resolve();
-    }, function(err) {
-      if (count > max && max > 0) {
-        defer.reject(new Error('waitFor: poll: ' + label + ' too many failures: ' + count));
-        return;
-      }
-      count += 1;
-      setTimeout(poll, interval);
-    });
+    asyncPredicateFunction()
+      .then(defer.resolve)
+      .fail( (err) => {
+        if (count > max && max > 0) {
+          defer.reject(
+            new Error(`waitFor: poll: ${label} too many failures: ${count}`));
+          return;
+        }
+        count += 1;
+        setTimeout(poll, interval);
+      });
   }
   poll();
   return defer.promise;
@@ -140,6 +142,30 @@ function inquirerPrompt(qs) {
   return d.promise;
 }
 
+/**
+ * @param {Yargs} yargs
+ */
+function cliLogger(yargs) {
+  const INFO = 2;
+  const LOG_MAX = 5;
+
+
+  var argv = yargs.count('verbose')
+    .alias('v', 'verbose')
+    .describe('v', 'Verbosity, defaults to info, add more v\'s to increase')
+    .boolean('quiet')
+    .alias('q', 'quiet')
+    .describe('q', 'Quiet mode, only errors will output (overrides -v)')
+    .argv;
+
+  if (argv.q) {
+    winston.transports.console.level = constants.LOG_LEVELS[0];
+  } else {
+    let logLevel = INFO + argv.v > LOG_MAX ? LOG_MAX : INFO + argv.v;
+    winston.transports.console.level = constants.LOG_LEVELS[logLevel];
+  }
+}
+
 
 module.exports = {
   errLog: errLog,
@@ -156,5 +182,6 @@ module.exports = {
   warn,
   error,
   winston,
-  inquirerPrompt
+  inquirerPrompt,
+  cliLogger
 };

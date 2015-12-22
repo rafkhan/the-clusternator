@@ -439,21 +439,27 @@ function getInitUserOptions() {
     });
 }
 
+/**
+ * @param {string} clustDir
+ * @param {string} tld
+ * @returns {Q.promise}
+ */
 function initializeScripts(clustDir, tld) {
   return mkdirp(clustDir).then(() => {
-    return Q.allSettled([
-      getSkeletonFile(DECRYPT_SH).then((contents) => {
-        return installExecutable(path.join(clustDir, DECRYPT_SH), contents);
-      }),
-      getSkeletonFile(DOCKER_BUILD_SH).then((contents) => {
-        return installExecutable(
-          path.join(clustDir, DOCKER_BUILD_SH), contents);
-      }),
-      getSkeletonFile(NOTIFY_JS).then((contents) => {
-        contents = contents.replace(HOST, tld);
-        return writeFile(path.join(clustDir, NOTIFY_JS), contents);
-      }),
-    ]);
+    const decryptPath = path.join(clustDir, DECRYPT_SH),
+      dockerBuildPath = path.join(clustDir, DOCKER_BUILD_SH),
+      clusternatorPath = path.join(clustDir, NOTIFY_JS);
+
+    return Q
+      .allSettled([
+        getSkeletonFile(DECRYPT_SH)
+          .then((contents) => installExecutable(decryptPath, contents)),
+        getSkeletonFile(DOCKER_BUILD_SH)
+          .then((contents) => installExecutable(dockerBuildPath, contents)),
+        getSkeletonFile(NOTIFY_JS)
+          .then((contents) => contents
+            .replace(HOST, tld))
+          .then((contents) => writeFile(clusternatorPath, contents))]);
   });
 }
 
@@ -485,13 +491,11 @@ function initializeDockerFile(clustDir, dockerType) {
     DOCKERFILE_STATIC_LATEST : DOCKERFILE_NODE_LATEST;
   return clusternatorJson
     .findProjectRoot()
-    .then((root) => {
-      return getSkeletonFile(template)
-        .then((contents) => {
-          contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
-          return writeFile(path.join(root, DOCKERFILE), contents);
-        });
-    });
+    .then((root) => getSkeletonFile(template)
+      .then((contents) => {
+        contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
+        return writeFile(path.join(root, DOCKERFILE), contents);
+      }) );
 }
 
 function initializeServeSh(root) {
@@ -526,6 +530,18 @@ function initializeOptionalDeployments(answers, projectRoot) {
   return Q.allSettled(promises);
 }
 
+function provisionProjectNetwork(projectId, output) {
+  return getProjectAPI()
+    .then((pm) =>  pm
+      .create(projectId)
+      .then(() => util
+        .info(output + ' Network Resources Checked'))
+      .then(() => pm
+        .initializeGithubWebhookToken(projectId))
+      .then((token) => console.log('STORE THIS TOKEN ON GITHUB', token))
+      .fail(Q.reject));
+}
+
 
 function initializeProject(y) {
   var argv = y.demand('o')
@@ -544,33 +560,19 @@ function initializeProject(y) {
         projectId = initDetails.fullAnswers.answers.projectId,
         dockerType = initDetails.fullAnswers.answers.backend;
 
-      return Q.allSettled([
+      return Q
+        .allSettled([
           initializeDeployments(dDir, cDir, projectId, dockerType),
           initializeScripts(cDir, initDetails.fullAnswers.answers.tld),
           initializeOptionalDeployments(initDetails.fullAnswers.answers,
-            initDetails.root)
-        ])
+            initDetails.root)])
         .then(() => {
           if (argv.o) {
             util.info(output + ' Network Resources *NOT* Checked');
             return;
           }
 
-          return getProjectAPI()
-            .then((pm) => {
-              return pm.create(projectId).then(() => {
-                  util.info(output + ' Network Resources Checked');
-                }, Q.reject)
-
-                .then(() => {
-                  return pm.initializeGithubWebhookToken(projectId);
-                }, Q.reject)
-
-                .then((token) => {
-                  console.log('STORE THIS TOKEN ON GITHUB', token);
-                }, Q.reject);
-
-            });
+          return provisionProjectNetwork(projectId, output);
         });
     }).fail((err) => {
       util.info('Clusternator: Initialization Error: ' + err.message);
@@ -825,8 +827,7 @@ function dockerBuild(y) {
 function getPrivateChecksumPaths() {
   return Q.all([
       clusternatorJson.get(),
-      clusternatorJson.findProjectRoot()
-    ])
+      clusternatorJson.findProjectRoot() ])
     .then((results) => {
       const privatePath = results[0].private,
         checksumPath = path.join(results[1], results[0].clusternatorDir,
@@ -846,40 +847,42 @@ function privateChecksum() {
       return mkdirp(paths.clusternator).then(() => paths);
     }).then((paths) => {
       process.chdir(paths.root);
-      return shaDir
-        .genSha(paths.priv)
-        .then((sha) => {
-          return writeFile(paths.checksum, sha)
-            .then(() => {
-              util.info(`Generated shasum of ${paths.priv} => ${sha}`);
-            });
-        });
-    })
+      return paths;
+    }).then((paths) =>shaDir
+      .genSha(paths.priv)
+      .then((sha) => writeFile(paths.checksum, sha)
+        .then(() => util
+          .info(`Generated shasum of ${paths.priv} => ${sha}`))))
     .done();
+}
+
+/**
+ * @param {string} sha
+ * @returns {Function}
+ */
+function getPrivateDiffFn(sha) {
+  return (storedSha) => {
+    if (sha.trim() === storedSha.trim()) {
+      process.exit(0);
+    }
+    util.info(`Diff: ${sha.trim()} vs ${storedSha.trim()}`);
+    process.exit(1);
+  };
 }
 
 function privateDiff() {
   return getPrivateChecksumPaths()
-    .then((paths) => {
-      return shaDir
-        .genSha(paths.priv)
-        .then((sha) => {
-          return readFile(paths.checksum, UTF8)
-            .then((storedSha) => {
-              if (sha.trim() === storedSha.trim()) {
-                process.exit(0);
-              }
-              util.info(`Diff: ${sha.trim()} vs ${storedSha.trim()}`);
-              process.exit(1);
-            })
-            .fail(() => {
-              // read file errors are expected
-              util.info(`Diff: no checksum to compare against`);
-              process.exit(2);
-            });
-        });
-    })
+    .then((paths) => shaDir
+      .genSha(paths.priv)
+      .then((sha) => readFile(paths.checksum, UTF8)
+        .then(getPrivateDiffFn(sha))
+        .fail(() => {
+          // read file errors are expected
+          util.info(`Diff: no checksum to compare against`);
+          process.exit(2);
+        })))
     .fail((err) => {
+      // unexpected error case
       util.error(err);
       process.exit(2);
     })
