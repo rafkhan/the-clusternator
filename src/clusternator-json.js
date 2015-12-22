@@ -12,7 +12,8 @@ const VCS_DIR = '.git',
   CLUSTERNATOR_TAR = 'clusternator.tar.gz',
   CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc',
   SKELETON = require('./skeletons/clusternator-json-skeleton'),
-  NEWLINE = '\n';
+  RX_NEWLINE = /\r?\n/,
+  NEWLINE = '\r\n';
 
 var Q = require('q'),
   git = Q.nfbind(require('parse-git-config')),
@@ -386,12 +387,10 @@ function ignorePath(ignoreFileName) {
 
 
 function splitIgnoreFile(file) {
-  console.log('split', file);
-  return file.split(NEWLINE);
+  return file.split(RX_NEWLINE);
 }
 
 function readAndSplitIgnore(file) {
-  console.log('read', file);
   return readFile(file, UTF8)
     .then(splitIgnoreFile)
     .fail(() => []);

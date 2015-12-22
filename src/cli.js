@@ -320,10 +320,10 @@ function addPrivateToIgnore(ignoreFile, fullAnswers) {
   const priv = fullAnswers.answers.private;
 
   return clusternatorJson
-    .readIgnoreFile(path.join(__dirname, 'skeletons', ignoreFile), true)
-    .then((ignores) => ignores.concat(priv))
-    .then((ignores) => clusternatorJson
-      .addToIgnore(ignoreFile, ignores));
+    .readIgnoreFile(
+      path.join(__dirname, '..', 'src', 'skeletons', ignoreFile), true)
+    .then((ignores) => ignores .concat(priv))
+    .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
 }
 
 /**
