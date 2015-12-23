@@ -43,15 +43,16 @@ var writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs),
   chmod = Q.nbind(fs.chmod, fs);
 
+function getSkeletonPath() {
+  return path.join(__dirname, '..', '..', '..', '..', 'src', 'skeletons');
+}
 
 /**
  * @param {string} skeleton
  * @return {Promise<string>}
  */
 function getSkeletonFile(skeleton) {
-  return readFile(path.join(
-    __dirname, '..', 'src', 'skeletons', skeleton
-  ), UTF8);
+  return readFile(path.join(getSkeletonPath(), skeleton) , UTF8);
 }
 
 function initClusternatorProject(config) {
@@ -321,8 +322,7 @@ function addPrivateToIgnore(ignoreFile, fullAnswers) {
   const priv = fullAnswers.answers.private;
 
   return clusternatorJson
-    .readIgnoreFile(
-      path.join(__dirname, '..', 'src', 'skeletons', ignoreFile), true)
+    .readIgnoreFile(path.join(getSkeletonPath(), ignoreFile), true)
     .then((ignores) => ignores .concat(priv))
     .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
 }
@@ -459,8 +459,8 @@ function initializeScripts(clustDir, tld) {
           .then((contents) => installExecutable(dockerBuildPath, contents)),
         getSkeletonFile(NOTIFY_JS)
           .then((contents) => contents
-            .replace(HOST, tld))
-            .replace(DEFAULT_API, constants.DEFAULT_API_VERSION)
+            .replace(HOST, tld)
+            .replace(DEFAULT_API, constants.DEFAULT_API_VERSION))
           .then((contents) => writeFile(clusternatorPath, contents))]);
   });
 }
@@ -532,6 +532,10 @@ function initializeOptionalDeployments(answers, projectRoot) {
   return Q.allSettled(promises);
 }
 
+function initializeSharedKey() {
+  return gpg.generatePass();
+}
+
 function provisionProjectNetwork(projectId, output) {
   return getProjectAPI()
     .then((pm) =>  pm
@@ -541,6 +545,8 @@ function provisionProjectNetwork(projectId, output) {
       .then(() => pm
         .initializeGithubWebhookToken(projectId))
       .then((token) => console.log('STORE THIS TOKEN ON GITHUB', token))
+      .then(initializeSharedKey)
+      .then((sharedKey) => console.log(`CLUSTERNATOR_SHARED_KEY ${sharedKey}`))
       .fail(Q.reject));
 }
 
