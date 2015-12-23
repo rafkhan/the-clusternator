@@ -20,23 +20,23 @@ const fs = require('fs'),
   Q = require('q'),
   path = require('path'),
   mkdirp = Q.nfbind(require('mkdirp')),
-  Config = require('./config'),
-  util = require('./util'),
-  server = require('./server/main'),
-  circleCIClient = require('./client/circleCIClient'),
-  clusternator = require('./clusternator'),
-  clusternatorJson = require('./clusternator-json'),
-  gpg = require('./cli-wrappers/gpg'),
-  git = require('./cli-wrappers/git'),
-  shaDir = require('./cli-wrappers/generate-private-sha.js'),
-  docker = require('./cli-wrappers/docker'),
-  sshKey = require('./cli-wrappers/ssh-keygen'),
-  logRemote = require('./cli-wrappers/logs'),
-  ssh = require('./cli-wrappers/ssh'),
-  appDefSkeleton = require('./skeletons/app-def'),
-  cnProjectManager = require('./clusternator/projectManager'),
-  awsProjectManager = require('./aws/project-init'),
-  constants = require('./constants');
+  Config = require('../../../config'),
+  util = require('../../../util'),
+  server = require('../../../server/main'),
+  circleCIClient = require('../../../client/circleCIClient'),
+  clusternator = require('../../../clusternator'),
+  clusternatorJson = require('../../../clusternator-json'),
+  gpg = require('../../../cli-wrappers/gpg'),
+  git = require('../../../cli-wrappers/git'),
+  shaDir = require('../../../cli-wrappers/generate-private-sha.js'),
+  docker = require('../../../cli-wrappers/docker'),
+  sshKey = require('../../../cli-wrappers/ssh-keygen'),
+  logRemote = require('../../../cli-wrappers/logs'),
+  ssh = require('../../../cli-wrappers/ssh'),
+  appDefSkeleton = require('../../../skeletons/app-def'),
+  cnProjectManager = require('../../../clusternator/projectManager'),
+  awsProjectManager = require('../../../aws/project-init'),
+  constants = require('../../../constants');
 
 var writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs),
@@ -255,7 +255,7 @@ function listSSHAbleInstancesByProject(projectId) {
       .ec2
       .describeProject(projectId)
       .then((instances) => instances
-          .map(mapEc2ProjectDetails)
+        .map(mapEc2ProjectDetails)
       ));
 }
 
@@ -282,13 +282,13 @@ function remoteFn(logFn) {
           choices: instanceDetails.map((id) => id.str),
           message: 'Choose a Box to Log' }])
         .then((answers) => logFn(instanceDetails
-            .filter((id) => id.str === answers.chosenBox)
-            .map((id) => id.ip )[0])); });
+          .filter((id) => id.str === answers.chosenBox)
+          .map((id) => id.ip )[0])); });
 }
 
 function sshShell() {
   return remoteFn(ssh.shell)
-  .done();
+    .done();
 }
 
 function logApp() {

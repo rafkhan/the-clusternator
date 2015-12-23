@@ -24,7 +24,7 @@ function noopP() {
 function getPFail(res) {
   return (err) => {
     res.status(500).json({ error: err.message });
-  }
+  };
 }
 
 /**
@@ -90,7 +90,7 @@ function makePrCreate(pm) {
   return (body) => {
     var pr = sanitizePr(body.pr),
       appDef = JSON.parse(body.appDef),
-      projectId = body.repo
+      projectId = body.repo;
 
     console.log('DEBUG');
     console.log(JSON.stringify(body,  null, 2));
@@ -200,7 +200,7 @@ function listProjects(req, res, next) {
     } else {
       res.render('projects', { api: API, projects: projectIds });
     }
-  }, getPFail(res))
+  }, getPFail(res));
 }
 
 function validateBackend(be) {

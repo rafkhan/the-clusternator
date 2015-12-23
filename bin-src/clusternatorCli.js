@@ -2,11 +2,13 @@
 
 'use strict';
 
+const API = '0.0.1';
+
 var R = require('ramda'),
   yargs = require('yargs'),
   util = require('../lib/util'),
   constants = require('../lib/constants'),
-  cli = require('../lib/cli');
+  cli = require(`../lib/api/${API}/cli/cli-api`);
 
 util.cliLogger(yargs);
 

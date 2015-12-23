@@ -40,7 +40,7 @@ function commandPrivFromNamespace(config, namespace, command) {
 function getPFail(res) {
   return (err) => {
     res.status(500).json({ error: err });
-  }
+  };
 }
 
 /**
@@ -68,7 +68,7 @@ function authorizeCommand(config) {
         logger.warn(`NOT AUTHORIZED: ${req.user.id} On: ${ns}.${cmd}`);
         noAuth(res);
       }).fail(getPFail(res));
-  }
+  };
 }
 
 function executeCommand(commands) {
@@ -92,7 +92,7 @@ function executeCommand(commands) {
         res.redirect('/');
       }
     }).fail(getPFail(res));
-  }
+  };
 }
 
 
