@@ -3,8 +3,8 @@
 
 'use strict';
 
-/** @todo get this from settings */
-var API = '0.0.1';
+var USER = require('../lib/config')().user,
+    API = USER ? USER.apiVersion : require('../lib/constants').DEFAULT_API_VERSION;
 
 var yargs = require('yargs');
 

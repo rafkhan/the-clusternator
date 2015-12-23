@@ -4,8 +4,9 @@ This file loads AWS credentials, and configuration for the server, or possibly
 a "local server".
 */
 
-const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID';
-const AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY';
+const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID',
+  AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY',
+  DEFAULT_VERSION = require('./constants').DEFAULT_API_VERSION;
 
 const util = require('./util'),
   Q = require('q'),
@@ -63,7 +64,7 @@ function getAwsCredsFromProc() {
     return {
       accessKeyId: process.env[AWS_ENV_KEY],
       secretAccessKey: process.env[AWS_ENV_SECRET],
-    }
+    };
   }
   return null;
 }
@@ -107,7 +108,7 @@ function validateUserConfig(c) {
     return null;
   }
   if (!c.apiVersion) {
-    c.apiVersion = '0.0.1';
+    c.apiVersion = DEFAULT_VERSION;
   } else {
     c.apiVersion = semver.clean(c.apiVersion);
   }
@@ -158,7 +159,7 @@ function getConfig() {
 
 /**
  * @param {{ host: string, username: string, token: string, name: string=,
- email: string= }} options
+ email: string=, apiVersion: string= }} options
  * @return {Q.Promise}
  */
 function writeUserConfig(options) {
@@ -175,7 +176,8 @@ function writeUserConfig(options) {
       user: options.username,
       token: options.token,
       host: options.host
-    }
+    },
+    apiVersion: options.apiVersion
   }, null, 2))
     .then(() => chmod(DOT_CLUSTERNATOR_CONFIG, '600'));
 }
@@ -196,7 +198,8 @@ function interactiveUser() {
       email: user.email || '',
       host: user.credentials.host || '',
       username: user.credentials.user || '',
-      token: maskString(user.credentials.token) || ''
+      token: maskString(user.credentials.token) || '',
+      apiVersion: user.apiVersion || DEFAULT_VERSION
   }))
   .then(writeUserConfig);
 }

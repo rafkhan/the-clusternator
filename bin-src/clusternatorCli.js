@@ -2,8 +2,8 @@
 
 'use strict';
 
-/** @todo get this from settings */
-const API = '0.0.1';
+const USER = require('../lib/config')().user,
+API = USER ? USER.apiVersion : require('../lib/constants').DEFAULT_API_VERSION;
 
 const yargs = require('yargs');
 

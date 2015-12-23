@@ -13,7 +13,7 @@ const KEY = process.env.CLUSTERNATOR_SHARED_KEY,
       HOST = `$HOST`,
       CLUSTERNATOR = `the-clusternator-alpha.${HOST}`,
       PORT = 80,
-      PATH = '/0.0.1/pr/create',
+      PATH = '/$DEFAULT_API/pr/create',
       CONFIG_FILE = 'clusternator.json';
 
 

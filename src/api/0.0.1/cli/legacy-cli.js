@@ -14,6 +14,7 @@ const UTF8 = 'utf8',
   CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g,
   CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g,
   PRIVATE_CHECKSUM = '.private-checksum',
+  DEFAULT_API = /\$DEFAULT_API/g,
   HOST = /\$HOST/g;
 
 const fs = require('fs'),
@@ -459,6 +460,7 @@ function initializeScripts(clustDir, tld) {
         getSkeletonFile(NOTIFY_JS)
           .then((contents) => contents
             .replace(HOST, tld))
+            .replace(DEFAULT_API, constants.DEFAULT_API_VERSION)
           .then((contents) => writeFile(clusternatorPath, contents))]);
   });
 }
