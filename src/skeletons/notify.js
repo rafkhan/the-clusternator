@@ -31,7 +31,7 @@ function getAppDefPath() {
     die();
   }
   return path.join(
-    __dirname, '..', '.private', 'deployments', 'pr'
+    __dirname, '..', config.deploymentsDir, 'pr'
   );
 }
 
