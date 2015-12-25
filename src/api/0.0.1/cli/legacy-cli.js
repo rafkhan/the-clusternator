@@ -2,7 +2,7 @@
 const UTF8 = 'utf8',
   DOCKERFILE = 'Dockerfile',
   DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3',
-  DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx',
+  DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest',
   DOCKER_IGNORE = '.dockerignore',
   GIT_IGNORE = '.gitignore',
   NPM_IGNORE = '.npmignore',
@@ -176,7 +176,6 @@ function circleCIPush(argv) {
 function circleCITag(argv) {
   return function() {
     var ridData = circleCIClient.generateTagFromEnv();
-    console.log(ridData.tag);
     return;
   };
 }
