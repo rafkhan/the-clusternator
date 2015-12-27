@@ -805,12 +805,12 @@ function dockerBuild(y) {
         return docker.build(argv.i)
           .progress((data) => {
             if (!data) { return; }
-            if (data.error) {
-              outputError += data.error;
+            if (data.stderr) {
+              outputError += data.stderr;
               util.error(outputError);
             }
-            if (data.data) {
-              output += data.data;
+            if (data.stdout) {
+              output += data.stdout;
               util.verbose(output);
             }
           });
