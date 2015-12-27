@@ -1,3 +1,5 @@
+'use strict';
+
 const COMMAND = 'docker',
   FLAG_BUILD = 'build',
   FLAG_FILE = '-f',
@@ -7,9 +9,13 @@ const COMMAND = 'docker',
   DEFAULT_DOCKERFILE = 'Dockerfile',
   BUILD_CWD = './';
 
-const spawn = require('child_process').spawn,
-  util = require('../util'),
-  Q = require('q');
+var cproc = require('./child-process');
+
+module.exports = {
+  build,
+  push,
+  destroy
+};
 
 /**
  * @param {string} tag
@@ -21,36 +27,11 @@ function build(tag, dockerFile) {
     throw new TypeError('docker: build requires a tag string');
   }
   dockerFile = dockerFile || DEFAULT_DOCKERFILE;
-  var d = Q.defer(),
-    docker = spawn(COMMAND, [
-      FLAG_BUILD, FLAG_TAG, tag, FLAG_FILE, dockerFile, BUILD_CWD
-    ], {
-      env: process.env
-    });
-
-  docker.stdout.setEncoding('utf8');
-  docker.stderr.setEncoding('utf8');
-
-  docker.stdout.on('data', (data) => {
-    d.notify({ data: data });
+  return cproc.stream(COMMAND, [
+    FLAG_BUILD, FLAG_TAG, tag, FLAG_FILE, dockerFile, BUILD_CWD
+  ], {
+    env: process.env
   });
-
-  docker.stderr.on('data', (data) => {
-    d.notify({ error: data });
-  });
-
-  docker.on('close', (code) => {
-    util.info('Docker Build: Process Exited', code);
-    if (+code) {
-      d.reject(new Error('docker terminated with exit code: ' + code));
-    } else {
-      d.resolve();
-    }
-  });
-
-  docker.stdin.end();
-
-  return d.promise;
 }
 
 /**
@@ -61,71 +42,16 @@ function push(tag) {
   if (!tag) {
     throw new TypeError('docker: push requires a tag string');
   }
-  var d = Q.defer(),
-    docker = spawn(COMMAND, [FLAG_PUSH, tag]);
-
-  docker.stdout.setEncoding('utf8');
-  docker.stderr.setEncoding('utf8');
-
-  docker.stdout.on('data', (data) => {
-    d.notify({ data: data });
-  });
-
-  docker.stderr.on('data', (data) => {
-    d.notify({ error: data });
-  });
-
-  docker.on('close', (code) => {
-    util.info('Docker Push: Process Exited', code);
-    if (+code) {
-      d.reject(new Error('docker terminated with exit code: ' + code));
-    } else {
-      d.resolve();
-    }
-  });
-
-  docker.stdin.end();
-
-  return d.promise;
+  return cproc.stream(COMMAND, [FLAG_PUSH, tag]);
 }
 
+/**
+ * @param {string} tag
+ * @returns {Q.Promise}
+ */
 function destroy(tag) {
   if (!tag) {
     throw new TypeError('docker: destroy requires a tag string');
   }
-  var d = Q.defer(),
-    docker = spawn(COMMAND, [FLAG_RMI, tag]),
-    error = '',
-    output = '';
-
-  docker.stdout.setEncoding('utf8');
-  docker.stderr.setEncoding('utf8');
-
-  docker.stdout.on('data', (data) => {
-    output += data;
-  });
-
-  docker.stderr.on('data', (data) => {
-    error += data;
-  });
-
-  docker.on('close', (code) => {
-    util.info('Docker Destroy: Process Exited', code);
-    if (+code) {
-      d.reject(new Error('docker terminated with exit code: ' + code));
-    } else {
-      d.resolve(output.trim());
-    }
-  });
-
-  docker.stdin.end();
-
-  return d.promise;
-
+  return cproc.output(COMMAND, [FLAG_RMI, tag]);
 }
-
-module.exports = {
-  build,
-  push,
-  destroy
-};

@@ -52,6 +52,13 @@ describe('Test git CLI Wrapper', () => {
       .fail(C.getFail(done));
   });
 
+  it('stdin should resolve if there are no exit errors', (done) => {
+    child.stream('ls')
+      .then(() => C
+        .check(done, () => expect(true).to.be.ok))
+      .fail(C.getFail(done));
+  });
+
 
   describe('cases with exit code', () => {
 

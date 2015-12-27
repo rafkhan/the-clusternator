@@ -12,7 +12,8 @@ module.exports = {
   output,
   quiet,
   stream,
-  inherit
+  inherit,
+  stdin
 };
 
 /**
@@ -52,7 +53,7 @@ function failString(command, args, code, stderr) {
  * @param {string} command
  * @param {string[]=} args
  * @param {Object=} opts
- * @returns {Q.Promise}
+ * @returns {Q.Promise<string>}
  */
 function output(command, args, opts) {
   args = args || [];
@@ -81,7 +82,7 @@ function output(command, args, opts) {
       d.reject(new Error(failString(command, args, code, stderr)));
     } else {
       d.resolve({
-        stdout,
+        stdout: stdout.trim(),
         stderr
       });
     }
@@ -193,6 +194,48 @@ function inherit(command, args, opts) {
       d.resolve();
     }
   });
+
+  return d.promise;
+}
+
+/**
+ * like output, but puts stdin in as stdin
+ * @param {string} stdin
+ * @param {string} command
+ * @param {string[]=} args
+ * @param {Object=} opts
+ * @returns {Q.Promise<string>}
+ */
+function stdin(stdin, command, args, opts) {
+  stdin = stdin || '';
+  args = args || [];
+  const options = R.merge({}, opts),
+    d = Q.defer(),
+    child = spawn(command, args, options);
+
+  var stderr = '',
+    stdout = '';
+
+  child.stdout.on('data', (data) => {
+    d.notify({ stdout: data });
+    stdout += data;
+  });
+
+  child.stderr.on('data', (data) => {
+    d.notify({ stderr: data });
+    stderr += data;
+  });
+
+  child.on('close', (code) => {
+    if (+code) {
+      d.reject(failString(command, args, code, stderr));
+    } else {
+      d.resolve(stdout);
+    }
+  });
+
+  child.stdin.write(stdin);
+  child.stdin.end();
 
   return d.promise;
 }
