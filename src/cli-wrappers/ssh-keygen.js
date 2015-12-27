@@ -1,9 +1,12 @@
+'use strict';
+
 const COMMAND = 'ssh-keygen';
 
-var spawn = require('child_process').spawn,
-  path = require('path'),
+const path = require('path'),
   fs = require('fs'),
   Q = require('q');
+
+var cproc = require('./child-process');
 
 var readFile = Q.nbind(fs.readFile, fs),
   writeFile = Q.nbind(fs.writeFile, fs);
@@ -29,23 +32,13 @@ function getUserHome() {
  * @returns {Q.Promise}
  */
 function keygen(keyname, publicPath) {
-  if (!keyname) {
-    throw new TypeError('ssh-keygen requires a target path');
+  if (!keyname || !publicPath) {
+    throw new TypeError('ssh-keygen requires a target path, and name');
   }
   publicPath = path.join(publicPath, keyname + '.pub');
   keyname = path.join(getUserHome(), '.ssh', keyname);
-  var d = Q.defer(),
-    sshKeygen = spawn(COMMAND, ['-f', keyname], { stdio: 'inherit' });
-
-  sshKeygen.on('close', (code) => {
-    if (+code) {
-      d.reject(new Error('git terminated with exit code: ' + code));
-    } else {
-      movePublicKey(keyname + '.pub', publicPath).then(d.resolve, d.reject);
-    }
-  });
-
-  return d.promise;
+  return cproc.inherit(COMMAND, ['-f', keyname], { stdio: 'inherit' })
+    .then(() => movePublicKey(`${keyname}.pub`, publicPath));
 }
 
 module.exports = keygen;

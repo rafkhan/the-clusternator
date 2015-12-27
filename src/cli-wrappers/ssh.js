@@ -6,8 +6,7 @@ const COMMAND = 'ssh',
   BASE_SSH_ARGS = [
     '-oStrictHostKeyChecking=no', '-oUserKnownHostsFile=/dev/null'];
 
-var spawn = require('child_process').spawn,
-  Q = require('q');
+var cproc = require('./child-process');
 
 /**
  * ssh's as ec2-user
@@ -17,19 +16,9 @@ var spawn = require('child_process').spawn,
  */
 function shell(host, port) {
   host = USER + host;
-  var d = Q.defer(),
-    args = port ? [FLAG_PORT, port, host] : [host],
-    ssh = spawn(COMMAND, args.concat(BASE_SSH_ARGS), { stdio: 'inherit' });
-
-  ssh.on('close', (code) => {
-    if (+code) {
-      d.reject(new Error('npm terminated with exit code: ' + code));
-    } else {
-      d.resolve();
-    }
-  });
-
-  return d.promise;
+  var args = port ? [FLAG_PORT, port, host] : [host];
+  return cproc.inherit(COMMAND,
+    args.concat(BASE_SSH_ARGS), { stdio: 'inherit' });
 }
 
 
