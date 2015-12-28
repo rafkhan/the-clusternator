@@ -30,15 +30,15 @@ describe('Test sshKeygen CLI Wrapper', () => {
   });
 
   afterEach(() => {
-    sshKeygen.__set__('cproc', cProc);
     mockFs.restore();
+    sshKeygen.__set__('cproc', cProc);
   });
 
   it('sshKeygen should resolve if there are no exit errors', (done) => {
    sshKeygen('name', require('os').tmpdir())
-      .then(() =>
-        C.check(done, () => expect(true).to.be.ok))
-      .fail(C.getFail(done));
+     .then(() => C
+       .check(done, () => expect(true).to.be.ok))
+     .fail(C.getFail(done));
   });
 
   it('sshKeygen should throw if given no name', () => {

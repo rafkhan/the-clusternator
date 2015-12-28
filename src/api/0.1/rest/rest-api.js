@@ -2,7 +2,6 @@
 
 const SSH_PUBLIC = 'ssh-public';
 const MAX_PROJECT_NAME = 150;
-const API = '0.0.1';
 
 const aws = require('../../../aws/project-init'),
   path = require('path'),
@@ -11,9 +10,12 @@ const aws = require('../../../aws/project-init'),
   slack = require('../../../cli-wrappers/slack'),
   clusternatorJson = require('../../../clusternator-json'),
   config = require('../../../config')(),
+  constants = require('../../../constants'),
   ec2 = require('../../../aws/ec2Manager'),
   Projects = require('../../../server/db/projects'),
   Q = require('q');
+
+const API = constants.DEFAULT_API_VERSION;
 
 var projects;
 

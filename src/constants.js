@@ -13,7 +13,7 @@ const CLUSTERNATOR_PREFIX = 'clusternator',
 
 
 const constants = Object.freeze({
-  DEFAULT_API_VERSION: '0.0.1',
+  DEFAULT_API_VERSION: '0.1',
   LOG_LEVELS: Object.freeze({
     0: 'error',
     1: 'warn',

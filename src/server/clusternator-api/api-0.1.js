@@ -1,6 +1,8 @@
 'use strict';
 const LOGIN_PATH = '/login';
-const API = '0.0.1';
+
+const constants = require('../../constants');
+const API = constants.DEFAULT_API_VERSION;
 
 var Config = require('../../config'),
   passport = require('passport'),
@@ -10,6 +12,7 @@ var Config = require('../../config'),
   initAwsProject = require('../../aws/project-init'),
   auth = require('../auth/authorities'),
   curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
+
 
 /**
  * @param {Object} config

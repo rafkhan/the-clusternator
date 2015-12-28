@@ -1,9 +1,7 @@
 'use strict';
 
 var rewire = require('rewire'),
-  mockSpawn = require('mock-spawn'),
-  fs = require('fs'),
-  mockFs = require('mock-fs');
+  mockSpawn = require('mock-spawn');
 
 var child = rewire('../../../src/cli-wrappers/child-process'),
   C = require('./../chai');
@@ -20,7 +18,6 @@ describe('Test git CLI Wrapper', () => {
 
   afterEach(() => {
     child.__set__('spawn', require('child_process').spawn);
-    mockFs.restore();
   });
 
 
