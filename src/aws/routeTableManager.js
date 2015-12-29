@@ -2,7 +2,7 @@
 
 const constants = require('../constants');
 const util = require('../util');
-const common = require('./common');
+var common = require('./common');
 
 function getRouteTableManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
