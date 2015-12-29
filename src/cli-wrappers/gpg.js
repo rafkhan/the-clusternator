@@ -1,3 +1,5 @@
+'use strict';
+
 /* @todo make COMMAND configurable */
 const COMMAND = 'gpg';
 /* @todo _maybe_ make CRYPTO_ALGO configurable */
@@ -10,11 +12,11 @@ const FLAG_PASSPHRASE = '--passphrase';
 const FLAG_SYMMETRIC = '--symmetric';
 const FLAG_DECRYPT = '--decrypt';
 
-var spawn = require('child_process').spawn,
-  util = require('../util'),
-  crypto = require('crypto'),
-  b64 = require('base64url'),
-  Q = require('q');
+const  crypto = require('crypto');
+const b64 = require('base64url');
+const Q = require('q');
+
+var cproc = require('./child-process');
 
 /**
   @param {string} passphrase - encryption passphrase
@@ -22,42 +24,18 @@ var spawn = require('child_process').spawn,
   @return {Q.Promise<string>} - promise for an encrypted string
 */
 function encrypt(passphrase, cleartext) {
-  var d = Q.defer(),
-    gpg,
-    error = '',
-    output = '';
 
   if (passphrase.length < 30) {
+    let d = Q.defer();
     d.reject(new Error(`GPG: Passphrases must be *at least* thirty (30)
     characters`));
     return d.promise;
   }
 
-  gpg = spawn(COMMAND, [
+  return cproc.stdin(cleartext, COMMAND, [
     FLAG_ALGO, CRYPTO_ALGO, FLAG_ARMOR, FLAG_PASSPHRASE, passphrase,
     FLAG_SYMMETRIC
   ]);
-
-  gpg.stdout.on('data', (data) => {
-    output += data;
-  });
-
-  gpg.stderr.on('data', (data) => {
-    error += data;
-  });
-
-  gpg.on('close', (code) => {
-    if (+code) {
-      d.reject(new Error('GPG terminated with exit code: ' + code));
-    } else {
-      d.resolve(output);
-    }
-  });
-
-  gpg.stdin.write(cleartext);
-  gpg.stdin.end();
-
-  return d.promise;
 }
 
 /**
@@ -66,33 +44,9 @@ function encrypt(passphrase, cleartext) {
   @return {Q.Promise<string>} promise to return clear text string
 */
 function decrypt(passphrase, ciphertext) {
-  var d = Q.defer(),
-    gpg = spawn(COMMAND, [
-      FLAG_QUIET, FLAG_PASSPHRASE, passphrase, FLAG_DECRYPT
-    ]),
-    error = '',
-    output = '';
-
-  gpg.stdout.on('data', (data) => {
-    output += data;
-  });
-
-  gpg.stderr.on('data', (data) => {
-    error += data;
-  });
-
-  gpg.on('close', (code) => {
-    if (+code) {
-      d.reject(new Error('GPG terminated with exit code: ' + code));
-    } else {
-      d.resolve(output);
-    }
-  });
-
-  gpg.stdin.write(ciphertext);
-  gpg.stdin.end();
-
-  return d.promise;
+  return cproc.stdin(ciphertext, COMMAND, [
+    FLAG_QUIET, FLAG_PASSPHRASE, passphrase, FLAG_DECRYPT
+  ]);
 }
 
 /**
@@ -101,41 +55,18 @@ function decrypt(passphrase, ciphertext) {
   @return {Q.Promise<string>} - promise for an encrypted string
 */
 function encryptFile(passphrase, filePath) {
-  var d = Q.defer(),
-    gpg,
-    error = '',
-    output = '';
 
   if (passphrase.length < 30) {
+    let d = Q.defer();
     d.reject(new Error(`GPG: Passphrases must be *at least* thirty (30)
     characters`));
     return d.promise;
   }
 
-  gpg = spawn(COMMAND, [
+  return cproc.output(COMMAND, [
     FLAG_ALGO, CRYPTO_ALGO, FLAG_ARMOR, FLAG_PASSPHRASE, passphrase,
     FLAG_SYMMETRIC, filePath
   ]);
-
-  gpg.stdout.on('data', (data) => {
-    output += data;
-  });
-
-  gpg.stderr.on('data', (data) => {
-    error += data;
-  });
-
-  gpg.on('close', (code) => {
-    if (+code) {
-      d.reject(new Error('GPG terminated with exit code: ' + code));
-    } else {
-      d.resolve(output);
-    }
-  });
-
-  gpg.stdin.end();
-
-  return d.promise;
 }
 
 /**
@@ -145,36 +76,10 @@ function encryptFile(passphrase, filePath) {
   @return {Q.Promise<string>} promise to return clear text string
 */
 function decryptFile(passphrase, cipherFilePath, outputFilePath) {
-  console.log('DEBUG Decrypt');
-  var d = Q.defer(),
-    gpg = spawn(COMMAND, [
-      FLAG_QUIET, FLAG_PASSPHRASE, passphrase, FLAG_OUT, outputFilePath,
-      FLAG_DECRYPT, cipherFilePath
-    ]),
-    error = '',
-    output = '';
-
-  gpg.stdout.on('data', (data) => {
-    output += data;
-    console.log(data);
-  });
-
-  gpg.stderr.on('data', (data) => {
-    error += data;
-  });
-
-  gpg.on('close', (code) => {
-    util.info('gpg decrypt ended with ', code);
-    if (+code) {
-      d.reject(new Error('GPG terminated with exit code: ' + code));
-    } else {
-      d.resolve(output);
-    }
-  });
-
-  gpg.stdin.end();
-
-  return d.promise;
+  return cproc.output(COMMAND, [
+    FLAG_QUIET, FLAG_PASSPHRASE, passphrase, FLAG_OUT, outputFilePath,
+    FLAG_DECRYPT, cipherFilePath
+  ]);
 }
 
 /**
@@ -193,7 +98,6 @@ function generatePass() {
 }
 
 module.exports = {
-  escape,
   encrypt,
   decrypt,
   encryptFile,

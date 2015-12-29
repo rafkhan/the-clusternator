@@ -1,21 +1,21 @@
 'use strict';
 
-var Q = require('q'),
-  common = require('./common'),
-  skeletons = require('./ec2Skeletons'),
-  util = require('../util'),
-  rid = require('../resourceIdentifier'),
-  constants = require('../constants');
+const Q = require('q');
+const common = require('./common');
+const skeletons = require('./ec2Skeletons');
+const util = require('../util');
+const rid = require('../resourceIdentifier');
+const constants = require('../constants');
 
 function getSecurityGroupManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
   var baseFilters = constants.AWS_FILTER_CTAG.concat(
-      common.makeAWSVPCFilter(vpcId)),
-    describe = common.makeEc2DescribeFn(
-      ec2, 'describeSecurityGroups', 'SecurityGroups', baseFilters),
-    describeProject = common.makeEc2DescribeProjectFn(describe),
-    describePr = common.makeEc2DescribePrFn(describe),
-    describeDeployment = common.makeEc2DescribeDeployment(describe);
+    common.makeAWSVPCFilter(vpcId));
+  var describe = common.makeEc2DescribeFn(
+    ec2, 'describeSecurityGroups', 'SecurityGroups', baseFilters);
+  var describeProject = common.makeEc2DescribeProjectFn(describe);
+  var describePr = common.makeEc2DescribePrFn(describe);
+  var describeDeployment = common.makeEc2DescribeDeployment(describe);
 
   function defaultInOutRules(groupId) {
     var inbound = skeletons.SG_DEFAULT_INGRESS,

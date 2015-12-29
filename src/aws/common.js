@@ -1,6 +1,6 @@
 'use strict';
-var constants = require('../constants'),
-  rid = require('../resourceIdentifier');
+const constants = require('../constants');
+const rid = require('../resourceIdentifier');
 
 /**
  * @param {string} pid

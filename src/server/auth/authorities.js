@@ -2,11 +2,11 @@
 
 /*global require, module*/
 
-var authorities = Object.create(null),
-  config = require('../../config')(),
-  Q = require('q'),
-  DEFAULT_AUTHORITY = 2,
-  authorityTypes = config.privilegeGroups;
+var authorities = Object.create(null);
+var config = require('../../config')();
+var Q = require('q');
+var DEFAULT_AUTHORITY = 2;
+var authorityTypes = config.privilegeGroups;
 
 module.exports = {
   find: find,

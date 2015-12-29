@@ -1,10 +1,11 @@
 'use strict';
 
-var Q = require('q'),
-  Vpc = require('./vpcManager'),
-  common = require('./common'),
-  util = require('../util'),
-  constants = require('../constants');
+const Q = require('q');
+const util = require('../util');
+const constants = require('../constants');
+
+var Vpc = require('./vpcManager');
+var common = require('./common');
 
 /**
   @param {EC2} AWS ec2 object
@@ -13,12 +14,12 @@ var Q = require('q'),
 function getSubnetManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
-  var vpc = Vpc(ec2),
-    baseFilters = constants.AWS_FILTER_CTAG.concat(
-      common.makeAWSVPCFilter(vpcId)),
-    describe = common.makeEc2DescribeFn(
-      ec2, 'describeSubnets', 'Subnets', baseFilters),
-    describeProject = common.makeEc2DescribeProjectFn(describe);
+  var vpc = Vpc(ec2);
+  var baseFilters = constants.AWS_FILTER_CTAG.concat(
+    common.makeAWSVPCFilter(vpcId));
+  var describe = common.makeEc2DescribeFn(
+    ec2, 'describeSubnets', 'Subnets', baseFilters);
+  var describeProject = common.makeEc2DescribeProjectFn(describe);
 
   /**
   @param {string} pid

@@ -11,11 +11,13 @@ var Pm = rewire('../../../src/clusternator/projectManager');
 /*eslint no-unused-expressions: 0*/
 describe('Clusternator\'s project manager', () => {
   var oldReq, pm, validConfig = {
-    clusternatorCredentials: {
-      user: 'test',
-      pass: 'testPass',
-      host: '127.0.0.1',
-      apiVersion: '0.0.1'
+    user: {
+      credentials: {
+        user: 'test',
+        token: 'testPass',
+        host: '127.0.0.1'
+      },
+      apiVersion: '0.1'
     }
   };
 

@@ -10,6 +10,7 @@ const NODE_ENV = process.env.NODE_ENV;
 
 const R = require('ramda');
 const q = require('q');
+const os = require('os');
 const path = require('path');
 const express = require('express');
 const aws = require('aws-sdk');
@@ -67,7 +68,15 @@ function startSSL(app) {
     });
 }
 
+function hostInfo() {
+  log.info(`Initializing Clusternator Server on ${os.hostname()}`);
+  log.info(`Platform ${os.type()}/${os.platform()} on ${os.arch()}`);
+  log.info(`Freemem: ${os.freemem()}/${os.totalmem()} ` +
+    `Cores: ${os.cpus().length}`);
+}
+
 function createServer(prManager, ddbManager) {
+  hostInfo();
   var app = express(),
     leApp = startSSL(app);
 

@@ -1,6 +1,6 @@
 'use strict';
-var path = require('path'),
-  util = require('./util');
+const path = require('path');
+var util = require('./util');
 
 var DEFAULT_ENV = Object.freeze({
     host: '127.0.0.1',

@@ -1,6 +1,7 @@
 'use strict';
 
 var gulp = require('gulp'),
+  gcallback = require('gulp-callback'),
   babel = require('gulp-babel'),
   eslint = require('gulp-eslint'),
   mocha = require('gulp-mocha'),
@@ -16,15 +17,15 @@ gulp.task('test', ['test-unit']);
 gulp.task('transpile', ['transpile-cli', 'transpile-src']);
 
 gulp.task('transpile-cli', function transpileCli() {
-  return gulp.src(cliPath).
-  pipe(babel()).
-  pipe(gulp.dest('bin'));
+  return gulp.src(cliPath)
+    .pipe(babel())
+    .pipe(gulp.dest('bin'));
 });
 
 gulp.task('transpile-src', function transpileSrc() {
-  return gulp.src(jsPaths).
-  pipe(babel()).
-  pipe(gulp.dest('lib'));
+  return gulp.src(jsPaths)
+    .pipe(babel())
+    .pipe(gulp.dest('lib'));
 });
 
 gulp.task('watch', function watch() {
@@ -36,34 +37,41 @@ gulp.task('watch-tests', function watch() {
 });
 
 gulp.task('pre-test-unit', ['lint'], function preUnitTest() {
-  return gulp.src(jsPaths).pipe(istanbul()).
-  pipe(istanbul.hookRequire());
+  return gulp
+    .src(jsPaths)
+    .pipe(istanbul())
+    .pipe(istanbul.hookRequire());
 });
 
 gulp.task('test-unit', ['pre-test-unit'], function testUnit() {
-  return gulp.src(cliPath.concat(specPaths)).
-  pipe(mocha()).
-  pipe(istanbul.writeReports({
-    reporters: ['text', 'lcovonly', 'html', 'json', 'text-summary'],
-    reportOpts: {
-      dir: './coverage',
-      lcov: {
-        dir: 'coverage/lcovonly',
-        file: 'lcov.info'
-      },
-      html: {
-        dir: 'coverage/html'
-      },
-      json: {
-        dir: 'coverage/json'
+  return gulp
+    .src(specPaths)
+    .pipe(mocha())
+    .pipe(gcallback(function restoreFs() {
+      // inserted this to verify if it was why coverage isn't writing :/
+      require('mock-fs').restore();
+    }))
+    .pipe(istanbul.writeReports({
+      reporters: ['text', 'lcovonly', 'html', 'json', 'text-summary'],
+      reportOpts: {
+        dir: './coverage',
+        lcov: {
+          dir: './coverage/lcovonly',
+          file: 'lcov.info'
+        },
+        html: {
+          dir: './coverage/html'
+        },
+        json: {
+          dir: './coverage/json'
+        }
       }
-    }
-  }));
+    }));
 });
 
 gulp.task('lint', function lint() {
-  return gulp.src(jsPaths.concat(specPaths)).
-  pipe(eslint()).
-  pipe(eslint.format()).
-  pipe(eslint.failAfterError());
+  return gulp.src(jsPaths.concat(specPaths))
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
 });

@@ -1,10 +1,10 @@
 'use strict';
 
-var R = require('ramda'),
-constants = require('./constants');
+const R = require('ramda');
+const constants = require('./constants');
 
 
-var VALID_ID_TYPES = ['pr', 'sha', 'time', 'ttl', 'pid', 'deployment'];
+const VALID_ID_TYPES = ['pr', 'sha', 'time', 'ttl', 'pid', 'deployment'];
 
 
 /**

@@ -2,11 +2,11 @@
 
 const DOCKER_BUILD_HOOK_TIMEOUT = 120000;
 
-const  Q = require('q'),
-  git = require('./cli-wrappers/git'),
-  npm = require('./cli-wrappers/npm'),
-  docker = require('./cli-wrappers/docker'),
-  util = require('./util');
+const  Q = require('q');
+var git = require('./cli-wrappers/git');
+var npm = require('./cli-wrappers/npm');
+var docker = require('./cli-wrappers/docker');
+var util = require('./util');
 
 function pfail(msg, id) {
   return (err) => {

@@ -13,7 +13,7 @@ switch (process.env.NODE_ENV) {
     logLevelsByLogger.logger = 'debug';
     break;
   case 'production':
-    logLevelsByLogger.logger = 'warn';
+    logLevelsByLogger.logger = 'info';
     break;
 }
 

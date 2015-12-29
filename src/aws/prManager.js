@@ -1,25 +1,25 @@
 'use strict';
-var Q = require('q'),
-  Subnet = require('./subnetManager'),
-  SG = require('./securityGroupManager'),
-  Ec2 = require('./ec2Manager'),
-  rid = require('./../resourceIdentifier'),
-  Cluster = require('./clusterManager'),
-  Route53 = require('./route53Manager'),
-  Task = require('./taskServiceManager'),
-  common = require('./common'),
-  path = require('path'),
-  constants = require('../constants'),
-  util = require('../util');
+const Q = require('q');
+const Subnet = require('./subnetManager');
+const SG = require('./securityGroupManager');
+const Ec2 = require('./ec2Manager');
+const rid = require('./../resourceIdentifier');
+const Cluster = require('./clusterManager');
+const Route53 = require('./route53Manager');
+const Task = require('./taskServiceManager');
+const common = require('./common');
+const path = require('path');
+const constants = require('../constants');
+const util = require('../util');
 
 function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
-  var subnet = Subnet(ec2, vpcId),
-    securityGroup = SG(ec2, vpcId),
-    cluster = Cluster(ecs),
-    route53 = Route53(r53, zoneId),
-    ec2mgr = Ec2(ec2, vpcId),
-    task = Task(ecs),
-    config = require('../config')();
+  var subnet = Subnet(ec2, vpcId);
+  var securityGroup = SG(ec2, vpcId);
+  var cluster = Cluster(ecs);
+  var route53 = Route53(r53, zoneId);
+  var ec2mgr = Ec2(ec2, vpcId);
+  var task = Task(ecs);
+  var config = require('../config')();
 
   function qualifyUrl(url) {
     var tld = config.tld || '.example.com';

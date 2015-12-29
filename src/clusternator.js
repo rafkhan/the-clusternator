@@ -1,8 +1,8 @@
 'use strict';
 
-var q = require('q');
-var R = require('ramda');
-var AWS = require('aws-sdk');
+const q = require('q');
+const R = require('ramda');
+const AWS = require('aws-sdk');
 
 var util = require('./util');
 var EC2Manager = require('./aws/ec2Manager');

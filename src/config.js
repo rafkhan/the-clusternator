@@ -6,23 +6,25 @@ a "local server".
 
 const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID';
 const AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY';
+const DEFAULT_VERSION = require('./constants').DEFAULT_API_VERSION;
 
-const util = require('./util'),
-  Q = require('q'),
-  fs = require('fs'),
-  path = require('path'),
-  semver = require('semver'),
-  questions = require('./skeletons/create-interactive-questions');
+const Q = require('q');
+const fs = require('fs');
+const path = require('path');
+const semver = require('semver');
+
+var util = require('./util');
+var questions = require('./skeletons/create-interactive-questions');
 
 const DOT_CLUSTERNATOR_CONFIG =
-  path.join(getUserHome(), '.clusternator_config.json'),
-  writeFile = Q.nbind(fs.writeFile, fs),
-  chmod = Q.nbind(fs.chmod, fs);
+  path.join(getUserHome(), '.clusternator_config.json');
+const  writeFile = Q.nbind(fs.writeFile, fs);
+const chmod = Q.nbind(fs.chmod, fs);
 
-var credFileName = 'credentials',
-  configFileName = 'config',
-  localPath = path.join(__dirname, '..', '.private'),
-  globalPath = '/etc/clusternator/';
+var credFileName = 'credentials';
+var configFileName = 'config';
+var localPath = path.join(__dirname, '..', '.private');
+var globalPath = '/etc/clusternator/';
 
 /**
  * @todo replace this with `os.homedir()`?
@@ -63,7 +65,7 @@ function getAwsCredsFromProc() {
     return {
       accessKeyId: process.env[AWS_ENV_KEY],
       secretAccessKey: process.env[AWS_ENV_SECRET],
-    }
+    };
   }
   return null;
 }
@@ -107,7 +109,7 @@ function validateUserConfig(c) {
     return null;
   }
   if (!c.apiVersion) {
-    c.apiVersion = '0.0.1';
+    c.apiVersion = DEFAULT_VERSION;
   } else {
     c.apiVersion = semver.clean(c.apiVersion);
   }
@@ -158,7 +160,7 @@ function getConfig() {
 
 /**
  * @param {{ host: string, username: string, token: string, name: string=,
- email: string= }} options
+ email: string=, apiVersion: string= }} options
  * @return {Q.Promise}
  */
 function writeUserConfig(options) {
@@ -175,7 +177,8 @@ function writeUserConfig(options) {
       user: options.username,
       token: options.token,
       host: options.host
-    }
+    },
+    apiVersion: options.apiVersion
   }, null, 2))
     .then(() => chmod(DOT_CLUSTERNATOR_CONFIG, '600'));
 }
@@ -196,7 +199,8 @@ function interactiveUser() {
       email: user.email || '',
       host: user.credentials.host || '',
       username: user.credentials.user || '',
-      token: maskString(user.credentials.token) || ''
+      token: maskString(user.credentials.token) || '',
+      apiVersion: user.apiVersion || DEFAULT_VERSION
   }))
   .then(writeUserConfig);
 }

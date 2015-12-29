@@ -1,31 +1,32 @@
 'use strict';
 
-var Subnet = require('./subnetManager'),
-  Route = require('./routeTableManager'),
-  Route53 = require('./route53Manager'),
-  Vpc = require('./vpcManager'),
-  Acl = require('./aclManager'),
-  Cluster = require('./clusterManager'),
-  Pr = require('./prManager'),
-  Ec2 = require('./ec2Manager'),
-  Deployment = require('./deploymentManager'),
-  DynamoManager = require('./dynamoManager'),
-  gpg = require('../cli-wrappers/gpg'),
-  constants = require('../constants'),
-  Q = require('q');
+const Subnet = require('./subnetManager');
+const Route = require('./routeTableManager');
+const Route53 = require('./route53Manager');
+const Acl = require('./aclManager');
+const Cluster = require('./clusterManager');
+const Pr = require('./prManager');
+const Ec2 = require('./ec2Manager');
+const Deployment = require('./deploymentManager');
+const DynamoManager = require('./dynamoManager');
+const gpg = require('../cli-wrappers/gpg');
+const constants = require('../constants');
+const Q = require('q');
+
+var Vpc = require('./vpcManager');
 
 function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
-  var vpcId = null,
-    pullRequest,
-    cluster,
-    deployment,
-    vpc = Vpc(ec2),
-    r53 = Route53(awsRoute53),
-    ddbManager = DynamoManager(dynamoDB),
-    ec2mgr,
-    route,
-    subnet,
-    acl;
+  var vpcId = null;
+  var pullRequest;
+  var cluster;
+  var deployment;
+  var vpc = Vpc(ec2);
+  var r53 = Route53(awsRoute53);
+  var ddbManager = DynamoManager(dynamoDB);
+  var ec2mgr;
+  var route;
+  var subnet;
+  var acl;
 
   function destroy(pid) {
     return ec2.describeProject(pid).then((list) => {

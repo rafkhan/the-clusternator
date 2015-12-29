@@ -29,7 +29,7 @@ describe('config provider', () => {
   });
 
   it('should have an attribute (null or otherwise) called ' +
-    'clusternatorCredentials', () => {
-      expect(config().clusternatorCredentials).to.not.equal(undefined);
+    'user', () => {
+      expect(config().user).to.not.equal(undefined);
     });
 });

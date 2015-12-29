@@ -1,10 +1,9 @@
 'use strict';
 
-const Q = require('q'),
-  R = require('ramda'),
-  rid = require('../resourceIdentifier'),
-  common = require('./common'),
-  util = require('../util');
+const Q = require('q');
+const R = require('ramda');
+const common = require('./common');
+const util = require('../util');
 
 function getClusterManager(ecs) {
   ecs = util.makePromiseApi(ecs);
