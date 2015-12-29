@@ -1,15 +1,17 @@
-const CLUSTERNATOR_PREFIX = 'clusternator',
- DELIM = '-',
- CLUSTERNATOR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'created',
- PROJECT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project',
- PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr',
- DEPLOYMENT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'deployment',
- SHA_TAG = CLUSTERNATOR_PREFIX + DELIM + 'sha',
-/** NOTE EC2 AMI's are region specific */
-// AWS_DEFAULT_EC2_AMI = 'ami-8da458e6',
- AWS_DEFAULT_EC2_AMI = 'ami-e2b1f988',
- AWS_DEFAULT_EC2_TYPE = 't2.micro',
- SSH_PUBLIC_PATH = 'ssh-public';
+'use strict';
+
+const CLUSTERNATOR_PREFIX = 'clusternator';
+const DELIM = '-';
+const CLUSTERNATOR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'created';
+const PROJECT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project';
+const PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr';
+const DEPLOYMENT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'deployment';
+const SHA_TAG = CLUSTERNATOR_PREFIX + DELIM + 'sha';
+/**const NOTEconst EC2const AMI'sconst areconst regionconst specificconst */
+//const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
+const AWS_DEFAULT_EC2_AMI = 'ami-e2b1f988';
+const AWS_DEFAULT_EC2_TYPE = 't2.micro';
+const SSH_PUBLIC_PATH = 'ssh-public';
 
 
 const constants = Object.freeze({

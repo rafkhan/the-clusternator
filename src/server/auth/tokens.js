@@ -4,11 +4,11 @@ const TOKEN_SIZE = 64;
 const MAX_TOKENS = 5;
 const DELIM = ':';
 
-var tokens = Object.create(null),
-  crypto = require('crypto'),
-  hash = require('./crypto-hash'),
-  b64 = require('base64url'),
-  Q = require('q');
+var tokens = Object.create(null);
+var crypto = require('crypto');
+var hash = require('./crypto-hash');
+var b64 = require('base64url');
+var Q = require('q');
 
 /**
  * @param {string} token

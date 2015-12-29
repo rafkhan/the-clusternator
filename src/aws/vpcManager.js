@@ -1,8 +1,7 @@
 'use strict';
 
-var Q = require('q'),
-  util = require('../util'),
-  constants = require('../constants');
+const util = require('../util');
+const constants = require('../constants');
 
 function getVpcManager(ec2) {
   ec2 = util.makePromiseApi(ec2);

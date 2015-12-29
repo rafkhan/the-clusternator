@@ -1,19 +1,19 @@
 'use strict';
 
-const Q = require('q'),
-  fs = require('fs'),
-  path = require('path'),
-  mkdirp = Q.nfbind(require('mkdirp'));
+const Q = require('q');
+const fs = require('fs');
+const path = require('path');
+const mkdirp = Q.nfbind(require('mkdirp'));
 
 const cn = require('../js/js-api');
 
-const cmn = require('../common'),
-  clusternatorJson = cmn.src('clusternator-json'),
-  util = cmn.src('util'),
-  constants = cmn.src('constants'),
-  sshKey = cmn.src('cli-wrappers', 'ssh-keygen'),
-  ssh = cmn.src('cli-wrappers', 'ssh'),
-  logRemote = cmn.src('cli-wrappers', 'logs');
+const cmn = require('../common');
+const clusternatorJson = cmn.src('clusternator-json');
+const util = cmn.src('util');
+const constants = cmn.src('constants');
+const sshKey = cmn.src('cli-wrappers', 'ssh-keygen');
+const ssh = cmn.src('cli-wrappers', 'ssh');
+const logRemote = cmn.src('cli-wrappers', 'logs');
 
 
 module.exports = {

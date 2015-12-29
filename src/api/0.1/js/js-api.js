@@ -1,42 +1,42 @@
 'use strict';
 
-const UTF8 = 'utf8',
-  DOCKERFILE = 'Dockerfile',
-  DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3',
-  DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest',
-  SERVE_SH = 'serve.sh',
-  DECRYPT_SH = 'decrypt.sh',
-  DOCKER_BUILD_SH = 'docker-build.sh',
-  NOTIFY_JS = 'notify.js',
-  CIRCLEFILE = 'circle.yml',
-  CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g,
-  CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g,
-  PRIVATE_CHECKSUM = '.private-checksum',
-  DEFAULT_API = /\$DEFAULT_API/g,
-  HOST = /\$HOST/g;
+const UTF8 = 'utf8';
+const DOCKERFILE = 'Dockerfile';
+const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3';
+const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest';
+const SERVE_SH = 'serve.sh';
+const DECRYPT_SH = 'decrypt.sh';
+const DOCKER_BUILD_SH = 'docker-build.sh';
+const NOTIFY_JS = 'notify.js';
+const CIRCLEFILE = 'circle.yml';
+const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
+const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
+const PRIVATE_CHECKSUM = '.private-checksum';
+const DEFAULT_API = /\$DEFAULT_API/g;
+const HOST = /\$HOST/g;
 
-const Q = require('Q'),
-  fs = require('fs'),
-  path = require('path'),
-  mkdirp = Q.nfbind(require('mkdirp'));
+const Q = require('Q');
+const fs = require('fs');
+const path = require('path');
+const mkdirp = Q.nfbind(require('mkdirp'));
 
-const cmn = require('../common'),
-  clusternatorJson = cmn.src('clusternator-json'),
-  Config = cmn.src('config'),
-  util = cmn.src('util'),
-  constants = cmn.src('constants'),
+const cmn = require('../common');
+const clusternatorJson = cmn.src('clusternator-json');
+const Config = cmn.src('config');
+const util = cmn.src('util');
+const constants = cmn.src('constants');
 
-  gpg = cmn.src('cli-wrappers', 'gpg'),
-  shaDir = cmn.src('cli-wrappers', 'generate-private-sha'),
-  git = cmn.src('cli-wrappers', 'git'),
-  docker = cmn.src('cli-wrappers', 'docker'),
+const gpg = cmn.src('cli-wrappers', 'gpg');
+const shaDir = cmn.src('cli-wrappers', 'generate-private-sha');
+const git = cmn.src('cli-wrappers', 'git');
+const docker = cmn.src('cli-wrappers', 'docker');
 
-  appDefSkeleton = cmn.src('skeletons', 'app-def'),
+const appDefSkeleton = cmn.src('skeletons', 'app-def');
 
-  cnProjectManager = cmn.src('clusternator', 'projectManager'),
-  awsProjectManager = cmn.src('aws', 'project-init'),
+const cnProjectManager = cmn.src('clusternator', 'projectManager');
+const awsProjectManager = cmn.src('aws', 'project-init');
 
-  server = cmn.src('server', 'main');
+const server = cmn.src('server', 'main');
 
 const writeFile = Q.nbind(fs.writeFile, fs),
   readFile = Q.nbind(fs.readFile, fs),

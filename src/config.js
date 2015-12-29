@@ -4,26 +4,27 @@ This file loads AWS credentials, and configuration for the server, or possibly
 a "local server".
 */
 
-const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID',
-  AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY',
-  DEFAULT_VERSION = require('./constants').DEFAULT_API_VERSION;
+const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID';
+const AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY';
+const DEFAULT_VERSION = require('./constants').DEFAULT_API_VERSION;
 
-const util = require('./util'),
-  Q = require('q'),
-  fs = require('fs'),
-  path = require('path'),
-  semver = require('semver'),
-  questions = require('./skeletons/create-interactive-questions');
+const Q = require('q');
+const fs = require('fs');
+const path = require('path');
+const semver = require('semver');
+
+var util = require('./util');
+var questions = require('./skeletons/create-interactive-questions');
 
 const DOT_CLUSTERNATOR_CONFIG =
-  path.join(getUserHome(), '.clusternator_config.json'),
-  writeFile = Q.nbind(fs.writeFile, fs),
-  chmod = Q.nbind(fs.chmod, fs);
+  path.join(getUserHome(), '.clusternator_config.json');
+const  writeFile = Q.nbind(fs.writeFile, fs);
+const chmod = Q.nbind(fs.chmod, fs);
 
-var credFileName = 'credentials',
-  configFileName = 'config',
-  localPath = path.join(__dirname, '..', '.private'),
-  globalPath = '/etc/clusternator/';
+var credFileName = 'credentials';
+var configFileName = 'config';
+var localPath = path.join(__dirname, '..', '.private');
+var globalPath = '/etc/clusternator/';
 
 /**
  * @todo replace this with `os.homedir()`?

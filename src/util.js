@@ -2,10 +2,10 @@
 
 const WAIT_DEFAULT_INTERVAL = 10000;
 
-const Q = require('q'),
-  inquirer = require('inquirer'),
-  Winston = require('winston'),
-  constants = require('./constants');
+const Q = require('q');
+const inquirer = require('inquirer');
+const Winston = require('winston');
+const constants = require('./constants');
 
 var winston;
 

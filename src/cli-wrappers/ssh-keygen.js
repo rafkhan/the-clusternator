@@ -2,9 +2,9 @@
 
 const COMMAND = 'ssh-keygen';
 
-const path = require('path'),
-  fs = require('fs'),
-  Q = require('q');
+const path = require('path');
+const fs = require('fs');
+const Q = require('q');
 
 var cproc = require('./child-process');
 

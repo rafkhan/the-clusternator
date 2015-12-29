@@ -1,9 +1,9 @@
 'use strict';
 
-const COMMAND = 'ssh',
-  USER = 'ec2-user@',
-  FLAG_PORT = '-p',
-  BASE_SSH_ARGS = [
+const COMMAND = 'ssh';
+const USER = 'ec2-user@';
+const FLAG_PORT = '-p';
+const BASE_SSH_ARGS = [
     '-oStrictHostKeyChecking=no', '-oUserKnownHostsFile=/dev/null'];
 
 var cproc = require('./child-process');

@@ -4,14 +4,15 @@ const LOGIN_PATH = '/login';
 const constants = require('../../constants');
 const API = constants.DEFAULT_API_VERSION;
 
-var Config = require('../../config'),
-  passport = require('passport'),
-  R = require('ramda'),
-  logger = require('../loggers').logger,
-  getCommands = require('../../api')[API].rest,
-  initAwsProject = require('../../aws/project-init'),
-  auth = require('../auth/authorities'),
-  curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
+const passport = require('passport');
+const R = require('ramda');
+
+var Config = require('../../config');
+var logger = require('../loggers').logger;
+var getCommands = require('../../api')[API].rest;
+var initAwsProject = require('../../aws/project-init');
+var auth = require('../auth/authorities');
+var curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
 
 
 /**

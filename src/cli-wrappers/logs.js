@@ -1,7 +1,6 @@
 'use strict';
 
-const path = require('path'),
-  Q = require('q');
+const path = require('path');
 
 var cproc = require('./child-process');
 

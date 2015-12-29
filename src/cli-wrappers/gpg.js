@@ -12,10 +12,11 @@ const FLAG_PASSPHRASE = '--passphrase';
 const FLAG_SYMMETRIC = '--symmetric';
 const FLAG_DECRYPT = '--decrypt';
 
-var cproc = require('./child-process'),
-  crypto = require('crypto'),
-  b64 = require('base64url'),
-  Q = require('q');
+const  crypto = require('crypto');
+const b64 = require('base64url');
+const Q = require('q');
+
+var cproc = require('./child-process');
 
 /**
   @param {string} passphrase - encryption passphrase

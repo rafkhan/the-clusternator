@@ -1,7 +1,7 @@
 'use strict';
 
-var q = require('q');
-var R = require('ramda');
+const q = require('q');
+const R = require('ramda');
 
 var defaultTableParams = {
   AttributeDefinitions: [

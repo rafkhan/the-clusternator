@@ -1,6 +1,6 @@
 'use strict';
 
-var log = require('./loggers').logger;
+const log = require('./loggers').logger;
 
 function sendError(res, status, message) {
   log.error(status, message);

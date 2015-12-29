@@ -1,7 +1,7 @@
 'use strict';
 
-const SRC= ['..', '..'],
-  srcCat = SRC.concat.bind(SRC);
+const SRC= ['..', '..'];
+const srcCat = SRC.concat.bind(SRC);
 
 const path = require('path');
 

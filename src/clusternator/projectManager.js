@@ -1,8 +1,8 @@
 'use strict';
 const OKAY = 200;
 
-var Q = require('q'),
-  request = require('request');
+const Q = require('q');
+const request = require('request');
 
 function getProjectManager(config) {
   config = config || {};
@@ -26,7 +26,7 @@ function getProjectManager(config) {
         uri: host + config.apiVersion + endpoint,
         gzip: true,
         json: data
-      }
+      };
     }
     return {
       method: verb,

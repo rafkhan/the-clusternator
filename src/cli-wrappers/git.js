@@ -8,14 +8,14 @@ const FLAG_CLONE = 'clone';
 const FLAG_CHECKOUT = 'checkout';
 const GITIGNORE = '.gitignore';
 
-const fs = require('fs'),
-  Q = require('q'),
-  path = require('path'),
-  mkdirp = Q.nfbind(require('mkdirp')),
-  rimraf = Q.nfbind(require('rimraf'));
+const fs = require('fs');
+const Q = require('q');
+const path = require('path');
+const mkdirp = Q.nfbind(require('mkdirp'));
+const rimraf = Q.nfbind(require('rimraf'));
 
-var cproc = require('./child-process'),
-  util = require('../util');
+var cproc = require('./child-process');
+var util = require('../util');
 
 module.exports = {
   GITIGNORE,

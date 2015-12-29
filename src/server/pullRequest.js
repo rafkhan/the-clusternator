@@ -1,7 +1,6 @@
 'use strict';
 
-var Q = require('q')
-var R = require('ramda');
+const R = require('ramda');
 
 var serverUtil = require('./util');
 var log = require('./loggers').logger;

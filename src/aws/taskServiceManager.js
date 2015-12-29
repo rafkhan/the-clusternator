@@ -2,11 +2,11 @@
 
 const SERVICE_POLL_DELAY = 15000;
 
-var q = require('q');
-var R = require('ramda');
-var util = require('../util');
+const q = require('q');
+const R = require('ramda');
+const util = require('../util');
 
-var TaskDefinitionManager = require('./taskDefinitionManager');
+const TaskDefinitionManager = require('./taskDefinitionManager');
 
 function getTaskServiceManager(ecs) {
   ecs = util.makePromiseApi(ecs);

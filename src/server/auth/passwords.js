@@ -2,9 +2,9 @@
 
 /*global require, module*/
 
-var passwords = Object.create(null),
-    hash = require('./crypto-hash'),
-    Q = require('q');
+var passwords = Object.create(null);
+var hash = require('./crypto-hash');
+var Q = require('q');
 
 /**
  * @param {string} id

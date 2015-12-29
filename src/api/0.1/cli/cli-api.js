@@ -2,15 +2,15 @@
 
 const  path = require('path');
 
-const cmn = require('../common'),
-  util = cmn.src('util'),
-  Config = cmn.src('config'),
-  cn = require('../js/js-api'),
+const cmn = require('../common');
+const util = cmn.src('util');
+const Config = cmn.src('config');
+const cn = require('../js/js-api');
 
-  stdioI = require('./stdio-inheritors'),
-  project = require('./project-questions'),
+const stdioI = require('./stdio-inheritors');
+const project = require('./project-questions');
 
-  legacy = require('./legacy-yargs');
+const legacy = require('./legacy-yargs');
 
 module.exports = (yargs) => {
 
@@ -136,7 +136,7 @@ module.exports = (yargs) => {
       stdioI.logApp)
     .command('log-ecs', 'ECS logs from a user selected server',
       stdioI.logEcs)
-    .command('ssh', 'SSH to a selected server', stdioI.ssh);
+    .command('ssh', 'SSH to a selected server', stdioI.sshShell);
 
   legacy(yargs);
 };

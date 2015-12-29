@@ -1,14 +1,12 @@
 'use strict';
 const UTF8 = 'utf8';
 
-const cn = require('../js/js-api');
-
-const fs = require('fs'),
-  path = require('path'),
-  util = require('../../../util'),
-  circleCIClient = require('../../../client/circleCIClient'),
-  clusternator = require('../../../clusternator'),
-  constants = require('../../../constants');
+const fs = require('fs');
+const path = require('path');
+const util = require('../../../util');
+const circleCIClient = require('../../../client/circleCIClient');
+const clusternator = require('../../../clusternator');
+const constants = require('../../../constants');
 
 
 function newApp(argv) {

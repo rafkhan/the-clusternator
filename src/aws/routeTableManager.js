@@ -1,9 +1,8 @@
 'use strict';
 
-var Q = require('q'),
-  constants = require('../constants'),
-  util = require('../util'),
-  common = require('./common');
+const constants = require('../constants');
+const util = require('../util');
+const common = require('./common');
 
 function getRouteTableManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);

@@ -1,13 +1,13 @@
 'use strict';
 
-const COMMAND = 'docker',
-  FLAG_BUILD = 'build',
-  FLAG_FILE = '-f',
-  FLAG_TAG = '-t',
-  FLAG_PUSH = 'push',
-  FLAG_RMI = 'rmi',
-  DEFAULT_DOCKERFILE = 'Dockerfile',
-  BUILD_CWD = './';
+const COMMAND = 'docker';
+const FLAG_BUILD = 'build';
+const FLAG_FILE = '-f';
+const FLAG_TAG = '-t';
+const FLAG_PUSH = 'push';
+const FLAG_RMI = 'rmi';
+const DEFAULT_DOCKERFILE = 'Dockerfile';
+const BUILD_CWD = './';
 
 var cproc = require('./child-process');
 

@@ -24,9 +24,9 @@ const dockerCredOpts = {
 
 const R = require('ramda');
 
-const cli = require('./legacy-cli'),
-  cmn = require('../common'),
-  util = cmn.src('util');
+const cli = require('./legacy-cli');
+const cmn = require('../common');
+const util = cmn.src('util');
 
 module.exports = (yargs) => {
 

@@ -1,16 +1,16 @@
 'use strict';
 
-const DOCKER_IGNORE = '.dockerignore',
-  GIT_IGNORE = '.gitignore',
-  NPM_IGNORE = '.npmignore';
+const DOCKER_IGNORE = '.dockerignore';
+const GIT_IGNORE = '.gitignore';
+const NPM_IGNORE = '.npmignore';
 
 const Q = require('q');
 
-const cn = require('../js/js-api'),
-  cmn = require('../common');
+const cn = require('../js/js-api');
+const cmn = require('../common');
 
-var util = cmn.src('util'),
-  clusternatorJson = cmn.src('clusternator-json');
+var util = cmn.src('util');
+var clusternatorJson = cmn.src('clusternator-json');
 
 module.exports = {
   init
