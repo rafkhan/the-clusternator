@@ -39,7 +39,7 @@ organization has a _private_ GitHub repository for your project.
 web interface
 - Click `settings`
 - On the left nav bar click `webhooks & services`
-  - In the payload URL field enter: https://the-clusternator.my-organization.com/0.0.1/github
+  - In the payload URL field enter: https://the-clusternator.my-organization.com/0.1/github
   - Leave the content type as JSON
   - Paste the login token in the "secret" field
   - Set "Which events would you like to trigger this webhook?" to "Everything"

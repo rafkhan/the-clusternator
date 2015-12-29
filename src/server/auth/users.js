@@ -2,12 +2,12 @@
 
 /*global require, module*/
 
-var users = Object.create(null),
-  passwords = require('./passwords'),
-  tokens = require('./tokens'),
-  authorities = require('./authorities'),
-  config = require('../../config')(),
-  Q = require('q');
+var users = Object.create(null);
+var passwords = require('./passwords');
+var tokens = require('./tokens');
+var authorities = require('./authorities');
+var config = require('../../config')();
+var Q = require('q');
 
 module.exports = {
   find: find,

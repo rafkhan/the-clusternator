@@ -3,15 +3,15 @@
 /*global require, __dirname, module */
 
 // sets up, and initializes authentication
-var LocalStrategy = require('passport-local').Strategy,
-  HeaderStrategy = require('passport-http-header-token').Strategy,
-  Config = require('../../config'),
-  passport = require('passport'),
-  session = require('express-session'),
-  users = require('./users'),
-  passwords = require('./passwords'),
-  logger = require('../loggers').logger,
-  tokens = require('./tokens');
+var LocalStrategy = require('passport-local').Strategy;
+var HeaderStrategy = require('passport-http-header-token').Strategy;
+var Config = require('../../config');
+var passport = require('passport');
+var session = require('express-session');
+var users = require('./users');
+var passwords = require('./passwords');
+var logger = require('../loggers').logger;
+var tokens = require('./tokens');
 
 var config = Config();
 

@@ -1,35 +1,36 @@
 'use strict';
 
 /** @todo make VCS_DIR configurable */
-const VCS_DIR = '.git',
-  GIT_EXTENSION = '.git',
-  GIT_ORIGIN = 'remote "origin"',
-  URL_SEP = '/',
-  PACKAGE_JSON = 'package.json',
-  BOWER_JSON = 'bower.json',
-  FILENAME = 'clusternator.json',
-  UTF8 = 'utf8',
-  CLUSTERNATOR_TAR = 'clusternator.tar.gz',
-  CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc',
-  SKELETON = require('./skeletons/clusternator-json-skeleton'),
-  RX_NEWLINE = /\r?\n/,
-  NEWLINE = '\r\n';
+const VCS_DIR = '.git';
+const GIT_EXTENSION = '.git';
+const GIT_ORIGIN = 'remote "origin"';
+const URL_SEP = '/';
+const PACKAGE_JSON = 'package.json';
+const BOWER_JSON = 'bower.json';
+const FILENAME = 'clusternator.json';
+const UTF8 = 'utf8';
+const CLUSTERNATOR_TAR = 'clusternator.tar.gz';
+const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
+const SKELETON = require('./skeletons/clusternator-json-skeleton');
+const RX_NEWLINE = /\r?\n/;
+const NEWLINE = '\r\n';
 
-var Q = require('q'),
-  git = Q.nfbind(require('parse-git-config')),
-  path = require('path'),
-  fs = require('fs'),
-  util = require('./util'),
-  questions = require('./skeletons/create-interactive-questions'),
-  gpg = require('./cli-wrappers/gpg'),
-  tar = require('./cli-wrappers/tar'),
-  rimraf = Q.nfbind(require('rimraf'));
+const Q = require('q');
+const path = require('path');
+const fs = require('fs');
+const rimraf = Q.nfbind(require('rimraf'));
+
+var git = Q.nfbind(require('parse-git-config'));
+var util = require('./util');
+var questions = require('./skeletons/create-interactive-questions');
+var gpg = require('./cli-wrappers/gpg');
+var tar = require('./cli-wrappers/tar');
 
 const GIT_CONFIG = VCS_DIR + path.sep + 'config';
 
-var ls = Q.nbind(fs.readdir, fs),
-  readFile = Q.nbind(fs.readFile, fs),
-  writeFile = Q.nbind(fs.writeFile, fs);
+const ls = Q.nbind(fs.readdir, fs);
+const readFile = Q.nbind(fs.readFile, fs);
+const writeFile = Q.nbind(fs.writeFile, fs);
 
 function identity(obj) {
   return obj;

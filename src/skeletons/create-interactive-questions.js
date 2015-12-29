@@ -94,6 +94,12 @@ function projectInit(defaults) {
     },
     {
       type: 'input',
+      name: 'private',
+      message: 'Where should clusternator keep your project\'s private files?',
+      default: '.private'
+    },
+    {
+      type: 'input',
       name: 'tld',
       message: 'What Top Level Domain (TLD) Will This Be Served From?',
       default: defaults.tld,
@@ -106,24 +112,11 @@ function projectInit(defaults) {
       message: 'Choose a backend'
     },
     {
-      when: hasBackend,
-      type: 'confirm',
-      name: 'usePrivateFolder',
-      message: 'Will you use a "private" folder?',
-      default: true
-    },
-    {
-      when: (response) => response.usePrivateFolder,
-      type: 'input',
-      name: 'private',
-      message: 'Where will your private files live?',
-      default: '.private'
-    },
-    {
       type: 'input',
       name: 'deploymentsDir',
       message: 'Where will your appDefs/deployment files live?',
-      default: defaults.deploymentsDir,
+      default: (answers) => answers.backend === 'static' ?
+        '.deployments': defaults.deploymentsDir,
       validate: truthy
     },
     {

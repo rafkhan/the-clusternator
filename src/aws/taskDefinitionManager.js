@@ -1,8 +1,7 @@
 'use strict';
 
-var Q = require('q'),
-  common = require('./common'),
-  util = require('../util');
+const common = require('./common');
+const util = require('../util');
 
 function getTaskDefinitionManager(ecs) {
   ecs = util.makePromiseApi(ecs);

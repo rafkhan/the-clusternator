@@ -10,17 +10,17 @@ const prConfigAttributes = configAttributes.concat(['pr']);
 const deploymentConfigAttributes = configAttributes.concat(
   ['deployment', 'sha']);
 
-var Q = require('q'),
-  R = require('ramda'),
-  common = require('./common'),
-  util = require('../util'),
-  constants = require('../constants'),
-  fs = require('fs'),
-  path = require('path');
+const Q = require('q');
+const R = require('ramda');
+const common = require('./common');
+const util = require('../util');
+const constants = require('../constants');
+const fs = require('fs');
+const path = require('path');
 
-var ls = Q.nbind(fs.readdir, fs),
-  readFile = Q.nbind(fs.readFile, fs),
-  DEFAULT_INSTANCE_PARAMS = constants.AWS_DEFAULT_EC2;
+const ls = Q.nbind(fs.readdir, fs);
+const readFile = Q.nbind(fs.readFile, fs);
+const DEFAULT_INSTANCE_PARAMS = constants.AWS_DEFAULT_EC2;
 
 
 //var DEFAULT_SECURITY_GROUP = 'sg-356bb652'; // Default SG allows all traffic

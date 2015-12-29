@@ -6,8 +6,8 @@
 /*global require, module */
 
 
-var pw = require('credential'),
-    Q = require('q');
+const pw = require('credential');
+const Q = require('q');
 
 module.exports = {
     saltHash: saltHash,

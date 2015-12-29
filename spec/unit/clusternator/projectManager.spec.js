@@ -17,7 +17,7 @@ describe('Clusternator\'s project manager', () => {
         token: 'testPass',
         host: '127.0.0.1'
       },
-      apiVersion: '0.0.1'
+      apiVersion: '0.1'
     }
   };
 

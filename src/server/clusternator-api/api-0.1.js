@@ -1,15 +1,19 @@
 'use strict';
 const LOGIN_PATH = '/login';
-const API = '0.0.1';
 
-var Config = require('../../config'),
-  passport = require('passport'),
-  R = require('ramda'),
-  logger = require('../loggers').logger,
-  getCommands = require('./commands-0.0.1'),
-  initAwsProject = require('../../aws/project-init'),
-  auth = require('../auth/authorities'),
-  curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
+const constants = require('../../constants');
+const API = constants.DEFAULT_API_VERSION;
+
+const passport = require('passport');
+const R = require('ramda');
+
+var Config = require('../../config');
+var logger = require('../loggers').logger;
+var getCommands = require('../../api')[API].rest;
+var initAwsProject = require('../../aws/project-init');
+var auth = require('../auth/authorities');
+var curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
+
 
 /**
  * @param {Object} config
@@ -40,7 +44,7 @@ function commandPrivFromNamespace(config, namespace, command) {
 function getPFail(res) {
   return (err) => {
     res.status(500).json({ error: err });
-  }
+  };
 }
 
 /**
@@ -68,7 +72,7 @@ function authorizeCommand(config) {
         logger.warn(`NOT AUTHORIZED: ${req.user.id} On: ${ns}.${cmd}`);
         noAuth(res);
       }).fail(getPFail(res));
-  }
+  };
 }
 
 function executeCommand(commands) {
@@ -92,7 +96,7 @@ function executeCommand(commands) {
         res.redirect('/');
       }
     }).fail(getPFail(res));
-  }
+  };
 }
 
 

@@ -2,18 +2,20 @@
 
 const SSH_PUBLIC = 'ssh-public';
 const MAX_PROJECT_NAME = 150;
-const API = '0.0.1';
 
-const aws = require('../../aws/project-init'),
-  path = require('path'),
-  util = require('../../util'),
-  dockernate = require('../../dockernate'),
-  slack = require('../../cli-wrappers/slack'),
-  clusternatorJson = require('../../clusternator-json'),
-  config = require('../../config')(),
-  ec2 = require('../../aws/ec2Manager'),
-  Projects = require('../db/projects'),
-  Q = require('q');
+const aws = require('../../../aws/project-init');
+const path = require('path');
+const util = require('../../../util');
+const dockernate = require('../../../dockernate');
+const slack = require('../../../cli-wrappers/slack');
+const clusternatorJson = require('../../../clusternator-json');
+const config = require('../../../config')();
+const constants = require('../../../constants');
+const ec2 = require('../../../aws/ec2Manager');
+const Projects = require('../../../server/db/projects');
+const Q = require('q');
+
+const API = constants.DEFAULT_API_VERSION;
 
 var projects;
 
@@ -24,7 +26,7 @@ function noopP() {
 function getPFail(res) {
   return (err) => {
     res.status(500).json({ error: err.message });
-  }
+  };
 }
 
 /**
@@ -41,10 +43,10 @@ function projectBuild(repo, imageName, noSlack) {
       return slack.message(`Built New Image: ${imageName}`,
         'the-clusternator');
     }).fail((err) => {
-    if (noSlack === true) { return; }
-    return slack.message(`Build Image ${imageName} failed, Error:
+      if (noSlack === true) { return; }
+      return slack.message(`Build Image ${imageName} failed, Error:
               ${err}`, 'the-clusternator');
-  });
+    });
 }
 
 function sanitizePr(pr) {
@@ -89,8 +91,8 @@ function prCreateDocker(project, pr, sha, middleware) {
 function makePrCreate(pm) {
   return (body) => {
     var pr = sanitizePr(body.pr),
-    appDef = JSON.parse(body.appDef),
-    projectId = body.repo
+      appDef = JSON.parse(body.appDef),
+      projectId = body.repo;
 
     console.log('DEBUG');
     console.log(JSON.stringify(body,  null, 2));
@@ -98,19 +100,19 @@ function makePrCreate(pm) {
 
     return projects.find(projectId).then((project) => {
       return pm.pr.create(projectId, pr + '', appDef)
-      .then((prResult) => {
-        return slack.message(`Create: ${projectId}, PR ${pr} ` +
-          `successful.  Application will be available at ` +
-          `<http://${prResult.url}>`,
-          project.channel);
+        .then((prResult) => {
+          return slack.message(`Create: ${projectId}, PR ${pr} ` +
+            `successful.  Application will be available at ` +
+            `<http://${prResult.url}>`,
+            project.channel);
         })
         .fail((err) => {
           slack.message(`Create: ${projectId}, PR ${pr} ` +
             `failed: ${err.message}`, project.channel);
-            throw err;
-          });
+          throw err;
         });
-      };
+    });
+  };
 }
 
 /**
@@ -200,7 +202,7 @@ function listProjects(req, res, next) {
     } else {
       res.render('projects', { api: API, projects: projectIds });
     }
-  }, getPFail(res))
+  }, getPFail(res));
 }
 
 function validateBackend(be) {
@@ -253,8 +255,8 @@ function getCommands(credentials) {
     .then((pm) => {
       projects = Projects(config, pm);
       return projects
-      .init
-      .then(() => pm);
+        .init
+        .then(() => pm);
     })
     .then((pm) => {
       return {

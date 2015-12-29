@@ -1,9 +1,6 @@
 'use strict';
 
 var rewire = require('rewire'),
-  mockSpawn = require('mock-spawn'),
-  fs = require('fs'),
-  mockFs = require('mock-fs'),
   Q = require('q');
 
 var git = rewire('../../../src/cli-wrappers/git'),
@@ -12,43 +9,29 @@ var git = rewire('../../../src/cli-wrappers/git'),
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('Test git CLI Wrapper', () => {
-  var oldCJson, projectRoot = '/';
+  var projectRoot = '/', cProc;
 
   beforeEach(() => {
     projectRoot = '/';
-    git.__set__('spawn', mockSpawn());
-    oldCJson = git.__get__('clusternatorJson');
-    git.__set__('clusternatorJson', {
-      findProjectRoot: () => {
-        return Q.resolve(projectRoot);
-      }
-    });
-    mockFs({
-      '/.gitignore':  new Buffer([ 1, 2, 3])
-    });
+    cProc = git.__get__('cproc');
+    git.__set__('cproc', {output: Q.resolve, stream: Q.resolve});
   });
 
   afterEach(() => {
-    git.__set__('spawn', require('child_process').spawn);
-    git.__set__('clusternatorJson', oldCJson);
-    mockFs.restore();
+    git.__set__('cproc', cProc);
   });
 
 
   it('shaHead should resolve if there are no exit errors', (done) => {
-    git.shaHead().then(() => {
-      C.check(done, () => {
-        expect(true).to.be.ok;
-      });
-    }, C.getFail(done));
+    git.shaHead().then(() => C
+      .check(done, () => expect(true).to.be.ok))
+      .fail(C.getFail(done));
   });
 
   it('clone should resolve if there are no exit errors', (done) => {
-    git.clone('some-repo').then(() => {
-      C.check(done, () => {
-        expect(true).to.be.ok;
-      });
-    }, C.getFail(done));
+    git.clone('some-repo').then(() => C
+      .check(done, () => expect(true).to.be.ok ))
+      .fail(C.getFail(done));
   });
 
   it('clonse should throw if not given a repo', () => {
@@ -57,33 +40,47 @@ describe('Test git CLI Wrapper', () => {
     }).to.throw(TypeError);
   });
 
-
-  describe('cases with exit code', () => {
-
-    beforeEach(() => {
-      var ms = mockSpawn(),
-        runner = ms.simple(1, '');
-
-      runner.stderr = 'test error';
-      ms.setDefault(runner);
-      git.__set__('spawn', ms);
-    });
-
-    it('shaHead should reject if there are exit errors', (done) => {
-      git.shaHead().then(C.getFail(done), (err) => {
-        C.check(done, () => {
-          expect(err instanceof Error).to.be.ok;
-        });
-      });
-    });
-
-    it('clone should reject if there are exit errors', (done) => {
-      git.clone('a-repo').then(C.getFail(done), (err) => {
-        C.check(done, () => {
-          expect(err instanceof Error).to.be.ok;
-        });
-      });
-    });
+  it('genSha should resolve if there are no exit errors', (done) => {
+    git
+      .checkout('path/to/thing')
+      .then(() =>
+        C.check(done, () => expect(true).to.be.ok))
+      .fail(C.getFail(done));
   });
 
+  it('cloneRepoFromDir should resolve if there are no exit errors', (done) => {
+    git
+      .helpers
+      .cloneRepoInDir('repo', require('os').tmpdir())
+      .then(() =>
+        C.check(done, () => expect(true).to.be.ok))
+      .fail(C.getFail(done));
+  });
+
+  it('checkoutIdentifierFromDir should resolve if there are no exit errors',
+    (done) => {
+      git
+      .helpers
+      .checkoutIdentifierFromDir('id', require('os').tmpdir())
+      .then(() =>
+        C.check(done, () => expect(true).to.be.ok))
+      .fail(C.getFail(done));
+  });
+
+  it('genSha should throw if given no tag', () => {
+    expect(() => git.checkout()).to.throw(Error);
+  });
+
+  it('getShortRepoName should return the name portion of a uri', () => {
+    expect(git.helpers.getShortRepoName('blah/bha/hello.git'))
+      .to.equal('hello');
+  });
+
+  it('destroy should always resolve', (done) => {
+    git
+      .destroy('some randome temp object')
+      .then(() => C
+        .check(done, () => expect(true).to.be.ok))
+      .fail(C.getFail(done));
+  });
 });

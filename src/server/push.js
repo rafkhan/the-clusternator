@@ -1,6 +1,6 @@
 'use strict';
 
-var R = require('ramda');
+const R = require('ramda');
 
 var serverUtil = require('./util');
 var resourceId = require('../resourceIdentifier');

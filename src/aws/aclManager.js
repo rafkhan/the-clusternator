@@ -1,10 +1,10 @@
 'use strict';
 
-var Q = require('q'),
-  common = require('./common'),
-  skeletons = require('./ec2Skeletons'),
-  util = require('../util'),
-  constants = require('../constants');
+const Q = require('q');
+const common = require('./common');
+const skeletons = require('./ec2Skeletons');
+const util = require('../util');
+const constants = require('../constants');
 
 /**
   @param {EC2} AWS Ec2 object
@@ -15,9 +15,9 @@ function getAclManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
   var baseFilters = constants.AWS_FILTER_CTAG.concat(
-      common.makeAWSVPCFilter(vpcId)),
-    describe = common.makeEc2DescribeFn(
-      ec2, 'describeNetworkAcls', 'NetworkAcls', baseFilters);
+    common.makeAWSVPCFilter(vpcId));
+  var describe = common.makeEc2DescribeFn(
+    ec2, 'describeNetworkAcls', 'NetworkAcls', baseFilters);
 
   /**
     @param {Array}

@@ -3,8 +3,8 @@
 const BACKENDS = ['static-npm', 'node'];
 const POLL_INTERVAL = 30000;
 
-const Q = require('q'),
-  util = require('../../util');
+const Q = require('q');
+var util = require('../../util');
 
 function getProjectsDB(config, pm) {
 
