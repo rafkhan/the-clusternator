@@ -1,7 +1,7 @@
 'use strict';
 
 const rewire = require('rewire'),
-  Q = require('Q');
+  Q = require('q');
 
 var gps = rewire('../../../src/cli-wrappers/generate-private-sha'),
   C = require('./../chai');

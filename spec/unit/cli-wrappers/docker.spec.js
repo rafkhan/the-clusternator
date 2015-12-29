@@ -1,7 +1,7 @@
 'use strict';
 
 const rewire = require('rewire'),
-  Q = require('Q');
+  Q = require('q');
 
 var docker = rewire('../../../src/cli-wrappers/docker'),
   C = require('./../chai');
