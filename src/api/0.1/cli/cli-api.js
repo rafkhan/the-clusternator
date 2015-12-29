@@ -1,8 +1,16 @@
 'use strict';
-var R = require('ramda'),
-  util = require('../../../util'),
-  constants = require('../../../constants'),
-  cli = require(`./legacy-cli`);
+
+const  path = require('path');
+
+const cmn = require('../common'),
+  util = cmn.src('util'),
+  Config = cmn.src('config'),
+  cn = require('../js/js-api'),
+
+  stdioI = require('./stdio-inheritors'),
+  project = require('./project-questions'),
+
+  legacy = require('./legacy-yargs');
 
 module.exports = (yargs) => {
 
@@ -10,250 +18,132 @@ module.exports = (yargs) => {
 
   yargs.usage('Usage: $0 <command> [opts]');
 
-  var dockerCredOpts = {
-    'docker-email': {
-      alias: 'de',
-      describe: 'Docker email'
-    },
-
-    'docker-username': {
-      alias: 'du',
-      describe: 'Docker username'
-    },
-
-    'docker-password': {
-      alias: 'dp',
-      describe: 'Docker password'
-    },
-
-    'docker-cfg': {
-      alias: 'dc',
-      describe: '.dockercfg auth'
-    }
-  };
-
-  yargs.command('circleci:push',
-    'Triggers ECS build from circleCI',
-    (y) => {
-      var opts = {
-        host: {
-          alias: 'h',
-          demand: true,
-          describe: 'Clusternator server IP addr / host name'
-        },
-
-        appdef: {
-          alias: 'a',
-          demand: true,
-          describe: 'App definition file location'
-        },
-
-        tag: {
-          alias: 't',
-          demand: true,
-          describe: 'Unique tag for this build'
-        }
-      };
-
-      y.options(opts)
-        .help('help');
-    });
-
-  yargs.command('circleci:tag',
-    'Generates tag for CircleCI PR',
-    function(y) {
-      var opts = {};
-
-      y.options(opts)
-        .help('help');
-    });
-
-  yargs.command('server:start',
-    'Start a clusternator server',
-    function(y) {
-      var opts = {};
-
-      y.options(opts)
-        .help('help');
-    });
-
-
-  yargs.command('cluster:new',
-    'Create a new cluster',
-    function(y) {
-      var opts = {
-        cluster: {
-          alias: 'c',
-          describe: 'Cluster name for your app',
-          demand: true
-        },
-
-        app: {
-          alias: 'a',
-          describe: 'App definition file',
-          demand: true
-        },
-
-        keypair: {
-          alias: 'k',
-          describe: 'Name of keypair for SSHing into ECS agent'
-        },
-
-        'subnet-id': {
-          alias: 'n',
-          describe: 'Subnet ID if you want to join existing subnet'
-        },
-
-        'security-group': {
-          alias: 'g',
-          describe: 'Security group ID you want your cluster to use'
-        },
-      };
-      y.options(R.merge(opts, dockerCredOpts))
-        .help('help');
-    });
-
-
-  yargs.command('cluster:update',
-    'Update an existing cluster',
-    function(y) {
-      var opts = {
-        cluster: {
-          alias: 'c',
-          describe: 'Cluster name',
-          demand: true
-        },
-
-        app: {
-          alias: 'a',
-          describe: 'App definition file',
-          demand: true
-        }
-      };
-      y.options(opts)
-        .help('help');
-    });
-
-
-  yargs.command('cluster:delete',
-    'Delete an existing cluster',
-    function(y) {
-      var opts = {
-        cluster: {
-          alias: 'c',
-          describe: 'Cluster name',
-          demand: true
-        }
-      };
-
-      y.options(opts)
-        .help('help');
-    });
-
 
   yargs
+    .completion('completion', 'Generate bash completions')
     .command('bootstrap', 'Bootstraps an AWS environment so that projects ' +
-      'can be launched into it', cli.bootstrap)
+      'can be launched into it', () => util.info('Bootstrap environment'))
     .command('init', 'Initializes a `.clusternator` file in the project ' +
-      'repo, and provisions AWS networking resources.  Requires AWS credentials',
-      cli.init)
+      'repo, and provisions AWS networking resources.  Requires AWS ' +
+      'credentials', (y) => {
+      y.demand('o')
+        .alias('o', 'offline')
+        .default('o', false)
+        .describe('o', 'offline only, makes "clusternator.json" but does ' +
+          '*not* check the cloud infrastructure');
+
+      project.init(y.argv.o).done();
+    })
     .command('config', 'Configure the local clusternator user',
-      cli.configUser)
+      () => Config.interactiveUser().done())
+    .command('serve', 'Start a clusternator server. (typically prefer npm ' +
+      'start, or serve.sh', () =>  {
+      const config = Config();
+      return cn.startServer(config);
+    })
 
     .command('list-projects', 'List projects with clusternator resources',
-      cli.listProjects)
-    .command('describe', 'Describe a resource', cli.describe)
-    .command('describe-services', 'Describe project services',
-      cli.describeServices)
-    .command('create', 'Create a resource', cli.create)
-    .command('destroy', 'Destroy a resource', cli.destroy)
+      (y) => cn
+        .listProjects()
+        .then((projectNames) => projectNames
+          .forEach(console.log))
+        .done())
+    .command('describe-services', 'Describe project services', (y) => cn
+      .describeServices()
+      .then((desc) => util
+        .info(JSON.stringify(desc, null, 2)))
+      .done())
+    .command('build', 'Local Docker Build', (y) => {
+      var id = (+Date.now()).toString(16),
+        argv = demandPassphrase(y)
+          .demand('i')
+          .alias('i', 'image')
+          .describe('i', 'Name of the docker image to create')
+          .default('i', id)
+          .argv;
 
-    .command('build', 'Local Docker Build', cli.dockerBuild)
-    .command('pull-request', 'Manually Execute a Pull Request',
-      cli.pullRequest)
-    .command('deploy', 'Makes a deployment', cli.deploy)
-    .command('stop', 'Stops a deployment, and cleans up', cli.stop)
+      util.info('Building Docker Image: ', argv.i);
 
-    .command('generate-deployment', 'Generates a deployment config',
-      cli.generateDeployment)
-    .command('generate-ssh-key', 'Adds a new SSH Key', cli.newSSH)
-    .command('generate-pass', 'Generate a secure passphrase', cli.generatePass)
+      return cn
+        .dockerBuild(argv.i, argv.p).fail((err) => {
+          util.error('Error building local Docker image: ', err);
+        }).done();
+    })
+    .command('deploy', 'Makes a deployment', (y) => {
+      y.demand('d').
+      alias('d', 'deployment-name').
+      describe('d', 'Requires a deployment name');
+
+      cn.deploy(y.argv.d).done();
+    })
+    .command('stop', 'Stops a deployment, and cleans up', (y) => {
+      y.demand('d').
+      alias('d', 'deployment-name').
+      describe('d', 'Requires a deployment name').
+      alias('s', 'SHA (git hash)').
+      default('s', '', 'HEAD').
+      describe('s', 'Requires a SHA');
+
+      cn.stop(y.argv.d, y.argv.s).done();
+    })
+
+    .command('generate-deployment', 'Generates a deployment config', (y) => {
+      y.demand('d').
+      alias('d', 'deployment-name').
+      describe('d', 'Requires a deployment name');
+
+      cn.generateDeploymentFromName(y.argv.d).done();
+    })
+    .command('generate-ssh-key', 'Adds a new SSH Key', (y) => {
+      y.demand('n').
+      alias('n', 'name').
+      describe('n', 'Creates a new SSH key with the provided name.  The ' +
+        'keypair are stored in ~/.ssh, and the public key is installed into ' +
+        'the project');
+
+      stdioI.newSshKey(y.argv.n).done();
+    })
+    .command('generate-pass', 'Generate a secure passphrase', () => cn
+      .generatePass()
+      .then((passphrase) => util
+        .info('Keep this passphrase secure: ' + passphrase))
+      .fail((err) => util
+        .info('Error generating passphrase: ' + err.message)))
 
     .command('make-private', 'Encrypts private assets (defined in ' +
-      'clusternator.json)', cli.makePrivate)
+      'clusternator.json)', (y) => {
+      demandPassphrase(y);
+
+      cn.makePrivate(y.argv.p);
+
+    })
     .command('read-private', 'Decrypts private assets (defined in ' +
-      'clusternator.json)', cli.readPrivate)
+      'clusternator.json)', (y) => {
+
+      demandPassphrase(y);
+
+      cn.readPrivate(y.argv.p).done();
+    })
 
     .command('private-checksum', 'Calculates the hash of .private, and ' +
-      'writes it to .clusternator/.private-checksum', cli.privateChecksum)
+      'writes it to .clusternator/.private-checksum', cn.privateChecksum)
     .command('private-diff', 'Exits 0 if there is no difference between ' +
       '.clusternator/.private-checksum and a fresh checksum Exits 1 on ' +
       'mismatch, and exits 2 if private-checksum is not found',
-      cli.privateDiff)
+      cn.privateDiff)
 
     .command('log', 'Application logs from a user selected server',
-      cli.logApp)
+      stdioI.logApp)
     .command('log-ecs', 'ECS logs from a user selected server',
-      cli.logEcs)
-    .command('ssh', 'SSH to a selected server',
-      cli.ssh);
+      stdioI.logEcs)
+    .command('ssh', 'SSH to a selected server', stdioI.ssh);
 
-
-  /**
-   * @todo yargify everything from here down.  Manual if/else *not* required
-   */
-  yargs.help('help');
-  var argv = yargs.argv;
-  var command = argv._[0];
-
-  if (command === 'circleci:push') {
-    cli.circleCIPush(argv)()
-      .then(() => {
-        util.info('Done.');
-        process.exit(0);
-      }, (err) => {
-        util.error(err);
-        process.exit(-1);
-      });
-
-  } else if (command === 'circleci:tag') {
-    cli.circleCITag(argv)();
-
-  } else if (command === 'server:start') {
-    cli.startServer(argv)()
-      .then(() => {
-        util.info('Successfully started server.');
-      }, (err) => {
-        util.error('can not start server:', err)
-        process.exit(-1);
-      });
-
-  } else if (command === 'cluster:new') {
-    cli.newApp(argv)();
-    setInterval(function() {}, 10000);
-
-  } else if (command === 'cluster:update') {
-    cli.updateApp(argv)()
-      .then(function(data) {
-        util.info('Done.');
-        process.exit(0);
-      }, function(err) {
-        util.error(err);
-      });
-
-  } else if (command === 'cluster:delete') {
-    cli.destroyApp(argv)()
-      .then(function(data) {
-        util.info('Done.');
-        process.exit(0);
-      }, function(err) {
-        util.error('ERROR', err);
-      });
-
-  } else if (command === 'app:new') {
-    cli.createAppDefinition(argv)();
-
-  } else {
-    //yargs.showHelp();
-  }
+  legacy(yargs);
 };
+
+function demandPassphrase(y){
+  return y.demand('p').
+  alias('p', 'passphrase').
+  describe('p', 'Requires a passphrase to encrypt private directory');
+}
+

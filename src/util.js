@@ -166,6 +166,18 @@ function cliLogger(yargs) {
   }
 }
 
+/**
+ * @param {string} string
+ * @returns {null||*}
+ */
+function safeParse(string) {
+  try {
+    return JSON.parse(string);
+  } catch (err) {
+    return null;
+  }
+}
+
 
 module.exports = {
   errLog: errLog,
@@ -183,5 +195,6 @@ module.exports = {
   error,
   winston,
   inquirerPrompt,
-  cliLogger
+  cliLogger,
+  safeParse
 };
