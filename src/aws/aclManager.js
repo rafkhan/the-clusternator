@@ -1,10 +1,11 @@
 'use strict';
 
 const Q = require('q');
-const common = require('./common');
 const skeletons = require('./ec2Skeletons');
 const util = require('../util');
 const constants = require('../constants');
+
+var common = require('./common');
 
 /**
   @param {EC2} AWS Ec2 object

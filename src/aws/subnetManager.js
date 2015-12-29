@@ -1,10 +1,11 @@
 'use strict';
 
 const Q = require('q');
-const Vpc = require('./vpcManager');
-const common = require('./common');
 const util = require('../util');
 const constants = require('../constants');
+
+var Vpc = require('./vpcManager');
+var common = require('./common');
 
 /**
   @param {EC2} AWS ec2 object

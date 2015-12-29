@@ -2,7 +2,7 @@
 const OKAY = 200;
 
 const Q = require('q');
-const request = require('request');
+var request = require('request');
 
 function getProjectManager(config) {
   config = config || {};

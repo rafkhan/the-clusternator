@@ -3,7 +3,6 @@
 const Subnet = require('./subnetManager');
 const Route = require('./routeTableManager');
 const Route53 = require('./route53Manager');
-const Vpc = require('./vpcManager');
 const Acl = require('./aclManager');
 const Cluster = require('./clusterManager');
 const Pr = require('./prManager');
@@ -13,6 +12,8 @@ const DynamoManager = require('./dynamoManager');
 const gpg = require('../cli-wrappers/gpg');
 const constants = require('../constants');
 const Q = require('q');
+
+var Vpc = require('./vpcManager');
 
 function getProjectManager(ec2, ecs, awsRoute53, dynamoDB) {
   var vpcId = null;
