@@ -1,7 +1,7 @@
 'use strict';
 
 const rewire = require('rewire'),
-  Q = require('Q');
+  Q = require('q');
 
 var npm = rewire('../../../src/cli-wrappers/npm'),
   C = require('./../chai');

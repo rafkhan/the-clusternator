@@ -1,7 +1,7 @@
 'use strict';
 
 var rewire = require('rewire'),
-  Q = require('Q'),
+  Q = require('q'),
   mockSpawn = require('mock-spawn');
 
 var gpg = rewire('../../../src/cli-wrappers/gpg'),

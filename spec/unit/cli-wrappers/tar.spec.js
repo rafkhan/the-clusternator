@@ -1,7 +1,7 @@
 'use strict';
 
 var rewire = require('rewire'),
-  Q = require('Q');
+  Q = require('q');
 
 var tar = rewire('../../../src/cli-wrappers/tar'),
   C = require('./../chai');

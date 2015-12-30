@@ -1,7 +1,7 @@
 'use strict';
 
 const rewire = require('rewire'),
-  Q = require('Q');
+  Q = require('q');
 
 var ssh = rewire('../../../src/cli-wrappers/ssh'),
   C = require('./../chai');

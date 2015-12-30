@@ -1,7 +1,7 @@
 'use strict';
 
 const rewire = require('rewire'),
-  Q = require('Q');
+  Q = require('q');
 
 var slack = rewire('../../../src/cli-wrappers/slack'),
   C = require('./../chai');
