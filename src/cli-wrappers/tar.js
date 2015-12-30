@@ -1,3 +1,5 @@
+'use strict';
+
 const COMMAND = 'tar';
 const FLAG_BALL = 'cfz';
 const FLAG_EXTRACT = 'xfz';
@@ -5,8 +7,7 @@ const EXTENSION_TAR = '.tar';
 const EXTENSION_GZ = '.gz';
 const EXTENSION = EXTENSION_TAR + EXTENSION_GZ;
 
-var spawn = require('child_process').spawn,
-  Q = require('q');
+var cproc = require('./child-process');
 
 /**
   @param {string} tarball name/path of the tarball to make
@@ -34,32 +35,7 @@ function ball(tarball, files) {
       files = [files];
   }
   tarball = addExtension(tarball);
-  var d = Q.defer(),
-    tar = spawn(COMMAND, [FLAG_BALL, tarball].concat(files)),
-    error = '',
-    output = '';
-
-  tar.stdout.on('data', (data) => {
-    output += data;
-  });
-
-  tar.stderr.on('data', (data) => {
-    error += data;
-  });
-
-  tar.on('close', (code) => {
-    if (error) {
-      d.reject(new Error(error));
-    } else if (+code) {
-      d.reject(new Error('tar terminated with exit code: ' + code));
-    } else {
-      d.resolve(output);
-    }
-  });
-
-  tar.stdin.end();
-
-  return d.promise;
+  return cproc.output(COMMAND, [FLAG_BALL, tarball].concat(files));
 }
 
 /**
@@ -67,32 +43,7 @@ function ball(tarball, files) {
   @return {Q.Promise}
 */
 function extract(tarball) {
-  var d = Q.defer(),
-    tar = spawn(COMMAND, [FLAG_EXTRACT, tarball]),
-    error = '',
-    output = '';
-
-  tar.stdout.on('data', (data) => {
-    output += data;
-  });
-
-  tar.stderr.on('data', (data) => {
-    error += data;
-  });
-
-  tar.on('close', (code) => {
-    if (error) {
-      d.reject(new Error(error));
-    } else if (+code) {
-      d.reject(new Error('tar terminated with exit code: ' + code));
-    } else {
-      d.resolve(output);
-    }
-  });
-
-  tar.stdin.end();
-
-  return d.promise;
+  return cproc.output(COMMAND, [FLAG_EXTRACT, tarball]);
 }
 
 module.exports = {

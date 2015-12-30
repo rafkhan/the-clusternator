@@ -1,9 +1,8 @@
 'use strict';
 
-const spawn = require('child_process').spawn,
-  path = require('path'),
-  util = require('../util'),
-  Q = require('q');
+const path = require('path');
+
+var cproc = require('./child-process');
 
 const COMMAND_APP = path.join(
   __dirname, '..', '..', 'bin', 'log-app.sh');
@@ -19,19 +18,7 @@ function logApp(host) {
     throw new TypeError('logApp requires a host from');
   }
 
-  var d = Q.defer(),
-    log = spawn(COMMAND_APP, [host], { stdio: 'inherit' });
-
-  log.on('close', (code) => {
-    if (+code) {
-      d.reject(
-        new Error(`logApp terminated with exit code: ${code}`));
-    } else {
-      d.resolve();
-    }
-  });
-
-  return d.promise;
+  return cproc.inherit(COMMAND_APP, [host], { stdio: 'inherit' });
 }
 
 /**
@@ -43,19 +30,7 @@ function logEcs(host) {
     throw new TypeError('logEcs requires a host to log from');
   }
 
-  var d = Q.defer(),
-    log = spawn(COMMAND_APP, [host], { stdio: 'inherit' });
-
-  log.on('close', (code) => {
-    if (+code) {
-      d.reject(
-        new Error(`logEcs terminated with exit code: ${code}`));
-    } else {
-      d.resolve();
-    }
-  });
-
-  return d.promise;
+  return cproc.inherit(COMMAND_ECS, [host], { stdio: 'inherit' });
 }
 
 module.exports = {

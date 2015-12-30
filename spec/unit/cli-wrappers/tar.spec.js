@@ -1,7 +1,7 @@
 'use strict';
 
 var rewire = require('rewire'),
-  mockSpawn = require('mock-spawn');
+  Q = require('Q');
 
 var tar = rewire('../../../src/cli-wrappers/tar'),
   C = require('./../chai');
@@ -9,12 +9,15 @@ var tar = rewire('../../../src/cli-wrappers/tar'),
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('Test tar CLI Wrapper', () => {
+  var cProc;
+
   beforeEach(() => {
-    tar.__set__('spawn', mockSpawn());
+    cProc = tar.__get__('cproc');
+    tar.__set__('cproc', {output: Q.resolve, stream: Q.resolve});
   });
 
   afterEach(() => {
-    tar.__set__('spawn', require('child_process').spawn);
+    tar.__set__('cproc', cProc);
   });
 
   it('addExtension should add .tar.gz to a given filePath', () => {
@@ -57,31 +60,4 @@ describe('Test tar CLI Wrapper', () => {
     }, C.getFail(done));
   });
 
-  describe('cases with exit code', () => {
-
-    beforeEach(() => {
-      var ms = mockSpawn(),
-        runner = ms.simple(1, '');
-
-      runner.stderr = 'test error';
-      ms.setDefault(runner);
-      tar.__set__('spawn', ms);
-    });
-
-    it('ball should reject if there are exit errors', (done) => {
-      tar.ball('testBall', 'someFile').then(C.getFail(done), (err) => {
-        C.check(done, () => {
-          expect(err instanceof Error).to.be.ok;
-        });
-      });
-    });
-
-    it('extract reject if there are exit errors', (done) => {
-      tar.extract('testBall').then(C.getFail(done), (err) => {
-        C.check(done, () => {
-          expect(err instanceof Error).to.be.ok;
-        });
-      });
-    });
-  });
 });

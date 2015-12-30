@@ -13,6 +13,13 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # change to this directory
 cd $DIR
 
+# mkdir for certs
+mkdir -p .private/live/${HOST}
+touch .private/live/${HOST}/privkey.pem
+touch .private/live/${HOST}/fullchain.pem
+touch .private/live/${HOST}/chain.pem
+touch .private/live/${HOST}/cert.pem
+
 # check if decryption is necessary
 if [ -e ./$ENCRYPTED_TARBALL ]; then
   # decrypt the configuration(s)
@@ -26,6 +33,7 @@ if [ -e ./$ENCRYPTED_TARBALL ]; then
   # run docker login (Clusternator only)
   ./.private/docker-login.sh
 fi
+
 
 # Start the service
 echo "Starting Service"

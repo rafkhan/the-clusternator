@@ -12,22 +12,25 @@ const UTF8 = 'utf8';
 const CLUSTERNATOR_TAR = 'clusternator.tar.gz';
 const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
 const SKELETON = require('./skeletons/clusternator-json-skeleton');
+const RX_NEWLINE = /\r?\n/;
+const NEWLINE = '\r\n';
 
-var Q = require('q'),
-  git = Q.nfbind(require('parse-git-config')),
-  path = require('path'),
-  fs = require('fs'),
-  util = require('./util'),
-  questions = require('./skeletons/create-interactive-questions'),
-  gpg = require('./cli-wrappers/gpg'),
-  tar = require('./cli-wrappers/tar'),
-  rimraf = Q.nfbind(require('rimraf'));
+const Q = require('q');
+const path = require('path');
+const fs = require('fs');
+const rimraf = Q.nfbind(require('rimraf'));
+
+var git = Q.nfbind(require('parse-git-config'));
+var util = require('./util');
+var questions = require('./skeletons/create-interactive-questions');
+var gpg = require('./cli-wrappers/gpg');
+var tar = require('./cli-wrappers/tar');
 
 const GIT_CONFIG = VCS_DIR + path.sep + 'config';
 
-var ls = Q.nbind(fs.readdir, fs),
-  readFile = Q.nbind(fs.readFile, fs),
-  writeFile = Q.nbind(fs.writeFile, fs);
+const ls = Q.nbind(fs.readdir, fs);
+const readFile = Q.nbind(fs.readFile, fs);
+const writeFile = Q.nbind(fs.writeFile, fs);
 
 function identity(obj) {
   return obj;
@@ -374,6 +377,84 @@ function makePrivate(passPhrase, root) {
     });
 }
 
+/**
+ * @param {string} ignoreFileName
+ * @returns {Q.Promise<string>}
+ */
+function ignorePath(ignoreFileName) {
+  return findProjectRoot()
+    .then((root) => path.join(root, ignoreFileName));
+}
+
+
+function splitIgnoreFile(file) {
+  return file.split(RX_NEWLINE);
+}
+
+function readAndSplitIgnore(file) {
+  return readFile(file, UTF8)
+    .then(splitIgnoreFile)
+    .fail(() => []);
+}
+
+/**
+ * @param {string} ignoreFileName
+ * @param {boolean=} isFullPath defaults to false
+ * @returns {Q.Promise<string[]>}
+ */
+function readIgnoreFile(ignoreFileName, isFullPath) {
+  if (isFullPath) {
+    return readAndSplitIgnore(ignoreFileName);
+  }
+  return ignorePath(ignoreFileName)
+    .then(readAndSplitIgnore);
+}
+
+/**
+ * @param {string} toIgnore
+ * @param {string[]} ignores
+ * @returns {boolean}
+ */
+function ignoreHasItem(toIgnore, ignores) {
+  var found = false;
+  ignores.forEach((str) => {
+    if (str.indexOf(toIgnore) === 0) {
+      found = true;
+    }
+  });
+  return found;
+}
+
+/**
+ * @param {string} ignoreFileName
+ * @param {string} toIgnore
+ * @returns {Request|Promise.<T>|*}
+ */
+function addToIgnore(ignoreFileName, toIgnore) {
+  if (!Array.isArray(toIgnore)) {
+    toIgnore = [toIgnore];
+  }
+  return readIgnoreFile(ignoreFileName)
+    .then((ignores) => {
+      var output,
+        newIgnores = toIgnore
+          .filter((item) => ignores.indexOf(item) === -1);
+
+      if (!newIgnores.length) {
+        // items already exists
+        return;
+      }
+
+      return ignorePath(ignoreFileName)
+        .then((ignoreOutputFile) => {
+          ignores = ignores.concat(newIgnores);
+          output = ignores.join(NEWLINE);
+          return writeFile(ignoreOutputFile, output);
+        });
+    });
+}
+
+
 module.exports = {
   createInteractive,
   skipIfExists,
@@ -387,6 +468,8 @@ module.exports = {
   makePrivate,
   validate,
   writeFromFullAnswers,
+  addToIgnore,
+  readIgnoreFile,
   FILENAME,
   CLUSTERNATOR_PRIVATE,
   helpers: {
@@ -396,6 +479,9 @@ module.exports = {
     findPackageName,
     findBowerName,
     deDupe,
-    answersToClusternatorJSON
+    answersToClusternatorJSON,
+    ignorePath,
+    readIgnoreFile,
+    ignoreHasItem,
   }
 };

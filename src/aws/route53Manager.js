@@ -1,11 +1,10 @@
 'use strict';
 
-var Q = require('q'),
-  R = require('ramda'),
-  util = require('../util'),
-  rid = require('../resourceIdentifier'),
-  skeletons = require('./route53Skeletons'),
-  constants = require('../constants');
+const R = require('ramda');
+const util = require('../util');
+const rid = require('../resourceIdentifier');
+const skeletons = require('./route53Skeletons');
+const constants = require('../constants');
 
 /**
   @param {Route53} AWS Library
