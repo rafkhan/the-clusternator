@@ -1,6 +1,6 @@
 'use strict';
 
-const constants = require('../constants');
+const constants = require('../../constants');
 
 module.exports = {
   listServerCertificates,    // filtered for clusternator
@@ -55,11 +55,11 @@ function putUserPolicy() {
 }
 
 /**
- * @param {{ iam: AWS.IAM }} aws
+ * @param {AwsWrapper} aws
  * @param {string} certificate
  * @param {string} privateKey
- * @param {string=}chain
- * @param {string=}certId
+ * @param {string=} chain
+ * @param {string=} certId
  * @returns {Q.Promise}
  */
 function uploadServerCertificate(aws, certificate, privateKey, chain, certId) {
@@ -81,7 +81,7 @@ function uploadServerCertificate(aws, certificate, privateKey, chain, certId) {
 }
 
 /**
- * @param {{ iam: AWS.IAM }} aws
+ * @param {AwsWrapper} aws
  * @param {string} certId
  * @returns {Q.Promise}
  * @throws {TypeError}
@@ -116,7 +116,7 @@ function mapCertificateToSimple(item) {
 }
 
 /**
- * @param {{ iam: AWS.IAM }} aws
+ * @param {AwsWrapper} aws
  * @returns {Q.Promise}
  */
 function listAllServerCertificates(aws) {
@@ -128,7 +128,7 @@ function listAllServerCertificates(aws) {
 }
 
 /**
- * @param {{ iam: AWS.IAM }} aws
+ * @param {AwsWrapper} aws
  * @returns {Q.Promise}
  */
 function listServerCertificates(aws) {

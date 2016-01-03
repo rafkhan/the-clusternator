@@ -1,7 +1,7 @@
 'use strict';
 
 const Subnet = require('./subnetManager');
-const iamWrap = require('./iam');
+const iamWrap = require('./iam/iam');
 const Route = require('./routeTableManager');
 const Route53 = require('./route53Manager');
 const Acl = require('./aclManager');

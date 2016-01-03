@@ -1,3 +1,19 @@
 machine:
   node:
     version: 4.2.3
+  services:
+    - docker
+
+dependencies:
+  pre:
+    - python --version
+    - pip --version
+    - pip install awscli
+  post:
+    - ./$CLUSTERNATOR_DIR/decrypt.sh
+
+test:
+  post:
+    - ./$CLUSTERNATOR_DIR/docker-build.sh
+    - ./$CLUSTERNATOR_DIR/decrypt.sh
+    - node ./$CLUSTERNATOR_DIR/notify.js
