@@ -5,10 +5,6 @@ machine:
     - docker
 
 dependencies:
-  pre:
-    - sudo apt-get install libffi-dev libssl-dev
-    - pip install pyopenssl ndg-httpsclient pyasn1
-    - pip install awscli
   post:
     - ./$CLUSTERNATOR_DIR/decrypt.sh
 
