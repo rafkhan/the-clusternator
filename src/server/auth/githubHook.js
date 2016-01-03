@@ -40,9 +40,9 @@ function middlewareFactory(ddbManager) {
     }
 
 
+    var body = req.body;
     var text = req.rawBody;
-    /** @todo what is body? */
-    //var prBody = body['pull_request'];
+    var prBody = body['pull_request'];
     var prBody = req.rawBody['pull_request'];
     var projectName = prBody.head.repo.name;
 
