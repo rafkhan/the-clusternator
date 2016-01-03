@@ -1,57 +1,97 @@
 'use strict';
 
 const constants = require('../../constants');
+const common = require('../common');
 
 module.exports = {
   listServerCertificates,    // filtered for clusternator
   listAllServerCertificates, // _everything_ (analogue to aws.iam.listServer...)
   deleteServerCertificate,
-  uploadServerCertificate
+  uploadServerCertificate,
+  createUser,
+  destroyUser,
+  createPolicy,
+  destroyPolicy,
+  attachPolicy,
+  listUsers
 };
 
-function createPolicy() {
-
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} policyArn
+ * @param {string} userName
+ * @returns {Q.Promise}
+ */
+function attachPolicy(aws, policyArn, userName) {
+  return aws.iam.attachPolicy({
+    PolicyArn: policyArn,
+    UserName: userName
+  });
 }
 
-function deletePolicy() {
-
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @param {string} policy
+ * @param {string} description
+ * @returns {Q.Promise}
+ */
+function createPolicy(aws, name, policy, description) {
+  name = common.clusternatePrefixString(name);
+  description = description || 'Clusternator Policy';
+  return aws.iam.createPolicy({
+    PolicyName: name,
+    PolicyDocument: policy,
+    Description: description
+  });
 }
 
-function createPolicyVersion() {
-
-}
-
-function deletePolicyVersion() {
-
-}
-
-function createRole() {
-
-}
-
-function createUser() {
-
-}
-
-function deleteUser() {
-
-}
-
-function updateUser() {
-
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} arn
+ * @returns {Q.Promise}
+ */
+function destroyPolicy(aws, arn) {
+  return aws.iam.deletePolicy({
+    PolicyArn: arn
+  });
 }
 
 
-function listRoles() {
-
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise}
+ */
+function createUser(aws, name) {
+  name = common.clusternatePrefixString(name);
+  return aws.iam.createUser({
+    UserName: name
+  });
 }
 
-function listUsers() {
-
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise}
+ */
+function destroyUser(aws, name) {
+  name = common.clusternatePrefixString(name);
+  return aws.iam.deleteUser({
+    UserName: name
+  });
 }
 
-function putUserPolicy() {
-
+/**
+ * @param {AwsWrapper} aws
+ * @returns {Q.Promise}
+ */
+function listUsers(aws) {
+  return aws.iam
+    .listUsers()
+    .then((results) => results
+      .Users.filter((user) => user
+        .UserName.indexOf(constants.CLUSTERNATOR_PREFIX) === 0));
 }
 
 /**
@@ -69,9 +109,7 @@ function uploadServerCertificate(aws, certificate, privateKey, chain, certId) {
   certId = certId ||
     `${constants.CLUSTERNATOR_PREFIX}-${(+Date.now()).toString(16)}`;
   chain = chain || '';
-  if (certId.indexOf(constants.CLUSTERNATOR_PREFIX) !== 0) {
-    certId = `${constants.clusternatorPrefix}${certId}`;
-  }
+  certId = common.clusternatePrefixString(certId);
   return aws.iam.uploadServerCertificate({
     CertificateBody: certificate,
     PrivateKey: privateKey,

@@ -1,6 +1,6 @@
 'use strict';
 
-const constants = require('../../constants');
+const common = require('../common');
 
 module.exports = {
   create,
@@ -9,16 +9,6 @@ module.exports = {
   list
 };
 
-/**
- * @param {string} name
- * @returns {string}
- */
-function clusternateRepositoryName(name) {
-  if (name.indexOf(constants.CLUSTERNATOR_PREFIX) !== 0) {
-    name = constants.CLUSTERNATOR_PREFIX + name;
-  }
-  return name;
-}
 
 /**
  * @param {AwsWrapper} aws
@@ -26,7 +16,7 @@ function clusternateRepositoryName(name) {
  * @returns {Q.Promise}
  */
 function create(aws, name) {
-  name = clusternateRepositoryName(name);
+  name = common.clusternatePrefixString(name);
   return aws.ecr.createRepository({
     repositoryName: name
   });
@@ -38,7 +28,7 @@ function create(aws, name) {
  * @returns {Q.Promise}
  */
 function destroy(aws, name) {
-  name = clusternateRepositoryName(name);
+  name = common.clusternatePrefixString(name);
   return aws.ecr.deleteRepositroy({
     repositoryName: name
   });
