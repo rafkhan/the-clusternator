@@ -11,8 +11,10 @@ const common = require('./common');
 const path = require('path');
 const constants = require('../constants');
 const util = require('../util');
+const elbFns = require('./elb/elb');
+const R = require('ramda');
 
-function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
+function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   var subnet = Subnet(ec2, vpcId);
   var securityGroup = SG(ec2, vpcId);
   var cluster = Cluster(ecs);
@@ -20,6 +22,14 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
   var ec2mgr = Ec2(ec2, vpcId);
   var task = Task(ecs);
   var config = require('../config')();
+  var elb = R.mapObjIndexed(elbAwsPartial, elbFns);
+
+  function elbAwsPartial(fn) {
+    if (typeof fn !== 'function') {
+      return () => {};
+    }
+    return R.partial(fn, { elb: util.makePromiseApi(awsElb) });
+  }
 
   function qualifyUrl(url) {
     var tld = config.tld || '.example.com';
@@ -27,6 +37,25 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
       tld = `.${tld}`;
     }
     return url + tld;
+  }
+
+  function createEc2(groupId, clusterName, pid, pr, subnetId, sshData,
+                     urlData) {
+    return ec2mgr
+      .createPr({
+        clusterName: clusterName,
+        pid: pid,
+        pr: pr,
+        sgId: groupId,
+        subnetId: subnetId,
+        sshPath: sshData || path.join('.private', constants.SSH_PUBLIC_PATH),
+        apiConfig: {}
+      })
+      .then((ec2Results) => route53
+        .createPRARecord(pid, pr, common.findIpFromEc2Describe(ec2Results))
+        .then((url) => {
+          urlData.url = qualifyUrl(url);
+        }));
   }
 
   function createCluster(subnetId, pid, pr, appDef, sshData) {
@@ -40,21 +69,8 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
         securityGroup.createPr(pid, pr),
         cluster.create(clusterName)
       ])
-      .then((results) => ec2mgr
-        .createPr({
-          clusterName: clusterName,
-          pid: pid,
-          pr: pr,
-          sgId: results[0].GroupId,
-          subnetId: subnetId,
-          sshPath: sshData || path.join('.private', constants.SSH_PUBLIC_PATH),
-          apiConfig: {}
-        })
-        .then((ec2Results) => route53
-          .createPRARecord(pid, pr, common.findIpFromEc2Describe(ec2Results))
-          .then((url) => {
-            urlData.url = qualifyUrl(url);
-          })))
+      .then((results) => createEc2(results[0].GroupId, clusterName, pid, pr,
+        subnetId, sshData, urlData))
       .then(() => task
         .create(clusterName, clusterName, appDef))
       .then(() => urlData);

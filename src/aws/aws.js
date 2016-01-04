@@ -17,6 +17,7 @@ class AwsWrapper {
     AWS.config.apiVersions = constants.AWS_APIS;
     // init aws objects with credentials/promises
     this.ddb = util.makePromiseApi(new AWS.DynamoDB(credentials));
+    this.elb = util.makePromiseApi(new AWS.ELB(credentials));
     this.ec2 = util.makePromiseApi(new AWS.EC2(credentials));
     this.ecr = util.makePromiseApi(new AWS.ECR(credentials));
     this.ecs = util.makePromiseApi(new AWS.ECS(credentials));

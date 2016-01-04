@@ -18,7 +18,7 @@ const R = require('ramda');
 
 var Vpc = require('./vpcManager');
 
-function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam) {
+function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, elb) {
   var vpcId = null;
   var pullRequest;
   var cluster;
@@ -180,8 +180,8 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam) {
     route = Route(ec2, vpcId);
     subnet = Subnet(ec2, vpcId);
     acl = Acl(ec2, vpcId);
-    pullRequest = Pr(ec2, ecs, awsRoute53, vpcId, zoneId);
-    deployment = Deployment(ec2, ecs, awsRoute53, vpcId, zoneId);
+    pullRequest = Pr(ec2, ecs, awsRoute53, elb, vpcId, zoneId);
+    deployment = Deployment(ec2, ecs, awsRoute53, elb, vpcId, zoneId);
     ec2mgr = Ec2(ec2, vpcId);
     return {
       create,

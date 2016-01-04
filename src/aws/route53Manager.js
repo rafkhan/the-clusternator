@@ -110,9 +110,10 @@ function getRoute53(route53, zoneId) {
     @param {string} domainName
     @param {string} ip
     @param {string} tld
+    @param {string} type
     @param {Object=} config
   */
-  function changeAParams(verb, domainName, ip, tld, config) {
+  function changeRecordParams(verb, domainName, ip, tld, type, config) {
     config = config || {};
     var changeBatch = createChangeBatch(),
       change = createChange(verb),
@@ -123,7 +124,7 @@ function getRoute53(route53, zoneId) {
     changeBatch.Changes.push(change);
 
     params.ChangeBatch.Changes[0].ResourceRecordSet =
-      createResourceRecordSet(domainName + '.' + tld, 'A', ip);
+      createResourceRecordSet(domainName + '.' + tld, type, ip);
 
     return R.merge(params, config);
   }
@@ -132,20 +133,22 @@ function getRoute53(route53, zoneId) {
     @param {string} domainName
     @param {string} ip
     @param {string} tld
+    @param {string} type
     @param {Object=} config
   */
-  function createAParams(domainName, ip, tld, config) {
-    return changeAParams('CREATE', domainName, ip, tld, config);
+  function createRecordParams(domainName, ip, tld, type, config) {
+    return changeRecordParams('CREATE', domainName, ip, tld, type, config);
   }
 
   /**
     @param {string} domainName
     @param {string} ip
     @param {string} tld
+    @param {string} type
     @param {Object=} config
   */
-  function destroyAParams(domainName, ip, tld, config) {
-    return changeAParams('DELETE', domainName, ip, tld, config);
+  function destroyRecordParams(domainName, ip, tld, type, config) {
+    return changeRecordParams('DELETE', domainName, ip, tld, type, config);
   }
 
   /**
@@ -159,7 +162,25 @@ function getRoute53(route53, zoneId) {
     return findTld().then((tld) => {
       var domainName = rid.generatePRSubdomain(pid, pr);
       return route53
-        .changeResourceRecordSets(createAParams(domainName, ip, tld, config))
+        .changeResourceRecordSets(
+          createRecordParams(domainName, ip, tld, 'A', config))
+        .then(() => domainName);
+    });
+  }
+
+  /**
+   @param {string} pid
+   @param {string} pr
+   @param {string} url
+   @param {Object=} config object (optional)
+   @return {Q.Promise}
+   */
+  function createPRCNameRecord(pid, pr, url, config) {
+    return findTld().then((tld) => {
+      var domainName = rid.generatePRSubdomain(pid, pr);
+      return route53
+        .changeResourceRecordSets(
+          createRecordParams(domainName, url, tld, 'CNAME', config))
         .then(() => domainName);
     });
   }
@@ -188,9 +209,28 @@ function getRoute53(route53, zoneId) {
       .then((tld) => {
       var domainName = generateDeploymentDomain(pid, deployment);
       return route53
-        .changeResourceRecordSets(createAParams(domainName, ip, tld, config))
+        .changeResourceRecordSets(
+          createRecordParams(domainName, ip, tld, 'A', config))
         .then(() => domainName);
     });
+  }
+
+  /**
+   @param {string} pid
+   @param {string} deployment
+   @param {string} url
+   @param {Object=} config object (optional)
+   @return {Q.Promise}
+   */
+  function createDeploymentCNameRecord(pid, deployment, url, config) {
+    return findTld()
+      .then((tld) => {
+        var domainName = generateDeploymentDomain(pid, deployment);
+        return route53
+          .changeResourceRecordSets(
+            createRecordParams(domainName, url, tld, 'CNAME', config))
+          .then(() => domainName);
+      });
   }
 
   /**
@@ -201,10 +241,26 @@ function getRoute53(route53, zoneId) {
     @return {Q.Promise}
   */
   function destroyPRARecord(pid, pr, ip, config) {
-    return findTld().then(function(tld) {
-      var domainName = rid.generatePRSubdomain(pid, pr);
+    return findTld().then((tld) => {
+      const domainName = rid.generatePRSubdomain(pid, pr);
       return route53.changeResourceRecordSets(
-        destroyAParams(domainName, ip, tld, config)
+        destroyRecordParams(domainName, ip, tld, 'A', config)
+      );
+    });
+  }
+
+  /**
+   @param {string} pid
+   @param {string} pr
+   @param {string} url
+   @param {Object=} Route53 config object (optional)
+   @return {Q.Promise}
+   */
+  function destroyPRCNameRecord(pid, pr, url, config) {
+    return findTld().then((tld) => {
+      const domainName = rid.generatePRSubdomain(pid, pr);
+      return route53.changeResourceRecordSets(
+        destroyRecordParams(domainName, url, tld, 'CNAME', config)
       );
     });
   }
@@ -217,10 +273,26 @@ function getRoute53(route53, zoneId) {
    * @returns {Request|Promise.<T>}
    */
   function destroyDeploymentARecord(pid, deployment, ip, config) {
-    return findTld().then(function(tld) {
-      var domainName = generateDeploymentDomain(pid, deployment);
+    return findTld().then((tld) => {
+      const domainName = generateDeploymentDomain(pid, deployment);
       return route53.changeResourceRecordSets(
-        destroyAParams(domainName, ip, tld, config)
+        destroyRecordParams(domainName, ip, tld, 'A', config)
+      );
+    });
+  }
+
+  /**
+   * @param pid
+   * @param deployment
+   * @param url
+   * @param config
+   * @returns {Request|Promise.<T>}
+   */
+  function destroyDeploymentCNameRecord(pid, deployment, url, config) {
+    return findTld().then((tld) => {
+      const domainName = generateDeploymentDomain(pid, deployment);
+      return route53.changeResourceRecordSets(
+        destroyRecordParams(domainName, url, tld, 'CNAME', config)
       );
     });
   }
@@ -235,7 +307,7 @@ function getRoute53(route53, zoneId) {
   }
 
   /**
-    @param {{ Id: string }}
+    @param {{ Id: string }} resource
     @return {string}
   */
   function pluckId(resource) {
@@ -260,7 +332,7 @@ function getRoute53(route53, zoneId) {
   }
 
   /**
-    @param {HostedZone[]}
+    @param {HostedZone[]} l
     @return {Q.Promise}
   */
   function listTags(l) {
@@ -293,12 +365,16 @@ function getRoute53(route53, zoneId) {
 return {
   list,
   createPRARecord,
+  createPRCNameRecord,
   createDeploymentARecord,
+  createDeploymentCNameRecord,
   destroyPRARecord,
+  destroyPRCNameRecord,
   destroyDeploymentARecord,
+  destroyDeploymentCNameRecord,
   findId,
   helpers: {
-    createAParams,
+    createRecordParams,
     createChange,
     createChangeBatch,
     createResourceRecord,

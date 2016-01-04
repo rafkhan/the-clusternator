@@ -10,8 +10,8 @@ class ElbTag {
    * @param {string} value
    */
   constructor(key, value) {
-    this.Key= key;
-    this.Value= value;
+    this.Key = key;
+    this.Value = value + '';
   }
 }
 

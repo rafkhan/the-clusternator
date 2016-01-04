@@ -33,6 +33,8 @@ const constants = Object.freeze({
     5: 'silly'
   }),
   AWS_APIS,
+  AWS_SSL_ID: 'arn:aws:iam::731670193630:server-certificate/clusternator-wildcard',
+  AWS_ZONE:  'us-east-1',
   AWS_R53_ZONE_PREFIX: '/hostedzone/',
   AWS_DEFAULT_EC2_AMI,
   AWS_DEFAULT_EC2_TYPE,

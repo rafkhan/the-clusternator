@@ -25,6 +25,11 @@ function getEcs() {
   return new a.ECS(config.awsCredentials);
 }
 
+function getElb() {
+  var config = c();
+  return new a.ELB(config.awsCredentials);
+}
+
 function getRoute53() {
   var config = c();
   return new a.Route53(config.awsCredentials);
@@ -45,6 +50,7 @@ module.exports = {
   path: makePath,
   getEc2,
   getEcs,
+  getElb,
   getIam,
   getRoute53,
   getDDB,

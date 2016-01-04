@@ -24,7 +24,7 @@ class Ec2Tag {
    */
   constructor(key, value) {
     this.Key= key;
-    this.Value= value;
+    this.Value= value + '';
   }
 }
 
