@@ -14,6 +14,8 @@ module.exports = {
   destroy,
   destroyDeployment,
   describe,
+  describeDeployment,
+  describePr,
   describeAll,
   configureHealthCheck,
   registerInstances,
@@ -58,10 +60,26 @@ function configureHealthCheck(aws, loadBalancerId, healthyThresh,
  * @param {string} deployment
  * @returns {string}
  */
-function elbId(projectId, deployment) {
+function elbProjectId(projectId, deployment) {
   projectId = projectId.replace(RX_ALPHA_NUM, '');
-  deployment = projectId.replace(RX_ALPHA_NUM, '');
+  deployment = deployment.replace(RX_ALPHA_NUM, '');
   const id = `${projectId}-${deployment}`;
+  if (id.length > 31) {
+    return id.slice(0, 31);
+  }
+  return id;
+}
+
+/**
+ * ELB ids have to be < 32 characters, so our resourceIds are no good
+ * @param {string} projectId
+ * @param {string} pr
+ * @returns {string}
+ */
+function elbPrId(projectId, pr) {
+  projectId = projectId.replace(RX_ALPHA_NUM, '');
+  pr = pr.replace(RX_ALPHA_NUM, '');
+  const id = `${projectId}-pr-${pr}`;
   if (id.length > 31) {
     return id.slice(0, 31);
   }
@@ -87,7 +105,7 @@ function createDeployment(aws, projectId, deployment, subnet, securityGroup,
     tag.create(constants.PROJECT_TAG, projectId),
     tag.create(constants.DEPLOYMENT_TAG, deployment)
   ];
-  const id = elbId(projectId, deployment);
+  const id = elbProjectId(projectId, deployment);
   return create(aws, listeners, [subnet], [securityGroup], id, tags);
 }
 
@@ -118,7 +136,7 @@ function create(aws, listeners, subnets, securityGroups, loadBalancerId, tags) {
 
 
 function destroyDeployment(aws, projectId, deployment) {
-  const id = elbId(projectId, deployment);
+  const id = elbProjectId(projectId, deployment);
   return destroy(aws, id);
 }
 
@@ -166,6 +184,27 @@ function describe(aws) {
       .map(mapLoadBalancerIds))
       .then((tags) => filterClusternatorTags(
         results.LoadBalancerDescriptions, tags)));
+}
+
+function describeDeployment(aws, projectId, deployment) {
+  const id = elbProjectId(projectId, deployment);
+  return aws.elb
+    .describeLoadBalancers({
+      LoadBalancerNames: [
+        id
+      ]})
+    .then((results) => {
+      if (!results.LoadBalancerDescriptions.length) {
+        throw new Error(`describeDeployment: no deployment found: ${id}`);
+      }
+      return {
+        dns: results.LoadBalancerDescriptions[0].DNSName
+      };
+    });
+}
+
+function describePr(aws, projectId, pr) {
+
 }
 
 /**

@@ -55,20 +55,22 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   }
 
   function createElbEc2(groupId, clusterName, pid, deployment, subnetId, sha) {
-    return Q.all([
+    return Q
+      .all([
         createEc2(groupId, clusterName, pid, deployment, subnetId, sha),
         elb.createDeployment(pid, deployment, subnetId, groupId,
           constants.AWS_SSL_ID) ])
-      .then((results) => Q.all([
-          route53
-            .createDeploymentCNameRecord(
-              pid, deployment, results[1].dns),
-          elb.registerInstances(
-            results[1].id, [getIdFromEc2Results(results[0])]),
-          elb.configureHealthCheck(results[1].id) ])
-        .then((results) => results[0])
-        // fail over
-        .fail(() => undefined));
+      .then((results) => route53
+        .createDeploymentCNameRecord(
+          pid, deployment, results[1].dns)
+        .then((r53result) => {
+          return {
+            url: r53result,
+            elbId: results[1].id,
+            elbDns: results[1].dns,
+            ec2Info: results[0]
+          };
+        }));
   }
 
   function createEc2Solo(groupId, clusterName, pid, deployment, subnetId, sha) {
@@ -103,9 +105,11 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
       ])
       .then((results) => createElbEc2(results[0].GroupId, clusterName, pid,
         deployment, subnetId, sha))
-      .then((urlDesc) => task
+      .then((elbRes) => task
         .create(clusterName, clusterName, appDef)
-        .then(() => urlDesc));
+        .then(() => elb.registerInstances(
+          elbRes.elbId, [getIdFromEc2Results(elbRes.ec2Info)]))
+        .then(() => elbRes.url));
     //- start system
   }
 
@@ -150,18 +154,15 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request|Promise.<T>}
    */
   function destroyRoutes(projectId, deployment) {
-    return ec2mgr
-      .describeDeployment(projectId, deployment)
-      .then((results) => {
-        var ip = common.findIpFromEc2Describe(results);
-        return route53.destroyDeploymentARecord(projectId, deployment, ip);
-      });
+    return elb.describeDeployment(projectId, deployment)
+      .then((result) => route53
+        .destroyDeploymentCNameRecord(projectId, deployment, result.dns));
   }
 
   function destroyElb(projectId, deployment) {
     return elb.destroyDeployment(projectId, deployment)
       //fail over
-      .fail(() => undefined);
+      .fail((err) => util.warn(err));
   }
 
   /**
