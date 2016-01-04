@@ -2,6 +2,7 @@
 
 const R = require('ramda');
 const constants = require('../../constants');
+const tag = require('./elb-tag.js');
 
 module.exports = {
   create,
@@ -44,7 +45,7 @@ function create(aws, listeners, subnets, securityGroups,
     AvailabilityZones: availabilityZones,
     SecurityGroups: securityGroups,
     Subnets: subnets,
-    Tags: [createTag(constants.CLUSTERNATOR_TAG, true)].concat(tags)
+    Tags: [tag.create(constants.CLUSTERNATOR_TAG, true)].concat(tags)
   });
 }
 

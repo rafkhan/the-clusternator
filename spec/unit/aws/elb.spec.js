@@ -4,7 +4,7 @@ var rewire = require('rewire'),
   constants = require('../../../src/constants'),
   C = require('../chai');
 
-var elb = rewire('../../../src/aws/elb');
+var elb = rewire('../../../src/aws/elb/elb');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
