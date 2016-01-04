@@ -54,12 +54,13 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
     return instanceId;
   }
 
-  function createElbEc2(groupId, clusterName, pid, deployment, subnetId, sha) {
+  function createElbEc2(groupId, clusterName, pid, deployment, subnetId, sha,
+                        useInternalSSL) {
     return Q
       .all([
         createEc2(groupId, clusterName, pid, deployment, subnetId, sha),
         elb.createDeployment(pid, deployment, subnetId, groupId,
-          constants.AWS_SSL_ID) ])
+          constants.AWS_SSL_ID, useInternalSSL) ])
       .then((results) => route53
         .createDeploymentCNameRecord(
           pid, deployment, results[1].dns)
@@ -89,9 +90,11 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @param {string} deployment
    * @param {string} sha
    * @param {Object} appDef
+   * @param {boolean=} useInternalSSL
    * @returns {Request}
    */
-  function createCluster(subnetId, pid, deployment, sha, appDef) {
+  function createCluster(subnetId, pid, deployment, sha, appDef,
+                         useInternalSSL) {
     var clusterName = rid.generateRID({
       pid,
       deployment,
@@ -104,16 +107,23 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
         cluster.create(clusterName)
       ])
       .then((results) => createElbEc2(results[0].GroupId, clusterName, pid,
-        deployment, subnetId, sha))
+        deployment, subnetId, sha, useInternalSSL))
       .then((elbRes) => task
         .create(clusterName, clusterName, appDef)
         .then(() => elb.registerInstances(
           elbRes.elbId, [getIdFromEc2Results(elbRes.ec2Info)]))
         .then(() => elbRes.url));
-    //- start system
   }
 
-  function create(projectId, deployment, sha, appDef) {
+  /**
+   * @param {string} projectId
+   * @param {string} deployment
+   * @param {string} sha
+   * @param {Object} appDef
+   * @param {boolean=} useInternalSSL
+   * @returns {Request|Promise.<T>|*}
+   */
+  function create(projectId, deployment, sha, appDef, useInternalSSL) {
     return subnet
       .describeProject(projectId)
       .then((list) => {
@@ -122,7 +132,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
             `Project: ${projectId} Deployment ${deployment}`);
         }
         return createCluster(
-          list[0].SubnetId, projectId, deployment, sha, appDef);
+          list[0].SubnetId, projectId, deployment, sha, appDef, useInternalSSL);
       });
   }
 

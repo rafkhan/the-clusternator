@@ -93,13 +93,16 @@ function elbPrId(projectId, pr) {
  * @param {string} subnet
  * @param {string} securityGroup
  * @param {string} certId
+ * @param {boolean=} useInternalSSL defaults to false
  * @returns {Q.Promise}
  */
 function createDeployment(aws, projectId, deployment, subnet, securityGroup,
-                          certId) {
+                          certId, useInternalSSL) {
+  useInternalSSL = useInternalSSL ? true : false;
   const listeners = [
     pListeners.create(80, 80, TCP, TCP),
-    pListeners.create(80, 443, TCP, SSL, certId)
+    useInternalSSL ? pListeners.create(443, 443, TCP, SSL, certId) :
+      pListeners.create(80, 443, TCP, SSL, certId)
   ];
   const tags = [
     tag.create(constants.PROJECT_TAG, projectId),

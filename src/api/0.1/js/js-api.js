@@ -439,11 +439,13 @@ function deploy_(pm, cJson, appDefStr, deployment, sha) {
   if (!appDef) {
     throw new Error('Deployment failed, error parsing appDef');
   }
+  const config = Config();
   return pm.createDeployment(
     cJson.projectId,
     deployment,
     sha,
-    appDef
+    appDef,
+    config.useInternalSSL || false
   ).then((result) => {
     util.info('Deployment will be available at ', result);
   });

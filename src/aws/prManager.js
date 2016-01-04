@@ -70,7 +70,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
         cluster.create(clusterName)
       ])
       .then((results) => createEc2(results[0].GroupId, clusterName, pid, pr,
-        subnetId, sshData, urlData))
+        subnetId, sshData))
       .then(() => task
         .create(clusterName, clusterName, appDef))
       .then(() => urlData);
