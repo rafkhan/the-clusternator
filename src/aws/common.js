@@ -1,6 +1,7 @@
 'use strict';
 const constants = require('../constants');
 const rid = require('../resourceIdentifier');
+const Q = require('q');
 
 /**
  * @param {string} name
@@ -367,6 +368,24 @@ function getPrFilter(projectId, pr) {
 }
 
 /**
+ * @param {Object} subnet
+ * @param {Object} creq
+ * @returns {Q.Promise<{{ subnetId: string }}>}
+ */
+function setSubnet(subnet, creq) {
+  return subnet
+    .describeProject(creq.projectId)
+    .then((list) => {
+      if (!list.length) {
+        throw new Error('Create Deployment failed, no subnet found for ' +
+          `Project: ${creq.projectId}`);
+      }
+      creq.subnetId = list[0].SubnetId;
+      return creq;
+    });
+}
+
+/**
  * @param {string} projectId
  * @param {string} deploymnet
  * @returns {function(...):boolean}
@@ -381,6 +400,61 @@ function getDeploymentFilter(projectId, deployment) {
   };
 }
 
+/**
+ * @param {function(...):Q.Promise} createElb
+ * @param {function(...):Q.Promise} createEc2
+ * @param {Object} creq
+ * @returns {Q.Promise<{{ dns: string, elbId: string, ec2Info: Object }}>}
+ */
+function createElbEc2(createElb, createEc2, creq) {
+  return Q
+    .all([
+      createEc2(creq),
+      createElb(creq)
+    ])
+    .then((results) => {
+      creq.dns = results[1].dns;
+      creq.elbId = results[1].id;
+      creq.ec2Info = results[0];
+      return creq;
+    });
+}
+
+/**
+ * @param {Objecet} task
+ * @param {Object} creq
+ * @returns {Q.Promise<Object>}
+ */
+function createTask(task, creq) {
+  return task
+    .create(creq.name, creq.name, creq.appDef)
+    .then(() => creq);
+}
+
+
+/**
+ * @param {Object} elb
+ * @param {Object} creq
+ * @returns {Q.Promise<Object>}
+ */
+function registerEc2ToElb(elb, creq) {
+  return elb.registerInstances(creq.elbId,
+    [findIdFromEc2Describe(creq.ec2Info)])
+    .then(() => creq);
+}
+
+/**
+ * @param {{ tld: string }} config
+ * @param {string} url
+ * @returns {string}
+ */
+function qualifyUrl(config, url) {
+  var tld = config.tld || '.example.com';
+  if (tld[0] !== '.') {
+    tld = `.${tld}`;
+  }
+  return url + tld;
+}
 
 module.exports = {
   areTagsPidPrValid,
@@ -405,5 +479,10 @@ module.exports = {
   getProjectIdFilter,
   getPrFilter,
   getDeploymentFilter,
-  clusternatePrefixString
+  clusternatePrefixString,
+  setSubnet,
+  createElbEc2,
+  createTask,
+  registerEc2ToElb,
+  qualifyUrl
 };

@@ -61,22 +61,22 @@ function getSecurityGroupManager(ec2, vpcId) {
         Description: 'Created by clusternator for ' + pid + ', PR: ' + pr,
         VpcId: vpcId
       };
-    return ec2.createSecurityGroup(params).
-    then(function(result) {
-      return Q.all([
-        common.awsTagEc2(ec2, result.GroupId, [{
-          Key: constants.CLUSTERNATOR_TAG,
-          Value: 'true'
-        }, {
-          Key: constants.PROJECT_TAG,
-          Value: pid
-        }, {
-          Key: constants.PR_TAG,
-          Value: pr
-        }]),
-        defaultInOutRules(result.GroupId)
-      ]).then(function() {
-        util.info('result', result);
+    return ec2.createSecurityGroup(params)
+      .then((result) => {
+        return Q.all([
+          common.awsTagEc2(ec2, result.GroupId, [{
+            Key: constants.CLUSTERNATOR_TAG,
+            Value: 'true'
+          }, {
+            Key: constants.PROJECT_TAG,
+            Value: pid
+          }, {
+            Key: constants.PR_TAG,
+            Value: pr
+          }]),
+            defaultInOutRules(result.GroupId) ])
+          .then(() => {
+            util.info('result', result);
         return result;
       });
     });
