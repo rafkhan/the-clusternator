@@ -11,8 +11,10 @@ const RX_ALPHA_NUM = /[^a-z0-9]/gi;
 module.exports = {
   create,
   createDeployment,
+  createPr,
   destroy,
   destroyDeployment,
+  destroyPr,
   describe,
   describeDeployment,
   describePr,
@@ -60,7 +62,7 @@ function configureHealthCheck(aws, loadBalancerId, healthyThresh,
  * @param {string} deployment
  * @returns {string}
  */
-function elbProjectId(projectId, deployment) {
+function elbDeploymentId(projectId, deployment) {
   projectId = projectId.replace(RX_ALPHA_NUM, '');
   deployment = deployment.replace(RX_ALPHA_NUM, '');
   const id = `${projectId}-${deployment}`;
@@ -87,6 +89,19 @@ function elbPrId(projectId, pr) {
 }
 
 /**
+ * @param {string} certId
+ * @param {boolean=} useInternalSSL
+ * @returns {*[]}
+ */
+function defaultListeners(certId, useInternalSSL) {
+  return [
+    pListeners.create(80, 80, TCP, TCP),
+    useInternalSSL ? pListeners.create(443, 443, TCP, SSL, certId) :
+      pListeners.create(80, 443, TCP, SSL, certId)
+  ];
+}
+
+/**
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} deployment
@@ -99,16 +114,35 @@ function elbPrId(projectId, pr) {
 function createDeployment(aws, projectId, deployment, subnet, securityGroup,
                           certId, useInternalSSL) {
   useInternalSSL = useInternalSSL ? true : false;
-  const listeners = [
-    pListeners.create(80, 80, TCP, TCP),
-    useInternalSSL ? pListeners.create(443, 443, TCP, SSL, certId) :
-      pListeners.create(80, 443, TCP, SSL, certId)
-  ];
+  const listeners = defaultListeners(certId, useInternalSSL);
   const tags = [
     tag.create(constants.PROJECT_TAG, projectId),
     tag.create(constants.DEPLOYMENT_TAG, deployment)
   ];
-  const id = elbProjectId(projectId, deployment);
+  const id = elbDeploymentId(projectId, deployment);
+  return create(aws, listeners, [subnet], [securityGroup], id, tags);
+}
+
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} pr
+ * @param {string} subnet
+ * @param {string} securityGroup
+ * @param {string} certId
+ * @param {boolean=} useInternalSSL defaults to false
+ * @returns {Q.Promise}
+ */
+function createPr(aws, projectId, pr, subnet, securityGroup, certId,
+                  useInternalSSL) {
+  useInternalSSL = useInternalSSL ? true : false;
+  const listeners = defaultListeners(certId, useInternalSSL);
+  const tags = [
+    tag.create(constants.PROJECT_TAG, projectId),
+    tag.create(constants.PR_TAG, pr)
+  ];
+  const id = elbPrId(projectId, pr);
   return create(aws, listeners, [subnet], [securityGroup], id, tags);
 }
 
@@ -137,9 +171,25 @@ function create(aws, listeners, subnets, securityGroups, loadBalancerId, tags) {
     });
 }
 
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} pr
+ * @returns {Q.Promise}
+ */
+function destroyPr(aws, projectId, pr) {
+  const id = elbPrId(projectId, pr);
+  return destroy(aws, id);
+}
 
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} deployment
+ * @returns {Q.Promise}
+ */
 function destroyDeployment(aws, projectId, deployment) {
-  const id = elbProjectId(projectId, deployment);
+  const id = elbDeploymentId(projectId, deployment);
   return destroy(aws, id);
 }
 
@@ -189,8 +239,7 @@ function describe(aws) {
         results.LoadBalancerDescriptions, tags)));
 }
 
-function describeDeployment(aws, projectId, deployment) {
-  const id = elbProjectId(projectId, deployment);
+function describeById(aws, id) {
   return aws.elb
     .describeLoadBalancers({
       LoadBalancerNames: [
@@ -206,8 +255,14 @@ function describeDeployment(aws, projectId, deployment) {
     });
 }
 
-function describePr(aws, projectId, pr) {
+function describeDeployment(aws, projectId, deployment) {
+  const id = elbDeploymentId(projectId, deployment);
+  return describeById(aws, id);
+}
 
+function describePr(aws, projectId, pr) {
+  const id = elbPrId(projectId, pr);
+  return describeById(aws, id);
 }
 
 /**
