@@ -125,7 +125,7 @@ function getSecurityGroupManager(ec2, vpcId) {
 
   /**
    * @param {string} pid * @param {string} deployment @param {string} sha
-   * @returns {Q.Promise}
+   * @returns {Q.Promise<string>}
    */
   function createDeployment(pid, deployment, sha) {
     if (!pid || !deployment || !sha) {
@@ -137,10 +137,11 @@ function getSecurityGroupManager(ec2, vpcId) {
         // return the id
         util.info('Security Group Found For ', pid, ' Deployment: ', deployment,
           ' SHA:', sha);
-        return { GroupId: list[0].GroupId }
+        return list[0].GroupId;
       } else {
         // make a new one
-        return createSecurityGroupDeployment(pid, deployment, sha);
+        return createSecurityGroupDeployment(pid, deployment, sha)
+          .then((results) => results.GroupId);
       }
     });
   }
@@ -155,9 +156,9 @@ function getSecurityGroupManager(ec2, vpcId) {
       throw new TypeError('Create SecurityGroup requires a projectId, and ' +
         'pull request #');
     }
-    return rejectIfExists(pid, pr).then(function() {
-      return createSecurityGroupPr(pid, pr);
-    });
+    return rejectIfExists(pid, pr)
+      .then(() => createSecurityGroupPr(pid, pr)
+        .then((results) => results.GroupId ));
   }
 
   /**

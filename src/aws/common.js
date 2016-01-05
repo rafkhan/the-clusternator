@@ -253,6 +253,32 @@ function makePrFilter(pr) {
   return makeAWSTagFilter(constants.PR_TAG, pr);
 }
 
+/**
+ * @param {string} attr
+ * @param {AWSEc2DescribeResults} results
+ * @returns {string}
+ * @throws {TypeError}
+ */
+function findFromEc2Describe(attr, results) {
+  /** @todo in the future this might be plural? */
+  if (!results[0]) {
+    throw new Error('createPR: unexpected EC2 create results');
+  }
+  var result = '';
+  results[0].Instances.forEach((inst) => {
+    result = inst[attr];
+  });
+  return result;
+}
+
+
+/**
+ * @param {AWSEc2DescribeResults} results
+ * @returns {string}
+ */
+function findIdFromEc2Describe(results) {
+  return findFromEc2Describe('InstanceId', results);
+}
 
 /**
  * @param {AWSEc2DescribeResults} results
@@ -260,15 +286,7 @@ function makePrFilter(pr) {
  * @throws {Error}
  */
 function findIpFromEc2Describe(results) {
-  /** @todo in the future this might be plural, or more likely it will
-   be going through an ELB */
-  var ip;
-  if (!results[0]) {
-    throw new Error('createPR: unexpected EC2 create results');
-  }
-  results[0].Instances.forEach(function(inst) {
-    ip = inst.PublicIpAddress;
-  });
+  const ip = findFromEc2Describe('PublicIpAddress', results);
   if (!ip) {
     throw new Error('createPR: expecting a public IP address');
   }
@@ -380,6 +398,7 @@ module.exports = {
   makeEc2DescribeProjectFn,
   makeEc2DescribePrFn,
   makeEc2DescribeDeployment,
+  findIdFromEc2Describe,
   findIpFromEc2Describe,
   getDeregisterClusterFn,
   filterValidArns,

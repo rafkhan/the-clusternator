@@ -15,13 +15,13 @@ const elbFns = require('./elb/elb');
 const R = require('ramda');
 
 function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
-  var subnet = Subnet(ec2, vpcId);
-  var securityGroup = SG(ec2, vpcId);
-  var cluster = Cluster(ecs);
-  var route53 = Route53(r53, zoneId);
-  var ec2mgr = Ec2(ec2, vpcId);
-  var task = Task(ecs);
-  var elb = R.mapObjIndexed(elbAwsPartial, elbFns);
+  const subnet = Subnet(ec2, vpcId);
+  const securityGroup = SG(ec2, vpcId);
+  const cluster = Cluster(ecs);
+  const route53 = Route53(r53, zoneId);
+  const ec2mgr = Ec2(ec2, vpcId);
+  const task = Task(ecs);
+  const elb = R.mapObjIndexed(elbAwsPartial, elbFns);
 
   function elbAwsPartial(fn) {
     if (typeof fn !== 'function') {
@@ -30,89 +30,78 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
     return R.partial(fn, { elb: util.makePromiseApi(awsElb) });
   }
 
-  function createEc2(groupId, clusterName, pid, deployment, subnetId, sha) {
+  function createEc2(creq) {
     return ec2mgr.createDeployment({
-        clusterName: clusterName,
-        pid: pid,
-        deployment: deployment,
-        sha: sha,
-        sgId: groupId,
-        subnetId: subnetId,
+        clusterName: creq.name,
+        pid: creq.projectId,
+        deployment: creq.deployment,
+        sha: creq.sha,
+        sgId: creq.groupId,
+        subnetId: creq.subnetId,
         sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
         apiConfig: {}
       });
   }
 
-  function getIdFromEc2Results(results) {
-    if (!results[0]) {
-      throw new Error('createPR: unexpected EC2 create results');
-    }
-    var instanceId = '';
-    results[0].Instances.forEach((inst) => {
-       instanceId = inst.InstanceId;
-    });
-    return instanceId;
-  }
-
-  function createElbEc2(groupId, clusterName, pid, deployment, subnetId, sha,
-                        useInternalSSL) {
-    return Q
-      .all([
-        createEc2(groupId, clusterName, pid, deployment, subnetId, sha),
-        elb.createDeployment(pid, deployment, subnetId, groupId,
-          constants.AWS_SSL_ID, useInternalSSL) ])
-      .then((results) => route53
-        .createDeploymentCNameRecord(
-          pid, deployment, results[1].dns)
-        .then((r53result) => {
-          return {
-            url: r53result,
-            elbId: results[1].id,
-            elbDns: results[1].dns,
-            ec2Info: results[0]
-          };
-        }));
-  }
-
-  function createEc2Solo(groupId, clusterName, pid, deployment, subnetId, sha) {
-    return createEc2(groupId, clusterName, pid, deployment, subnetId, sha)
-      .then((ec2Results) => route53
-        .createDeploymentARecord(
-          pid, deployment, common.findIpFromEc2Describe(ec2Results))
-        .then((urlDesc) => urlDesc)
-        // fail over
-        .fail(() => undefined));
-  }
-
   /**
-   * @param {string} subnetId
-   * @param {string} pid
-   * @param {string} deployment
-   * @param {string} sha
-   * @param {Object} appDef
-   * @param {boolean=} useInternalSSL
-   * @returns {Request}
+   * @param {Object} cReq
+   * @returns {Q.Promise<string>}
    */
-  function createCluster(subnetId, pid, deployment, sha, appDef,
-                         useInternalSSL) {
-    var clusterName = rid.generateRID({
-      pid,
-      deployment,
-      sha
-    });
+  function setSubnet(creq) {
+    return subnet
+      .describeProject(creq.projectId)
+      .then((list) => {
+        if (!list.length) {
+          throw new Error('Create Deployment failed, no subnet found for ' +
+            `Project: ${creq.projectId} Deployment ${creq.deployment}`);
+        }
+        creq.subnetId = list[0].SubnetId
+        return creq;
+      });
+  }
 
+  function createElbEc2(creq) {
     return Q
       .all([
-        securityGroup.createDeployment(pid, deployment, sha),
-        cluster.create(clusterName)
-      ])
-      .then((results) => createElbEc2(results[0].GroupId, clusterName, pid,
-        deployment, subnetId, sha, useInternalSSL))
-      .then((elbRes) => task
-        .create(clusterName, clusterName, appDef)
-        .then(() => elb.registerInstances(
-          elbRes.elbId, [getIdFromEc2Results(elbRes.ec2Info)]))
-        .then(() => elbRes.url));
+        createEc2(creq),
+        elb.createDeployment(creq.projectId, creq.deployment, creq.subnetId,
+          creq.groupId, constants.AWS_SSL_ID, creq.useInternalSSL) ])
+      .then((results) => {
+        creq.dns = results[1].dns;
+        creq.elbId = results[1].id;
+        creq.ec2Info = results[0];
+        return creq;
+      });
+  }
+
+  function setUrl(creq) {
+    return route53
+      .createDeploymentCNameRecord(
+        creq.projectId, creq.deployment, creq.dns)
+      .then((r53result) => {
+        creq.url = r53result;
+        return creq;
+      });
+  }
+
+  function setGroupId(creq) {
+    return securityGroup.createDeployment(creq.projectId,
+      creq.deployment, creq.sha)
+      .then((groupId) => {
+        creq.groupId = groupId;
+      });
+  }
+
+  function registerEc2ToElb(creq) {
+    return elb.registerInstances(creq.elbId,
+      [common.findIdFromEc2Describe(creq.ec2Info)])
+      .then(() => creq);
+  }
+
+  function createTask(creq) {
+    return task
+      .create(creq.name, creq.name, creq.appDef)
+      .then(() => creq);
   }
 
   /**
@@ -124,16 +113,26 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request|Promise.<T>|*}
    */
   function create(projectId, deployment, sha, appDef, useInternalSSL) {
-    return subnet
-      .describeProject(projectId)
-      .then((list) => {
-        if (!list.length) {
-          throw new Error('Create Deployment failed, no subnet found for ' +
-            `Project: ${projectId} Deployment ${deployment}`);
-        }
-        return createCluster(
-          list[0].SubnetId, projectId, deployment, sha, appDef, useInternalSSL);
-      });
+    const creq = {
+      projectId,
+      deployment,
+      sha,
+      appDef,
+      useInternalSSL,
+      name: rid.generateRID({ pid: projectId, deployment, sha })
+    };
+
+    return setSubnet(creq)
+      .then(() => Q
+        .all([
+          setGroupId(creq),
+          cluster.create(creq.name) ])
+        .then(() => creq))
+      .then(createElbEc2)
+      .then(createTask)
+      .then(registerEc2ToElb)
+      .then(setUrl)
+      .then((creq) => creq.url);
   }
 
   /**
