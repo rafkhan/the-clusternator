@@ -92,14 +92,16 @@ function makePrCreate(pm) {
   return (body) => {
     var pr = sanitizePr(body.pr),
       appDef = JSON.parse(body.appDef),
-      projectId = body.repo;
+      projectId = body.repo,
+      sshData = body.sshData,
+      useInternalSSL = body.useInternalSSL || false;
 
     console.log('DEBUG');
     console.log(JSON.stringify(body,  null, 2));
     console.log('DEBUG');
 
     return projects.find(projectId).then((project) => {
-      return pm.pr.create(projectId, pr + '', appDef)
+      return pm.pr.create(projectId, pr + '', appDef, sshData, useInternalSSL)
         .then((prResult) => {
           return slack.message(`Create: ${projectId}, PR ${pr} ` +
             `successful.  Application will be available at ` +

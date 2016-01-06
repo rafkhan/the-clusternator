@@ -8,6 +8,11 @@ module.exports = Object.freeze({
   RESOURCE_RECORD: {
     Value: ''
   },
+  ALIAS_RECORD: {
+    DNSName: '',
+    EvaluateTargetHealth: true,
+    HostedZoneId: ''
+  },
   RESOURCE_RECORD_SET: {
     'Name': '', // Subdomain Name
     'Type': '', // SOA | A | TXT | NS | CNAME | MX | PTR | SRV | SPF | AAAA

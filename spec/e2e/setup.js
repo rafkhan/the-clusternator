@@ -10,6 +10,11 @@ var sourcePath = path.join('..', '..', 'src');
 var c = require(path.join(sourcePath, 'config')),
 a = require('aws-sdk');
 
+function getIam() {
+  var config = c();
+  return new a.IAM(config.awsCredentials);
+}
+
 function getEc2() {
   var config = c();
   return new a.EC2(config.awsCredentials);
@@ -18,6 +23,11 @@ function getEc2() {
 function getEcs() {
   var config = c();
   return new a.ECS(config.awsCredentials);
+}
+
+function getElb() {
+  var config = c();
+  return new a.ELB(config.awsCredentials);
 }
 
 function getRoute53() {
@@ -38,9 +48,11 @@ function makePath() {
 
 module.exports = {
   path: makePath,
-  getEc2: getEc2,
-  getEcs: getEcs,
-  getRoute53: getRoute53,
+  getEc2,
+  getEcs,
+  getElb,
+  getIam,
+  getRoute53,
   getDDB,
   testVPC: TEST_VPC,
   testROUTE: TEST_ROUTE,

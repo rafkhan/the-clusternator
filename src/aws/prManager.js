@@ -11,8 +11,11 @@ const common = require('./common');
 const path = require('path');
 const constants = require('../constants');
 const util = require('../util');
+const elbFns = require('./elb/elb');
+const R = require('ramda');
+const Config = require('../config');
 
-function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
+function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   var subnet = Subnet(ec2, vpcId);
   var securityGroup = SG(ec2, vpcId);
   var cluster = Cluster(ecs);
@@ -20,63 +23,84 @@ function getPRManager(ec2, ecs, r53, vpcId, zoneId) {
   var ec2mgr = Ec2(ec2, vpcId);
   var task = Task(ecs);
   var config = require('../config')();
+  var elb = R.mapObjIndexed(elbAwsPartial, elbFns);
 
-  function qualifyUrl(url) {
-    var tld = config.tld || '.example.com';
-    if (tld[0] !== '.') {
-      tld = `.${tld}`;
+  function elbAwsPartial(fn) {
+    if (typeof fn !== 'function') {
+      return () => {};
     }
-    return url + tld;
+    return R.partial(fn, { elb: util.makePromiseApi(awsElb) });
   }
 
-  function createCluster(subnetId, pid, pr, appDef, sshData) {
-    var clusterName = rid.generateRID({
-      pid: pid,
-      pr: pr
-    }), urlData = { url: '' };
+  function createEc2(creq) {
+    return ec2mgr
+      .createPr({
+        clusterName: creq.ame,
+        pid: creq.projectId,
+        pr: creq.pr,
+        sgId: creq.groupId,
+        subnetId: creq.subnetId,
+        sshPath: creq.sshData || path.join('.private',
+          constants.SSH_PUBLIC_PATH),
+        apiConfig: {}
+      });
+  }
 
-    return Q
-      .all([
-        securityGroup.createPr(pid, pr),
-        cluster.create(clusterName)
-      ])
-      .then((results) => ec2mgr
-        .createPr({
-          clusterName: clusterName,
-          pid: pid,
-          pr: pr,
-          sgId: results[0].GroupId,
-          subnetId: subnetId,
-          sshPath: sshData || path.join('.private', constants.SSH_PUBLIC_PATH),
-          apiConfig: {}
-        })
-        .then((ec2Results) => route53
-          .createPRARecord(pid, pr, common.findIpFromEc2Describe(ec2Results))
-          .then((url) => {
-            urlData.url = qualifyUrl(url);
-          })))
-      .then(() => task
-        .create(clusterName, clusterName, appDef))
-      .then(() => urlData);
-    //- start system
+  function createElb(creq) {
+    return elb.createPr(creq.projectId, creq.pr, creq.subnetId,
+      creq.groupId, constants.AWS_SSL_ID, creq.useInternalSSL);
+  }
+
+  function setUrl(creq) {
+    return route53
+      .createPRCNameRecord(creq.projectId, creq.pr, creq.dns)
+      .then((r53result) => {
+        creq.url = r53result;
+        return creq;
+      });
+  }
+
+  /**
+   * @param {Object} creq
+   * @returns {Q.Promise<{{ groupId: string }}>}
+   */
+  function setGroupId(creq) {
+    return securityGroup
+      .createPr(creq.projectId, creq.pr)
+      .then((groupId) => {
+        creq.groupId = groupId;
+        return creq;
+      });
   }
 
   /**
    * @param {string} projectId
    * @param {string} pr
    * @param {Object} appDef
-   * @param {Array=} sshData
-   * @returns {Request|Promise.<T>}
+   * @param {boolean=} useInternalSSL
+   * @returns {Request|Promise.<T>|*}
    */
-  function create(projectId, pr, appDef, sshData) {
+  function create(projectId, pr, appDef, useInternalSSL) {
+    const creq = {
+      projectId,
+      pr: pr + '',
+      appDef,
+      useInternalSSL,
+      name: rid.generateRID({ pid: projectId, pr })
+    };
 
-    return subnet.describeProject(projectId).then((list) => {
-      if (!list.length) {
-        throw new Error('Create Pull Request failed, no subnet found for ' +
-          'Project: ' + projectId + ' Pull Request # ' + pr);
-      }
-      return createCluster(list[0].SubnetId, projectId, pr, appDef, sshData);
-    });
+    return common
+      .setSubnet(subnet, creq)
+      .then(() => Q
+        .all([
+          setGroupId(creq),
+          cluster.create(creq.name) ])
+        .then(() => creq))
+      .then(() => common.createElbEc2(createElb, createEc2, creq))
+      .then(() => common.createTask(task, creq))
+      .then(() => common.registerEc2ToElb(elb, creq))
+      .then(setUrl)
+      .then((creq) => common.qualifyUrl(Config(), creq.url));
   }
 
   /**

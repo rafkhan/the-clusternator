@@ -2,6 +2,8 @@
 
 const R = require('ramda');
 const constants = require('./constants');
+const RX_DOUBLE_DASH = /--/g;
+const RX_DOUBLE_DASH_END = /--$/g;
 
 
 const VALID_ID_TYPES = ['pr', 'sha', 'time', 'ttl', 'pid', 'deployment'];
@@ -16,78 +18,88 @@ function isRID(rid) {
 }
 
 /**
+ * @param {string} idSegment
+ * @returns {{type: string, value: string}}
+ */
+function mapIdSegments(idSegment) {
+    const dashIdx = idSegment.indexOf('-');
+    const type = idSegment.substring(0, dashIdx);
+    const value = idSegment.substring(dashIdx + 1);
+
+    return {
+      type: type,
+      value: value
+    };
+}
+
+/**
+ * @param {{type: string, value: string}} memo
+ * @param {{type: string, value: string}} seg
+ * @returns {*}
+ */
+function reduceSegments(memo, seg) {
+  memo[seg.type] = seg.value;
+  return memo;
+}
+
+/**
  * RID format: typeA-valueA--typeB-valueB
+ * @param {string} rid
+ * @returns {Object}
  */
 function parseRID(rid) {
   if (!isRID(rid)) {
     return null;
   }
   rid = rid.slice(constants.CLUSTERNATOR_PREFIX.length + 1);
-  const doubleDashRegex = /--/g;
 
-  var splits = rid.split(doubleDashRegex);
+  const splits = rid.split(RX_DOUBLE_DASH);
+  const segments = R.map(mapIdSegments, splits);
 
-  var segments = R.map((idSegment) => {
-    var dashIdx = idSegment.indexOf('-');
-    var type = idSegment.substring(0, dashIdx);
-    var value = idSegment.substring(dashIdx + 1);
-
-    return {
-      type: type,
-      value: value
-    };
-  }, splits);
-
-  var result = R.reduce(function (memo, seg) {
-    memo[seg.type] = seg.value;
-    return memo;
-  }, {}, segments);
+  const result = R.reduce(reduceSegments, {}, segments);
 
   return result;
 }
 
 
 function generateRID(params) {
-  var idSegments = R.mapObjIndexed(function (val, key, obj) {
-    return key + '-' + val;
-  }, params);
+  const idSegments = R
+    .mapObjIndexed((val, key) => `${key}-${val}`, params);
 
-  var validSegmentKeys = R.filter((key) => {
+  const validSegmentKeys = R.filter((key) => {
     return R.contains(key, VALID_ID_TYPES);
   }, R.keys(idSegments));
 
-  var rid = R.reduce(function (ridStr, segKey) {
-    var idSeg = idSegments[segKey];
-    return ridStr + idSeg + '--';
-  }, '', validSegmentKeys);
+  const rid = R.reduce((ridStr, segKey) => `${ridStr}${idSegments[segKey]}--`,
+    '', validSegmentKeys);
 
-if (!rid) {
-  return '';
-}
+  if (!rid) { return ''; }
+
   // Remove trailing --
-  return constants.CLUSTERNATOR_PREFIX + '-' + rid.replace(/--$/g, '');
+  const trimmedRid = rid.replace(RX_DOUBLE_DASH_END, '');
+  return `${constants.CLUSTERNATOR_PREFIX}-${trimmedRid}`;
 }
 
 /**
-  @param {string} projectId
-  @param {string} pr
-*/
+ @param {string} projectId
+ @param {string} pr
+ */
 function generatePRSubdomain(projectId, pr) {
   if (!projectId || !pr) {
     throw new TypeError('generateSubdomain requires a projectId, and pr');
   }
-  return projectId + '-pr-' + pr;
+  return `${projectId}-pr-${pr}`;
 }
 
 /**
-  @param {string} projectId
-  @param {string} label
-*/
+ @param {string} projectId
+ @param {string} label
+ */
 function generateSubdomain(projectId, label) {
   if (!projectId || !label) {
     throw new TypeError('generateSubdomain requires a projectId, and label');
   }
-  return projectId + '-' + label;
+  return `${projectId}-${label}`;
 }
 
 module.exports = {

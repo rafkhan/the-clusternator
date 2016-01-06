@@ -26,7 +26,7 @@ module.exports = Object.freeze({
           entryPoint: [],
           links: [],
           mountPoints: [],
-          memory: 256,
+          memory: 512,
           name: 'nodebasic',
           cpu: 256,
           image: ''

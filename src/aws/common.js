@@ -1,6 +1,18 @@
 'use strict';
 const constants = require('../constants');
 const rid = require('../resourceIdentifier');
+const Q = require('q');
+
+/**
+ * @param {string} name
+ * @returns {string}
+ */
+function clusternatePrefixString(name) {
+  if (name.indexOf(constants.CLUSTERNATOR_PREFIX) !== 0) {
+    name = constants.CLUSTERNATOR_PREFIX + name;
+  }
+  return name;
+}
 
 /**
  * @param {string} pid
@@ -242,6 +254,32 @@ function makePrFilter(pr) {
   return makeAWSTagFilter(constants.PR_TAG, pr);
 }
 
+/**
+ * @param {string} attr
+ * @param {AWSEc2DescribeResults} results
+ * @returns {string}
+ * @throws {TypeError}
+ */
+function findFromEc2Describe(attr, results) {
+  /** @todo in the future this might be plural? */
+  if (!results[0]) {
+    throw new Error('createPR: unexpected EC2 create results');
+  }
+  var result = '';
+  results[0].Instances.forEach((inst) => {
+    result = inst[attr];
+  });
+  return result;
+}
+
+
+/**
+ * @param {AWSEc2DescribeResults} results
+ * @returns {string}
+ */
+function findIdFromEc2Describe(results) {
+  return findFromEc2Describe('InstanceId', results);
+}
 
 /**
  * @param {AWSEc2DescribeResults} results
@@ -249,15 +287,7 @@ function makePrFilter(pr) {
  * @throws {Error}
  */
 function findIpFromEc2Describe(results) {
-  /** @todo in the future this might be plural, or more likely it will
-   be going through an ELB */
-  var ip;
-  if (!results[0]) {
-    throw new Error('createPR: unexpected EC2 create results');
-  }
-  results[0].Instances.forEach(function(inst) {
-    ip = inst.PublicIpAddress;
-  });
+  const ip = findFromEc2Describe('PublicIpAddress', results);
   if (!ip) {
     throw new Error('createPR: expecting a public IP address');
   }
@@ -338,6 +368,24 @@ function getPrFilter(projectId, pr) {
 }
 
 /**
+ * @param {Object} subnet
+ * @param {Object} creq
+ * @returns {Q.Promise<{{ subnetId: string }}>}
+ */
+function setSubnet(subnet, creq) {
+  return subnet
+    .describeProject(creq.projectId)
+    .then((list) => {
+      if (!list.length) {
+        throw new Error('Create Deployment failed, no subnet found for ' +
+          `Project: ${creq.projectId}`);
+      }
+      creq.subnetId = list[0].SubnetId;
+      return creq;
+    });
+}
+
+/**
  * @param {string} projectId
  * @param {string} deploymnet
  * @returns {function(...):boolean}
@@ -352,6 +400,61 @@ function getDeploymentFilter(projectId, deployment) {
   };
 }
 
+/**
+ * @param {function(...):Q.Promise} createElb
+ * @param {function(...):Q.Promise} createEc2
+ * @param {Object} creq
+ * @returns {Q.Promise<{{ dns: string, elbId: string, ec2Info: Object }}>}
+ */
+function createElbEc2(createElb, createEc2, creq) {
+  return Q
+    .all([
+      createEc2(creq),
+      createElb(creq)
+    ])
+    .then((results) => {
+      creq.dns = results[1].dns;
+      creq.elbId = results[1].id;
+      creq.ec2Info = results[0];
+      return creq;
+    });
+}
+
+/**
+ * @param {Objecet} task
+ * @param {Object} creq
+ * @returns {Q.Promise<Object>}
+ */
+function createTask(task, creq) {
+  return task
+    .create(creq.name, creq.name, creq.appDef)
+    .then(() => creq);
+}
+
+
+/**
+ * @param {Object} elb
+ * @param {Object} creq
+ * @returns {Q.Promise<Object>}
+ */
+function registerEc2ToElb(elb, creq) {
+  return elb.registerInstances(creq.elbId,
+    [findIdFromEc2Describe(creq.ec2Info)])
+    .then(() => creq);
+}
+
+/**
+ * @param {{ tld: string }} config
+ * @param {string} url
+ * @returns {string}
+ */
+function qualifyUrl(config, url) {
+  var tld = config.tld || '.example.com';
+  if (tld[0] !== '.') {
+    tld = `.${tld}`;
+  }
+  return url + tld;
+}
 
 module.exports = {
   areTagsPidPrValid,
@@ -369,10 +472,17 @@ module.exports = {
   makeEc2DescribeProjectFn,
   makeEc2DescribePrFn,
   makeEc2DescribeDeployment,
+  findIdFromEc2Describe,
   findIpFromEc2Describe,
   getDeregisterClusterFn,
   filterValidArns,
   getProjectIdFilter,
   getPrFilter,
-  getDeploymentFilter
+  getDeploymentFilter,
+  clusternatePrefixString,
+  setSubnet,
+  createElbEc2,
+  createTask,
+  registerEc2ToElb,
+  qualifyUrl
 };
