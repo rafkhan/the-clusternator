@@ -8,5 +8,6 @@ module.exports = Object.freeze({
   clusternatorDir: '.clusternator',
 
   // These are defaults
-  deploymentsDir: path.join('.private', 'deployments')
+  deploymentsDir: path.join('.private', 'deployments'),
+  useInternalSSL: false
 });

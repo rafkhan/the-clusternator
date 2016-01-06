@@ -68,6 +68,8 @@ module.exports = {
   dockerBuild,
   describeServices,
   listProjects,
+  certUpload,
+  certList,
   generatePass: git.generatePass
 };
 
@@ -213,17 +215,6 @@ function listSSHAbleInstances() {
     .get()
     .then((cJson) => listSSHAbleInstancesByProject(cJson.projectId));
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -448,11 +439,13 @@ function deploy_(pm, cJson, appDefStr, deployment, sha) {
   if (!appDef) {
     throw new Error('Deployment failed, error parsing appDef');
   }
+  const config = Config();
   return pm.createDeployment(
     cJson.projectId,
     deployment,
     sha,
-    appDef
+    appDef,
+    config.useInternalSSL || false
   ).then((result) => {
     util.info('Deployment will be available at ', result);
   });
@@ -581,3 +574,49 @@ function describeServices() {
         .describeProject(config.projectId)));
 }
 
+
+/**
+ * @param {string} privateKey
+ * @param {string} certificate
+ * @param {string=} chain
+ * @return {Q.Promise}
+ */
+function loadCertificateFiles(privateKey, certificate, chain) {
+  var filePromises = [
+    readFile(privateKey, UTF8),
+    readFile(certificate, UTF8)
+  ];
+  if (chain) {
+    filePromises.push(readFile(chain, UTF8));
+  }
+  return Q
+    .all(filePromises)
+    .then((results) => {
+      return {
+        privateKey: results[0],
+        certificate: results[1],
+        chain: results[2] || ''
+      };
+    });
+}
+
+/**
+ * @param {string} privateKey
+ * @param {string} certificate
+ * @param {string} certId
+ * @param {string=} chain
+ * @return {Q.Promise}
+ */
+function certUpload(privateKey, certificate, certId, chain) {
+  return loadCertificateFiles(privateKey, certificate, chain)
+  .then((certs) => getProjectAPI()
+    .then((pm) => pm.iam
+      .uploadServerCertificate(
+        certs.certificate, certs.privateKey, certs.chain, certId)));
+}
+
+function certList() {
+  return getProjectAPI()
+    .then((pm) => pm.iam
+      .listServerCertificates());
+}
