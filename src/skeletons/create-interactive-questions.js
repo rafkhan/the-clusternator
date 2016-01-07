@@ -24,9 +24,16 @@ function userInit(defaults) {
     },
     {
       type: 'input',
+      name: 'tld',
+      message: 'Top Level Domain For Project DNS',
+      default: defaults.tld || '',
+      validate: truthy
+    },
+    {
+      type: 'input',
       name: 'host',
       message: 'Clusternator Server Address',
-      default: defaults.host || '',
+      default: (ans) => defaults.host || `the-clusternator.${ans.tld}`,
       validate: truthy
     },
     {
@@ -37,7 +44,7 @@ function userInit(defaults) {
       validate: truthy
     },
     {
-      type: 'input',
+      type: 'password',
       name: 'token',
       message: 'Clusternator token',
       default: defaults.token || '',
