@@ -8,7 +8,6 @@ const SERVE_SH = 'serve.sh';
 const DECRYPT_SH = 'decrypt.sh';
 const DOCKER_BUILD_SH = 'docker-build.sh';
 const NOTIFY_JS = 'notify.js';
-const CIRCLEFILE = 'circle.yml';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
 const PRIVATE_CHECKSUM = '.private-checksum';
@@ -35,12 +34,13 @@ const appDefSkeleton = cmn.src('skeletons', 'app-def');
 
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
+const circle = cmn.src('circle-ci');
 
 const server = cmn.src('server', 'main');
 
-const writeFile = Q.nbind(fs.writeFile, fs),
-  readFile = Q.nbind(fs.readFile, fs),
-  chmod = Q.nbind(fs.chmod, fs);
+const writeFile = Q.nbind(fs.writeFile, fs);
+const readFile = Q.nbind(fs.readFile, fs);
+const chmod = Q.nbind(fs.chmod, fs);
 
 
 module.exports = {
@@ -54,7 +54,6 @@ module.exports = {
   getSkeletonFile,
   initializeDeployments,
   initializeScripts,
-  initializeCircleCIFile,
   addPrivateToIgnore,
   initializeServeSh,
   privateChecksum,
@@ -299,14 +298,6 @@ function initializeServeSh(root) {
     });
 }
 
-function initializeCircleCIFile(root, clustDir) {
-  return getSkeletonFile(CIRCLEFILE)
-    .then((contents) => {
-      contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
-      return writeFile(path.join(root, CIRCLEFILE), contents);
-    });
-}
-
 function getPrivateChecksumPaths() {
   return Q.all([
       clusternatorJson.get(),
@@ -498,8 +489,7 @@ function initializeOptionalDeployments(options, projectRoot) {
   let promises = [];
 
   if (options.circleCI) {
-    promises.push(
-      initializeCircleCIFile(projectRoot, options.clusternatorDir));
+    promises.push(circle.init(projectRoot, options.clusternatorDir));
   }
   if (options.backend === 'node') {
     promises.push(initializeServeSh(

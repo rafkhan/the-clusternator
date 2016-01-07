@@ -4,6 +4,7 @@ var gulp = require('gulp'),
   babel = require('gulp-babel'),
   eslint = require('gulp-eslint'),
   mocha = require('gulp-mocha'),
+  plumber = require('gulp-plumber'),
   istanbul = require('gulp-istanbul');
 
 var jsPaths = ['src/**/*.js'],
@@ -23,6 +24,7 @@ gulp.task('transpile-cli', function transpileCli() {
 
 gulp.task('transpile-src', function transpileSrc() {
   return gulp.src(jsPaths)
+    .pipe(plumber())
     .pipe(babel())
     .pipe(gulp.dest('lib'));
 });

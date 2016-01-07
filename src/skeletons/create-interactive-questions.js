@@ -155,7 +155,8 @@ function projectInit(defaults) {
       when: hasPassphrase,
       type: 'confirm',
       name: 'gitHooks',
-      message: 'Would you like git hooks installed that will encrypt/decrypt your .private files before/after commit, and after pulls?',
+      message: 'Would you like git hooks installed that will encrypt/decrypt ' +
+      'your .private files before/after commit, and after pulls?',
       default: true
     },
     {

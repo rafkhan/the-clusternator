@@ -87,15 +87,6 @@ describe('route53Manager', () => {
         ).to.equal('stuff');
       })
 
-    it('createAParams should return a complex AWS object', () => {
-      var result = route53.helpers.createAParams('test-1', '1.2.3.4',
-        'example.com.');
-      expect(result.ChangeBatch.Changes[0].Action).to.equal('CREATE');
-      expect(
-        result.ChangeBatch.Changes[0].ResourceRecordSet.ResourceRecords[0].Value
-      ).to.equal('1.2.3.4');
-    });
-
     it('findFirstTag should find the first matching tag in a "TagSet"', () => {
       var id = route53.helpers.findFirstTag([{
         Tags: []
