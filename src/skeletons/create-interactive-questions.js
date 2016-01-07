@@ -122,8 +122,7 @@ function projectInit(defaults) {
       type: 'input',
       name: 'deploymentsDir',
       message: 'Where will your appDefs/deployment files live?',
-      default: (answers) => answers.backend === 'static' ?
-        '.deployments': defaults.deploymentsDir,
+      default: defaults.deploymentsDir,
       validate: truthy
     },
     {
