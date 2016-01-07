@@ -8,6 +8,7 @@ const Q = require('q');
 
 const cn = require('../js/js-api');
 const cmn = require('../common');
+const Config = require('../../../config');
 
 var util = cmn.src('util');
 var clusternatorJson = cmn.src('clusternator-json');
@@ -65,11 +66,7 @@ function addPrivateToDockerIgnore(fullAnswers) {
   return cn.addPrivateToIgnore(DOCKER_IGNORE, fullAnswers.answers.private);
 }
 
-/**
- * @param {boolean} doOffline
- * @returns {Q.Promise}
- */
-function init(doOffline) {
+function initStage2(doOffline) {
   return getInitUserOptions()
     .then((initDetails) => cn
       .initProject(
@@ -78,6 +75,20 @@ function init(doOffline) {
       util.info('Clusternator: Initialization Error: ' + err.message);
       util.info(err.stack);
     });
+}
+
+/**
+ * @param {boolean} doOffline
+ * @returns {Q.Promise}
+ */
+function init(doOffline) {
+  if (Config().user) {
+    return initStage2(doOffline);
+  } else {
+    return Config
+      .interactiveUser()
+      .then(() => initStage2(doOffline));
+  }
 }
 
 
