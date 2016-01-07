@@ -14,6 +14,9 @@ const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
 const SKELETON = require('./skeletons/clusternator-json-skeleton');
 const RX_NEWLINE = /\r?\n/;
 const NEWLINE = '\r\n';
+const DEFAULT_PORT_INTERNAL_NODE = 3000;
+const DEFAULT_PORT_INTERNAL_STATIC = 80;
+const DEFAULT_PORT_EXTERNAL = 80;
 
 const Q = require('q');
 const path = require('path');
@@ -193,14 +196,79 @@ function validate(cJson) {
 }
 
 /**
+ * @param {Object} mainAnswers
+ * @param {Object} portAnswers
+ * @returns {boolean}
+ */
+function addPortAnswer(mainAnswers, portAnswers) {
+  if (!mainAnswers.ports) {
+    mainAnswers.ports = [];
+  }
+  const arePortsValid = mainAnswers.ports.reduce((prev, curr) => {
+    if (prev === false) {
+      return false;
+    }
+    if (portAnswers.portInternal === curr.portInternal) {
+      return false;
+    }
+    if (portAnswers.portExternal === curr.portExternal) {
+      return false;
+    }
+    return true;
+  }, true);
+  if (!arePortsValid) {
+    return false;
+  }
+  mainAnswers.ports.push({
+    portInternal: portAnswers.portInternal,
+    portExternal: portAnswers.portExternal,
+    protocol: portAnswers.protocol
+  });
+  return true;
+}
+
+function getDefaultPorts(answers, skipDefaults) {
+  if (skipDefaults) {
+    return { portInternal: '', portExternal: '' };
+  }
+  if (answers.backend === 'node') {
+    return {
+      portExternal: DEFAULT_PORT_EXTERNAL,
+      portInternal: DEFAULT_PORT_INTERNAL_NODE
+    };
+  }
+  return {
+    portExternal: DEFAULT_PORT_EXTERNAL,
+    portInternal: DEFAULT_PORT_INTERNAL_STATIC
+  };
+}
+
+function promptPorts(answers, skipDefaults) {
+  const ports = questions.projectPorts(getDefaultPorts(answers, skipDefaults));
+  return util
+    .inquirerPrompt(ports)
+    .then((portAnswers) => {
+      if (!addPortAnswer(answers, portAnswers)) {
+        util.warn(`${portAnswers.portInternal}:${portAnswers.portExternal} ` +
+        ` was not added.  The internal, or external port is already in mapped`);
+      }
+      if (portAnswers.moar) {
+        return promptPorts(answers, true);
+      }
+      return answers;
+    });
+}
+
+/**
  * @param {Object=} params
  * @returns {Q.Promise<Array>}
  */
 function createInteractive(params) {
-  var init = questions.projectInit(params);
+  const init = questions.projectInit(params);
 
   return util
     .inquirerPrompt(init)
+    .then(promptPorts)
     .then((answers) => {
       if (answers.passphraseInput === 'gen') {
         // generate

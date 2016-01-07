@@ -6,6 +6,15 @@ function truthy(value) {
   return value ? true : false;
 }
 
+function filterNumber(n) {
+  return +n;
+}
+
+function validatePort(a) {
+  return +a > 0 && +a < 65535;
+}
+
+
 function userInit(defaults) {
   return [
     {
@@ -49,6 +58,43 @@ function userInit(defaults) {
       message: 'Clusternator token',
       default: defaults.token || '',
       validate: truthy
+    }
+  ];
+}
+
+function projectPorts(defaults) {
+  defaults = defaults || {};
+
+  return [
+    {
+      type: 'input',
+      name: 'portExternal',
+      message: 'Please specify an external (public) port',
+      default: defaults.portExternal || '',
+      filter: filterNumber,
+      validate: validatePort
+    },
+    {
+      type: 'input',
+      name: 'portInternal',
+      message: 'Please specify an internal (container/docker) port',
+      default: defaults.portInternal || '',
+      filter: filterNumber,
+      validate: validatePort
+    },
+    {
+      type: 'list',
+      name: 'protocol',
+      message: 'Please specify a protocol',
+      choices: ['tcp', 'udp', 'all'],
+      filter: (a) => a === 'all' ? -1 : a,
+      default: 'tcp'
+    },
+    {
+      type: 'confirm',
+      name: 'moar',
+      message: 'Add more port mappings?',
+      default: false
     }
   ];
 }
@@ -170,5 +216,6 @@ function projectInit(defaults) {
 
 module.exports = {
   projectInit,
-  userInit
+  userInit,
+  projectPorts
 };

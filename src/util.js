@@ -134,11 +134,24 @@ function clone(obj) {
   }
 }
 
-function inquirerPrompt(qs) {
+/**
+ * @param {Array} qs
+ * @param {function(...)=} onEachAnswer
+ * @param {function(...)=} onEachError
+ * @param {function(...)=} onComplete
+ * @returns {Q.Promise}
+ */
+function inquirerPrompt(qs, onEachAnswer, onEachError, onComplete) {
   var d = Q.defer();
-  inquirer.prompt(qs, (answers) => {
-    d.resolve(answers);
-  });
+  if (typeof onEachAnswer === 'function') {
+    inquirer.prompt(qs, (answers) => {
+      d.resolve(answers);
+    }).process.subscribe(onEachAnswer, onEachError, onComplete);
+  } else {
+    inquirer.prompt(qs, (answers) => {
+      d.resolve(answers);
+    });
+  }
   return d.promise;
 }
 
