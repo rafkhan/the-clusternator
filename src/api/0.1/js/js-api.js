@@ -140,7 +140,7 @@ function addPrivateToIgnore(ignoreFile, privatePath) {
 
   return clusternatorJson
     .readIgnoreFile(path.join(getSkeletonPath(), ignoreFile), true)
-    .then((ignores) => ignores .concat(privatePath))
+    .then((ignores) => ignores.concat(privatePath))
     .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
 }
 

@@ -35,7 +35,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   function createEc2(creq) {
     return ec2mgr
       .createPr({
-        clusterName: creq.ame,
+        clusterName: creq.name,
         pid: creq.projectId,
         pr: creq.pr,
         sgId: creq.groupId,
@@ -140,6 +140,17 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   /**
    * @param {string} projectId
    * @param {string} pr
+   * @returns {Q.Promise}
+   */
+  function destroyElb(projectId, pr) {
+    return elb.destroyPr(projectId, pr)
+      //fail over
+      .fail((err) => util.warn(err));
+  }
+
+  /**
+   * @param {string} projectId
+   * @param {string} pr
    * @returns {Request}
    */
   function destroy(projectId, pr) {
@@ -150,6 +161,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
     return destroyRoutes(projectId, pr)
       .then(() => destroyEc2(projectId, pr, clusterName),
         () => destroyEc2(projectId, pr, clusterName))
+      .then(() => destroyElb(projectId, pr))
       .then((r) => task
         .destroy(clusterName)
         .fail((err) => {

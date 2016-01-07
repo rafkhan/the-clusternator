@@ -17,8 +17,8 @@ cd ..
 # Remove private folder
 rm -rf ./.private
 
-`aws ecr get-login --registry-ids ${REGISTRY_ID}`
-#docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} -e ${DOCKER_EMAIL}
+#`aws ecr get-login --registry-ids ${REGISTRY_ID}`
+docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} -e ${DOCKER_EMAIL}
 docker build -t ${IMAGE} ./
 docker push ${IMAGE}
 
