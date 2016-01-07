@@ -387,10 +387,18 @@ function ignorePath(ignoreFileName) {
 }
 
 
+/**
+ * @param {string} file
+ * @returns {string[]}
+ */
 function splitIgnoreFile(file) {
   return file.split(RX_NEWLINE);
 }
 
+/**
+ * @param {string} file
+ * @return {Q.Promise<string[]>}
+ */
 function readAndSplitIgnore(file) {
   return readFile(file, UTF8)
     .then(splitIgnoreFile)
@@ -427,18 +435,20 @@ function ignoreHasItem(toIgnore, ignores) {
 
 /**
  * @param {string} ignoreFileName
- * @param {string} toIgnore
+ * @param {string|string[]} toIgnore
  * @returns {Request|Promise.<T>|*}
  */
 function addToIgnore(ignoreFileName, toIgnore) {
   if (!Array.isArray(toIgnore)) {
     toIgnore = [toIgnore];
   }
-  return readIgnoreFile(ignoreFileName)
-    .then((ignores) => {
-      var output,
-        newIgnores = toIgnore
-          .filter((item) => ignores.indexOf(item) === -1);
+  return ignorePath(ignoreFileName)
+    .then((path) => readFile(path, UTF8)
+      .fail(() => '')) // not all starters might have ignore file, fail over
+    .then((rawIgnore) => {
+      const ignores = splitIgnoreFile(rawIgnore);
+      const newIgnores = toIgnore
+        .filter((item) => ignores.indexOf(item) === -1);
 
       if (!newIgnores.length) {
         // items already exists
@@ -447,8 +457,8 @@ function addToIgnore(ignoreFileName, toIgnore) {
 
       return ignorePath(ignoreFileName)
         .then((ignoreOutputFile) => {
-          ignores = ignores.concat(newIgnores);
-          output = ignores.join(NEWLINE);
+          const output = NEWLINE + rawIgnore + NEWLINE +
+            newIgnores.join(NEWLINE) + NEWLINE;
           return writeFile(ignoreOutputFile, output);
         });
     });
