@@ -222,13 +222,12 @@ function createInteractive(params) {
  */
 function skipIfExists(dir) {
   dir = fullPath(dir);
-  var d = Q.defer();
-  readFile(dir).then(() => {
-    d.reject(new Error(dir + ' already exists.'));
+  return readFile(dir)
+    .then(() => {
+    throw new Error(dir + ' already exists.');
   }, () => {
-    d.resolve();
+      return;
   });
-  return d.promise;
 }
 
 /**

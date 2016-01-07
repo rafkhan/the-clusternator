@@ -17,6 +17,7 @@ module.exports = {
   init
 };
 
+class ClusternatedError extends Error {}
 
 /**
  * @param {Object} results
@@ -72,6 +73,10 @@ function initStage2(doOffline) {
       .initProject(
         initDetails.root, initDetails.fullAnswers.answers, doOffline))
     .fail((err) => {
+      if (err instanceof ClusternatedError) {
+        util.info('Project is already clusternated (clusternator.json exists)');
+        return;
+      }
       util.info('Clusternator: Initialization Error: ' + err.message);
       util.info(err.stack);
     });
@@ -104,6 +109,9 @@ function applyUserConfig(params) {
   return params;
 }
 
+function failOnExists() {
+  throw new ClusternatedError();
+}
 
 /**
  * @returns {Q.Promise<Object>}
@@ -111,6 +119,7 @@ function applyUserConfig(params) {
 function getInitUserOptions() {
   return cn
     .getProjectRootRejectIfClusternatorJsonExists()
+    .fail(failOnExists)
     .then((root) =>clusternatorJson
       .findProjectNames(root)
       .then(pickBestName)
