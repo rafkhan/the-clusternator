@@ -25,7 +25,7 @@ function userInit(defaults) {
     {
       type: 'input',
       name: 'tld',
-      message: 'Top Level Domain For Project DNS',
+      message: 'Top Level Domain (TLD) Projects Will Be Served From',
       default: defaults.tld || '',
       validate: truthy
     },

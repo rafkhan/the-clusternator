@@ -91,6 +91,19 @@ function init(doOffline) {
   }
 }
 
+/**
+ * @param {Object} params
+ * @returns {Object}
+ */
+function applyUserConfig(params) {
+  const c = Config();
+  if (!c.user) {
+    return params;
+  }
+  params.tld = c.user.tld || '';
+  return params;
+}
+
 
 /**
  * @returns {Q.Promise<Object>}
@@ -101,6 +114,7 @@ function getInitUserOptions() {
     .then((root) =>clusternatorJson
       .findProjectNames(root)
       .then(pickBestName)
+      .then(applyUserConfig)
       .then(clusternatorJson.createInteractive)
       .then((results) => Q
         .all([
