@@ -4,17 +4,6 @@ const rid = require('../resourceIdentifier');
 const Q = require('q');
 
 /**
- * @param {string} name
- * @returns {string}
- */
-function clusternatePrefixString(name) {
-  if (name.indexOf(constants.CLUSTERNATOR_PREFIX) !== 0) {
-    name = constants.CLUSTERNATOR_PREFIX + name;
-  }
-  return name;
-}
-
-/**
  * @param {string} pid
  * @param {string} pr
  * @param {string} id
@@ -479,7 +468,6 @@ module.exports = {
   getProjectIdFilter,
   getPrFilter,
   getDeploymentFilter,
-  clusternatePrefixString,
   setSubnet,
   createElbEc2,
   createTask,

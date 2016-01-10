@@ -2,6 +2,7 @@
 
 const common = require('../common');
 const util = require('../../util');
+const rid = require('../../resourceIdentifier');
 
 module.exports = {
   create,
@@ -22,7 +23,7 @@ function create(aws, name) {
   if (!name) {
     throw new TypeError('ECR: create requires a name');
   }
-  name = common.clusternatePrefixString(name);
+  name = rid.clusternatePrefixString(name);
   return aws.ecr
     .createRepository({
       repositoryName: name })
@@ -43,7 +44,7 @@ function destroy(aws, name) {
   if (!name) {
     throw new TypeError('ECR: destroy requires a name');
   }
-  name = common.clusternatePrefixString(name);
+  name = rid.clusternatePrefixString(name);
   return aws.ecr
     .deleteRepository({
       repositoryName: name })

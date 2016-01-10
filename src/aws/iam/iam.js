@@ -2,6 +2,7 @@
 
 const constants = require('../../constants');
 const common = require('../common');
+const rid = require('../../resourceIdentifier');
 
 module.exports = {
   listServerCertificates,    // filtered for clusternator
@@ -13,7 +14,8 @@ module.exports = {
   createPolicy,
   destroyPolicy,
   attachPolicy,
-  listUsers
+  describeUsers,
+  describeUser
 };
 
 /**
@@ -21,8 +23,12 @@ module.exports = {
  * @param {string} policyArn
  * @param {string} userName
  * @returns {Q.Promise}
+ * @throws {TypeError}
  */
 function attachPolicy(aws, policyArn, userName) {
+  if (!userName || !policyArn) {
+    throw new TypeError('IAM: attachPolicy requires policyArn, and userName');
+  }
   return aws.iam.attachPolicy({
     PolicyArn: policyArn,
     UserName: userName
@@ -37,7 +43,10 @@ function attachPolicy(aws, policyArn, userName) {
  * @returns {Q.Promise}
  */
 function createPolicy(aws, name, policy, description) {
-  name = common.clusternatePrefixString(name);
+  if (!name || !policy) {
+    throw new TypeError('IAM: createUser requires a name, and policy document');
+  }
+  name = rid.clusternatePrefixString(name);
   description = description || 'Clusternator Policy';
   return aws.iam.createPolicy({
     PolicyName: name,
@@ -50,8 +59,12 @@ function createPolicy(aws, name, policy, description) {
  * @param {AwsWrapper} aws
  * @param {string} arn
  * @returns {Q.Promise}
+ * @throws {TypeError}
  */
 function destroyPolicy(aws, arn) {
+  if (!arn) {
+    throw new TypeError('IAM: destroy policy requires arn');
+  }
   return aws.iam.deletePolicy({
     PolicyArn: arn
   });
@@ -62,36 +75,65 @@ function destroyPolicy(aws, arn) {
  * @param {AwsWrapper} aws
  * @param {string} name
  * @returns {Q.Promise}
+ * @throws {TypeError}
  */
 function createUser(aws, name) {
-  name = common.clusternatePrefixString(name);
+  if (!name) {
+    throw new TypeError('IAM: createUser requires name');
+  }
+  name = rid.clusternatePrefixString(name);
   return aws.iam.createUser({
     UserName: name
-  });
+  }).fail(() => describeUser(aws, name));
 }
 
 /**
  * @param {AwsWrapper} aws
  * @param {string} name
  * @returns {Q.Promise}
+ * @throws {TypeError}
  */
 function destroyUser(aws, name) {
-  name = common.clusternatePrefixString(name);
+  if (!name) {
+    throw new TypeError('IAM: createUser requires name');
+  }
+  name = rid.clusternatePrefixString(name);
   return aws.iam.deleteUser({
-    UserName: name
-  });
+      UserName: name })
+    .fail((err) => describeUser(aws, name)
+      // if the user doesn't exist, we don't care
+      .fail(() => null));
 }
 
 /**
  * @param {AwsWrapper} aws
- * @returns {Q.Promise}
+ * @returns {Q.Promise<Object[]>}
  */
-function listUsers(aws) {
+function describeUsers(aws) {
   return aws.iam
     .listUsers()
     .then((results) => results
-      .Users.filter((user) => user
-        .UserName.indexOf(constants.CLUSTERNATOR_PREFIX) === 0));
+      .Users.filter((user) => rid
+        .isPrefixed(user.UserName)));
+}
+
+function filterByName(users, name) {
+  return users.filter((user) => user.UserName === name );
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise<Object>}
+ * @throws {TypeError}
+ */
+function describeUser(aws, name) {
+  if (!name) {
+    throw new TypeError('IAM: describeUser requires a name');
+  }
+  return describeUsers(aws)
+    .then((users) => filterByName(users, rid
+      .clusternatePrefixString(name))[0] || null);
 }
 
 /**
@@ -109,7 +151,7 @@ function uploadServerCertificate(aws, certificate, privateKey, chain, certId) {
   certId = certId ||
     `${constants.CLUSTERNATOR_PREFIX}-${(+Date.now()).toString(16)}`;
   chain = chain || '';
-  certId = common.clusternatePrefixString(certId);
+  certId = rid.clusternatePrefixString(certId);
   return aws.iam.uploadServerCertificate({
     CertificateBody: certificate,
     PrivateKey: privateKey,
@@ -136,8 +178,7 @@ function deleteServerCertificate(aws, certId) {
  * @returns {boolean}
  */
 function filterClusternatorTag(item) {
-  return item
-      .ServerCertificateName.indexOf(constants.CLUSTERNATOR_PREFIX) === 0;
+  return rid.isPrefixed(item.ServerCertificateName);
 }
 
 /**
