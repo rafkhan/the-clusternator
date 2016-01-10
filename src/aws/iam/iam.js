@@ -1,5 +1,6 @@
 'use strict';
 
+const Q = require('q');
 const policies = { ecr: require('./ecr-policies') }
 const constants = require('../../constants');
 const common = require('../common');
@@ -20,8 +21,77 @@ module.exports = {
   describeUser,
   describePolicy,
   describePolicies,
-  policyArn
+  policyArn,
+  describeAccessKeys,
+  createAccessKey,
+  destroyAccessKeys,
+  describeAccessKey
 };
+
+function describeAccessKey(aws, name) {
+  return describeAccessKeys(aws, name)
+    .then((result) => {
+      if (result[0]) {
+        return result[0];
+      }
+      throw new Error(`IAM: describeAccessKey: ${name} not found`);
+    });
+}
+
+/**
+ * @param aws
+ * @param name
+ * @returns {Q.Promise<Object>}
+ */
+function describeAccessKeys(aws, name) {
+  name = rid.clusternatePrefixString(name);
+  return aws.iam.listAccessKeys({
+      UserName: name})
+    .then((desc) => {
+      const result = desc.AccessKeyMetadata;
+      if (result.length) {
+        return result;
+      }
+      throw new Error(`IAM: No keys found for [name] `);
+    });
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise<Object>}
+ * @throws {TypeError}
+ */
+function createAccessKey(aws, name) {
+  if (!name) {
+    throw new TypeError('IAM: createAccessKey requires user name');
+  }
+  name = rid.clusternatePrefixString(name);
+  return describeAccessKeys(aws, name)
+    .then((results) => results[0])
+    .fail(() => aws.iam.createAccessKey({
+      UserName: name })
+      .then((result) => result.AccessKey));
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise}
+ * @throws {TypeError}
+ */
+function destroyAccessKeys(aws, name) {
+  if (!name) {
+    throw new TypeError('IAM: createAccessKey requires a name');
+  }
+  name = rid.clusternatePrefixString(name);
+  return describeAccessKeys(aws, name)
+  .then((keys) => Q
+    .all(keys.map((kDesc) => aws.iam
+      .deleteAccessKey({
+        UserName: name,
+        AccessKeyId:  kDesc.AccessKeyId}))));
+}
 
 /**
  * @param {AwsWrapper} aws
@@ -34,7 +104,8 @@ function attachPolicy(aws, policyArn, userName) {
   if (!userName || !policyArn) {
     throw new TypeError('IAM: attachPolicy requires policyArn, and userName');
   }
-  return aws.iam.attachPolicy({
+  userName = rid.clusternatePrefixString(userName);
+  return aws.iam.attachUserPolicy({
     PolicyArn: policyArn,
     UserName: userName
   });
