@@ -25,6 +25,7 @@ module.exports = {
   cluster: require('./cluster.spec'),
   deployment: require('./deployment.spec'),
   ec2: require('./ec2.spec'),
+  ecr: require('./ecr.spec'),
   pr: require('./pr.spec'),
   project: require('./project.spec'),
   r53: require('./route53.spec'),
