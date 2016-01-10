@@ -23,6 +23,7 @@ module.exports = {
   describePolicies,
   policyArn,
   describeAccessKeys,
+  reCreateAccessKey,
   createAccessKey,
   destroyAccessKeys,
   describeAccessKey
@@ -56,6 +57,11 @@ function describeAccessKeys(aws, name) {
     });
 }
 
+function reCreateAccessKey(aws, name) {
+  return destroyAccessKeys(aws, name)
+  .then(() => createAccessKey(aws, name));
+}
+
 /**
  * @param {AwsWrapper} aws
  * @param {string} name
@@ -68,9 +74,10 @@ function createAccessKey(aws, name) {
   }
   name = rid.clusternatePrefixString(name);
   return describeAccessKeys(aws, name)
-    .then((results) => results[0])
-    .fail(() => aws.iam.createAccessKey({
-      UserName: name })
+    .then(() => {
+      throw new Error(`IAM ${name} already has a key: Try recreate`);
+    }, () => aws.iam.createAccessKey({
+        UserName: name })
       .then((result) => result.AccessKey));
 }
 
