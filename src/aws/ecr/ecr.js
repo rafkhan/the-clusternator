@@ -48,9 +48,9 @@ function destroy(aws, name) {
   return aws.ecr
     .deleteRepository({
       repositoryName: name })
-    .fail(() => describeName(aws, name)
+    .fail((err) => describeName(aws, name)
       // if there's no name it was already deleted, this is fine
-      .fail(() => null));
+      .then(() => { throw err; }, () => null));
 }
 
 /**
@@ -76,7 +76,7 @@ function describeName(aws, name) {
 function describe(aws, name) {
   const params = {};
   if (name) {
-    params.repositoryNames = [name];
+    params.repositoryNames = [rid.clusternatePrefixString(name)];
   }
   return aws.ecr
     .describeRepositories(params)
