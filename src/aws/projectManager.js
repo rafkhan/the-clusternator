@@ -128,6 +128,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    * @returns {Q.Promise}
    */
   function createDeployment(pid, dep, sha, appDef) {
+    console.log('sha', sha);
     return findOrCreateProject(pid).then((snDesc) => {
       return deployment.create( pid, dep, sha, appDef );
     });
@@ -186,6 +187,14 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
     });
   }
 
+  function updateDeployment(pid, dep, sha, appDef) {
+    // call deployment manager
+    return findOrCreateProject(pid)
+      .then((snDesc) => {
+        return deployment.update(pid, dep, sha, appDef);
+      }, Q.reject);
+  }
+
 
   return Q.all([
      vpc.findProject(),
@@ -211,6 +220,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
       destroyDeployment,
       describeProject,
       listProjects,
+      updateDeployment,
 
       deployment,
       pr: pullRequest,

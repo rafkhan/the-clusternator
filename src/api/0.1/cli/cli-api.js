@@ -87,6 +87,14 @@ module.exports = (yargs) => {
       cn.stop(y.argv.d, y.argv.s).done();
     })
 
+    .command('update', 'Updates a deployment in place', (y) => {
+      y.demand('d').
+      alias('d', 'deployment-name').
+      describe('d', 'Requires a deployment name');
+
+      cn.update(y.argv.d).done();
+    })
+
     .command('generate-deployment', 'Generates a deployment config', (y) => {
       y.demand('d').
       alias('d', 'deployment-name').

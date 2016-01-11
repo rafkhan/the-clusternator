@@ -85,7 +85,10 @@ function getTaskServiceManager(ecs) {
 
     function destroyAllServices(serviceArns) {
       var destroyPromise = R.map(destroyService, serviceArns);
-      return q.all(destroyPromise);
+      return q.all(destroyPromise)
+              .then(() => {
+                return serviceDrained(clusterArn, serviceArns);
+              });
     }
 
     return listServices(clusterArn)
@@ -135,8 +138,41 @@ function getTaskServiceManager(ecs) {
     return d.promise;
   }
 
+  function checkForInactiveService(result) {
+    if (!result.services || !result.services.length) {
+      return false;
+    }
+
+    var service = result.services[0];
+    return service.status === 'INACTIVE';
+  }
+
+  function serviceDrained(clusterArn, serviceArns) {
+    var d = q.defer();
+    ecs
+      .describeServices({
+        services: serviceArns,
+        cluster: clusterArn })
+      .then((result) => {
+        var isInactive = checkForInactiveService(result);
+        if (isInactive) {
+          util.info('Service has drained');
+          d.resolve();
+        } else {
+          util.info('Service is draining');
+          setTimeout(() => {
+            serviceDrained(clusterArn, serviceArns)
+              .then(d.resolve, d.reject);
+          }, SERVICE_POLL_DELAY);
+        }})
+      .fail(d.reject);
+    return d.promise;
+  }
+
   /**
    * This is the cool part.
+   *
+   * clusterArn isn't actually an ARN?
    */
   function createTasksAndServicesOnCluster(clusterArn, serviceName, appDef) {
 
