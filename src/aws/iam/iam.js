@@ -5,6 +5,8 @@ const policies = { ecr: require('./ecr-policies') }
 const constants = require('../../constants');
 const common = require('../common');
 const rid = require('../../resourceIdentifier');
+const ECR_USER_TAG = 'ecr-user';
+const ECR_GENERAL_TAG = 'ecr-general';
 
 module.exports = {
   listServerCertificates,    // filtered for clusternator
@@ -14,7 +16,11 @@ module.exports = {
   createUser,
   destroyUser,
   createPolicy,
+  createEcrPolicies,
   createEcrUserPolicy,
+  createEcrGeneralPolicy,
+  ecrGeneralPolicyArn,
+  ecrUserPolicyArn,
   destroyPolicy,
   attachPolicy,
   describeUsers,
@@ -138,16 +144,51 @@ function createPolicy(aws, name, policy, description) {
     .fail((err) => describePolicy(aws, name));
 }
 
+function createEcrUserPolicyName(name) {
+  return name + ECR_USER_TAG;
+}
+
+function createEcrGeneralPolicyName(name) {
+  return name + ECR_GENERAL_TAG;
+}
+
 /**
  * @param {AwsWrapper} aws
  * @param {string} name
- * @param {string} policy
- * @param {string} description
+ * @param {string} registryArn
+ * @param {string=} description
  * @returns {Q.Promise}
  */
-function createEcrUserPolicy(aws, name, regisryArn, description) {
-  return createPolicy(aws, name, policies.ecr.user(regisryArn), description);
+function createEcrUserPolicy(aws, name, registryArn, description) {
+  return createPolicy(aws, createEcrUserPolicyName(name),
+    policies.ecr.user(registryArn), description);
 }
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @param {string=} description
+ * @returns {Q.Promise}
+ */
+function createEcrGeneralPolicy(aws, name,  description) {
+  return createPolicy(aws, createEcrGeneralPolicyName(name),
+    policies.ecr.general(), description);
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @param {string} registryArn
+ * @param {string=} description
+ * @returns {Q.Promise}
+ */
+function createEcrPolicies(aws, name, registryArn, description) {
+  return Q.all([
+    createEcrGeneralPolicy(aws, name, description),
+    createEcrUserPolicy(aws, name, registryArn, description)
+  ]);
+}
+
 
 /**
  * @param {AwsWrapper} aws
@@ -243,6 +284,14 @@ function describePolicy(aws, name) {
 function policyArn(aws, name) {
   return describePolicy(aws, name)
     .then((desc) => desc.Arn);
+}
+
+function ecrGeneralPolicyArn(aws, name) {
+  return policyArn(aws, createEcrGeneralPolicyName(name));
+}
+
+function ecrUserPolicyArn(aws, name) {
+  return policyArn(aws, createEcrUserPolicyName(name));
 }
 
 /**

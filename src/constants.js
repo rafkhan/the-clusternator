@@ -72,32 +72,16 @@ const constants = Object.freeze({
 
     InstanceType: AWS_DEFAULT_EC2_TYPE,
 
-    // XXX IF YOU WANT TO SSH INTO THIS BOX THIS HAS TO BE SUPPLIED
-    // @todo maybe ssh for tail logging?
-    // KeyName: 'STRING_VALUE',
-
     Monitoring: {
       // @todo investigate cloud watch
       Enabled: true /* required */
     },
 
-    NetworkInterfaces: [
-      // {
-      //  DeviceIndex: 0,
-      //  NetworkInterfaceId: NETWORK_INTERFACE_ID,
-      //  AssociatePublicIpAddress: true,
-      //  SubnetId: 'subnet-0b251420',
-      //  DeleteOnTermination: true,
-      //  Groups: ['sg-692ee50e']
-      // }
-    ],
+    NetworkInterfaces: [ ],
 
     Placement: {
       Tenancy: 'default'
     }
-
-    // TODO INSTALL ECS AGENT HERE
-    //UserData: 'STRING_VALUE'
   })
 });
 

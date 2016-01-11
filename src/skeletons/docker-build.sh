@@ -1,8 +1,7 @@
 #!/bin/bash
 
-IMAGE="rafkhan/"${CIRCLE_PROJECT_REPONAME}:pr-${CIRCLE_BUILD_NUM}
-REGISTRY_ID=""
 
+IMAGE="rafkhan/"${CIRCLE_PROJECT_REPONAME}:pr-${CIRCLE_BUILD_NUM}
 export IMAGE
 
 set -e

@@ -1,9 +1,28 @@
 'use strict';
 
 module.exports = {
-  user
+  user,
+  general
 };
 
+/**
+ * @reutrns {string}
+ */
+function general() {
+  return JSON.stringify({
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Effect: 'Allow',
+        Action: [
+          'ecr:GetAuthorizationToken',
+          'ecr:GetManifest'
+        ],
+        Resource: '*'
+      }
+    ]
+  });
+}
 /**
  * @param {string} registryArn
  * @returns {string}
@@ -19,7 +38,6 @@ function user(registryArn) {
     {
       Effect: 'Allow',
       Action: [
-        'ecr:GetAuthorizationToken',
         'ecr:BatchCheckLayerAvailability',
         'ecr:GetDownloadUrlForLayer',
         'ecr:GetRepositoryPolicy',
