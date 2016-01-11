@@ -61,6 +61,7 @@ module.exports = {
   privateDiff,
   deploy,
   stop,
+  update,
   startServer,
   initProject,
   makePrivate,
@@ -419,6 +420,31 @@ function stop(name, sha) {
     );
 }
 
+function update(name) {
+  return clusternatorJson
+    .get()
+    .then((cJson) => {
+      var dPath = path.join(cJson.deploymentsDir, name + '.json');
+      return Q
+        .all([
+          getProjectAPI(),
+          git.shaHead(),
+          readFile(dPath, UTF8)
+            .fail(getAppDefNotFound(dPath))])
+        .then((results) => {
+          var projectAPI = results[0];
+          var sha = sha || results[1];
+          var appDefStr = results[2];
+
+          return update_(projectAPI, cJson, appDefStr, name, sha);
+        }).fail((err) => {
+          //util.info('Clusternator: Error stopping deployment: ' + err.message);
+          //util.info(err.stack);
+          console.log('ERR', err.stack);
+        });
+      });
+}
+
 
 function startServer(config) {
   return server.startServer(config);
@@ -448,6 +474,34 @@ function deploy_(pm, cJson, appDefStr, deployment, sha) {
     config.useInternalSSL || false
   ).then((result) => {
     util.info('Deployment will be available at ', result);
+  });
+}
+
+/**
+ * @param {ProjectManager} pm
+ * @param {Object} cJson
+ * @param {string} appDefStr
+ * @param {string} deployment
+ * @param {string} sha
+ * @returns {Request|Promise.<T>}
+ * @private
+ */
+function update_(pm, cJson, appDefStr, deployment, sha) {
+  util.info('Updating deployment...');
+  var appDef = util.safeParse(appDefStr);
+  if (!appDef) {
+    throw new Error('Deployment failed, error parsing appDef');
+  }
+
+  return pm.updateDeployment(
+    cJson.projectId,
+    deployment,
+    sha,
+    appDef
+  ).then((result) => {
+    util.info('Deployment updated', result);
+  }, (err) => {
+    return Q.reject(err);
   });
 }
 

@@ -13,7 +13,7 @@ RUN mkdir /home/app
 COPY . /home/app/
 
 # install the application
-RUN cd /home/app/; npm install
+RUN cd /home/app/; npm install;
 
 ## Expose the ports
 EXPOSE 9090
