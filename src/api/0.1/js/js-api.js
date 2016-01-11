@@ -8,12 +8,12 @@ const SERVE_SH = 'serve.sh';
 const DECRYPT_SH = 'decrypt.sh';
 const DOCKER_BUILD_SH = 'docker-build.sh';
 const NOTIFY_JS = 'notify.js';
-const CIRCLEFILE = 'circle.yml';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
 const PRIVATE_CHECKSUM = '.private-checksum';
 const DEFAULT_API = /\$DEFAULT_API/g;
 const HOST = /\$HOST/g;
+const PROJECT_CREDS_FILE = 'aws-project-credentials.json';
 
 const Q = require('q');
 const fs = require('fs');
@@ -35,12 +35,13 @@ const appDefSkeleton = cmn.src('skeletons', 'app-def');
 
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
+const circle = cmn.src('circle-ci');
 
 const server = cmn.src('server', 'main');
 
-const writeFile = Q.nbind(fs.writeFile, fs),
-  readFile = Q.nbind(fs.readFile, fs),
-  chmod = Q.nbind(fs.chmod, fs);
+const writeFile = Q.nbind(fs.writeFile, fs);
+const readFile = Q.nbind(fs.readFile, fs);
+const chmod = Q.nbind(fs.chmod, fs);
 
 
 module.exports = {
@@ -54,7 +55,6 @@ module.exports = {
   getSkeletonFile,
   initializeDeployments,
   initializeScripts,
-  initializeCircleCIFile,
   addPrivateToIgnore,
   initializeServeSh,
   privateChecksum,
@@ -89,10 +89,22 @@ function initializeSharedKey() {
   return gpg.generatePass();
 }
 
-function provisionProjectNetwork(projectId, output) {
+function writeCreds(privatePath, creds) {
+  util.info('NOTICE: Project Docker Credentials are being overwritten with ' +
+    'new credentials, if there were previous credentials, they have been ' +
+    'revoked. If you\'re reading this message, this will *not* impact you, ' +
+    'however it *will* impact any other team members you\'re working with ' +
+    'until your changes are committed to the master repo for this project');
+  return writeFile(
+    path.join(privatePath, PROJECT_CREDS_FILE),
+    JSON.stringify(creds, null, 2), UTF8);
+}
+
+function provisionProjectNetwork(projectId, output, privatePath) {
   return getProjectAPI()
     .then((pm) =>  pm
       .create(projectId)
+      .then((details) => writeCreds(privatePath, details.credentials))
       .then(() => util
         .info(output + ' Network Resources Checked'))
       .then(() => pm
@@ -141,7 +153,7 @@ function addPrivateToIgnore(ignoreFile, privatePath) {
 
   return clusternatorJson
     .readIgnoreFile(path.join(getSkeletonPath(), ignoreFile), true)
-    .then((ignores) => ignores .concat(privatePath))
+    .then((ignores) => ignores.concat(privatePath))
     .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
 }
 
@@ -297,14 +309,6 @@ function initializeServeSh(root) {
     })
     .then(() => {
       return chmod(sPath, '755');
-    });
-}
-
-function initializeCircleCIFile(root, clustDir) {
-  return getSkeletonFile(CIRCLEFILE)
-    .then((contents) => {
-      contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
-      return writeFile(path.join(root, CIRCLEFILE), contents);
     });
 }
 
@@ -538,7 +542,7 @@ function initProject(root, options, skipNetwork) {
         return;
       }
 
-      return provisionProjectNetwork(projectId, output);
+      return provisionProjectNetwork(projectId, output, options.private);
     });
 }
 
@@ -552,8 +556,7 @@ function initializeOptionalDeployments(options, projectRoot) {
   let promises = [];
 
   if (options.circleCI) {
-    promises.push(
-      initializeCircleCIFile(projectRoot, options.clusternatorDir));
+    promises.push(circle.init(projectRoot, options.clusternatorDir));
   }
   if (options.backend === 'node') {
     promises.push(initializeServeSh(

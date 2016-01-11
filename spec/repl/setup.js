@@ -15,6 +15,11 @@ function getIam() {
   return new a.IAM(config.awsCredentials);
 }
 
+function getEcr() {
+  var config = c();
+  return new a.ECR(config.awsCredentials);
+}
+
 function getEc2() {
   var config = c();
   return new a.EC2(config.awsCredentials);
@@ -51,6 +56,7 @@ module.exports = {
   getEc2,
   getEcs,
   getElb,
+  getEcr,
   getIam,
   getRoute53,
   getDDB,

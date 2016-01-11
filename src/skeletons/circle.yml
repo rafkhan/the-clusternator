@@ -6,9 +6,7 @@ machine:
 
 dependencies:
   pre:
-    - sudo apt-get install -y libffi-dev libssl-dev
-    - pip install requests[security]
-    - pip install awscli
+    - sudo npm install -g aws-sdk
   post:
     - ./$CLUSTERNATOR_DIR/decrypt.sh
 

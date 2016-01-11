@@ -160,7 +160,7 @@ function getConfig() {
 
 /**
  * @param {{ host: string, username: string, token: string, name: string=,
- email: string=, apiVersion: string= }} options
+ email: string=, apiVersion: string=, tld: string= }} options
  * @return {Q.Promise}
  */
 function writeUserConfig(options) {
@@ -173,6 +173,7 @@ function writeUserConfig(options) {
   return writeFile(DOT_CLUSTERNATOR_CONFIG, JSON.stringify({
     name: options.name || 'Mysterious Stranger',
     email: options.email || '',
+    tld: options.tld || 'example.com',
     credentials: {
       user: options.username,
       token: options.token,
@@ -197,6 +198,7 @@ function interactiveUser() {
     .inquirerPrompt(questions.userInit({
       name: user.name || 'Mysterious Stranger',
       email: user.email || '',
+      tld: user.tld || 'example.com',
       host: user.credentials.host || '',
       username: user.credentials.user || '',
       token: maskString(user.credentials.token) || '',

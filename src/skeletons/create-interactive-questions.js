@@ -1,10 +1,19 @@
 'use strict';
-var skeleton = require('./clusternator-json-skeleton'),
-  util = require('../util');
+const skeleton = require('./clusternator-json-skeleton');
+const util = require('../util');
 
 function truthy(value) {
   return value ? true : false;
 }
+
+function filterNumber(n) {
+  return +n;
+}
+
+function validatePort(a) {
+  return +a > 0 && +a < 65535;
+}
+
 
 function userInit(defaults) {
   return [
@@ -24,9 +33,16 @@ function userInit(defaults) {
     },
     {
       type: 'input',
+      name: 'tld',
+      message: 'Top Level Domain (TLD) Projects Will Be Served From',
+      default: defaults.tld || '',
+      validate: truthy
+    },
+    {
+      type: 'input',
       name: 'host',
       message: 'Clusternator Server Address',
-      default: defaults.host || '',
+      default: (ans) => defaults.host || `the-clusternator.${ans.tld}`,
       validate: truthy
     },
     {
@@ -37,11 +53,48 @@ function userInit(defaults) {
       validate: truthy
     },
     {
-      type: 'input',
+      type: 'password',
       name: 'token',
       message: 'Clusternator token',
       default: defaults.token || '',
       validate: truthy
+    }
+  ];
+}
+
+function projectPorts(defaults) {
+  defaults = defaults || {};
+
+  return [
+    {
+      type: 'input',
+      name: 'portExternal',
+      message: 'Please specify an external (public) port',
+      default: defaults.portExternal || '',
+      filter: filterNumber,
+      validate: validatePort
+    },
+    {
+      type: 'input',
+      name: 'portInternal',
+      message: 'Please specify an internal (container/docker) port',
+      default: defaults.portInternal || '',
+      filter: filterNumber,
+      validate: validatePort
+    },
+    {
+      type: 'list',
+      name: 'protocol',
+      message: 'Please specify a protocol',
+      choices: ['tcp', 'udp', 'all'],
+      filter: (a) => a === 'all' ? -1 : a,
+      default: 'tcp'
+    },
+    {
+      type: 'confirm',
+      name: 'moar',
+      message: 'Add more port mappings?',
+      default: false
     }
   ];
 }
@@ -115,8 +168,7 @@ function projectInit(defaults) {
       type: 'input',
       name: 'deploymentsDir',
       message: 'Where will your appDefs/deployment files live?',
-      default: (answers) => answers.backend === 'static' ?
-        '.deployments': defaults.deploymentsDir,
+      default: defaults.deploymentsDir,
       validate: truthy
     },
     {
@@ -149,7 +201,8 @@ function projectInit(defaults) {
       when: hasPassphrase,
       type: 'confirm',
       name: 'gitHooks',
-      message: 'Would you like git hooks installed that will encrypt/decrypt your .private files before/after commit, and after pulls?',
+      message: 'Would you like git hooks installed that will encrypt/decrypt ' +
+      'your .private files before/after commit, and after pulls?',
       default: true
     },
     {
@@ -163,5 +216,6 @@ function projectInit(defaults) {
 
 module.exports = {
   projectInit,
-  userInit
+  userInit,
+  projectPorts
 };

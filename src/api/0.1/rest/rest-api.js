@@ -105,7 +105,7 @@ function makePrCreate(pm) {
         .then((prResult) => {
           return slack.message(`Create: ${projectId}, PR ${pr} ` +
             `successful.  Application will be available at ` +
-            `<http://${prResult.url}>`,
+            `<https://${prResult.url}>`,
             project.channel);
         })
         .fail((err) => {
@@ -166,7 +166,7 @@ function makePrCreateFull(pm) {
         }).then((prResult) => {
           return slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha} ` +
             `successful.  Application will be available at ` +
-            `<http://${prResult.url}>`,
+            `<https://${prResult.url}>`,
             project.channel);
         }).fail((err) => {
           slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha} ` +

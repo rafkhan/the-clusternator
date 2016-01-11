@@ -1,7 +1,12 @@
 'use strict';
 
+const Q = require('q');
+const policies = { ecr: require('./ecr-policies') }
 const constants = require('../../constants');
 const common = require('../common');
+const rid = require('../../resourceIdentifier');
+const ECR_USER_TAG = 'ecr-user';
+const ECR_GENERAL_TAG = 'ecr-general';
 
 module.exports = {
   listServerCertificates,    // filtered for clusternator
@@ -9,21 +14,167 @@ module.exports = {
   deleteServerCertificate,
   uploadServerCertificate,
   createUser,
+  createProjectUser,
+  destroyProjectUser,
   destroyUser,
   createPolicy,
+  createEcrPolicies,
+  createEcrUserPolicy,
+  createEcrGeneralPolicy,
+  ecrGeneralPolicyArn,
+  ecrUserPolicyArn,
   destroyPolicy,
   attachPolicy,
-  listUsers
+  detachPolicy,
+  describeUsers,
+  describeUser,
+  describePolicy,
+  describePolicies,
+  policyArn,
+  policyArns,
+  describeAccessKeys,
+  reCreateAccessKey,
+  createAccessKey,
+  destroyAccessKeys,
+  describeAccessKey
 };
+
+function describeAccessKey(aws, name) {
+  return describeAccessKeys(aws, name)
+    .then((result) => {
+      if (result[0]) {
+        return result[0];
+      }
+      throw new Error(`IAM: describeAccessKey: ${name} not found`);
+    });
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} registryArn
+ * @returns {Request|Promise.<T>|*}
+ */
+function createProjectUser(aws, projectId, registryArn) {
+  return Q.all([
+    createUser(aws, projectId),
+    createEcrPolicies(aws, projectId, registryArn,
+      `Clusternator created for ${projectId}`) ])
+    .then((results) => Q
+      .all([
+        attachPolicy(aws, results[1][0].Arn, projectId),
+        attachPolicy(aws, results[1][1].Arn, projectId) ])
+      .then(() => reCreateAccessKey(aws, projectId)));
+}
+
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @returns {Request}
+ */
+function destroyProjectUser(aws, projectId) {
+  return policyArns(aws, projectId)
+    .then((arns) => Q
+      .all(arns.map((arn) => detachPolicy(aws, arn, projectId)))
+      .then(() => Q
+        .all(arns.map((arn) => destroyPolicy(aws, arn)))))
+    .then(() => destroyAccessKeys(aws, projectId))
+    .then(() => destroyUser(aws, projectId));
+}
+
+/**
+ * @param aws
+ * @param name
+ * @returns {Q.Promise<Object>}
+ */
+function describeAccessKeys(aws, name) {
+  name = rid.clusternatePrefixString(name);
+  return aws.iam.listAccessKeys({
+      UserName: name})
+    .then((desc) => {
+      const result = desc.AccessKeyMetadata;
+      if (result.length) {
+        return result;
+      }
+      throw new Error(`IAM: No keys found for [name] `);
+    });
+}
+
+function reCreateAccessKey(aws, name) {
+  return destroyAccessKeys(aws, name)
+  .then(() => createAccessKey(aws, name), () => createAccessKey(aws, name));
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise<Object>}
+ * @throws {TypeError}
+ */
+function createAccessKey(aws, name) {
+  if (!name) {
+    throw new TypeError('IAM: createAccessKey requires user name');
+  }
+  name = rid.clusternatePrefixString(name);
+  return describeAccessKeys(aws, name)
+    .then(() => {
+      throw new Error(`IAM ${name} already has a key: Try recreate`);
+    }, () => aws.iam.createAccessKey({
+        UserName: name })
+      .then((result) => result.AccessKey));
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise}
+ * @throws {TypeError}
+ */
+function destroyAccessKeys(aws, name) {
+  if (!name) {
+    throw new TypeError('IAM: createAccessKey requires a name');
+  }
+  name = rid.clusternatePrefixString(name);
+  return describeAccessKeys(aws, name)
+  .then((keys) => Q
+    .all(keys.map((kDesc) => aws.iam
+      .deleteAccessKey({
+        UserName: name,
+        AccessKeyId:  kDesc.AccessKeyId}))));
+}
 
 /**
  * @param {AwsWrapper} aws
  * @param {string} policyArn
  * @param {string} userName
  * @returns {Q.Promise}
+ * @throws {TypeError}
  */
 function attachPolicy(aws, policyArn, userName) {
-  return aws.iam.attachPolicy({
+  if (!userName || !policyArn) {
+    throw new TypeError('IAM: attachPolicy requires policyArn, and userName');
+  }
+  userName = rid.clusternatePrefixString(userName);
+  return aws.iam.attachUserPolicy({
+    PolicyArn: policyArn,
+    UserName: userName
+  });
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} policyArn
+ * @param {string} userName
+ * @returns {Q.Promise}
+ * @throws {TypeError}
+ */
+function detachPolicy(aws, policyArn, userName) {
+  if (!userName || !policyArn) {
+    throw new TypeError('IAM: attachPolicy requires policyArn, and userName');
+  }
+  userName = rid.clusternatePrefixString(userName);
+  return aws.iam.detachUserPolicy({
     PolicyArn: policyArn,
     UserName: userName
   });
@@ -37,24 +188,82 @@ function attachPolicy(aws, policyArn, userName) {
  * @returns {Q.Promise}
  */
 function createPolicy(aws, name, policy, description) {
-  name = common.clusternatePrefixString(name);
+  if (!name || !policy) {
+    throw new TypeError('IAM: createUser requires a name, and policy document');
+  }
+  name = rid.clusternatePrefixString(name);
   description = description || 'Clusternator Policy';
   return aws.iam.createPolicy({
-    PolicyName: name,
-    PolicyDocument: policy,
-    Description: description
-  });
+      PolicyName: name,
+      PolicyDocument: policy,
+      Description: description})
+    .then((r) => r.Policy)
+    .fail((err) => describePolicy(aws, name)
+      .fail(() => {throw err;}));
 }
+
+function createEcrUserPolicyName(name) {
+  return name + '-' + ECR_USER_TAG;
+}
+
+function createEcrGeneralPolicyName(name) {
+  return name + '-' + ECR_GENERAL_TAG;
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @param {string} registryArn
+ * @param {string=} description
+ * @returns {Q.Promise}
+ */
+function createEcrUserPolicy(aws, name, registryArn, description) {
+  return createPolicy(aws, createEcrUserPolicyName(name),
+    policies.ecr.user(registryArn), description);
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @param {string=} description
+ * @returns {Q.Promise}
+ */
+function createEcrGeneralPolicy(aws, name,  description) {
+  return createPolicy(aws, createEcrGeneralPolicyName(name),
+    policies.ecr.general(), description);
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @param {string} registryArn
+ * @param {string=} description
+ * @returns {Q.Promise}
+ */
+function createEcrPolicies(aws, name, registryArn, description) {
+  return Q.all([
+    createEcrGeneralPolicy(aws, name, description),
+    createEcrUserPolicy(aws, name, registryArn, description)
+  ]);
+}
+
 
 /**
  * @param {AwsWrapper} aws
  * @param {string} arn
  * @returns {Q.Promise}
+ * @throws {TypeError}
  */
 function destroyPolicy(aws, arn) {
-  return aws.iam.deletePolicy({
-    PolicyArn: arn
-  });
+  if (!arn) {
+    throw new TypeError('IAM: destroy policy requires arn');
+  }
+  return aws.iam
+    .deletePolicy({
+      PolicyArn: arn })
+    .fail((err) => describePolicy(aws, arn)
+      // if the policy doesn't exist, that's fine with us
+      .then(() => { throw err; }, () => null));
 }
 
 
@@ -62,36 +271,145 @@ function destroyPolicy(aws, arn) {
  * @param {AwsWrapper} aws
  * @param {string} name
  * @returns {Q.Promise}
+ * @throws {TypeError}
  */
 function createUser(aws, name) {
-  name = common.clusternatePrefixString(name);
+  if (!name) {
+    throw new TypeError('IAM: createUser requires name');
+  }
+  name = rid.clusternatePrefixString(name);
   return aws.iam.createUser({
     UserName: name
-  });
+  }).fail(() => describeUser(aws, name));
 }
 
 /**
  * @param {AwsWrapper} aws
  * @param {string} name
  * @returns {Q.Promise}
+ * @throws {TypeError}
  */
 function destroyUser(aws, name) {
-  name = common.clusternatePrefixString(name);
+  if (!name) {
+    throw new TypeError('IAM: createUser requires name');
+  }
+  name = rid.clusternatePrefixString(name);
   return aws.iam.deleteUser({
-    UserName: name
-  });
+      UserName: name })
+    .fail((err) => describeUser(aws, name)
+       // if the user doesn't exist, we don't care
+      .then(() => { throw err; }, () => null));
 }
 
 /**
  * @param {AwsWrapper} aws
- * @returns {Q.Promise}
+ * @returns {Q.Promise<Object[]>}
  */
-function listUsers(aws) {
+function describePolicies(aws) {
+  return aws.iam
+    .listPolicies()
+    .then((results) => results
+      .Policies.filter((policy) => rid
+        .isPrefixed(policy.PolicyName)));
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise<Object>}
+ * @throws {TypeError}
+ */
+function describePolicy(aws, name) {
+  if (!name) {
+    throw new TypeError('IAM: describePolicy requires a name');
+  }
+  return describePolicies(aws)
+    .then((policies) => {
+      const result = filterByName(policies, 'PolicyName', rid
+        .clusternatePrefixString(name));
+      if (result[0]) {
+        return result[0];
+      }
+      throw new Error(`IAM: Policy ${name} not found`);
+    });
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise<string>}
+ */
+function policyArn(aws, name) {
+  return describePolicy(aws, name)
+    .then((desc) => desc.Arn);
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} prefix
+ * @returns {Q.Promise<string[]>}
+ * @throw {TypeError}
+ */
+function policyArns(aws, prefix) {
+  if (!prefix) {
+    throw new TypeError('IAM: policyArns requires a prefix');
+  }
+  prefix = rid.clusternatePrefixString(prefix);
+  return describePolicies(aws)
+    .then((desc) => desc
+      .filter((d) => d.PolicyName.indexOf(prefix) === 0)
+      .map((d) => d.Arn));
+}
+
+function ecrGeneralPolicyArn(aws, name) {
+  return policyArn(aws, createEcrGeneralPolicyName(name));
+}
+
+function ecrUserPolicyArn(aws, name) {
+  return policyArn(aws, createEcrUserPolicyName(name));
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @returns {Q.Promise<Object[]>}
+ */
+function describeUsers(aws) {
   return aws.iam
     .listUsers()
     .then((results) => results
-      .Users.filter((user) => user
-        .UserName.indexOf(constants.CLUSTERNATOR_PREFIX) === 0));
+      .Users.filter((user) => rid
+        .isPrefixed(user.UserName)));
+}
+
+/**
+ * @param {Array} coll
+ * @param {string} attr
+ * @param {string} name
+ * @returns {*}
+ */
+function filterByName(coll, attr, name) {
+  return coll.filter((item) => item[attr] === name );
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} name
+ * @returns {Q.Promise<Object>}
+ * @throws {TypeError}
+ */
+function describeUser(aws, name) {
+  if (!name) {
+    throw new TypeError('IAM: describeUser requires a name');
+  }
+  return describeUsers(aws)
+    .then((users) => {
+     const result = filterByName(users, 'UserName', rid
+        .clusternatePrefixString(name));
+      if (result[0]) {
+        return result[0];
+      }
+      throw new Error(`IAM: describeUser: ${name} not found`);
+    });
 }
 
 /**
@@ -109,7 +427,7 @@ function uploadServerCertificate(aws, certificate, privateKey, chain, certId) {
   certId = certId ||
     `${constants.CLUSTERNATOR_PREFIX}-${(+Date.now()).toString(16)}`;
   chain = chain || '';
-  certId = common.clusternatePrefixString(certId);
+  certId = rid.clusternatePrefixString(certId);
   return aws.iam.uploadServerCertificate({
     CertificateBody: certificate,
     PrivateKey: privateKey,
@@ -136,8 +454,7 @@ function deleteServerCertificate(aws, certId) {
  * @returns {boolean}
  */
 function filterClusternatorTag(item) {
-  return item
-      .ServerCertificateName.indexOf(constants.CLUSTERNATOR_PREFIX) === 0;
+  return rid.isPrefixed(item.ServerCertificateName);
 }
 
 /**

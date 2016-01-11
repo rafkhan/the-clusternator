@@ -3,7 +3,7 @@
 // We need this to build our post string
 const querystring = require('querystring'),
   path = require('path'),
-  http = require('http');
+  http = require('https');
 
 const KEY = process.env.CLUSTERNATOR_SHARED_KEY,
       AUTH = process.env.CLUSTERNATOR_AUTH,
@@ -11,8 +11,8 @@ const KEY = process.env.CLUSTERNATOR_SHARED_KEY,
       REPO = process.env.CIRCLE_PROJECT_REPONAME,
       IMAGE = `rafkhan/${REPO}:pr-${PR}`,
       HOST = `$HOST`,
-      CLUSTERNATOR = `the-clusternator-alpha.${HOST}`,
-      PORT = 80,
+      CLUSTERNATOR = `the-clusternator-beta.${HOST}`,
+      PORT = 443,
       PATH = '/$DEFAULT_API/pr/create',
       CONFIG_FILE = 'clusternator.json';
 

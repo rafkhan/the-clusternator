@@ -22,14 +22,14 @@ function isRID(rid) {
  * @returns {{type: string, value: string}}
  */
 function mapIdSegments(idSegment) {
-    const dashIdx = idSegment.indexOf('-');
-    const type = idSegment.substring(0, dashIdx);
-    const value = idSegment.substring(dashIdx + 1);
+  const dashIdx = idSegment.indexOf('-');
+  const type = idSegment.substring(0, dashIdx);
+  const value = idSegment.substring(dashIdx + 1);
 
-    return {
-      type: type,
-      value: value
-    };
+  return {
+    type: type,
+    value: value
+  };
 }
 
 /**
@@ -102,10 +102,32 @@ function generateSubdomain(projectId, label) {
   return `${projectId}-${label}`;
 }
 
+/**
+ * @param {string} name
+ * @returns {string}
+ */
+function clusternatePrefixString(name) {
+  if (name.indexOf(constants.CLUSTERNATOR_PREFIX) !== 0) {
+    name = constants.CLUSTERNATOR_PREFIX + '-' + name;
+  }
+  return name;
+}
+
+/**
+ * @param {string} name
+ * @returns {boolean}
+ */
+function isPrefixed(name) {
+  return name.indexOf(constants.CLUSTERNATOR_PREFIX) === 0;
+}
+
+
 module.exports = {
   parseRID,
   generateRID,
   generatePRSubdomain,
   generateSubdomain,
+  clusternatePrefixString,
+  isPrefixed,
   isRID
 };
