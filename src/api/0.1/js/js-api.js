@@ -87,10 +87,11 @@ function initializeSharedKey() {
   return gpg.generatePass();
 }
 
-function provisionProjectNetwork(projectId, output) {
+function provisionProjectNetwork(projectId, output, root) {
   return getProjectAPI()
     .then((pm) =>  pm
       .create(projectId)
+      .then()
       .then(() => util
         .info(output + ' Network Resources Checked'))
       .then(() => pm
@@ -475,7 +476,7 @@ function initProject(root, options, skipNetwork) {
         return;
       }
 
-      return provisionProjectNetwork(projectId, output);
+      return provisionProjectNetwork(projectId, output, root);
     });
 }
 

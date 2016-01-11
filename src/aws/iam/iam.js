@@ -64,7 +64,7 @@ function createProjectUser(aws, projectId, registryArn) {
       .all([
         attachPolicy(aws, results[1][0].Arn, projectId),
         attachPolicy(aws, results[1][1].Arn, projectId) ])
-      .then(() => createAccessKey(aws, projectId)));
+      .then(() => reCreateAccessKey(aws, projectId)));
 }
 
 

@@ -68,11 +68,19 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
       .then((results) => {
         var routeId = results[0].RouteTableId,
           aclId = results[1].NetworkAcl.NetworkAclId,
-          ecrArn = results[2].registryId;
+          repoArn = results[2].repositoryArn;
 
-        return Q.all([
-          subnet.create(projectId, routeId, aclId),
-          iam.createProjectUser(projectId, ecrId)])
+        return Q
+          .all([
+            subnet.create(projectId, routeId, aclId),
+            iam.createProjectUser(projectId, repoArn)])
+          .then((r) => {
+            return {
+              credentials:  r[2],
+              subnetId: r[1],
+              vpcId: vpcId
+            };
+          });
       });
   }
 
