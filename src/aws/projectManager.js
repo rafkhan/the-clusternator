@@ -1,6 +1,7 @@
 'use strict';
 
 const Subnet = require('./subnetManager');
+const ecrWrap = require('./ecr/ecr');
 const iamWrap = require('./iam/iam');
 const Route = require('./routeTableManager');
 const Route53 = require('./route53Manager');
@@ -18,7 +19,8 @@ const R = require('ramda');
 
 var Vpc = require('./vpcManager');
 
-function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, elb) {
+function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
+                           elb) {
   var vpcId = null;
   var pullRequest;
   var cluster;
@@ -32,7 +34,11 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, elb) {
   var acl;
 
   const iam = R.mapObjIndexed(iamAwsPartial, iamWrap);
+  const ecr = R.mapObjIndexed(ecrAwsPartial, ecrWrap);
 
+  function ecrAwsPartial(fn) {
+    return R.partial(fn, { ecr: util.makePromiseApi(awsEcr) });
+  }
   function iamAwsPartial(fn) {
     return R.partial(fn, { iam: util.makePromiseApi(awsIam) });
   }
@@ -50,19 +56,24 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, elb) {
   }
 
   /**
-   * @param {string} pid
+   * @param {string} projectId
    * @returns {Request|Promise.<T>}
    */
-  function create(pid) {
-    return Q.all([
-      route.findDefault(),
-      acl.create(pid)
-    ]).then((results) => {
-      var routeId = results[0].RouteTableId,
-        aclId = results[1].NetworkAcl.NetworkAclId;
+  function create(projectId) {
+    return Q
+      .all([
+        route.findDefault(),
+        acl.create(projectId),
+        ecr.create(projectId) ])
+      .then((results) => {
+        var routeId = results[0].RouteTableId,
+          aclId = results[1].NetworkAcl.NetworkAclId,
+          ecrArn = results[2].registryId;
 
-      return subnet.create(pid, routeId, aclId);
-    });
+        return Q.all([
+          subnet.create(projectId, routeId, aclId),
+          iam.createProjectUser(projectId, ecrId)])
+      });
   }
 
   /**

@@ -27,6 +27,7 @@ function create(aws, name) {
   return aws.ecr
     .createRepository({
       repositoryName: name })
+    .then((r) => r.repository)
     .fail(() => describeName(aws, name)
       .fail((err) => {
         util.warn(`ECR: create ${name}: unexpected error: ${err.message}`);

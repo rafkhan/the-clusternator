@@ -108,7 +108,7 @@ function generateSubdomain(projectId, label) {
  */
 function clusternatePrefixString(name) {
   if (name.indexOf(constants.CLUSTERNATOR_PREFIX) !== 0) {
-    name = constants.CLUSTERNATOR_PREFIX + name;
+    name = constants.CLUSTERNATOR_PREFIX + '-' + name;
   }
   return name;
 }
