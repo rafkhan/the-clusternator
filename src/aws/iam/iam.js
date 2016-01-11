@@ -103,7 +103,7 @@ function describeAccessKeys(aws, name) {
 
 function reCreateAccessKey(aws, name) {
   return destroyAccessKeys(aws, name)
-  .then(() => createAccessKey(aws, name));
+  .then(() => createAccessKey(aws, name), () => createAccessKey(aws, name));
 }
 
 /**

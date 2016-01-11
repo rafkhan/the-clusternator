@@ -13,6 +13,7 @@ const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
 const PRIVATE_CHECKSUM = '.private-checksum';
 const DEFAULT_API = /\$DEFAULT_API/g;
 const HOST = /\$HOST/g;
+const PROJECT_CREDS_FILE = 'aws-project-credentials.json';
 
 const Q = require('q');
 const fs = require('fs');
@@ -87,11 +88,22 @@ function initializeSharedKey() {
   return gpg.generatePass();
 }
 
-function provisionProjectNetwork(projectId, output, root) {
+function writeCreds(privatePath, creds) {
+  util.info('NOTICE: Project Docker Credentials are being overwritten with ' +
+    'new credentials, if there were previous credentials, they have been ' +
+    'revoked. If you\'re reading this message, this will *not* impact you, ' +
+    'however it *will* impact any other team members you\'re working with ' +
+    'until your changes are committed to the master repo for this project');
+  return writeFile(
+    path.join(privatePath, PROJECT_CREDS_FILE),
+    JSON.stringify(creds, null, 2), UTF8);
+}
+
+function provisionProjectNetwork(projectId, output, privatePath) {
   return getProjectAPI()
     .then((pm) =>  pm
       .create(projectId)
-      .then()
+      .then((details) => writeCreds(privatePath, details.credentials))
       .then(() => util
         .info(output + ' Network Resources Checked'))
       .then(() => pm
@@ -476,7 +488,7 @@ function initProject(root, options, skipNetwork) {
         return;
       }
 
-      return provisionProjectNetwork(projectId, output, root);
+      return provisionProjectNetwork(projectId, output, options.private);
     });
 }
 

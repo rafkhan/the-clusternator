@@ -76,8 +76,8 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
             iam.createProjectUser(projectId, repoArn)])
           .then((r) => {
             return {
-              credentials:  r[2],
-              subnetId: r[1],
+              credentials:  r[1],
+              subnetId: r[0],
               vpcId: vpcId
             };
           });
