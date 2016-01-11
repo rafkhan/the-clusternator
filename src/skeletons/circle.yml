@@ -15,3 +15,10 @@ test:
     - ./$CLUSTERNATOR_DIR/docker-build.sh
     - ./$CLUSTERNATOR_DIR/decrypt.sh
     - node ./$CLUSTERNATOR_DIR/notify.js
+
+deployment:
+  master:
+    branch: master
+    owner: rangle # MASTER REPOSITORY OWNER GOES HERE
+    commands:
+      - clusternator update -d master
