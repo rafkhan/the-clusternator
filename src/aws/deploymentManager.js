@@ -177,9 +177,29 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
         .fail(() => undefined));
   }
 
+  function update(projectId, deployment, sha, appdef) {
+    var clusterName = rid.generateRID({
+      pid: projectId,
+      deployment,
+      sha
+    });
+
+    return task
+      .destroy(clusterName)
+
+      .then(() => {
+        // poll for draining
+      }, Q.reject)
+
+      .then(() => {
+        return task.create(clusterName, clusterName, appdef);
+      }, Q.reject);
+  }
+
   return {
     create: create,
-    destroy: destroy
+    destroy: destroy,
+    update: update
   };
 }
 
