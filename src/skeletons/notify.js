@@ -4,7 +4,6 @@
 const querystring = require('querystring');
 const path = require('path');
 const http = require('https');
-const AUTH = process.env.CLUSTERNATOR_AUTH;
 
 const HOST = `$HOST`;
 const CLUSTERNATOR = `the-clusternator.${HOST}`;
@@ -23,6 +22,7 @@ module.exports = main;
 function main(projectId, key, image, sshKeys) {
   const pr = process.env.CIRCLE_PR_NUMBER || 0;
   const build = process.env.CIRCL_BUILD_NUM || 0;
+  const SHARED_KEY = process.env.CLUSTERNATOR_SHARED_KEY;
   const repo = projectId;
 
   // Build the post string from an object
@@ -32,10 +32,10 @@ function main(projectId, key, image, sshKeys) {
     repo,
     image,
     sshKeys,
-    appDef: getAppDef(key, HOST, repo, pr, image)
+    appDef: getAppDef(SHARED_KEY, HOST, repo, pr, image)
   });
 
-  return post(data);
+  return post(data, key);
 }
 
 
@@ -92,7 +92,7 @@ function getAppDef(key, host, repo, pr, image) {
   return JSON.stringify(appDef);
 }
 
-function post(data) {
+function post(data, auth) {
 
   // An object of options to indicate where to post to
   const postOptions = {
@@ -103,10 +103,11 @@ function post(data) {
       headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Content-Length': Buffer.byteLength(data),
-          'Authorization': 'Token ' + AUTH
+          'Authorization': 'Token ' + auth
       }
   };
 
+  console.log('Posting To:', CLUSTERNATOR)
   return new Promise((resolve, reject) => {
     // Set up the request
     const postReq = http.request(postOptions, (res) => {

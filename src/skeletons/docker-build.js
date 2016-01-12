@@ -69,6 +69,43 @@ function readFile(path) {
   });
 }
 
+function writeCmd(data, tag, fullTag) {
+  const decoded = decodeToken(data);
+  const cmd = `#!/bin/bash
+docker login -u ${decoded.user} -p ${decoded.token} -e none ${data.proxyEndpoint}
+docker build -t ${tag} ./
+docker tag ${tag} ${fullTag}
+docker push ${fullTag}
+  `;
+  const file = path.join(__dirname, '..', 'docker-build.sh');
+  return writeFile(file, cmd)
+    .then(() => makeEx(file));
+}
+
+function writeFile(path, data) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(path, data, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
+function makeEx(path) {
+  return new Promise((resolve, reject) => {
+    fs.chmod(path,' 777', (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
 /**
  * Loads _all_ the contents of a given path, it assumes they're public keys
  * @param {string} keyPath
@@ -165,6 +202,8 @@ function safeReq(path, label) {
 function getCredentials(privatePath, region) {
   const fileName = 'aws-project-credentials';
   const creds = safeReq(path.join(privatePath, fileName + '.json'), fileName);
+  creds.secretAccessKey = creds.secretAccessKey || creds.SecretAccessKey;
+  creds.accessKeyId = creds.accessKeyId || creds.AccessKeyId;
   creds.region = region;
   creds.apiVersin = API_VERSION;
   return creds;
@@ -190,7 +229,7 @@ function getAwsConfig(privatePath) {
  */
 function spawnOutput(command, args) {
   args = Array.isArray(args) ? args : [];
-  const child = spawn(command, args);
+  const child = spawn(command, args, { env: process.env });
   let err = '';
   child.stdout.setEncoding('utf8');
   child.stderr.setEncoding('utf8');
@@ -219,13 +258,17 @@ function cleanEndPoint(endPoint) {
   return endPoint;
 }
 
+function makeFullName(endPoint, imageName) {
+  return `${cleanEndPoint(endPoint)}/${imageName}`;
+}
+
 /**
  * @param {string} endPoint
  * @param {string} imageName
  * @returns {Promise}
  */
 function dockerTag(endPoint, imageName) {
-  const target = `${cleanEndPoint(endPoint)}/${imageName}`;
+  const target = makeFullName(endPoint, imageName);
   return spawnOutput(DOCKER_CMD, ['tag', imageName, target])
     .then(() => target);
 }

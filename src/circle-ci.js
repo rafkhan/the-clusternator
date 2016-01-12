@@ -3,7 +3,7 @@
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 const UTF8 = 'utf8';
 
-const R = require('ramda');
+const merge = require('deepmerge');
 const Q = require('q');
 const fs = require('fs');
 const path = require('path');
@@ -70,8 +70,7 @@ function initializeCircleCIFile(root, clustDir) {
       getCircleSkeleton(clustDir),
       loadExistingCircleCIFile(root) ])
     .then((results) => YAML
-      .stringify(R
-        .merge(results[0], results[1]), 5));
+      .stringify(merge(results[0], results[1]), 5));
 }
 
 /**
