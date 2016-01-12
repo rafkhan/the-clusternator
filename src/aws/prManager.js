@@ -133,10 +133,9 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request|Promise.<T>}
    */
   function destroyRoutes(projectId, pr) {
-    return ec2mgr.describePr(projectId, pr)
-      .then((results) => route53
-        .destroyPRARecord(
-          projectId, pr, common.findIpFromEc2Describe(results)));
+    return elb.describePr(projectId, pr)
+      .then((result) => route53
+        .destroyPRCNameRecord(projectId, pr, result.dns));
   }
 
   /**
