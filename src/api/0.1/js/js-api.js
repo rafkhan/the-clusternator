@@ -248,13 +248,25 @@ function listSSHAbleInstances() {
     .then((cJson) => listSSHAbleInstancesByProject(cJson.projectId));
 }
 
+function addPortsToAppDef(ports, appDef) {
+  ports.forEach((port) => {
+    appDef.tasks[0].containerDefinitions[0].portMappings.push({
+      hostPort: port.portExternal,
+      containerPort: port.portInternal,
+      protocol: port.protocol
+    });
+  });
+}
 
 
-function generateDeploymentFromName(name) {
+function generateDeploymentFromName(name, ports) {
   util.info('Generating deployment: ',  name);
   return clusternatorJson.get().then((config) => {
     var appDef = util.clone(appDefSkeleton);
-    appDef.projectId = config.projectId;
+    appDef.name = config.projectId;
+    if (ports) {
+      addPortsToAppDef(ports, appDef);
+    }
     appDef = JSON.stringify(appDef, null, 2);
     return writeDeployment(name, config.deploymentsDir, appDef);
   });
@@ -289,12 +301,14 @@ function initializeScripts(clustDir, tld) {
  * @param {string} depDir
  * @param {string} projectId
  * @param {string} dockerType
+ * @param {Object[]} ports
  * @returns {Q.Promise}
  */
-function initializeDeployments(depDir, clustDir, projectId, dockerType) {
+function initializeDeployments(depDir, clustDir, projectId, dockerType, ports) {
   return mkdirp(depDir).then(() => {
     var prAppDef = util.clone(appDefSkeleton);
     prAppDef.name = projectId;
+    addPortsToAppDef(ports, prAppDef);
     prAppDef = JSON.stringify(prAppDef, null, 2);
 
     return Q.allSettled([
@@ -560,7 +574,7 @@ function initProject(root, options, skipNetwork) {
 
   return Q
     .allSettled([
-      initializeDeployments(dDir, cDir, projectId, dockerType),
+      initializeDeployments(dDir, cDir, projectId, dockerType, options.ports),
       initializeScripts(cDir, options.tld),
       initializeOptionalDeployments(options, root)])
     .then(() => {
