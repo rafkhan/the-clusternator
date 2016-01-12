@@ -1,12 +1,15 @@
 'use strict';
 
+const CLUSTERNATOR_PREFIX = 'clusternator-';
 const DOCKER_CMD = 'docker';
 const CLUSTERNATOR_FILE = 'clusternator.json';
-const AWS_FILE = 'aws.json';
+const AWS_FILE = CLUSTERNATOR_PREFIX + 'aws.json';
+const CLUSTERNATOR_TOKEN = CLUSTERNATOR_PREFIX + 'project-credentials.json';
 const API_VERSION = '2015-09-21';
 const path = require('path');
 const AWS = require('aws-sdk');
 const spawn = require('child_process').spawn;
+const notify = require('./notify');
 
 main();
 
@@ -17,15 +20,21 @@ function main() {
   const registryId = awsConfig.registryId;
   const region = awsConfig.region;
   const credentials = getCredentials(privatePath, region);
+  const clusternatorToken = getClusternatorToken(privatePath);
 
   getToken(credentials, registryId)
     .then((tokenObj) => {
       const imageName = buildImageName(config.projectId);
       return login(tokenObj)
+        .then(() => wipePrivate(privatePath))
         .then(() => dockerBuild(imageName))
         .then(() => dockerTag(tokenObj.proxyEndpoint, imageName))
-        .then((fullImageName) => dockerPush(fullImageName));
+        .then((fullImageName) => dockerPush(fullImageName)
+          .then(decrypt)
+          .then(() => notify(
+            config.projectId, clusternatorToken, fullImageName)));
     })
+    .then(() => process.exit(0))
     .catch((err) => {
       console.log(`Error: ${err.message}`);
       process.exit(1);
@@ -39,9 +48,9 @@ function main() {
  */
 function buildImageName(projectId) {
   const PR = process.env.CIRCLE_PR_NUMBER || 0;
-  const BUILD = process.env.CIRCLE_BUILD_NUMBER || 0;
-  const IMAGE=`${projectId}:${PR}-${BUILD}`;
-  return 'clusternator-ctest:0-0';
+  const BUILD = process.env.CIRCLE_BUILD_NUM || 0;
+  const IMAGE=`${CLUSTERNATOR_PREFIX}${projectId}:pr-${PR}-${BUILD}`;
+  return IMAGE;
 }
 
 /**
@@ -98,14 +107,14 @@ function login(data) {
  * @param {string} path
  * @param {string} label
  * @returns {string}
- * @exits
+ * exits
  */
 function safeReq(path, label) {
   try {
     return require(path);
   } catch (err) {
     console.log(`Error loading ${label}: ${err.message}`);
-    dieIfErr(err);
+    process.exit(3);
   }
 }
 
@@ -122,6 +131,11 @@ function getCredentials(privatePath, region) {
   return creds;
 }
 
+function getClusternatorToken(privatePath) {
+  return safeReq(path
+      .join(privatePath, CLUSTERNATOR_TOKEN), CLUSTERNATOR_TOKEN).token || null;
+}
+
 function getConfig() {
   return safeReq(path.join('..', CLUSTERNATOR_FILE) , CLUSTERNATOR_FILE);
 }
@@ -136,6 +150,7 @@ function getAwsConfig(privatePath) {
  * @returns {Promise}
  */
 function spawnOutput(command, args) {
+  args = Array.isArray(args) ? args : [];
   const child = spawn(command, args);
   let err = '';
   child.stdout.setEncoding('utf8');
@@ -154,6 +169,10 @@ function spawnOutput(command, args) {
   });
 }
 
+/**
+ * @param {string} endPoint
+ * @returns {string}
+ */
 function cleanEndPoint(endPoint) {
   if (endPoint.indexOf('https://') === 0) {
     return endPoint.slice(8);
@@ -177,7 +196,6 @@ function dockerTag(endPoint, imageName) {
  * @returns {Promise}
  */
 function dockerPush(fullImageName) {
-  console.log(`attempting push to ${fullImageName} `)
   return spawnOutput(DOCKER_CMD, ['push', fullImageName]);
 }
 
@@ -191,3 +209,19 @@ function dockerBuild(imageName) {
   return spawnOutput(DOCKER_CMD, ['build', '-t', imageName, './'])
     .then(() => process.chdir(cwd));
 }
+
+/**
+ * @returns {Promise}
+ */
+function decrypt() {
+  return spawnOutput(path.join(__dirname, 'decrypt.sh'), []);
+}
+
+/**
+ * @param {string} privatePath
+ * @returns {Promise}
+ */
+function wipePrivate(privatePath) {
+  return spawnOutput('rm', ['-rf', privatePath]);
+}
+

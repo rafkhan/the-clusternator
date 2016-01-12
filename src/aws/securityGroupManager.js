@@ -132,18 +132,19 @@ function getSecurityGroupManager(ec2, vpcId) {
       throw new TypeError('Create SecurityGroup requires a projectId, a ' +
         'deployment label, and a SHA');
     }
-    return describeDeployment(pid, deployment).then(function(list) {
-      if (list.length) {
-        // return the id
-        util.info('Security Group Found For ', pid, ' Deployment: ', deployment,
-          ' SHA:', sha);
-        return list[0].GroupId;
-      } else {
-        // make a new one
-        return createSecurityGroupDeployment(pid, deployment, sha)
-          .then((results) => results.GroupId);
-      }
-    });
+    return describeDeployment(pid, deployment)
+      .then((list) => {
+        if (list.length) {
+          // return the id
+          util.info('Security Group Found For ', pid, ' Deployment: ', deployment,
+            ' SHA:', sha);
+          return list[0].GroupId;
+        } else {
+          // make a new one
+          return createSecurityGroupDeployment(pid, deployment, sha)
+            .then((results) => results.GroupId);
+        }
+      });
   }
 
   /**

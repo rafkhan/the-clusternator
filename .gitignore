@@ -1,3 +1,4 @@
+
 node_modules/
 .DS_Store
 npm-debug.log
@@ -26,3 +27,6 @@ bin/*.js
 # skip private folder
 .private
 gpg-pass.txt
+
+# clusternator ignores
+clusternator.tar.gz

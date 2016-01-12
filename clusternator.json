@@ -1,6 +1,7 @@
 {
   "projectId": "the-clusternator",
   "private": ".private",
+  "clusternatorDir": ".clusternator",
   "deploymentsDir": ".private/deployments",
-  "clusternatorDir": ".clusternator"
+  "useInternalSSL": false
 }

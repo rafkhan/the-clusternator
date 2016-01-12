@@ -77,14 +77,16 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @param {string} projectId
    * @param {string} pr
    * @param {Object} appDef
+   * @param {string[]|string} sshKeys
    * @param {boolean=} useInternalSSL
    * @returns {Request|Promise.<T>|*}
    */
-  function create(projectId, pr, appDef, useInternalSSL) {
+  function create(projectId, pr, appDef, sshKeys, useInternalSSL) {
     const creq = {
       projectId,
       pr: pr + '',
       appDef,
+      sshPath: sshKeys || '',
       useInternalSSL,
       name: rid.generateRID({ pid: projectId, pr })
     };

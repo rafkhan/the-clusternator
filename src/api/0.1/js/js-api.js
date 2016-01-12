@@ -116,6 +116,11 @@ function writeProjectDetails(privatePath, details) {
   ]);
 }
 
+function writeClusternatorCreds(privatePath, token) {
+  return writeFile(path.join(privatePath, PROJECT_CN_CREDS_FILE),
+    JSON.stringify({ token }, null, 2));
+}
+
 function provisionProjectNetwork(projectId, output, privatePath) {
   return getProjectAPI()
     .then((pm) =>  pm
@@ -125,7 +130,7 @@ function provisionProjectNetwork(projectId, output, privatePath) {
         .info(output + ' Network Resources Checked'))
       .then(() => pm
         .initializeGithubWebhookToken(projectId))
-      .then((token) => console.log('STORE THIS TOKEN ON GITHUB', token))
+      .then((token) => writeClusternatorCreds(privatePath, token))
       .fail(Q.reject));
 }
 
@@ -531,6 +536,7 @@ function getAppDefNotFound(dPath) {
 }
 
 function logKey(sharedKey) {
+  console.log('');
   console.log('Share this *SECRET* key with your team members');
   console.log('Also use it as CLUSTERNATOR_SHARED_KEY on CircleCi');
   console.log(`CLUSTERNATOR_SHARED_KEY ${sharedKey}`);

@@ -123,7 +123,8 @@ function processSSHKeys(keys) {
  * @returns {Q.Promise<string[]>}
  */
 function makeSSHUserData(sshPath) {
-  return loadUserPublicKeys(sshPath).then(processSSHKeys);
+  return loadUserPublicKeys(sshPath)
+    .then(processSSHKeys);
 }
 
 
@@ -140,7 +141,7 @@ function stringArrayToNewLineBase64(arr) {
  * @param {string} clusterName
  * @param {{ username: string, password: string,
  email:string}|{cfg:string}} auth
- * @param {string|Buffer}sshDataOrPath
+ * @param {string|string[]} sshDataOrPath
  * @returns {Q.Promise<string>}
  */
 function getECSContainerInstanceUserData(clusterName, auth, sshDataOrPath) {
@@ -158,22 +159,23 @@ function getECSContainerInstanceUserData(clusterName, auth, sshDataOrPath) {
 
   data = data.concat(authData);
 
-  if (!isString(sshDataOrPath)) {
-    data = data.concat(sshDataOrPath);
+  if (Array.isArray(sshDataOrPath)) {
+    data = data.concat(processSSHKeys(sshDataOrPath));
     return Q.resolve(stringArrayToNewLineBase64(data));
   }
 
-  return makeSSHUserData(sshDataOrPath).then((sshData) => {
-    data = data.concat(sshData);
-    return stringArrayToNewLineBase64(data);
-  }, (err) => {
-    //util.info('Clusternator Ec2: Warning: Loading user defined SSH keys ' +
-    //  'failed, custom logins disabled ' + err.message);
+  return makeSSHUserData(sshDataOrPath)
+    .then((sshData) => {
+      data = data.concat(sshData);
+      return stringArrayToNewLineBase64(data);
+    }, (err) => {
+      //util.info('Clusternator Ec2: Warning: Loading user defined SSH keys ' +
+      //  'failed, custom logins disabled ' + err.message);
 
-    util.info(`Notice, no user keys found in .private/
+      util.info(`Notice, no user keys found in .private/
     ${constants.SSH_PUBLIC_PATH}, logging '*not* possible`);
-    return stringArrayToNewLineBase64(data);
-  });
+      return stringArrayToNewLineBase64(data);
+    });
 }
 
 
@@ -359,7 +361,7 @@ function getEC2Manager(ec2, vpcId) {
   /**
    * @param {{ clusterName: string, sgId: string, subnetId: string,
    * pid: string, pr: string, auth: Object=, apiConfig: Object=,
-   * sshPath: string }} config
+   * sshPath: string|string[] }} config
    * config will merge with default ec2 config
    */
   function createPr(config) {
@@ -395,7 +397,7 @@ function getEC2Manager(ec2, vpcId) {
   /**
    * @param {{ clusterName: string, sgId: string, subnetId: string,
    * pid: string, deployment: string, sha: string, auth: Object=,
-   * apiConfig: Object=, sshPath: string }} config
+   * apiConfig: Object=, sshPath: string|string[] }} config
    * config will merge with default ec2 config
    */
   function createDeployment(config) {
@@ -502,8 +504,8 @@ function getEC2Manager(ec2, vpcId) {
   }
 
   return {
-    createPr: createPr,
-    createDeployment: createDeployment,
+    createPr,
+    createDeployment,
     describe,
     describeProject,
     describePr,

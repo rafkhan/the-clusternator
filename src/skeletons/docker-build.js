@@ -6,6 +6,8 @@ const CLUSTERNATOR_FILE = 'clusternator.json';
 const AWS_FILE = CLUSTERNATOR_PREFIX + 'aws.json';
 const CLUSTERNATOR_TOKEN = CLUSTERNATOR_PREFIX + 'project-credentials.json';
 const API_VERSION = '2015-09-21';
+const SSH_PUBLIC = 'ssh-public';
+const fs = require('fs');
 const path = require('path');
 const AWS = require('aws-sdk');
 const spawn = require('child_process').spawn;
@@ -31,8 +33,9 @@ function main() {
         .then(() => dockerTag(tokenObj.proxyEndpoint, imageName))
         .then((fullImageName) => dockerPush(fullImageName)
           .then(decrypt)
-          .then(() => notify(
-            config.projectId, clusternatorToken, fullImageName)));
+          .then(() => loadUserPublicKeys(path.join(privatePath, SSH_PUBLIC)))
+          .then((keys) => notify(
+            config.projectId, clusternatorToken, fullImageName, keys)));
     })
     .then(() => process.exit(0))
     .catch((err) => {
@@ -40,6 +43,42 @@ function main() {
       process.exit(1);
     });
 
+}
+
+function ls(path) {
+  return new Promise((resolve, reject) => {
+    fs.readdir(path, 'utf8', (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
+function readFile(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
+/**
+ * Loads _all_ the contents of a given path, it assumes they're public keys
+ * @param {string} keyPath
+ * @returns {Q.Promise<string[]>}
+ */
+function loadUserPublicKeys(keyPath) {
+  return ls(keyPath)
+    .then((keyFiles) => Promise
+      .all(keyFiles.map((fileName) => readFile(path.join(keyPath, fileName)))))
+    .catch(() => []);
 }
 
 /**

@@ -79,7 +79,6 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
             return {
               credentials:  r[1],
               aws: {
-                subnetId: r[0],
                 vpcId: vpcId,
                 registryId: results[2].registryId,
                 region: DEFAULT_REGION

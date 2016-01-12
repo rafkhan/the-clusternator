@@ -1,3 +1,4 @@
+
 .clusternator/
 bin-src/
 coverage/
@@ -8,3 +9,6 @@ tmp/
 clusternator.tar.gz
 clusternator.tar.gz.asc
 .private/
+
+# clusternator ignores
+.private

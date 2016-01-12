@@ -91,9 +91,10 @@ function prCreateDocker(project, pr, sha, middleware) {
 function makePrCreate(pm) {
   return (body) => {
     var pr = sanitizePr(body.pr),
+      build = sanitizePr(body.build),
       appDef = JSON.parse(body.appDef),
       projectId = body.repo,
-      sshData = body.sshData,
+      sshData = body.sshKeys,
       useInternalSSL = body.useInternalSSL || false;
 
     console.log('DEBUG');
