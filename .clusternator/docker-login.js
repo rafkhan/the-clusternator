@@ -1,30 +1,41 @@
 'use strict';
 
+const CLUSTERNATOR_FILE = 'clusternator.json';
+const AWS_FILE = 'aws.json';
 const API_VERSION = '2015-09-21';
 const path = require('path');
 const AWS = require('aws-sdk');
 const config = getConfig();
 const privatePath = path.normalize('../' + config.private);
-const registryId = getRegistry(config);
-const region = getRegion(config);
+const awsConfig = getAwsConfig(privatePath);
+const registryId = awsConfig.registryId;
+const region = awsConfig.region;
 const credentials = getCredentials(privatePath, region);
 const spawn = require('child_process').spawn;
 
-const ecr = new AWS.ECR(credentials);
+main();
 
-ecr.getAuthorizationToken({
-  registryIds: [ registryId ]
-}, (err, result) => {
-  if (err) {
-    console.log(`Error getting login credentials ${err.message}`);
-    process.exit(2);
-  }
-  if (!result.authorizationData[0]) {
-    process.exit(3);
-  }
-  login(result.authorizationData[0]);
-});
+function main() {
+  const ecr = new AWS.ECR(credentials);
 
+  ecr.getAuthorizationToken({
+    registryIds: [ registryId ]
+  }, (err, result) => {
+    if (err) {
+      console.log(`Error getting login credentials ${err.message}`);
+      process.exit(2);
+    }
+    if (!result.authorizationData[0]) {
+      process.exit(3);
+    }
+    login(result.authorizationData[0]);
+  });
+}
+
+/**
+ * @param {base64string} data
+ * @returns {{user: string, token: string}}
+ */
 function decodeToken(data) {
   const decoded = new Buffer(data.authorizationToken, 'base64')
     .toString('utf8').split(':');
@@ -34,6 +45,9 @@ function decodeToken(data) {
   };
 }
 
+/**
+ * @param {{ token: base64String, proxyEndpoint: string }} data
+ */
 function login(data) {
   const decoded = decodeToken(data);
   const end = data.proxyEndpoint;
@@ -59,7 +73,12 @@ function login(data) {
   });
 }
 
-
+/**
+ * @param {string} path
+ * @param {string} label
+ * @returns {string}
+ * @exits
+ */
 function safeReq(path, label) {
   try {
     return require(path);
@@ -68,6 +87,11 @@ function safeReq(path, label) {
     process.exit(1);
   }
 }
+
+/**
+ * @param {{ aws?: Object }} config
+ * @param {string} label
+ */
 function hasAws(config, label) {
   if (!config.aws) {
     console.log(`No AWS credentials found for ${label}`);
@@ -75,6 +99,11 @@ function hasAws(config, label) {
   }
 }
 
+/**
+ * @param {string} privatePath
+ * @param {string} region
+ * @returns {string}
+ */
 function getCredentials(privatePath, region) {
   const fileName = 'aws-project-credentials';
   const creds = safeReq(path.join(privatePath, fileName + '.json'), fileName);
@@ -84,17 +113,9 @@ function getCredentials(privatePath, region) {
 }
 
 function getConfig() {
-  const config = 'clusternator.json';
-  return safeReq(path.join('..', config) , config);
+  return safeReq(path.join('..', CLUSTERNATOR_FILE) , CLUSTERNATOR_FILE);
 }
 
-
-function getRegistry(config) {
-  hasAws(config, 'registryId');
-  return config.aws.registryId;
-}
-
-function getRegion(config) {
-  hasAws(config, 'region');
-  return config.aws.region;
+function getAwsConfig(privatePath) {
+  return safeReq(path.join(privatePath, AWS_FILE));
 }

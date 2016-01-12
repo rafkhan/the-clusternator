@@ -2,10 +2,5 @@
   "projectId": "the-clusternator",
   "private": ".private",
   "deploymentsDir": ".private/deployments",
-  "clusternatorDir": ".clusternator",
-  "aws": {
-    "registryId": "731670193630",
-    "region":"us-east-1",
-    "vpcId":""
-  }
+  "clusternatorDir": ".clusternator"
 }
