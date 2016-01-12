@@ -1,2 +1,7 @@
+
 .private
 clusternator.tar.gz
+
+# clusternator ignores
+node_modules
+bower_components

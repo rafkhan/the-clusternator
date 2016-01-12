@@ -1,20 +1,18 @@
 machine:
   node:
-    version: 4.2.3
+    version: 4.2.4
   services:
     - docker
 
 dependencies:
   pre:
-    - sudo npm install -g aws-sdk
+    - npm install aws-sdk
   post:
     - ./$CLUSTERNATOR_DIR/decrypt.sh
 
 test:
   post:
-    - ./$CLUSTERNATOR_DIR/docker-build.sh
-    - ./$CLUSTERNATOR_DIR/decrypt.sh
-    - node ./$CLUSTERNATOR_DIR/notify.js
+    - node ./$CLUSTERNATOR_DIR/docker-build.js
 
 deployment:
   master:

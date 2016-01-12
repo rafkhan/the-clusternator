@@ -29,12 +29,8 @@ organization has a _private_ GitHub repository for your project.
 - If everything goes well there will be a `CLUSTERNATOR_SHARED_KEY`, and a
 `CLUSTERNATOR_AUTH` token provided at the end of the init
 - Turn on CircleCI for `my-cool-project`
-- _Five_ (5) environment variables need to be added:
-    - `CLUSTERNATOR_AUTH` (from init)
+- _One_ (1) environment variables need to be added:
     - `CLUSTERNATOR_SHARED_KEY` (from init)
-    - `DOCKER_USER` your organization, or project's docker user name
-    - `DOCKER_PASSWORD` your organization, or project's docker password
-    - `DOCKER_EMAIL` your organization, or project's docker email
 - Navigate to the `github.com/my-organization/my-cool-project.git` repository's
 web interface
 - Click `settings`

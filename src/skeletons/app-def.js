@@ -6,16 +6,6 @@ module.exports = Object.freeze({
         {
           'volumesFrom': [],
           'portMappings': [
-            {
-              'hostPort': 80,
-              'containerPort': 3000,
-              'protocol': 'tcp'
-            },
-            {
-              'hostPort': 443,
-              'containerPort': 3000,
-              'protocol': 'tcp'
-            }
           ],
           'command': [],
           'environment': [{

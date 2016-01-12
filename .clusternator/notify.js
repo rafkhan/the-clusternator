@@ -4,11 +4,12 @@
 const querystring = require('querystring');
 const path = require('path');
 const http = require('https');
+const AUTH = process.env.CLUSTERNATOR_AUTH;
 
-const HOST = `$HOST`;
+const HOST = `rangleapp.io`;
 const CLUSTERNATOR = `the-clusternator.${HOST}`;
 const PORT = 443;
-const PATH = '/$DEFAULT_API/pr/create';
+const PATH = '/0.1/pr/create';
 const CONFIG_FILE = 'clusternator.json';
 
 module.exports = main;
@@ -19,25 +20,22 @@ module.exports = main;
  * @param {string} image
  * @returns {Promise}
  */
-function main(projectId, key, image, sshKeys) {
+function main(projectId, key, image) {
   const pr = process.env.CIRCLE_PR_NUMBER || 0;
   const build = process.env.CIRCL_BUILD_NUM || 0;
-  const SHARED_KEY = process.env.CLUSTERNATOR_SHARED_KEY;
   const repo = projectId;
 
   // Build the post string from an object
   const data = querystring.stringify({
-    pr,
-    build,
-    repo,
-    image,
-    sshKeys,
-    appDef: getAppDef(SHARED_KEY, HOST, repo, pr, image)
+    pr: pr,
+    build: build,
+    repo: repo,
+    image: image,
+    appDef: getAppDef(key, HOST, repo, pr, image)
   });
 
-  return post(data, key);
+  return post(data);
 }
-
 
 function die(err) {
   if (err instanceof Error) {
@@ -92,7 +90,7 @@ function getAppDef(key, host, repo, pr, image) {
   return JSON.stringify(appDef);
 }
 
-function post(data, auth) {
+function post(data) {
 
   // An object of options to indicate where to post to
   const postOptions = {
@@ -103,11 +101,10 @@ function post(data, auth) {
       headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Content-Length': Buffer.byteLength(data),
-          'Authorization': 'Token ' + auth
+          'Authorization': 'Token ' + AUTH
       }
   };
 
-  console.log('Posting To:', CLUSTERNATOR)
   return new Promise((resolve, reject) => {
     // Set up the request
     const postReq = http.request(postOptions, (res) => {

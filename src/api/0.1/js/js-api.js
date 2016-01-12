@@ -6,7 +6,7 @@ const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3';
 const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest';
 const SERVE_SH = 'serve.sh';
 const DECRYPT_SH = 'decrypt.sh';
-const DOCKER_BUILD_SH = 'docker-build.sh';
+const DOCKER_BUILD_JS = 'docker-build.js';
 const NOTIFY_JS = 'notify.js';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
@@ -14,6 +14,8 @@ const PRIVATE_CHECKSUM = '.private-checksum';
 const DEFAULT_API = /\$DEFAULT_API/g;
 const HOST = /\$HOST/g;
 const PROJECT_CREDS_FILE = 'aws-project-credentials.json';
+const PROJECT_AWS_FILE = 'clusternator-aws.json';
+const PROJECT_CN_CREDS_FILE = 'clusternator-project-credentials.json';
 
 const Q = require('q');
 const fs = require('fs');
@@ -95,23 +97,40 @@ function writeCreds(privatePath, creds) {
     'revoked. If you\'re reading this message, this will *not* impact you, ' +
     'however it *will* impact any other team members you\'re working with ' +
     'until your changes are committed to the master repo for this project');
+  util.info('');
   return writeFile(
     path.join(privatePath, PROJECT_CREDS_FILE),
     JSON.stringify(creds, null, 2), UTF8);
+}
+
+function writeAws(privatePath, aws) {
+  return writeFile(
+    path.join(privatePath, PROJECT_AWS_FILE),
+    JSON.stringify(aws, null, 2), UTF8);
+}
+
+function writeProjectDetails(privatePath, details) {
+  return Q.all([
+    writeCreds(privatePath, details.credentials),
+    writeAws(privatePath, details.aws)
+  ]);
+}
+
+function writeClusternatorCreds(privatePath, token) {
+  return writeFile(path.join(privatePath, PROJECT_CN_CREDS_FILE),
+    JSON.stringify({ token }, null, 2));
 }
 
 function provisionProjectNetwork(projectId, output, privatePath) {
   return getProjectAPI()
     .then((pm) =>  pm
       .create(projectId)
-      .then((details) => writeCreds(privatePath, details.credentials))
+      .then((details) => writeProjectDetails(privatePath, details))
       .then(() => util
         .info(output + ' Network Resources Checked'))
       .then(() => pm
         .initializeGithubWebhookToken(projectId))
-      .then((token) => console.log('STORE THIS TOKEN ON GITHUB', token))
-      .then(initializeSharedKey)
-      .then((sharedKey) => console.log(`CLUSTERNATOR_SHARED_KEY ${sharedKey}`))
+      .then((token) => writeClusternatorCreds(privatePath, token))
       .fail(Q.reject));
 }
 
@@ -229,13 +248,25 @@ function listSSHAbleInstances() {
     .then((cJson) => listSSHAbleInstancesByProject(cJson.projectId));
 }
 
+function addPortsToAppDef(ports, appDef) {
+  ports.forEach((port) => {
+    appDef.tasks[0].containerDefinitions[0].portMappings.push({
+      hostPort: port.portExternal,
+      containerPort: port.portInternal,
+      protocol: port.protocol
+    });
+  });
+}
 
 
-function generateDeploymentFromName(name) {
+function generateDeploymentFromName(name, ports) {
   util.info('Generating deployment: ',  name);
   return clusternatorJson.get().then((config) => {
     var appDef = util.clone(appDefSkeleton);
-    appDef.projectId = config.projectId;
+    appDef.name = config.projectId;
+    if (ports) {
+      addPortsToAppDef(ports, appDef);
+    }
     appDef = JSON.stringify(appDef, null, 2);
     return writeDeployment(name, config.deploymentsDir, appDef);
   });
@@ -249,15 +280,15 @@ function generateDeploymentFromName(name) {
 function initializeScripts(clustDir, tld) {
   return mkdirp(clustDir).then(() => {
     const decryptPath = path.join(clustDir, DECRYPT_SH),
-      dockerBuildPath = path.join(clustDir, DOCKER_BUILD_SH),
+      dockerBuildPath = path.join(clustDir, DOCKER_BUILD_JS),
       clusternatorPath = path.join(clustDir, NOTIFY_JS);
 
     return Q
       .allSettled([
         getSkeletonFile(DECRYPT_SH)
           .then((contents) => installExecutable(decryptPath, contents)),
-        getSkeletonFile(DOCKER_BUILD_SH)
-          .then((contents) => installExecutable(dockerBuildPath, contents)),
+        getSkeletonFile(DOCKER_BUILD_JS)
+          .then((contents) => writeFile(dockerBuildPath, contents)),
         getSkeletonFile(NOTIFY_JS)
           .then((contents) => contents
             .replace(HOST, tld)
@@ -270,12 +301,14 @@ function initializeScripts(clustDir, tld) {
  * @param {string} depDir
  * @param {string} projectId
  * @param {string} dockerType
+ * @param {Object[]} ports
  * @returns {Q.Promise}
  */
-function initializeDeployments(depDir, clustDir, projectId, dockerType) {
+function initializeDeployments(depDir, clustDir, projectId, dockerType, ports) {
   return mkdirp(depDir).then(() => {
     var prAppDef = util.clone(appDefSkeleton);
     prAppDef.name = projectId;
+    addPortsToAppDef(ports, prAppDef);
     prAppDef = JSON.stringify(prAppDef, null, 2);
 
     return Q.allSettled([
@@ -516,6 +549,14 @@ function getAppDefNotFound(dPath) {
   };
 }
 
+function logKey(sharedKey) {
+  console.log('');
+  console.log('Share this *SECRET* key with your team members');
+  console.log('Also use it as CLUSTERNATOR_SHARED_KEY on CircleCi');
+  console.log(`CLUSTERNATOR_SHARED_KEY ${sharedKey}`);
+  console.log('');
+}
+
 /**
  * @param {string} root
  * @param {{ deploymentsDir: string, clusternatorDir: string,
@@ -533,7 +574,7 @@ function initProject(root, options, skipNetwork) {
 
   return Q
     .allSettled([
-      initializeDeployments(dDir, cDir, projectId, dockerType),
+      initializeDeployments(dDir, cDir, projectId, dockerType, options.ports),
       initializeScripts(cDir, options.tld),
       initializeOptionalDeployments(options, root)])
     .then(() => {
@@ -542,7 +583,12 @@ function initProject(root, options, skipNetwork) {
         return;
       }
 
-      return provisionProjectNetwork(projectId, output, options.private);
+      return provisionProjectNetwork(projectId, output, options.private)
+        .then(initializeSharedKey)
+        .then((sharedKey) => makePrivate(sharedKey)
+          .then(() => readPrivate(sharedKey))
+          .then(privateChecksum)
+          .then(() => logKey(sharedKey)));
     });
 }
 
