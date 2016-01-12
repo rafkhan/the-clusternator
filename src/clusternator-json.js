@@ -370,18 +370,12 @@ function getConfig() {
 
 /**
  * @param {string} tarPath
- * @param {string} gpgPath
  * @returns {Q.Promise}
  */
-function untar(tarPath, gpgPath) {
+function untar(tarPath) {
   return tar
     .extract(tarPath)
-    .then(() => {
-      return Q.allSettled([
-        rimraf(gpgPath),
-        rimraf(tarPath)
-      ]);
-    });
+    .then(() => rimraf(tarPath));
 }
 
 /**
@@ -405,7 +399,7 @@ function readPrivate(passPhrase, root) {
 
         return gpg
           .decryptFile(passPhrase, gpgPath, tarPath)
-          .then(() => untar(tarPath, gpgPath));
+          .then(() => untar(tarPath));
       });
   }
 }

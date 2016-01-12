@@ -16,6 +16,7 @@ const constants = require('../constants');
 const util = require('../util');
 const Q = require('q');
 const R = require('ramda');
+const DEFAULT_REGION = 'us-east-1';
 
 var Vpc = require('./vpcManager');
 
@@ -77,8 +78,12 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
           .then((r) => {
             return {
               credentials:  r[1],
-              subnetId: r[0],
-              vpcId: vpcId
+              aws: {
+                subnetId: r[0],
+                vpcId: vpcId,
+                registryId: results[2].registryId,
+                region: DEFAULT_REGION
+              }
             };
           });
       });
