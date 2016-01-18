@@ -1,6 +1,6 @@
 {
   "name": "clusternator",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Program to deploy docker containers on cloud service platforms with minimal user input, and/or configuration",
   "main": "index.js",
   "preferGlobal": true,
@@ -22,6 +22,7 @@
     "!win32"
   ],
   "scripts": {
+    "prepublish": "npm run build",
     "start": "node ./server-init.js",
     "staging": "NODE_ENV=staging; node ./server-init.js",
     "dev": "NODE_ENV=debug; nodemon ./server-init.js",
