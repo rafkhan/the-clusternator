@@ -8,7 +8,7 @@ tmp/
 
 clusternator.tar.gz
 clusternator.tar.gz.asc
-.private/
+.private
 
 # clusternator ignores
 .private
