@@ -160,11 +160,14 @@ function getProject(req, res, next) {
  * @returns {body.projectId}
  */
 function createProject(pm, body) {
- return pm.create(body.projectId);
+  if (!body.projectId) {
+    return Q.reject(new Error('No projectId given in post request'));
+  }
+  util.info('Attempting to create project:', body.projectId);
+  return pm.create(body.projectId);
 }
 
 function getCommands(credentials) {
-
   return aws(credentials)
     .then((pm) => {
       projects = Projects(config, pm);
@@ -174,7 +177,7 @@ function getCommands(credentials) {
     })
     .then((pm) => {
       return {
-        projects: {
+        project: {
           create: (body) => createProject(pm, body),
           list: listProjects,
           getProject: getProject,

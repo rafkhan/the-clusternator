@@ -6,6 +6,18 @@ const Q = require('q');
 const constants = require('../constants');
 var request = require('request');
 
+/**
+ * @param {string} input
+ * @returns {Error|*}
+ */
+function safeParse(input) {
+  try {
+    return JSON.parse(input);
+  } catch (err) {
+    return new Error(`JSON.parse error: ${err.message}`);
+  }
+}
+
 function getProjectManager(config) {
   config = config || {};
   var d = Q.defer(),
@@ -55,7 +67,12 @@ function getProjectManager(config) {
           return;
         }
         if (response.statusCode === OKAY) {
-          d.resolve(body);
+          const parsedData = safeParse(body);
+          if (parsedData instanceof Error) {
+            d.reject(parsedData);
+          } else {
+            d.resolve(parsedData);
+          }
           return;
         }
         d.reject(new Error(response.statusCode + ' :: ' + body));
@@ -86,6 +103,9 @@ function getProjectManager(config) {
    * @returns {Q.Promise}
    */
   function create(projectId) {
+    if (!projectId) {
+      return Q.reject(new Error('projectManager.create requires a projectId'));
+    }
     return makePostRequest('/project/create', { projectId });
   }
 

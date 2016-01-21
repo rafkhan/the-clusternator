@@ -1,5 +1,6 @@
 'use strict';
 const LOGIN_PATH = '/login';
+const APP_SLASH_JSON = 'application/json';
 
 const constants = require('../../constants');
 const API = constants.DEFAULT_API_VERSION;
@@ -7,8 +8,8 @@ const API = constants.DEFAULT_API_VERSION;
 const passport = require('passport');
 const R = require('ramda');
 
-var Config = require('../../config');
-var logger = require('../loggers').logger;
+const Config = require('../../config');
+const logger = require('../loggers').logger;
 var getCommands = require('../../api')[API].rest;
 var initAwsProject = require('../../aws/project-init');
 var auth = require('../auth/authorities');
@@ -43,7 +44,7 @@ function commandPrivFromNamespace(config, namespace, command) {
  */
 function getPFail(res) {
   return (err) => {
-    res.status(500).json({ error: err });
+    res.status(500).json({ error: err.message });
   };
 }
 
@@ -78,24 +79,23 @@ function authorizeCommand(config) {
 function executeCommand(commands) {
 
   return (req, res) => {
+    logger.info('Attempting To Execute Command', req.params.namespace,
+      req.params.command);
     var fn = commands[req.params.namespace];
     if (!fn) {
-      getPFail(res)(new Error('Invalid Command'));
+      getPFail(res)(new Error('Invalid Command (bad namespace)'));
       return;
     }
     fn = fn[req.params.command];
     if (typeof fn !== 'function') {
-      getPFail(res)(new Error('Invalid Command'));
+      getPFail(res)(new Error('Invalid Command (bad function)'));
       return;
     }
 
-    fn(req.body).then((output) => {
-      if (req.get('ContentType') === 'application/json') {
-        res.json(output);
-      } else {
-        res.redirect('/');
-      }
-    }).fail(getPFail(res));
+    logger.info('executing command', req.params.namespace, req.params.command);
+    fn(req.body)
+      .then((output) => res.json(output))
+      .fail(getPFail(res));
   };
 }
 
@@ -122,18 +122,6 @@ function init(app) {
 
   getCommands(config).then((commands) => {
     logger.debug(`API ${API} Got CommandObjects`);
-    app.get(`/${API}/projects`, [
-      authSwitch,
-      commands.projects.list
-    ]);
-    app.get(`/${API}/projects/:project`, [
-      authSwitch,
-      commands.projects.getProject
-    ]);
-    app.post(`/${API}/projects/:project`, [
-      authSwitch,
-      commands.projects.setProject
-    ]);
     app.post(`/${API}/:namespace/:command`, [
       authSwitch,
       authorizeCommand(config),
