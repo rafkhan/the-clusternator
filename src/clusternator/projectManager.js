@@ -1,7 +1,9 @@
 'use strict';
 const OKAY = 200;
 
+const PROTOCOL = 'https://';
 const Q = require('q');
+const constants = require('../constants');
 var request = require('request');
 
 function getProjectManager(config) {
@@ -18,19 +20,21 @@ function getProjectManager(config) {
    * @returns {{ method: string, uri: string, gzip: boolean, json: Object }}
    */
   function makeRequestObject(verb, endpoint, data) {
-    var host = normalizeHost(credentials.host);
+    var host = normalizeEndSlash(credentials.host);
+    const API_VERSION = config.apiVersion || constants.DEFAULT_API_VERSION;
+    const uri = PROTOCOL + host + API_VERSION + endpoint;
     if (verb === 'PUT' || verb === 'POST') {
       data = data || null;
       return {
         method: verb,
-        uri: host + config.apiVersion + endpoint,
+        uri: uri,
         gzip: true,
         json: data
       };
     }
     return {
       method: verb,
-      uri: host + config.apiVersion + endpoint,
+      uri: uri,
       gzip: true
     };
   }
@@ -67,7 +71,7 @@ function getProjectManager(config) {
     return makeRequest('GET', endpoint);
   }
 
-  function normalizeHost(host) {
+  function normalizeEndSlash(host) {
     if (host[host.length - 1] === '/') {
       return host;
     }
@@ -77,8 +81,12 @@ function getProjectManager(config) {
   function listProjects() {
   }
 
-  function create() {
-
+  /**
+   * @param {string} projectId
+   * @returns {Q.Promise}
+   */
+  function create(projectId) {
+    return makePostRequest('/project/create', { projectId });
   }
 
   function createPR() {
@@ -121,7 +129,7 @@ function getProjectManager(config) {
         makeRequest,
         makePostRequest,
         makeGetRequest,
-        normalizeHost
+        normalizeEndSlash
       }
     });
   }

@@ -154,6 +154,15 @@ function getProject(req, res, next) {
   }).fail(getPFail(res));
 }
 
+/**
+ * @param {ProjectManager} pm
+ * @param {{ projectId: string }} body
+ * @returns {body.projectId}
+ */
+function createProject(pm, body) {
+ return pm.create(body.projectId);
+}
+
 function getCommands(credentials) {
 
   return aws(credentials)
@@ -166,7 +175,7 @@ function getCommands(credentials) {
     .then((pm) => {
       return {
         projects: {
-          create: pm.create,
+          create: (body) => createProject(pm, body),
           list: listProjects,
           getProject: getProject,
           setProject: setProject,
