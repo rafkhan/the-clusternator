@@ -176,16 +176,8 @@ function addPrivateToIgnore(ignoreFile, privatePath) {
     .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
 }
 
-
-
-
 function writeDeployment(name, dDir, appDef) {
   return writeFile(path.join(dDir, name + '.json'), appDef);
-}
-
-
-function initClusternatorProject(config) {
-  return cnProjectManager(config);
 }
 
 function getProjectAPI() {
@@ -194,10 +186,8 @@ function getProjectAPI() {
   if (config.awsCredentials) {
     return awsProjectManager(config);
   }
-  return initClusternatorProject(config);
+  return cnProjectManager(config);
 }
-
-
 
 function mapEc2ProjectDetails(instance) {
   var result = {
