@@ -9,8 +9,10 @@ const config = require('../../../config')();
 const constants = require('../../../constants');
 const Projects = require('../../../server/db/projects');
 const Q = require('q');
+const users = require('../../../server/auth/users');
 
 const API = constants.DEFAULT_API_VERSION;
+const DEFAULT_AUTHORITY = 2;
 
 var projects;
 
@@ -167,6 +169,25 @@ function createProject(pm, body) {
   return pm.create(body.projectId);
 }
 
+
+/**
+ * @param {{ username: string, password: string, authority?: number }} body
+ */
+function createUser(body) {
+  if (!body.username) {
+    return Q.reject(new Error('Create user requires a username'));
+  }
+  if (!body.password) {
+    return Q.reject(new Error('Create user requires a password'));
+  }
+  body.authority = +body.authority || DEFAULT_AUTHORITY;
+  return users.create({
+    id: body.username,
+    password: body.password,
+    authority: body.authority
+  });
+}
+
 function getCommands(credentials) {
   return aws(credentials)
     .then((pm) => {
@@ -177,6 +198,9 @@ function getCommands(credentials) {
     })
     .then((pm) => {
       return {
+        user: {
+          create: (body) => createUser(body)
+        },
         project: {
           create: (body) => createProject(pm, body),
           list: listProjects,

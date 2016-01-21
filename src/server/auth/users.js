@@ -30,7 +30,7 @@ function init() {
     createUser({
       id: 'root',
       authority: 0,
-      password: 'password'
+      password: config.setupRootPass
     });
   }
 }

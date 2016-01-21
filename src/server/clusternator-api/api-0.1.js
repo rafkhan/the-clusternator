@@ -1,6 +1,5 @@
 'use strict';
 const LOGIN_PATH = '/login';
-const APP_SLASH_JSON = 'application/json';
 
 const constants = require('../../constants');
 const API = constants.DEFAULT_API_VERSION;

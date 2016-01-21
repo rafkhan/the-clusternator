@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # please only use ephemeral keys here!!
-token="root:fozmm2fRkpbtPNF8j4jXEjJR-zMdOgilPr4i3cNO0wep-x-qApw4SLGX-a9RKtR-4drpN79YjHMVVEPcXe9i0g"
+token="root:XKiVGrihDs_AQrFyn9Donc5-4ohPJh85WC_cjxS8cXuWKrB77C2lTT3wnPwXQC87xEJ5fC2hcp_VepjtFUCPRQ"
 #data='{"id":"sideboard","pr":"255"}'
-data='{"projectId":"ctest"}'
-version="-alpha"
+data='{"username":"pat","authority":1,"password":"test"}'
+#version="-alpha"
 #url="http://the-clusternator$version.rangleapp.io/0.1/pr/create"
 #url="http://192.168.99.100:9090/0.1/project/create"
-url="http://127.0.0.1:9090/0.1/project/create/"
+url="http://127.0.0.1:9090/0.1/user/create/"
 
 curl -H "Content-Type: application/json"\
      -H "Authorization: Token $token"\
