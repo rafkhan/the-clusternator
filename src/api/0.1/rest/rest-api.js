@@ -1,17 +1,12 @@
 'use strict';
 
-const SSH_PUBLIC = 'ssh-public';
-const MAX_PROJECT_NAME = 150;
-
 const aws = require('../../../aws/project-init');
 const path = require('path');
 const util = require('../../../util');
 const dockernate = require('../../../dockernate');
 const slack = require('../../../cli-wrappers/slack');
-const clusternatorJson = require('../../../clusternator-json');
 const config = require('../../../config')();
 const constants = require('../../../constants');
-const ec2 = require('../../../aws/ec2Manager');
 const Projects = require('../../../server/db/projects');
 const Q = require('q');
 
@@ -29,37 +24,9 @@ function getPFail(res) {
   };
 }
 
-/**
- * @param {string} repo fully qualified repo URI/path
- * @param {string} imageName
- * @param {boolean=} noSlack if === true then noSlack output
- * @returns {Q.Promise}
- */
-function projectBuild(repo, imageName, noSlack) {
-  return dockernate
-    .create(repo, imageName)
-    .then(() => {
-      if (noSlack === true) { return; }
-      return slack.message(`Built New Image: ${imageName}`,
-        'the-clusternator');
-    }).fail((err) => {
-      if (noSlack === true) { return; }
-      return slack.message(`Build Image ${imageName} failed, Error:
-              ${err}`, 'the-clusternator');
-    });
-}
-
 function sanitizePr(pr) {
   pr = +pr;
   return pr !== pr ? 0 : pr;
-}
-
-function sanitizeSha(sha) {
-  if (!sha) {
-    sha = '';
-  }
-  sha = sha + '';
-  return sha.length > 5 && sha.length <= 40 ? sha : 'master';
 }
 
 /**
@@ -115,71 +82,6 @@ function makePrCreate(pm) {
           throw err;
         });
     });
-  };
-}
-
-/**
- * @param {ProjectManager} pm
- * @returns {Function(Object)}
- */
-function makePrCreateFull(pm) {
-  return (body) => {
-    var pr = sanitizePr(body.pr),
-      sha = sanitizeSha(body.sha),
-      appDef, sshData;
-
-    return projects
-      .find(body.id)
-      .then((project) => {
-        return prCreateDocker(project, pr, sha, (desc) => {
-          /**
-           * This anonymous function passed to prCreateDocker
-           * is middleware, and is not part of the surrounding promise chain
-           */
-          util.info('Collecting deployment data from repo in ', desc.path);
-          return clusternatorJson
-            .readPrivate(project.sharedKey, desc.path)
-            .then(() => {
-              util.info(`Reading clusternator.json from ${desc.path}`);
-              return clusternatorJson.getFrom(desc.path);
-            })
-            .then((srcConfig) => {
-              const defPath =
-                path.join(desc.path, srcConfig.deploymentsDir, 'pr');
-              util.info(`Collecting application definition(s)`);
-              appDef = require(defPath );
-            })
-            .then(() => {
-              return ec2
-                .makeSSHUserData(path.join(desc.path, '.private', SSH_PUBLIC))
-                .then((userData) => {
-                  util.info('Collected SSH Public Keys');
-                  sshData = userData;
-                });
-            });
-        }).then((image) => {
-          appDef.tasks[0].containerDefinitions[0].environment[0].value =
-            project.sharedKey;
-          appDef.tasks[0].containerDefinitions[0].image = image;
-          util.info('Launching PR With Appdef:');
-          util.info(JSON.stringify(appDef, null, 2));
-          return pm.createPR(project.id, pr + '', appDef, sshData);
-        }).then((prResult) => {
-          return slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha} ` +
-            `successful.  Application will be available at ` +
-            `<https://${prResult.url}>`,
-            project.channel);
-        }).fail((err) => {
-          slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha} ` +
-            `failed: ${err.message}`, project.channel);
-          throw err;
-        });
-      })
-      .fail((err) => {
-        util.error('Commands: Failed to create PR: ', err.message, err.stack);
-        return slack.message(`Create: ${body.id}, PR ${pr}, SHA ${sha}
-        failed: ${err.message}`, 'the-clusternator');
-      });
   };
 }
 
