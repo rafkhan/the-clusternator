@@ -9,6 +9,7 @@
 const Q = require('q');
 const pw = require('credential');
 const pwHash = Q.nbind(pw.hash, pw);
+const pwVerify = Q.nbind(pw.verify, pw);
 
 module.exports = {
   saltHash: saltHash,
@@ -46,18 +47,10 @@ function saltHashUser(user) {
  * @param {string} input
  */
 function verify(storedSaltedHash, input) {
-  var d = Q.defer();
-  pw.verify(storedSaltedHash, input, (err, isValid) => {
-    if (err) {
-      d.reject(err);
-      return;
-    }
-    if (isValid) {
-      d.resolve(true);
-      return;
-    }
-    d.reject(new Error('Password Mismatch'));
-  });
-  return d.promise;
+  try {
+    return pwVerify(storedSaltedHash, input + '');
+  } catch (err) {
+    return Q.reject(err);
+  }
 }
 

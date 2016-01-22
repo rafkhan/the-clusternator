@@ -61,11 +61,20 @@ function buildURI(endpoint, user) {
  * @param {string} verb
  * @param {string} endpoint
  * @param {*=} data
+ * @param {boolean=} noToken
  * @returns {{ method: string, uri: string, gzip: boolean, json: Object }}
  */
-function makeRequestObject(verb, endpoint, data) {
+function makeRequestObject(verb, endpoint, data,  noToken) {
   const user = getUserConfig();
   const uri = buildURI(endpoint, user);
+  let headers;
+  if (noToken) {
+    headers = {};
+  } else {
+    headers = {
+      Authorization: 'Token ' + user.credentials.token
+    };
+  }
   if (verb === 'PUT' || verb === 'POST') {
     data = data || null;
     return {
@@ -73,9 +82,7 @@ function makeRequestObject(verb, endpoint, data) {
       uri: uri,
       gzip: true,
       json: data,
-      headers: {
-        Authorization: 'Token ' + user.credentials.token
-      }
+      headers: headers
     };
   }
   return {
@@ -118,7 +125,7 @@ function failResponse(body, statusCode) {
 
   if (errorBody instanceof Error) {
     errorMessage = `Error: ${statusCode}`;
-  } else if (errorBody.error) {
+  } else if (errorBody && errorBody.error) {
     errorMessage = errorBody.error + '';
   } else {
     errorMessage = `Error: ${statusCode}`;
@@ -131,12 +138,13 @@ function failResponse(body, statusCode) {
  * @param {string} verb
  * @param {string} endpoint
  * @param {*=} data
+ * @param {boolean=} noToken defaults to false, if true, won't use token
  * @returns {Q.Promise}
  */
-function makeRequest(verb, endpoint, data) {
+function makeRequest(verb, endpoint, data, noToken) {
   var d = Q.defer();
   request(
-    makeRequestObject(verb, endpoint, data),
+    makeRequestObject(verb, endpoint, data, noToken),
     (error, response, body) => {
       if (error) {
         d.reject(error);
@@ -152,12 +160,23 @@ function makeRequest(verb, endpoint, data) {
   return d.promise;
 }
 
-function makePostRequest(endpoint, data) {
-  return makeRequest('POST', endpoint, data);
+/**
+ * @param {string} endpoint
+ * @param {*=} data
+ * @param {boolean=} noToken
+ * @returns {Q.Promise}
+ */
+function makePostRequest(endpoint, data, noToken) {
+  return makeRequest('POST', endpoint, data, noToken);
 }
 
-function makeGetRequest(endpoint) {
-  return makeRequest('GET', endpoint);
+/**
+ * @param {string} endpoint
+ * @param {boolean=} noToken
+ * @returns {Q.Promise}
+ */
+function makeGetRequest(endpoint, noToken) {
+  return makeRequest('GET', endpoint, null, noToken);
 }
 
 function normalizeEndSlash(host) {

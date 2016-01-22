@@ -73,8 +73,28 @@ module.exports = {
   certUpload,
   certList,
   createUser,
+  login,
+  changePassword,
   generatePass: git.generatePass
 };
+
+function changePassword(username, password, newPassword, confirmPassword) {
+  if (!username || !password) {
+    return Q.reject(new Error('changePassword requires a username, and ' +
+      'password'));
+  }
+  if (newPassword !== confirmPassword) {
+    return Q.reject(new Error('password mismatch'));
+  }
+  userAPI.changePassword();
+}
+
+function login(username, password) {
+  if (!username || !password) {
+    return Q.reject(new Error('login requires password, and username'));
+  }
+  return userAPI.login(username, password);
+}
 
 function createUser(username, password, confirm, authority) {
   if (password !== password) {

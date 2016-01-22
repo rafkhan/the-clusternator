@@ -3,7 +3,6 @@
 const TEST_VPC = 'vpc-ab07b4cf';
 const TEST_ZONE = '/hostedzone/Z1K98SX385PNRP';
 const LOGIN_PATH = '/login';
-const HOST = process.env.HOST;
 const PRODUCTION = 'production';
 const DEBUG = 'debug';
 const NODE_ENV = process.env.NODE_ENV;
@@ -27,6 +26,7 @@ const githubAuthMiddleware = require('./auth/githubHook');
 const users = require('./auth/users');
 const util = require('../util');
 const clusternatorApi = require('./clusternator-api');
+const API = require('../constants').DEFAULT_API_VERSION;
 
 var compression = require('compression');
 var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
@@ -114,27 +114,15 @@ function createServer(prManager, ddbManager) {
   app.set('view engine', 'ejs');
 
   app.get('/', [
-    ensureAuth(LOGIN_PATH),
-    exposeUser,
     (req, res) => {
       res.render('index');
     }]);
+
   app.get('/logout', [
       authentication.endpoints.logout
     ]
   );
-  app.get('/login', (req, res) => {
-    res.render('login', { error: false });
-  });
-  app.post('/login', authentication.endpoints.login);
-
-  app.get('/passwd', [
-    ensureAuth(LOGIN_PATH),
-    exposeUser,
-    (req, res) => {
-      res.render('passwd', { error: false });
-    }
-  ]);
+  app.post(`/${API}/login`, authentication.endpoints.login);
 
   app.get('/users/:id/tokens', [
     ensureAuth(LOGIN_PATH),
