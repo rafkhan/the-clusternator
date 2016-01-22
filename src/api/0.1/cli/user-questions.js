@@ -132,7 +132,7 @@ function createUser(username, password, confirm, authority) {
   const c = Config();
   username = getUserName(c, username);
   if (password !== confirm) { return passwordMismatch(); }
-  if (username) {
+  if (username && password) {
     return cn.createUser(username, password, confirm, parseInt(authority, 10));
   }
 
