@@ -54,6 +54,8 @@ function validateCreateUser(user) {
     d.reject(new Error('createUser: User Exists'));
     return d.promise;
   }
+  user.id = user.id + '';
+  user.password = user.password + '';
   return null;
 }
 

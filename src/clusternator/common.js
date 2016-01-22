@@ -89,6 +89,45 @@ function makeRequestObject(verb, endpoint, data) {
 }
 
 /**
+ * @param {string} body
+ * @returns {Q.Promise}
+ */
+function okayResponse(body) {
+  let parsedData;
+
+  if (body) {
+    parsedData = safeParse(body);
+  } else {
+    parsedData = {};
+  }
+  if (parsedData instanceof Error) {
+    return Q.reject(parsedData);
+  } else {
+    return Q.resolve(parsedData);
+  }
+}
+
+/**
+ * @param {*} body
+ * @param {number} statusCode
+ * @returns {string}
+ */
+function failResponse(body, statusCode) {
+  let errorBody = safeParse(body);
+  let errorMessage;
+
+  if (errorBody instanceof Error) {
+    errorMessage = `Error: ${statusCode}`;
+  } else if (errorBody.error) {
+    errorMessage = errorBody.error + '';
+  } else {
+    errorMessage = `Error: ${statusCode}`;
+  }
+
+  return errorMessage;
+}
+
+/**
  * @param {string} verb
  * @param {string} endpoint
  * @param {*=} data
@@ -104,20 +143,11 @@ function makeRequest(verb, endpoint, data) {
         return;
       }
       if (response.statusCode === OKAY) {
-        let parsedData;
-        if (body) {
-          parsedData = safeParse(body);
-        } else {
-          parsedData = {};
-        }
-        if (parsedData instanceof Error) {
-          d.reject(parsedData);
-        } else {
-          d.resolve(parsedData);
-        }
-        return;
+        okayResponse(body).then(d.resolve, d.reject);
+      } else {
+        const errorMessage = failResponse(body, response.statusCode);
+        d.reject(new Error(errorMessage));
       }
-      d.reject(new Error(response.statusCode + ' :: ' + body));
     });
   return d.promise;
 }
