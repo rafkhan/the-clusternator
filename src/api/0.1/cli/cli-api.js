@@ -36,6 +36,25 @@ module.exports = (yargs) => {
     })
     .command('config', 'Configure the local clusternator user',
       () => Config.interactiveUser().done())
+    .command('create-user', 'Create a user on the clusternator server', (y) => {
+      y.demand('n')
+        .alias('n', 'username')
+        .describe('n', 'Username for the account')
+        .demand('p')
+        .alias('p', 'password')
+        .describe('p', 'password for the user')
+        .demand('c')
+        .alias('c', 'confirm-password')
+        .describe('c', 'confirm user password')
+        .demand('a')
+        .alias('a', 'authority')
+        .default('a', 2)
+        .describe('a', 'authority of the user {number} lower numbers have ' +
+          'more authority than higher number');
+      cn.createUser(y.argv.n, y.argv.p, y.argv.c, y.argv.a)
+        .fail((err) => console
+          .log(`Error creating user: ${err.message}`)).done();
+    })
     .command('serve', 'Start a clusternator server. (typically prefer npm ' +
       'start, or serve.sh', () =>  {
       const config = Config();

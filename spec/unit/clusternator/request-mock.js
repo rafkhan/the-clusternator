@@ -1,7 +1,7 @@
 'use strict';
 
 /** note, this is the most minimal stub/mock of request possible */
-var result = {}, response = {
+var result = JSON.stringify({ payload: null }), response = {
   statusCode: 200
 };
 
@@ -14,7 +14,11 @@ function request(reqObj, callback) {
 }
 
 function setResult(val) {
-  result = val;
+  if ((typeof val === 'string') || (val instanceof Error)) {
+    result = val;
+  } else {
+    result = JSON.stringify(val);
+  }
 }
 
 function setResponse(val) {

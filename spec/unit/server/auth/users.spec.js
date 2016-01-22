@@ -8,14 +8,24 @@ describe('Users interface', function() {
 
   var C = require('../../chai'),
     users = require('../../../../src/server/auth/users'),
-    testUser1, testUser2, testUser3, testUser4;
+    testUser1, testUser2, testUser3, testUser4, testUser5;
 
   beforeEach(() => {
-    testUser1 = {id: 'test', password: '123'};
-    testUser2 = {id: 'test2', password: '1234'};
-    testUser3 = {id: 'test3', password: '12345'};
-    testUser4 = {id: 'test4', password: '123456'};
+    testUser1 = {id: 'test', password: '12345678'};
+    testUser2 = {id: 'test2', password: '123456789'};
+    testUser3 = {id: 'test3', password: '123456789A'};
+    testUser4 = {id: 'test4', password: '123456789AB'};
+    testUser5 = {id: 'test5', password: '12'};
   });
+
+  it('createUser should reject a new user object *without* a short',
+    (done) => {
+      users.create(testUser5).then((newU) => C.getFail(done), () => {
+        C.check(() => {
+          expect(testUser1.password).to.not.be.ok;
+        }, done);
+      });
+    });
 
   it('createUser should resolve a new user object *without* a password field',
     (done) => {

@@ -35,11 +35,10 @@ const docker = cmn.src('cli-wrappers', 'docker');
 
 const appDefSkeleton = cmn.src('skeletons', 'app-def');
 
+const userAPI = cmn.src('clusternator', 'user');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
 const circle = cmn.src('circle-ci');
-
-const server = cmn.src('server', 'main');
 
 const writeFile = Q.nbind(fs.writeFile, fs);
 const readFile = Q.nbind(fs.readFile, fs);
@@ -73,8 +72,16 @@ module.exports = {
   listProjects,
   certUpload,
   certList,
+  createUser,
   generatePass: git.generatePass
 };
+
+function createUser(username, password, confirm, authority) {
+  if (password !== password) {
+    return Q.reject(new Error('password mismatch'));
+  }
+  return userAPI.create(username, password, confirm, authority);
+}
 
 /**
  * @returns {Q.Promise<string>}
@@ -474,6 +481,7 @@ function update(name) {
 
 
 function startServer(config) {
+  const server = cmn.src('server', 'main');
   return server.startServer(config);
 }
 
