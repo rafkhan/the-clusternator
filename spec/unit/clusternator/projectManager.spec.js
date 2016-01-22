@@ -47,14 +47,6 @@ describe('Clusternator\'s project manager', () => {
     }, C.getFail(done));
   });
 
-  it('Pm should reject without valid credentials', (done) => {
-    Pm().then(C.getFail(done), (err) => {
-      C.check(done, () => {
-        expect(err instanceof Error).to.be.ok;
-      });
-    });
-  });
-
   it('makePostRequest should fail on error', (done) => {
     mockRequest.setResult(new Error('test failure'));
 
