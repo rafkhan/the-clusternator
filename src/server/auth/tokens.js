@@ -138,10 +138,16 @@ function userFromToken(token) {
   return splitToken(token).id;
 }
 
+function clearTokens(userId) {
+  tokens[userId] = [];
+  return Q.resolve();
+}
+
 module.exports = {
   findById: find,
   find: findByToken,
   create: createToken,
+  clear: clearTokens,
   invalidate: invalidateToken,
   verify: verifyByToken,
   userFromToken: userFromToken

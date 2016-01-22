@@ -207,5 +207,20 @@ function interactiveUser() {
   .then(writeUserConfig);
 }
 
+/**
+ * @param {string} token
+ * @returns {Q.Promise}
+ */
+function saveToken(token) {
+  let user = checkUser();
+  if (!user) {
+    return Q.reject(
+      new Error('Please run "clusternator config" before trying to login'));
+  }
+  user.credentials.token = token;
+  return writeFile(DOT_CLUSTERNATOR_CONFIG, JSON.stringify(user, null, 2));
+}
+
+getConfig.saveToken = saveToken;
 getConfig.interactiveUser = interactiveUser;
 module.exports = getConfig;

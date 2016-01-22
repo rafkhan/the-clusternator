@@ -21,6 +21,15 @@ const isMinLingeth = (config, value) => {
   return (value + '').length >= min;
 };
 
+const makeSaveTokenQ = (defaultVal) =>  {
+  defaultVal = defaultVal ? true : false;
+  return [{
+    type: 'confirm',
+    name : 'saveToken',
+    message : 'Do you want to save this token for future use?',
+    default: defaultVal
+  }];
+};
 const makePasswordQ = (config, isNew) =>  {
   let message;
   if (isNew) {
@@ -134,6 +143,19 @@ function createUser(username, password, confirm, authority) {
           pwConfirm.password, pwConfirm.confirm, authority)));
 }
 
+function saveLoginDetails(loginDetails) {
+  Config.saveToken(loginDetails.token);
+}
+
+function postLogin(loginDetails) {
+  console.log('Login Successful');
+  util.inquirerPrompt(makeSaveTokenQ(true))
+    .then((answers) => {
+      if (answers.saveToken) {
+        saveLoginDetails(loginDetails);
+      }
+    });
+}
 
 /**
  * @param {string=} username
@@ -146,7 +168,8 @@ function login(username, password) {
     return cn.login(username, password);
   }
   return usernamePasswordQ(username)
-    .then((answers) => cn.login(answers.username, answers.password));
+    .then((answers) => cn.login(answers.username, answers.password)
+      .then(postLogin));
 }
 
 /**

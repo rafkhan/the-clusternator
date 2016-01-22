@@ -64,7 +64,15 @@ function authenticateUserEndpoint(req, res, next) {
       if (err) {
         res.status(500).json({error: true});
       } else {
-        res.json(user);
+        tokens
+          .clear(user.id)
+          .then(() => tokens
+            .create(user.id)
+            .then((token) => {
+              user.token = token;
+              res.json(user);
+            }))
+          .fail((err) => res.status(500).json({ error: err.message }));
       }
     });
   })(req, res, next);
