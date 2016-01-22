@@ -183,9 +183,13 @@ function changePassword(username, password, newPassword, confirm) {
   const c = Config();
   username = getUserName(c, username);
   if (newPassword !== confirm) { return passwordMismatch(); }
+  if (username && password && newPassword) {
+    return cn.changePassword(username, password, newPassword, confirm);
+  }
   return usernamePasswordQ(username)
     .then((userAnswer) => confirmQ(c)
       .then((confirmAnswers) => cn
-        .changePassword(userAnswer.username, password, confirmAnswers.password,
-          confirmAnswers.confirm)));
+        .changePassword(userAnswer.username, userAnswer.password,
+          confirmAnswers.password, confirmAnswers.confirm)))
+    .then(() => console.log('Password changed'));
 }

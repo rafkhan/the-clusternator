@@ -76,7 +76,7 @@ module.exports = (yargs) => {
           .log(`Error logging in: ${err.message}`))
           .done();
       })
-    .command('change-password', 'Change your clusternator server password',
+    .command('passwd', 'Change your clusternator server password',
       (y) => {
         y.demand('p')
           .alias('p', 'password')

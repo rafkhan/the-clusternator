@@ -10,6 +10,7 @@ const constants = require('../../../constants');
 const Projects = require('../../../server/db/projects');
 const Q = require('q');
 const users = require('../../../server/auth/users');
+const passwords = require('../../../server/auth/passwords');
 
 const API = constants.DEFAULT_API_VERSION;
 const DEFAULT_AUTHORITY = 2;
@@ -169,6 +170,16 @@ function createProject(pm, body) {
   return pm.create(body.projectId);
 }
 
+function changePass(body) {
+  if (!body.username) {
+    return Q.reject(new Error('Create user requires a username'));
+  }
+  if (!body.password) {
+    return Q.reject(new Error('Create user requires a password'));
+  }
+
+  return passwords.change(body.username, body.password, body.passwordNew);
+}
 
 /**
  * @param {{ username: string, password: string, authority?: number }} body
@@ -199,7 +210,8 @@ function getCommands(credentials) {
     .then((pm) => {
       return {
         user: {
-          create: (body) => createUser(body)
+          create: (body) => createUser(body),
+          passwd: (body) => changePass(body)
         },
         project: {
           create: (body) => createProject(pm, body),

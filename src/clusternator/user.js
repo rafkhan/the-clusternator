@@ -46,7 +46,7 @@ function changePassword(username, password, newPassword, confirm) {
   return makePostRequest('/user/passwd', {
     username,
     password,
-    newPassword
+    passwordNew: newPassword
   }, true);
 
 }
