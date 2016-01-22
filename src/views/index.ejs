@@ -6,11 +6,25 @@
 </head>
 <body>
 <h1>Clusternator</h1>
-<ul>
-    <li><a href="/logout" title="Logout of Clusternator">Logout</a></li>
-    <li><a href="/passwd" title="Change Password">Change Password</a></li>
-    <li><a href="/users/<%= username %>/tokens" title="Manage Tokens">Manage Tokens</a></li>
-    <li><a href="/0.1/projects" title="projects">View Projects</a></li>
-</ul>
+<noscript>
+    Disabling JS is a smart choice
+</noscript>
+<div id="output"></div>
+<script>
+    var output = document.getElementById('output');
+    var rando = random(10000000000) + '';
+    output.innerHTML = rando;
+    setInterval(swap, 1500);
+
+    function swap() {
+        var swapIndex = random(rando.length);
+        rando = rando.slice(0, swapIndex - 1) + random(10) +
+                rando.slice(swapIndex);
+        output.innerHTML = rando;
+    }
+    function random(m) {
+        return Math.floor(Math.random() * m);
+    }
+</script>
 </body>
 </html>

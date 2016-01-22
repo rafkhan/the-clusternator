@@ -6,13 +6,15 @@
 /*global require, module */
 
 
-const pw = require('credential');
 const Q = require('q');
+const pw = require('credential');
+const pwHash = Q.nbind(pw.hash, pw);
+const pwVerify = Q.nbind(pw.verify, pw);
 
 module.exports = {
-    saltHash: saltHash,
-    saltHashUser: saltHashUser,
-    verify: verify
+  saltHash: saltHash,
+  saltHashUser: saltHashUser,
+  verify: verify
 };
 
 /**
@@ -20,15 +22,12 @@ module.exports = {
  * @returns {Q.Promise}
  */
 function saltHash(password) {
-    var d = Q.defer();
-    pw.hash(password, (err, saltHash) => {
-        if (err) {
-            d.reject(err);
-            return;
-        }
-        d.resolve(saltHash);
-    });
-    return d.promise;
+  try {
+    return pwHash(password + '');
+  } catch (err) {
+    console.log('hash error');
+    return Q.reject(err);
+  }
 }
 
 
@@ -37,10 +36,10 @@ function saltHash(password) {
  * @returns {Q.Promise}
  */
 function saltHashUser(user) {
-    return saltHash(user.password).then((saltedHash) => {
-        user.password = saltedHash;
-        return user;
-    });
+  return saltHash(user.password).then((saltedHash) => {
+    user.password = saltedHash;
+    return user;
+  });
 }
 
 /**
@@ -48,18 +47,10 @@ function saltHashUser(user) {
  * @param {string} input
  */
 function verify(storedSaltedHash, input) {
-    var d = Q.defer();
-    pw.verify(storedSaltedHash, input, (err, isValid) => {
-        if (err) {
-            d.reject(err);
-            return;
-        }
-        if (isValid) {
-            d.resolve(true);
-            return;
-        }
-        d.reject(new Error('Password Mismatch'));
-    });
-    return d.promise;
+  try {
+    return pwVerify(storedSaltedHash, input + '');
+  } catch (err) {
+    return Q.reject(err);
+  }
 }
 

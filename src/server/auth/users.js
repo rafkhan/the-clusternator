@@ -8,6 +8,7 @@ var tokens = require('./tokens');
 var authorities = require('./authorities');
 var config = require('../../config')();
 var Q = require('q');
+const MIN_PASS_LEN = config.minPasswordLength;
 
 module.exports = {
   find: find,
@@ -30,7 +31,7 @@ function init() {
     createUser({
       id: 'root',
       authority: 0,
-      password: 'password'
+      password: config.setupRootPass
     });
   }
 }
@@ -53,6 +54,8 @@ function validateCreateUser(user) {
     d.reject(new Error('createUser: User Exists'));
     return d.promise;
   }
+  user.id = user.id + '';
+  user.password = user.password + '';
   return null;
 }
 
@@ -67,6 +70,11 @@ function createUser(user) {
     return d;
   } else {
     d = Q.defer();
+  }
+  if (user.password.length < MIN_PASS_LEN) {
+    d.reject(new Error(
+      `password too short.  Must be at least ${MIN_PASS_LEN}`));
+    return d.promise;
   }
   Q.all([
     passwords.create(user.id, user.password),

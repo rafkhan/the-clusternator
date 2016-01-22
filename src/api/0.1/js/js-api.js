@@ -35,11 +35,10 @@ const docker = cmn.src('cli-wrappers', 'docker');
 
 const appDefSkeleton = cmn.src('skeletons', 'app-def');
 
+const userAPI = cmn.src('clusternator', 'user');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
 const circle = cmn.src('circle-ci');
-
-const server = cmn.src('server', 'main');
 
 const writeFile = Q.nbind(fs.writeFile, fs);
 const readFile = Q.nbind(fs.readFile, fs);
@@ -73,8 +72,36 @@ module.exports = {
   listProjects,
   certUpload,
   certList,
+  createUser,
+  login,
+  changePassword,
   generatePass: git.generatePass
 };
+
+function changePassword(username, password, newPassword, confirmPassword) {
+  if (!username || !password) {
+    return Q.reject(new Error('changePassword requires a username, and ' +
+      'password'));
+  }
+  if (newPassword !== confirmPassword) {
+    return Q.reject(new Error('password mismatch'));
+  }
+  userAPI.changePassword();
+}
+
+function login(username, password) {
+  if (!username || !password) {
+    return Q.reject(new Error('login requires password, and username'));
+  }
+  return userAPI.login(username, password);
+}
+
+function createUser(username, password, confirm, authority) {
+  if (password !== password) {
+    return Q.reject(new Error('password mismatch'));
+  }
+  return userAPI.create(username, password, confirm, authority);
+}
 
 /**
  * @returns {Q.Promise<string>}
@@ -176,16 +203,8 @@ function addPrivateToIgnore(ignoreFile, privatePath) {
     .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
 }
 
-
-
-
 function writeDeployment(name, dDir, appDef) {
   return writeFile(path.join(dDir, name + '.json'), appDef);
-}
-
-
-function initClusternatorProject(config) {
-  return cnProjectManager(config);
 }
 
 function getProjectAPI() {
@@ -194,10 +213,8 @@ function getProjectAPI() {
   if (config.awsCredentials) {
     return awsProjectManager(config);
   }
-  return initClusternatorProject(config);
+  return cnProjectManager(config);
 }
-
-
 
 function mapEc2ProjectDetails(instance) {
   var result = {
@@ -484,6 +501,7 @@ function update(name) {
 
 
 function startServer(config) {
+  const server = cmn.src('server', 'main');
   return server.startServer(config);
 }
 

@@ -9,6 +9,7 @@ const cn = require('../js/js-api');
 
 const stdioI = require('./stdio-inheritors');
 const project = require('./project-questions');
+const user = require('./user-questions');
 
 const legacy = require('./legacy-yargs');
 
@@ -36,6 +37,70 @@ module.exports = (yargs) => {
     })
     .command('config', 'Configure the local clusternator user',
       () => Config.interactiveUser().done())
+    .command('create-user', 'Create a user on the clusternator server', (y) => {
+      y.demand('n')
+        .alias('n', 'username')
+        .describe('n', 'Username for the account')
+        .default('n', '')
+        .demand('p')
+        .alias('p', 'password')
+        .describe('p', 'password for the user')
+        .default('p', '')
+        .demand('c')
+        .alias('c', 'confirm-password')
+        .describe('c', 'confirm user password')
+        .default('c', '')
+        .demand('a')
+        .alias('a', 'authority')
+        .default('a', 2)
+        .describe('a', 'authority of the user {number} lower numbers have ' +
+          'more authority than higher number');
+      user.createUser(y.argv.n, y.argv.p, y.argv.c, y.argv.a)
+        .fail((err) => console
+          .log(`Error creating user: ${err.message}`))
+        .done();
+    })
+    .command('login', 'Change your clusternator server password',
+      (y) =>  {
+        y.demand('p')
+          .alias('p', 'password')
+          .describe('p', 'your password (be careful with shell entry like this)')
+          .default('p', '')
+          .demand('u')
+          .alias('u', 'user-name')
+          .describe('u', 'user name to login with, (defaults to local config if' +
+            'available)')
+          .default('u', '');
+
+        return user.login(y.argv.u, y.argv.p).fail((err) => console
+          .log(`Error logging in: ${err.message}`))
+          .done();
+      })
+    .command('passwd', 'Change your clusternator server password',
+      (y) => {
+        y.demand('p')
+          .alias('p', 'password')
+          .describe('your password (be careful with shell entry like this)')
+          .default('p', '')
+          .demand('n')
+          .alias('n', 'new-password')
+          .describe('n', 'your NEW password (be careful with shell entry ' +
+            'like this)')
+          .default('n', '')
+          .demand('c')
+          .alias('c', 'confirm-password')
+          .describe('c', 'confirm your NEW password')
+          .default('c', '')
+          .demand('u')
+          .alias('u', 'user-name')
+          .describe('u', 'user name to login with')
+          .default('u', '');
+
+        return user.changePassword(y.argv.u, y.argv.p, y.argv.n, y.argv.c)
+          .fail((err) => console
+            .log(`Error logging in: ${err.message}`))
+          .done();
+      })
     .command('serve', 'Start a clusternator server. (typically prefer npm ' +
       'start, or serve.sh', () =>  {
       const config = Config();

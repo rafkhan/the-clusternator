@@ -4,7 +4,8 @@ var rewire = require('rewire'),
   C = require('../chai'),
   mockRequest = require('./request-mock');
 
-var Pm = rewire('../../../src/clusternator/projectManager');
+var Pm = rewire('../../../src/clusternator/projectManager'),
+  common = rewire('../../../src/clusternator/common');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
@@ -22,8 +23,8 @@ describe('Clusternator\'s project manager', () => {
   };
 
   beforeEach((done) => {
-    oldReq = Pm.__get__('request');
-    Pm.__set__('request', mockRequest);
+    oldReq = common.__get__('request');
+    common.__set__('request', mockRequest);
     Pm(validConfig).then((p) => {
       pm = p;
       done();
@@ -31,11 +32,11 @@ describe('Clusternator\'s project manager', () => {
   });
 
   afterEach(() => {
-    mockRequest.setResult({});
     mockRequest.setResponse( {
       statusCode: 200
     });
-    Pm.__set__('request', oldReq);
+    mockRequest.setResult({ payload: null });
+    common.__set__('request', oldReq);
   });
 
   it('Pm should resolve a new clusternator project manager', (done) => {
@@ -57,7 +58,7 @@ describe('Clusternator\'s project manager', () => {
   it('makePostRequest should fail on error', (done) => {
     mockRequest.setResult(new Error('test failure'));
 
-    pm.helpers.makePostRequest('localhost', { test: 't' }).
+    common.helpers.makePostRequest('localhost', { test: 't' }).
     then(C.getFail(done), (err) => {
       C.check(done, () => {
         expect(err instanceof Error).to.be.ok;
@@ -68,7 +69,7 @@ describe('Clusternator\'s project manager', () => {
   it('makeGetRequest should fail on error', (done) => {
     mockRequest.setResult(new Error('test failure'));
 
-    pm.helpers.makeGetRequest('localhost').
+    common.helpers.makeGetRequest('localhost').
     then(C.getFail(done), (err) => {
       C.check(done, () => {
         expect(err instanceof Error).to.be.ok;
@@ -80,7 +81,7 @@ describe('Clusternator\'s project manager', () => {
   it('makePostRequest should fail if status code is an error', (done) => {
     mockRequest.setResponse({ statusCode: 500 });
 
-    pm.helpers.makePostRequest('localhost', { test: 't' }).
+    common.helpers.makePostRequest('localhost', { test: 't' }).
     then(C.getFail(done), (err) => {
       C.check(done, () => {
         expect(err instanceof Error).to.be.ok;
@@ -89,7 +90,7 @@ describe('Clusternator\'s project manager', () => {
   });
 
   it('makePostRequest should resolve if there is a 200 status code', (done) => {
-    pm.helpers.makePostRequest('localhost', { test: 't' }).
+    common.helpers.makePostRequest('localhost', { test: 't' }).
     then((result) => {
       C.check(done, () => {
         expect(result).to.be.ok;
@@ -98,7 +99,7 @@ describe('Clusternator\'s project manager', () => {
   });
 
   it('makeGetRequest should resolve if there is a 200 status code', (done) => {
-    pm.helpers.makeGetRequest('localhost').
+    common.helpers.makeGetRequest('localhost').
     then((result) => {
       C.check(done, () => {
         expect(result).to.be.ok;
@@ -107,14 +108,14 @@ describe('Clusternator\'s project manager', () => {
 
   });
 
-  it('normalizeHost should add a / to the end of a host if it is not present',
+  it('normalizeEndSlash should add a / to the end of a host if it is not present',
     () => {
-    expect(pm.helpers.normalizeHost('blah')).to.equal('blah/');
+    expect(common.helpers.normalizeEndSlash('blah')).to.equal('blah/');
   });
 
-  it('normalizeHost should not add a / to the end of a host if it exists',
+  it('normalizeEndSlash should not add a / to the end of a host if it exists',
     () => {
-      expect(pm.helpers.normalizeHost('blah/')).to.equal('blah/');
+      expect(common.helpers.normalizeEndSlash('blah/')).to.equal('blah/');
     });
 
 });
