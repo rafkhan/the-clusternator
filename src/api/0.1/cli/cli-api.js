@@ -9,11 +9,12 @@ const Config = cmn.src('config');
 const cn = require('../js/js-api');
 const deployments = require('./deployments');
 const stdioI = require('./stdio-inheritors');
-const project = require('./project-questions');
-const user = require('./user-questions');
+const project = require('./project');
+const user = require('./user');
 const aws = require('./aws');
 
 const privateFs = require('../project-fs/private');
+const dockerFs = require('../project-fs/docker');
 const deploymentsFs = require('../project-fs/deployments');
 
 const legacy = require('./legacy-yargs');
@@ -135,8 +136,8 @@ module.exports = (yargs) => {
 
       util.info('Building Docker Image: ', argv.i);
 
-      return cn
-        .dockerBuild(argv.i, argv.p).fail((err) => {
+      return dockerFs
+        .build(argv.i, argv.p).fail((err) => {
           util.error('Error building local Docker image: ', err);
         }).done();
     })

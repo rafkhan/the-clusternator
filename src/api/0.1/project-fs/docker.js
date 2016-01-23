@@ -5,15 +5,18 @@ const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 
 const fs = require('./fs');
+const privateFs = require('./private');
 
 const cmn = require('../common');
 
+const docker = cmn.src('cli-wrappers', 'docker');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
 const clusternatorJson = cmn.src('clusternator-json');
 
 module.exports = {
-  init: initializeDockerFile
+  init: initializeDockerFile,
+  build: dockerBuild
 };
 
 /**
@@ -34,3 +37,46 @@ function initializeDockerFile(clustDir, dockerType) {
         return fs.write(fs.path.join(root, DOCKERFILE), contents);
       }) );
 }
+
+/**
+ * @param name
+ * @param passphrase
+ * @returns {Request|*|Promise.<T>}
+ */
+function dockerBuild(name, passphrase) {
+  return privateFs.makePrivate(passphrase).then(() => {
+    return clusternatorJson
+      .findProjectRoot()
+      .then((root) => {
+        var output, outputError;
+        process.chdir(root);
+        util.info('Start Docker Build', name);
+        return docker.build(name)
+          .progress((data) => {
+            if (!data) {
+              return;
+            }
+            if (data.error) {
+              outputError += data.error;
+              util.error(outputError);
+            }
+            if (data.data) {
+              output += data.data;
+              util.verbose(output);
+            }
+          });
+      })
+      .then(() => {
+        util.verbose('Decrypting Private Folder');
+        return privateFs.readPrivate(passphrase);
+      })
+      .then(() => {
+        util.info('Built Docker Image: ', name);
+      })
+      .fail((err) => {
+        util.warn('Docker failed to build: ', err.message);
+        return privateFs.readPrivate(passphrase);
+      });
+  });
+}
+

@@ -3,7 +3,6 @@
 const Q = require('q');
 
 const cmn = require('../common');
-const clusternatorJson = cmn.src('clusternator-json');
 const Config = cmn.src('config');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
@@ -15,7 +14,6 @@ const dockerFs = require('../project-fs/docker');
 const scriptsFs = require('../project-fs/clusternator-scripts');
 
 const gpg = cmn.src('cli-wrappers', 'gpg');
-const docker = cmn.src('cli-wrappers', 'docker');
 
 const userREST = cmn.src('clusternator', 'user');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
@@ -31,7 +29,6 @@ module.exports = {
   update,
   startServer,
   initProject,
-  dockerBuild,
   describeServices,
   listProjects,
   certUpload,
@@ -94,17 +91,14 @@ function initializeSharedKey() {
 
 /**
  * @param {string} projectId
- * @param {string} output
  * @param {string} privatePath
  * @returns {Q.Promise}
  */
-function provisionProjectNetwork(projectId, output, privatePath) {
+function provisionProjectNetwork(projectId, privatePath) {
   return getProjectAPI()
     .then((pm) =>  pm
       .create(projectId)
       .then((details) => privateFs.writeProjectDetails(privatePath, details)
-        .then(() => util
-          .info(output + ' Network Resources Checked'))
         .then((token) => privateFs
           .writeClusternatorCreds(privatePath, details.ghToken)))
       .fail(Q.reject));
@@ -253,9 +247,7 @@ function logKey(sharedKey) {
  * @returns {Request|Promise.<T>|*}
  */
 function initProject(root, options, skipNetwork) {
-  var output = 'Clusternator Initialized With Config: ' +
-      clusternatorJson.fullPath(root),
-    dDir = options.deploymentsDir,
+  var dDir = options.deploymentsDir,
     cDir = options.clusternatorDir,
     projectId = options.projectId,
     dockerType = options.backend;
@@ -268,54 +260,17 @@ function initProject(root, options, skipNetwork) {
       dockerFs.init(cDir, dockerType)])
     .then(() => {
       if (skipNetwork) {
-        util.info(output + ' Network Resources *NOT* Checked');
+        util.info('Network Resources *NOT* Checked');
         return;
       }
 
-      return provisionProjectNetwork(projectId, output, options.private)
+      return provisionProjectNetwork(projectId, options.private)
         .then(initializeSharedKey)
         .then((sharedKey) => privateFs.makePrivate(sharedKey)
           .then(() => privateFs.readPrivate(sharedKey))
           .then(privateFs.checksum)
           .then(() => logKey(sharedKey)));
     });
-}
-
-function dockerBuild(name, passphrase) {
-  return privateFs.makePrivate(passphrase).then(() => {
-    return clusternatorJson
-      .findProjectRoot()
-      .then((root) => {
-        var output, outputError;
-        process.chdir(root);
-        util.info('Start Docker Build', name);
-        return docker.build(name)
-          .progress((data) => {
-            if (!data) {
-              return;
-            }
-            if (data.error) {
-              outputError += data.error;
-              util.error(outputError);
-            }
-            if (data.data) {
-              output += data.data;
-              util.verbose(output);
-            }
-          });
-      })
-      .then(() => {
-        util.verbose('Decrypting Private Folder');
-        return privateFs.readPrivate(passphrase);
-      })
-      .then(() => {
-        util.info('Built Docker Image: ', name);
-      })
-      .fail((err) => {
-        util.warn('Docker failed to build: ', err.message);
-        return privateFs.readPrivate(passphrase);
-      });
-  });
 }
 
 /**
