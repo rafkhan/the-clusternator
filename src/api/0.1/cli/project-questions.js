@@ -9,7 +9,7 @@ const Q = require('q');
 const cn = require('../js/js-api');
 const cmn = require('../common');
 const Config = require('../../../config');
-const gitHooks = require('./git-hooks');
+const gitHooks = require('../project-fs/git-hooks');
 
 var util = cmn.src('util');
 var clusternatorJson = cmn.src('clusternator-json');

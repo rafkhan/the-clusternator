@@ -7,6 +7,7 @@ const util = cmn.src('util');
 const Config = cmn.src('config');
 const cn = require('../js/js-api');
 
+const privateFs = require('../project-fs/private');
 const stdioI = require('./stdio-inheritors');
 const project = require('./project-questions');
 const user = require('./user-questions');
@@ -223,11 +224,11 @@ module.exports = (yargs) => {
       .then(console.log))
 
     .command('private-checksum', 'Calculates the hash of .private, and ' +
-      'writes it to .clusternator/.private-checksum', cn.privateChecksum)
+      'writes it to .clusternator/.private-checksum', privateFs.checksum)
     .command('private-diff', 'Exits 0 if there is no difference between ' +
       '.clusternator/.private-checksum and a fresh checksum Exits 1 on ' +
       'mismatch, and exits 2 if private-checksum is not found',
-      cn.privateDiff)
+      privateFs.diff)
 
     .command('log', 'Application logs from a user selected server',
       stdioI.logApp)

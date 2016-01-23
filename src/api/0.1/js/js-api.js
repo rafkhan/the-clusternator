@@ -9,7 +9,6 @@ const DECRYPT_SH = 'decrypt.sh';
 const DOCKER_BUILD_JS = 'docker-build.js';
 const NOTIFY_JS = 'notify.js';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
-const PRIVATE_CHECKSUM = '.private-checksum';
 const DEFAULT_API = /\$DEFAULT_API/g;
 const HOST = /\$HOST/g;
 const PROJECT_CREDS_FILE = 'aws-project-credentials.json';
@@ -27,8 +26,8 @@ const Config = cmn.src('config');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
 
+const privateFs = require('../project-fs/private')
 const gpg = cmn.src('cli-wrappers', 'gpg');
-const shaDir = cmn.src('cli-wrappers', 'generate-private-sha');
 const git = cmn.src('cli-wrappers', 'git');
 const docker = cmn.src('cli-wrappers', 'docker');
 
@@ -56,8 +55,6 @@ module.exports = {
   initializeScripts,
   addPrivateToIgnore,
   initializeServeSh,
-  privateChecksum,
-  privateDiff,
   deploy,
   stop,
   update,
@@ -365,71 +362,6 @@ function initializeServeSh(root) {
     });
 }
 
-function getPrivateChecksumPaths() {
-  return Q.all([
-      clusternatorJson.get(),
-      clusternatorJson.findProjectRoot() ])
-    .then((results) => {
-      const privatePath = results[0].private,
-        checksumPath = path.join(results[1], results[0].clusternatorDir,
-          PRIVATE_CHECKSUM);
-      return {
-        priv: privatePath,
-        checksum: checksumPath,
-        clusternator: results[0].clusternatorDir,
-        root: results[1]
-      };
-    });
-}
-
-function privateChecksum() {
-  return getPrivateChecksumPaths()
-    .then((paths) => {
-      return mkdirp(paths.clusternator).then(() => paths);
-    }).then((paths) => {
-      process.chdir(paths.root);
-      return paths;
-    }).then((paths) =>shaDir
-      .genSha(paths.priv)
-      .then((sha) => writeFile(paths.checksum, sha)
-        .then(() => util
-          .info(`Generated shasum of ${paths.priv} => ${sha}`))))
-    .done();
-}
-
-/**
- * @param {string} sha
- * @returns {Function}
- */
-function getPrivateDiffFn(sha) {
-  return (storedSha) => {
-    if (sha.trim() === storedSha.trim()) {
-      process.exit(0);
-    }
-    util.info(`Diff: ${sha.trim()} vs ${storedSha.trim()}`);
-    process.exit(1);
-  };
-}
-
-function privateDiff() {
-  return getPrivateChecksumPaths()
-    .then((paths) => shaDir
-      .genSha(paths.priv)
-      .then((sha) => readFile(paths.checksum, UTF8)
-        .then(getPrivateDiffFn(sha))
-        .fail(() => {
-          // read file errors are expected
-          util.info(`Diff: no checksum to compare against`);
-          process.exit(2);
-        })))
-    .fail((err) => {
-      // unexpected error case
-      util.error(err);
-      process.exit(2);
-    })
-    .done();
-}
-
 /**
  * @param {string} name
  * @returns {Request|Promise.<T>|*}
@@ -607,7 +539,7 @@ function initProject(root, options, skipNetwork) {
         .then(initializeSharedKey)
         .then((sharedKey) => makePrivate(sharedKey)
           .then(() => readPrivate(sharedKey))
-          .then(privateChecksum)
+          .then(privateFs.checksum)
           .then(() => logKey(sharedKey)));
     });
 }
