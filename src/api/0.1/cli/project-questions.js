@@ -9,6 +9,7 @@ const Q = require('q');
 const cn = require('../js/js-api');
 const cmn = require('../common');
 const Config = require('../../../config');
+const gitHooks = require('./git-hooks');
 
 var util = cmn.src('util');
 var clusternatorJson = cmn.src('clusternator-json');
@@ -140,9 +141,9 @@ function processGitHooks(results, root) {
     return;
   }
   return Q.all([
-    cn.installGitHook(root, 'post-commit', results.passphrase),
-    cn.installGitHook(root, 'pre-commit', results.passphrase),
-    cn.installGitHook(root, 'post-merge', results.passphrase)
+    gitHooks.install(root, 'post-commit', results.passphrase),
+    gitHooks.install(root, 'pre-commit', results.passphrase),
+    gitHooks.install(root, 'post-merge', results.passphrase)
   ]).then(() => {
     util.info('Git Hooks Installed');
     util.info('Shared Secret: ', results.passphrase);

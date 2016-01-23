@@ -9,7 +9,6 @@ const DECRYPT_SH = 'decrypt.sh';
 const DOCKER_BUILD_JS = 'docker-build.js';
 const NOTIFY_JS = 'notify.js';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
-const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
 const PRIVATE_CHECKSUM = '.private-checksum';
 const DEFAULT_API = /\$DEFAULT_API/g;
 const HOST = /\$HOST/g;
@@ -48,7 +47,6 @@ const chmod = Q.nbind(fs.chmod, fs);
 module.exports = {
   getProjectRootRejectIfClusternatorJsonExists,
   installExecutable,
-  installGitHook,
   provisionProjectNetwork,
   listSSHAbleInstances,
   getProjectAPI,
@@ -166,16 +164,10 @@ function installExecutable(destFilePath, fileContents, perms) {
   });
 }
 
-function installGitHook(root, name, passphrase) {
-  return getSkeletonFile('git-' + name)
-    .then((contents) => {
-      contents = contents.replace(CLUSTERNATOR_PASS, passphrase);
-      return installExecutable(
-        path.join(root, '.git', 'hooks', name), contents, 300);
-    });
-}
 
-
+/**
+ * @returns {string}
+ */
 function getSkeletonPath() {
   return path.join(__dirname, '..', '..', '..', '..', 'src', 'skeletons');
 }
