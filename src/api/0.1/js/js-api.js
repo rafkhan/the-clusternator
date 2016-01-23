@@ -1,13 +1,6 @@
 'use strict';
 
 const UTF8 = 'utf8';
-const SERVE_SH = 'serve.sh';
-const DECRYPT_SH = 'decrypt.sh';
-const DOCKER_BUILD_JS = 'docker-build.js';
-const NOTIFY_JS = 'notify.js';
-const DEFAULT_API = /\$DEFAULT_API/g;
-const HOST = /\$HOST/g;
-const PROJECT_CN_CREDS_FILE = 'clusternator-project-credentials.json';
 
 const Q = require('q');
 const fs = require('fs');
@@ -23,6 +16,7 @@ const constants = cmn.src('constants');
 const privateFs = require('../project-fs/private');
 const deploymentsFs = require('../project-fs/deployments');
 const dockerFs = require('../project-fs/docker');
+const scriptsFs = require('../project-fs/clusternator-scripts');
 
 const gpg = cmn.src('cli-wrappers', 'gpg');
 const git = cmn.src('cli-wrappers', 'git');
@@ -32,23 +26,16 @@ const docker = cmn.src('cli-wrappers', 'docker');
 const userAPI = cmn.src('clusternator', 'user');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
-const circle = cmn.src('circle-ci');
 
-const writeFile = Q.nbind(fs.writeFile, fs);
 const readFile = Q.nbind(fs.readFile, fs);
-const chmod = Q.nbind(fs.chmod, fs);
-
 
 module.exports = {
   getProjectRootRejectIfClusternatorJsonExists,
-  installExecutable,
   provisionProjectNetwork,
   listSSHAbleInstances,
   getProjectAPI,
   getSkeletonFile,
-  initializeScripts,
   addPrivateToIgnore,
-  initializeServeSh,
   deploy,
   stop,
   update,
@@ -127,15 +114,6 @@ function initializeSharedKey() {
 }
 
 
-/**
- * @param {string} privatePath
- * @param {string} token
- * @returns {Q.Promise}
- */
-function writeClusternatorCreds(privatePath, token) {
-  return writeFile(path.join(privatePath, PROJECT_CN_CREDS_FILE),
-    JSON.stringify({ token }, null, 2));
-}
 
 /**
  * @param {string} projectId
@@ -150,21 +128,9 @@ function provisionProjectNetwork(projectId, output, privatePath) {
       .then((details) => privateFs.writeProjectDetails(privatePath, details)
         .then(() => util
           .info(output + ' Network Resources Checked'))
-        .then((token) => writeClusternatorCreds(privatePath, details.ghToken)))
+        .then((token) => privateFs
+          .writeClusternatorCreds(privatePath, details.ghToken)))
       .fail(Q.reject));
-}
-
-/**
- * @param {string} destFilePath
- * @param {*} fileContents
- * @param {string=} perms
- * @returns {Q.Promise}
- */
-function installExecutable(destFilePath, fileContents, perms) {
-  perms = perms || '700';
-  return writeFile(destFilePath, fileContents).then(() => {
-    return chmod(destFilePath, perms);
-  });
 }
 
 
@@ -217,43 +183,7 @@ function listSSHAbleInstances() {
     .then((cJson) => listSSHAbleInstancesByProject(cJson.projectId));
 }
 
-/**
- * @param {string} clustDir
- * @param {string} tld
- * @returns {Q.promise}
- */
-function initializeScripts(clustDir, tld) {
-  return mkdirp(clustDir).then(() => {
-    const decryptPath = path.join(clustDir, DECRYPT_SH),
-      dockerBuildPath = path.join(clustDir, DOCKER_BUILD_JS),
-      clusternatorPath = path.join(clustDir, NOTIFY_JS);
 
-    return Q
-      .allSettled([
-        getSkeletonFile(DECRYPT_SH)
-          .then((contents) => installExecutable(decryptPath, contents)),
-        getSkeletonFile(DOCKER_BUILD_JS)
-          .then((contents) => writeFile(dockerBuildPath, contents)),
-        getSkeletonFile(NOTIFY_JS)
-          .then((contents) => contents
-            .replace(HOST, tld)
-            .replace(DEFAULT_API, constants.DEFAULT_API_VERSION))
-          .then((contents) => writeFile(clusternatorPath, contents))]);
-  });
-}
-
-
-
-function initializeServeSh(root) {
-  var sPath = path.join(root, SERVE_SH);
-  return getSkeletonFile(SERVE_SH)
-    .then((contents) => {
-      return writeFile(sPath, contents);
-    })
-    .then(() => {
-      return chmod(sPath, '755');
-    });
-}
 
 /**
  * @param {string} name
@@ -420,8 +350,8 @@ function initProject(root, options, skipNetwork) {
   return Q
     .allSettled([
       deploymentsFs.init(dDir, projectId, options.ports),
-      initializeScripts(cDir, options.tld),
-      initializeOptionalDeployments(options, root),
+      scriptsFs.init(cDir, options.tld),
+      scriptsFs.initOptional(options, root),
       dockerFs.init(cDir, dockerType)])
     .then(() => {
       if (skipNetwork) {
@@ -437,26 +367,6 @@ function initProject(root, options, skipNetwork) {
           .then(() => logKey(sharedKey)));
     });
 }
-
-/**
- * @param {{ deploymentsDir: string, clusternatorDir: string,
- projectId: string, backend: string, tld: string, circleCi: boolean }} options
- * @param {string} projectRoot
- * @returns {Request|Promise.<T>|*}
- */
-function initializeOptionalDeployments(options, projectRoot) {
-  let promises = [];
-
-  if (options.circleCI) {
-    promises.push(circle.init(projectRoot, options.clusternatorDir));
-  }
-  if (options.backend === 'node') {
-    promises.push(initializeServeSh(
-      path.join(projectRoot, options.clusternatorDir)));
-  }
-  return Q.allSettled(promises);
-}
-
 
 function dockerBuild(name, passphrase) {
   return makePrivate(passphrase).then(() => {

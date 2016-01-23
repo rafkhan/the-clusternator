@@ -3,6 +3,7 @@
 const PRIVATE_CHECKSUM = '.private-checksum';
 const PROJECT_CREDS_FILE = 'aws-project-credentials.json';
 const PROJECT_AWS_FILE = 'clusternator-aws.json';
+const PROJECT_CN_CREDS_FILE = 'clusternator-project-credentials.json';
 
 const Q = require('q');
 const fs = require('./fs');
@@ -16,7 +17,8 @@ const clusternatorJson = cmn.src('clusternator-json');
 module.exports = {
   checksum: privateChecksum,
   diff: privateDiff,
-  writeProjectDetails
+  writeProjectDetails,
+  writeClusternatorCreds
 };
 
 
@@ -104,7 +106,7 @@ function writeCreds(privatePath, creds) {
     'however it *will* impact any other team members you\'re working with ' +
     'until your changes are committed to the master repo for this project');
   util.info('');
-  return writeFile(
+  return fs.write(
     fs.path.join(privatePath, PROJECT_CREDS_FILE),
     JSON.stringify(creds, null, 2), 'utf8');
 }
@@ -115,7 +117,7 @@ function writeCreds(privatePath, creds) {
  * @returns {Q.Promise}
  */
 function writeAws(privatePath, aws) {
-  return writeFile(
+  return fs.write(
     fs.path.join(privatePath, PROJECT_AWS_FILE),
     JSON.stringify(aws, null, 2), 'utf8');
 }
@@ -130,4 +132,14 @@ function writeProjectDetails(privatePath, details) {
     writeCreds(privatePath, details.credentials),
     writeAws(privatePath, details.aws)
   ]);
+}
+
+/**
+ * @param {string} privatePath
+ * @param {string} token
+ * @returns {Q.Promise}
+ */
+function writeClusternatorCreds(privatePath, token) {
+  return fs.write(fs.path.join(privatePath, PROJECT_CN_CREDS_FILE),
+    JSON.stringify({ token }, null, 2));
 }
