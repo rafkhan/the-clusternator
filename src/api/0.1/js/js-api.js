@@ -1,10 +1,6 @@
 'use strict';
 
-const UTF8 = 'utf8';
-
 const Q = require('q');
-const path = require('path');
-const mkdirp = Q.nfbind(require('mkdirp'));
 
 const cmn = require('../common');
 const clusternatorJson = cmn.src('clusternator-json');
@@ -21,13 +17,12 @@ const scriptsFs = require('../project-fs/clusternator-scripts');
 const gpg = cmn.src('cli-wrappers', 'gpg');
 const docker = cmn.src('cli-wrappers', 'docker');
 
-const userAPI = cmn.src('clusternator', 'user');
+const userREST = cmn.src('clusternator', 'user');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
 
 
 module.exports = {
-  getProjectRootRejectIfClusternatorJsonExists,
   provisionProjectNetwork,
   listSSHAbleInstances,
   getProjectAPI,
@@ -62,7 +57,7 @@ function changePassword(username, password, newPassword, confirmPassword) {
   if (newPassword !== confirmPassword) {
     return Q.reject(new Error('password mismatch'));
   }
-  userAPI.changePassword();
+  userREST.changePassword();
 }
 
 /**
@@ -74,7 +69,7 @@ function login(username, password) {
   if (!username || !password) {
     return Q.reject(new Error('login requires password, and username'));
   }
-  return userAPI.login(username, password);
+  return userREST.login(username, password);
 }
 
 /**
@@ -88,18 +83,7 @@ function createUser(username, password, confirm, authority) {
   if (password !== password) {
     return Q.reject(new Error('password mismatch'));
   }
-  return userAPI.create(username, password, confirm, authority);
-}
-
-/**
- * @returns {Q.Promise<string>}
- */
-function getProjectRootRejectIfClusternatorJsonExists() {
-  return clusternatorJson
-    .findProjectRoot()
-    .then((root) => clusternatorJson
-      .skipIfExists(root)
-      .then(() => root ));
+  return userREST.create(username, password, confirm, authority);
 }
 
 function initializeSharedKey() {

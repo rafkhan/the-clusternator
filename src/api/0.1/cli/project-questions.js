@@ -6,6 +6,7 @@ const NPM_IGNORE = '.npmignore';
 
 const Q = require('q');
 
+const fs = require('../project-fs/fs');
 const privateFs = require('../project-fs/private');
 const cn = require('../js/js-api');
 const gitHooks = require('../project-fs/git-hooks');
@@ -119,7 +120,7 @@ function failOnExists() {
  * @returns {Q.Promise<Object>}
  */
 function getInitUserOptions() {
-  return cn
+  return fs
     .getProjectRootRejectIfClusternatorJsonExists()
     .fail(failOnExists)
     .then((root) =>clusternatorJson

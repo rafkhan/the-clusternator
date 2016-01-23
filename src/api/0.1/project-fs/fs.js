@@ -5,12 +5,17 @@ const path = require('path');
 const fs = require('fs');
 
 const Q = require('q');
+const cmn = require('../common');
+
+const constants = cmn.src('constants');
+const clusternatorJson = cmn.src('clusternator-json');
 
 const read = Q.nbind(fs.readFile, fs);
 const write = Q.nbind(fs.writeFile, fs);
 const chmod = Q.nbind(fs.chmod, fs);
 
 module.exports = {
+  getProjectRootRejectIfClusternatorJsonExists,
   installExecutable,
   loadCertificateFiles,
   getSkeleton: getSkeletonFile,
@@ -74,3 +79,15 @@ function loadCertificateFiles(privateKey, certificate, chain) {
       };
     });
 }
+
+/**
+ * @returns {Q.Promise<string>}
+ */
+function getProjectRootRejectIfClusternatorJsonExists() {
+  return clusternatorJson
+    .findProjectRoot()
+    .then((root) => clusternatorJson
+      .skipIfExists(root)
+      .then(() => root ));
+}
+
