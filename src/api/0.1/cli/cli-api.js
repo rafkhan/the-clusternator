@@ -220,7 +220,7 @@ module.exports = (yargs) => {
         .describe('h', 'Path to certificate chain')
         .default('h', '');
 
-      cn.certUpload(y.argv.p, y.argv.c, y.argv.n, y.argv.h)
+      aws.certUpload(y.argv.p, y.argv.c, y.argv.n, y.argv.h)
         .fail(console.log)
         .done();
     })

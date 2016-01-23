@@ -70,11 +70,27 @@ function addPrivateToDockerIgnore(fullAnswers) {
   return cn.addToIgnore(DOCKER_IGNORE, fullAnswers.answers.private);
 }
 
+/**
+ * @param {boolean=} doOffline
+ * @returns {Q.Promise}
+ */
 function initStage2(doOffline) {
   return getInitUserOptions()
-    .then((initDetails) => cn
+    .then((initDetails) => fs
       .initProject(
-        initDetails.root, initDetails.fullAnswers.answers, doOffline))
+        initDetails.root, initDetails.fullAnswers.answers, doOffline)
+      .then(() => cn
+        .provisionProjectNetwork(initDetails.fullAnswers.answers.projectId)
+        .then((details) => privateFs
+          .writeProjectDetails(initDetails.fullAnswers.answers.private, details)
+          .then((token) => privateFs
+            .writeClusternatorCreds(initDetails.fullAnswers.answers.private,
+              details.ghToken))))
+      .then(cn.initializeSharedKey)
+      .then((sharedKey) => privateFs.makePrivate(sharedKey)
+        .then(() => privateFs.readPrivate(sharedKey))
+        .then(privateFs.checksum)
+        .then(() => logKey(sharedKey))))
     .fail((err) => {
       if (err instanceof ClusternatedError) {
         util.info('Project is already clusternated (clusternator.json exists)');
@@ -162,3 +178,15 @@ function pickBestName(names) {
     name: names[0]
   };
 }
+
+/**
+ * @param {string} sharedKey
+ */
+function logKey(sharedKey) {
+  console.log('');
+  console.log('Share this *SECRET* key with your team members');
+  console.log('Also use it as CLUSTERNATOR_SHARED_KEY on CircleCi');
+  console.log(`CLUSTERNATOR_SHARED_KEY ${sharedKey}`);
+  console.log('');
+}
+

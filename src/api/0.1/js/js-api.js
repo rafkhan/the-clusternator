@@ -7,12 +7,6 @@ const Config = cmn.src('config');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
 
-const fs = require('../project-fs/fs');
-const privateFs = require('../project-fs/private');
-const deploymentsFs = require('../project-fs/deployments');
-const dockerFs = require('../project-fs/docker');
-const scriptsFs = require('../project-fs/clusternator-scripts');
-
 const gpg = cmn.src('cli-wrappers', 'gpg');
 
 const userREST = cmn.src('clusternator', 'user');
@@ -28,7 +22,7 @@ module.exports = {
   stop,
   update,
   startServer,
-  initProject,
+  initializeSharedKey,
   describeServices,
   listProjects,
   certUpload,
@@ -83,25 +77,20 @@ function createUser(username, password, confirm, authority) {
   return userREST.create(username, password, confirm, authority);
 }
 
+/**
+ * @returns {Q.Promise<string>}
+ */
 function initializeSharedKey() {
   return gpg.generatePass();
 }
 
-
-
 /**
  * @param {string} projectId
- * @param {string} privatePath
  * @returns {Q.Promise}
  */
-function provisionProjectNetwork(projectId, privatePath) {
+function provisionProjectNetwork(projectId) {
   return getProjectAPI()
-    .then((pm) =>  pm
-      .create(projectId)
-      .then((details) => privateFs.writeProjectDetails(privatePath, details)
-        .then((token) => privateFs
-          .writeClusternatorCreds(privatePath, details.ghToken)))
-      .fail(Q.reject));
+    .then((pm) =>  pm.create(projectId));
 }
 
 function getProjectAPI() {
@@ -231,47 +220,6 @@ function update_(pm, projectId, appDefStr, deployment, sha) {
   });
 }
 
-function logKey(sharedKey) {
-  console.log('');
-  console.log('Share this *SECRET* key with your team members');
-  console.log('Also use it as CLUSTERNATOR_SHARED_KEY on CircleCi');
-  console.log(`CLUSTERNATOR_SHARED_KEY ${sharedKey}`);
-  console.log('');
-}
-
-/**
- * @param {string} root
- * @param {{ deploymentsDir: string, clusternatorDir: string,
- projectId: string, backend: string, tld: string, circleCi: boolean }} options
- * @param skipNetwork
- * @returns {Request|Promise.<T>|*}
- */
-function initProject(root, options, skipNetwork) {
-  var dDir = options.deploymentsDir,
-    cDir = options.clusternatorDir,
-    projectId = options.projectId,
-    dockerType = options.backend;
-
-  return Q
-    .allSettled([
-      deploymentsFs.init(dDir, projectId, options.ports),
-      scriptsFs.init(cDir, options.tld),
-      scriptsFs.initOptional(options, root),
-      dockerFs.init(cDir, dockerType)])
-    .then(() => {
-      if (skipNetwork) {
-        util.info('Network Resources *NOT* Checked');
-        return;
-      }
-
-      return provisionProjectNetwork(projectId, options.private)
-        .then(initializeSharedKey)
-        .then((sharedKey) => privateFs.makePrivate(sharedKey)
-          .then(() => privateFs.readPrivate(sharedKey))
-          .then(privateFs.checksum)
-          .then(() => logKey(sharedKey)));
-    });
-}
 
 /**
  * @returns {Q.Promise<string[]>}
@@ -293,18 +241,15 @@ function describeServices(projectId) {
 }
 
 /**
- * @param {string} privateKey
- * @param {string} certificate
  * @param {string} certId
- * @param {string=} chain
- * @return {Q.Promise}
+ * @param {string} certs
+ * @returns {Q.Promise}
  */
-function certUpload(privateKey, certificate, certId, chain) {
-  return fs.loadCertificateFiles(privateKey, certificate, chain)
-  .then((certs) => getProjectAPI()
+function certUpload(certId, certs) {
+  return getProjectAPI()
     .then((pm) => pm.iam
       .uploadServerCertificate(
-        certs.certificate, certs.privateKey, certs.chain, certId)));
+        certs.certificate, certs.privateKey, certs.chain, certId));
 }
 
 /**
@@ -315,3 +260,4 @@ function certList() {
     .then((pm) => pm.iam
       .listServerCertificates());
 }
+

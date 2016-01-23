@@ -7,6 +7,10 @@ const fs = require('fs');
 const Q = require('q');
 const cmn = require('../common');
 
+const deploymentsFs = require('./deployments');
+const scriptsFs = require('./clusternator-scripts');
+const dockerFs = require('./docker');
+
 const constants = cmn.src('constants');
 const clusternatorJson = cmn.src('clusternator-json');
 
@@ -24,7 +28,8 @@ module.exports = {
   read,
   write,
   chmod,
-  path
+  path,
+  initProject
 };
 
 /**
@@ -89,5 +94,32 @@ function getProjectRootRejectIfClusternatorJsonExists() {
     .then((root) => clusternatorJson
       .skipIfExists(root)
       .then(() => root ));
+}
+
+/**
+ * @param {string} root
+ * @param {{ deploymentsDir: string, clusternatorDir: string,
+ projectId: string, backend: string, tld: string, circleCi: boolean }} options
+ * @param skipNetwork
+ * @returns {Request|Promise.<T>|*}
+ */
+function initProject(root, options, skipNetwork) {
+  var dDir = options.deploymentsDir,
+    cDir = options.clusternatorDir,
+    projectId = options.projectId,
+    dockerType = options.backend;
+
+  return Q
+    .allSettled([
+      deploymentsFs.init(dDir, projectId, options.ports),
+      scriptsFs.init(cDir, options.tld),
+      scriptsFs.initOptional(options, root),
+      dockerFs.init(cDir, dockerType)])
+    .then(() => {
+      if (skipNetwork) {
+        util.info('Network Resources *NOT* Checked');
+        return;
+      }
+    });
 }
 
