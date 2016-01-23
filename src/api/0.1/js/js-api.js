@@ -19,9 +19,7 @@ const dockerFs = require('../project-fs/docker');
 const scriptsFs = require('../project-fs/clusternator-scripts');
 
 const gpg = cmn.src('cli-wrappers', 'gpg');
-const git = cmn.src('cli-wrappers', 'git');
 const docker = cmn.src('cli-wrappers', 'docker');
-
 
 const userAPI = cmn.src('clusternator', 'user');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
@@ -38,8 +36,6 @@ module.exports = {
   update,
   startServer,
   initProject,
-  makePrivate,
-  readPrivate,
   dockerBuild,
   describeServices,
   listProjects,
@@ -48,7 +44,7 @@ module.exports = {
   createUser,
   login,
   changePassword,
-  generatePass: git.generatePass
+  generatePass: gpg.generatePass
 };
 
 /**
@@ -297,15 +293,15 @@ function initProject(root, options, skipNetwork) {
 
       return provisionProjectNetwork(projectId, output, options.private)
         .then(initializeSharedKey)
-        .then((sharedKey) => makePrivate(sharedKey)
-          .then(() => readPrivate(sharedKey))
+        .then((sharedKey) => privateFs.makePrivate(sharedKey)
+          .then(() => privateFs.readPrivate(sharedKey))
           .then(privateFs.checksum)
           .then(() => logKey(sharedKey)));
     });
 }
 
 function dockerBuild(name, passphrase) {
-  return makePrivate(passphrase).then(() => {
+  return privateFs.makePrivate(passphrase).then(() => {
     return clusternatorJson
       .findProjectRoot()
       .then((root) => {
@@ -329,29 +325,15 @@ function dockerBuild(name, passphrase) {
       })
       .then(() => {
         util.verbose('Decrypting Private Folder');
-        return readPrivate(passphrase);
+        return privateFs.readPrivate(passphrase);
       })
       .then(() => {
         util.info('Built Docker Image: ', name);
       })
       .fail((err) => {
         util.warn('Docker failed to build: ', err.message);
-        return readPrivate(passphrase);
+        return privateFs.readPrivate(passphrase);
       });
-  });
-}
-
-function makePrivate(passphrase) {
-  return clusternatorJson
-    .makePrivate(passphrase)
-    .then(() => {
-      util.info('Clusternator: Private files/directories encrypted');
-    });
-}
-
-function readPrivate(passphrase) {
-  return clusternatorJson.readPrivate(passphrase).then(() => {
-    util.info('Clusternator: Private files/directories un-encrypted');
   });
 }
 
@@ -369,14 +351,6 @@ function describeServices() {
         .describeProject(config.projectId)));
 }
 
-
-/**
- * @param {string} privateKey
- * @param {string} certificate
- * @param {string=} chain
- * @return {Q.Promise}
- */
-
 /**
  * @param {string} privateKey
  * @param {string} certificate
@@ -392,6 +366,9 @@ function certUpload(privateKey, certificate, certId, chain) {
         certs.certificate, certs.privateKey, certs.chain, certId)));
 }
 
+/**
+ * @returns {Q.Promise}
+ */
 function certList() {
   return getProjectAPI()
     .then((pm) => pm.iam

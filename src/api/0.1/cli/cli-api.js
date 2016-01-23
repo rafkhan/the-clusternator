@@ -7,7 +7,7 @@ const util = cmn.src('util');
 const Config = cmn.src('config');
 
 const cn = require('../js/js-api');
-const deployments = require('./deployments')
+const deployments = require('./deployments');
 const stdioI = require('./stdio-inheritors');
 const project = require('./project-questions');
 const user = require('./user-questions');
@@ -192,7 +192,7 @@ module.exports = (yargs) => {
       'clusternator.json)', (y) => {
       demandPassphrase(y);
 
-      cn.makePrivate(y.argv.p);
+      privateFs.makePrivate(y.argv.p);
 
     })
     .command('read-private', 'Decrypts private assets (defined in ' +
@@ -200,7 +200,7 @@ module.exports = (yargs) => {
 
       demandPassphrase(y);
 
-      cn.readPrivate(y.argv.p).done();
+      privateFs.readPrivate(y.argv.p).done();
     })
 
     .command('cert-upload', 'Upload a new SSL certificate', (y) => {

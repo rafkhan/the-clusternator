@@ -19,7 +19,9 @@ module.exports = {
   diff: privateDiff,
   writeProjectDetails,
   writeClusternatorCreds,
-  addToIgnore
+  addToIgnore,
+  makePrivate,
+  readPrivate
 };
 
 
@@ -156,4 +158,26 @@ function addToIgnore(ignoreFile, privatePath) {
     .readIgnoreFile(fs.path.join(fs.getSkeletonPath(), ignoreFile), true)
     .then((ignores) => ignores.concat(privatePath))
     .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
+}
+
+/**
+ * @param {string} passphrase
+ * @returns {Q.Promise}
+ */
+function makePrivate(passphrase) {
+  return clusternatorJson
+    .makePrivate(passphrase)
+    .then(() => {
+      util.info('Clusternator: Private files/directories encrypted');
+    });
+}
+
+/**
+ * @param {string} passphrase
+ * @returns {Q.Promise}
+ */
+function readPrivate(passphrase) {
+  return clusternatorJson.readPrivate(passphrase).then(() => {
+    util.info('Clusternator: Private files/directories un-encrypted');
+  });
 }

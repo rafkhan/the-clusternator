@@ -50,6 +50,12 @@ function installExecutable(destFilePath, fileContents, perms) {
   });
 }
 
+/**
+ * @param {string} privateKey
+ * @param {string} certificate
+ * @param {string=} chain
+ * @return {Q.Promise}
+ */
 function loadCertificateFiles(privateKey, certificate, chain) {
   var filePromises = [
     read(privateKey, UTF8),
