@@ -5,14 +5,15 @@ const  path = require('path');
 const cmn = require('../common');
 const util = cmn.src('util');
 const Config = cmn.src('config');
+
 const cn = require('../js/js-api');
-
-const privateFs = require('../project-fs/private');
-const deploymentsFs = require('../project-fs/deployments');
-
+const deployments = require('./deployments')
 const stdioI = require('./stdio-inheritors');
 const project = require('./project-questions');
 const user = require('./user-questions');
+
+const privateFs = require('../project-fs/private');
+const deploymentsFs = require('../project-fs/deployments');
 
 const legacy = require('./legacy-yargs');
 
@@ -143,7 +144,7 @@ module.exports = (yargs) => {
       alias('d', 'deployment-name').
       describe('d', 'Requires a deployment name');
 
-      cn.deploy(y.argv.d).done();
+      deployments.deploy(y.argv.d).done();
     })
     .command('stop', 'Stops a deployment, and cleans up', (y) => {
       y.demand('d').
@@ -153,7 +154,7 @@ module.exports = (yargs) => {
       default('s', '', 'HEAD').
       describe('s', 'Requires a SHA');
 
-      cn.stop(y.argv.d, y.argv.s).done();
+      deployments.stop(y.argv.d, y.argv.s).done();
     })
 
     .command('update', 'Updates a deployment in place', (y) => {
@@ -161,7 +162,7 @@ module.exports = (yargs) => {
       alias('d', 'deployment-name').
       describe('d', 'Requires a deployment name');
 
-      cn.update(y.argv.d).done();
+      deployments.update(y.argv.d).done();
     })
 
     .command('generate-deployment', 'Generates a deployment config', (y) => {

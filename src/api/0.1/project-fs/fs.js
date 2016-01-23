@@ -1,4 +1,5 @@
 'use strict';
+const UTF8 = 'utf8';
 
 const path = require('path');
 const fs = require('fs');
@@ -11,6 +12,7 @@ const chmod = Q.nbind(fs.chmod, fs);
 
 module.exports = {
   installExecutable,
+  loadCertificateFiles,
   getSkeleton: getSkeletonFile,
   getSkeletonPath: getSkeletonPath,
   mkdirp: Q.nfbind(require('mkdirp')),
@@ -32,7 +34,7 @@ function getSkeletonPath() {
  * @return {Promise<string>}
  */
 function getSkeletonFile(skeleton) {
-  return read(path.join(getSkeletonPath(), skeleton) , 'utf8');
+  return read(path.join(getSkeletonPath(), skeleton) , UTF8);
 }
 
 /**
@@ -46,4 +48,23 @@ function installExecutable(destFilePath, fileContents, perms) {
   return write(destFilePath, fileContents).then(() => {
     return chmod(destFilePath, perms);
   });
+}
+
+function loadCertificateFiles(privateKey, certificate, chain) {
+  var filePromises = [
+    read(privateKey, UTF8),
+    read(certificate, UTF8)
+  ];
+  if (chain) {
+    filePromises.push(read(chain, UTF8));
+  }
+  return Q
+    .all(filePromises)
+    .then((results) => {
+      return {
+        privateKey: results[0],
+        certificate: results[1],
+        chain: results[2] || ''
+      };
+    });
 }

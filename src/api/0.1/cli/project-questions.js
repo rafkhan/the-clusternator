@@ -8,12 +8,12 @@ const Q = require('q');
 
 const privateFs = require('../project-fs/private');
 const cn = require('../js/js-api');
-const cmn = require('../common');
-const Config = require('../../../config');
 const gitHooks = require('../project-fs/git-hooks');
+const cmn = require('../common');
 
-var util = cmn.src('util');
-var clusternatorJson = cmn.src('clusternator-json');
+const Config = cmn.src('config');
+const util = cmn.src('util');
+const clusternatorJson = cmn.src('clusternator-json');
 
 module.exports = {
   init

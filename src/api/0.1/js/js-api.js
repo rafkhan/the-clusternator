@@ -3,7 +3,6 @@
 const UTF8 = 'utf8';
 
 const Q = require('q');
-const fs = require('fs');
 const path = require('path');
 const mkdirp = Q.nfbind(require('mkdirp'));
 
@@ -13,6 +12,7 @@ const Config = cmn.src('config');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
 
+const fs = require('../project-fs/fs');
 const privateFs = require('../project-fs/private');
 const deploymentsFs = require('../project-fs/deployments');
 const dockerFs = require('../project-fs/docker');
@@ -27,7 +27,6 @@ const userAPI = cmn.src('clusternator', 'user');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
 
-const readFile = Q.nbind(fs.readFile, fs);
 
 module.exports = {
   getProjectRootRejectIfClusternatorJsonExists,
@@ -152,76 +151,52 @@ function listSSHAbleInstances() {
 }
 
 
-
 /**
  * @param {string} name
- * @returns {Request|Promise.<T>|*}
+ * @param {string} projectId
+ * @param {Object} deploymentDesc
+ * @param {string} sha
  */
-function deploy(name) {
-  return clusternatorJson
-    .get()
-    .then((cJson) => {
-      var dPath = path.join(cJson.deploymentsDir, name + '.json');
-      return Q
-        .all([
-          getProjectAPI(),
-          git.shaHead(),
-          readFile(dPath, UTF8)
-            .fail(getAppDefNotFound(dPath))])
-        .then((results) => deploy_(
-          results[0], cJson, results[2], name, results[1]))
-        .fail((err) => {
-          util.info('Clusternator: Error creating deployment: ' + err.message);
-          util.info(err.stack);
-        });
+function deploy(name, projectId, deploymentDesc, sha) {
+  return getProjectAPI()
+    .then((pm) => deploy_(pm, projectId, deploymentDesc, name, sha))
+    .fail((err) => {
+      util.info('Clusternator: Error creating deployment: ' + err.message);
+      util.info(err.stack);
     });
 }
 
-function stop(name, sha) {
-  return clusternatorJson
-    .get()
-    .then((cJson) => Q
-      .all([
-        getProjectAPI(),
-        git.shaHead()])
-      .then((results) => {
-        sha = sha || results[1];
-        util.info('Stopping Deployment...: ', cJson.projectId, ': ', name,
-          ' sha: ', sha);
-        return results[0].destroyDeployment(
-          cJson.projectId,
-          name,
-          sha
-        );
-      }).fail((err) => {
-        util.info('Clusternator: Error stopping deployment: ' + err.message);
-        util.info(err.stack);
-      })
-    );
+/**
+ * @param {string} name
+ * @param {string} projectId
+ * @param {string} sha
+ * @returns {Q.Promise}
+ */
+function stop(name, projectId, sha) {
+  return getProjectAPI()
+    .then((pm) => {
+
+      return pm.destroyDeployment(
+        projectId,
+        name,
+        sha
+      );
+    });
 }
 
-function update(name) {
-  return clusternatorJson
-    .get()
-    .then((cJson) => {
-      var dPath = path.join(cJson.deploymentsDir, name + '.json');
-      return Q
-        .all([
-          getProjectAPI(),
-          git.shaHead(),
-          readFile(dPath, UTF8)
-            .fail(getAppDefNotFound(dPath))])
-        .then((results) => {
-          var projectAPI = results[0];
-          var sha = sha || results[1];
-          var appDefStr = results[2];
-
-          return update_(projectAPI, cJson, appDefStr, name, sha);
-        }).fail((err) => {
-          util.info('Clusternator: Error stopping deployment: ' + err.message);
-          util.info(err.stack);
-        });
-      });
+/**
+ * @param {string} name
+ * @param {string} projectId
+ * @param {Object} deploymentDesc
+ * @param {string} sha
+ */
+function update(name, projectId, deploymentDesc, sha) {
+  return getProjectAPI()
+    .then((pm) => update_(pm, projectId, deploymentDesc, name, sha))
+    .fail((err) => {
+      util.info('Clusternator: Error updating deployment: ' + err.message);
+      util.info(err.stack);
+    });
 }
 
 
@@ -232,14 +207,14 @@ function startServer(config) {
 
 /**
  * @param {ProjectManager} pm
- * @param {Object} cJson
+ * @param {string} projectId
  * @param {string} appDefStr
  * @param {string} deployment
  * @param {string} sha
  * @returns {Request|Promise.<T>}
  * @private
  */
-function deploy_(pm, cJson, appDefStr, deployment, sha) {
+function deploy_(pm, projectId, appDefStr, deployment, sha) {
   util.info('Requirements met, creating deployment...');
   var appDef = util.safeParse(appDefStr);
   if (!appDef) {
@@ -247,7 +222,7 @@ function deploy_(pm, cJson, appDefStr, deployment, sha) {
   }
   const config = Config();
   return pm.createDeployment(
-    cJson.projectId,
+    projectId,
     deployment,
     sha,
     appDef,
@@ -259,14 +234,14 @@ function deploy_(pm, cJson, appDefStr, deployment, sha) {
 
 /**
  * @param {ProjectManager} pm
- * @param {Object} cJson
+ * @param {string} projectId
  * @param {string} appDefStr
  * @param {string} deployment
  * @param {string} sha
  * @returns {Request|Promise.<T>}
  * @private
  */
-function update_(pm, cJson, appDefStr, deployment, sha) {
+function update_(pm, projectId, appDefStr, deployment, sha) {
   util.info('Updating deployment...');
   var appDef = util.safeParse(appDefStr);
   if (!appDef) {
@@ -274,7 +249,7 @@ function update_(pm, cJson, appDefStr, deployment, sha) {
   }
 
   return pm.updateDeployment(
-    cJson.projectId,
+    projectId,
     deployment,
     sha,
     appDef
@@ -283,13 +258,6 @@ function update_(pm, cJson, appDefStr, deployment, sha) {
   }, (err) => {
     return Q.reject(err);
   });
-}
-
-function getAppDefNotFound(dPath) {
-  return (err) => {
-    util.info(`Deployment AppDef Not Found In: ${dPath}: ${err.message}`);
-    throw err;
-  };
 }
 
 function logKey(sharedKey) {
@@ -408,24 +376,6 @@ function describeServices() {
  * @param {string=} chain
  * @return {Q.Promise}
  */
-function loadCertificateFiles(privateKey, certificate, chain) {
-  var filePromises = [
-    readFile(privateKey, UTF8),
-    readFile(certificate, UTF8)
-  ];
-  if (chain) {
-    filePromises.push(readFile(chain, UTF8));
-  }
-  return Q
-    .all(filePromises)
-    .then((results) => {
-      return {
-        privateKey: results[0],
-        certificate: results[1],
-        chain: results[2] || ''
-      };
-    });
-}
 
 /**
  * @param {string} privateKey
@@ -435,7 +385,7 @@ function loadCertificateFiles(privateKey, certificate, chain) {
  * @return {Q.Promise}
  */
 function certUpload(privateKey, certificate, certId, chain) {
-  return loadCertificateFiles(privateKey, certificate, chain)
+  return fs.loadCertificateFiles(privateKey, certificate, chain)
   .then((certs) => getProjectAPI()
     .then((pm) => pm.iam
       .uploadServerCertificate(
