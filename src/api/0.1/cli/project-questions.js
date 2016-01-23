@@ -6,6 +6,7 @@ const NPM_IGNORE = '.npmignore';
 
 const Q = require('q');
 
+const privateFs = require('../project-fs/private');
 const cn = require('../js/js-api');
 const cmn = require('../common');
 const Config = require('../../../config');
@@ -49,7 +50,7 @@ function processInitUserOptions(results, root) {
  * @returns {Q.Promise}
  */
 function addPrivateToGitIgnore(fullAnswers) {
-  return cn.addPrivateToIgnore(GIT_IGNORE, fullAnswers.answers.private);
+  return privateFs.addToIgnore(GIT_IGNORE, fullAnswers.answers.private);
 }
 
 /**
@@ -57,7 +58,7 @@ function addPrivateToGitIgnore(fullAnswers) {
  * @returns {Q.Promise}
  */
 function addPrivateToNpmIgnore(fullAnswers) {
-  return cn.addPrivateToIgnore(NPM_IGNORE, fullAnswers.answers.private);
+  return privateFs.addToIgnore(NPM_IGNORE, fullAnswers.answers.private);
 }
 
 /**
@@ -65,7 +66,7 @@ function addPrivateToNpmIgnore(fullAnswers) {
  * @returns {Q.Promise}
  */
 function addPrivateToDockerIgnore(fullAnswers) {
-  return cn.addPrivateToIgnore(DOCKER_IGNORE, fullAnswers.answers.private);
+  return cn.addToIgnore(DOCKER_IGNORE, fullAnswers.answers.private);
 }
 
 function initStage2(doOffline) {

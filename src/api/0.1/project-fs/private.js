@@ -18,7 +18,8 @@ module.exports = {
   checksum: privateChecksum,
   diff: privateDiff,
   writeProjectDetails,
-  writeClusternatorCreds
+  writeClusternatorCreds,
+  addToIgnore
 };
 
 
@@ -142,4 +143,17 @@ function writeProjectDetails(privatePath, details) {
 function writeClusternatorCreds(privatePath, token) {
   return fs.write(fs.path.join(privatePath, PROJECT_CN_CREDS_FILE),
     JSON.stringify({ token }, null, 2));
+}
+
+/**
+ * @param {string} ignoreFile
+ * @param {string} privatePath
+ * @returns {Q.Promise}
+ */
+function addToIgnore(ignoreFile, privatePath) {
+
+  return clusternatorJson
+    .readIgnoreFile(fs.path.join(fs.getSkeletonPath(), ignoreFile), true)
+    .then((ignores) => ignores.concat(privatePath))
+    .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
 }

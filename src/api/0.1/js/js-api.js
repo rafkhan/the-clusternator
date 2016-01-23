@@ -34,8 +34,6 @@ module.exports = {
   provisionProjectNetwork,
   listSSHAbleInstances,
   getProjectAPI,
-  getSkeletonFile,
-  addPrivateToIgnore,
   deploy,
   stop,
   update,
@@ -132,36 +130,6 @@ function provisionProjectNetwork(projectId, output, privatePath) {
           .writeClusternatorCreds(privatePath, details.ghToken)))
       .fail(Q.reject));
 }
-
-
-/**
- * @returns {string}
- */
-function getSkeletonPath() {
-  return path.join(__dirname, '..', '..', '..', '..', 'src', 'skeletons');
-}
-
-/**
- * @param {string} skeleton
- * @return {Promise<string>}
- */
-function getSkeletonFile(skeleton) {
-  return readFile(path.join(getSkeletonPath(), skeleton) , UTF8);
-}
-
-/**
- * @param {string} ignoreFile
- * @param {string} privatePath
- * @returns {Q.Promise}
- */
-function addPrivateToIgnore(ignoreFile, privatePath) {
-
-  return clusternatorJson
-    .readIgnoreFile(path.join(getSkeletonPath(), ignoreFile), true)
-    .then((ignores) => ignores.concat(privatePath))
-    .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
-}
-
 
 function getProjectAPI() {
   var config = Config();
