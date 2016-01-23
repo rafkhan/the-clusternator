@@ -199,6 +199,45 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
       }, Q.reject);
   }
 
+  function mapEc2ProjectDetails(instance) {
+    var result = {
+      type: 'type',
+      identifier: '?',
+      str: '',
+      ip: '',
+      state: ''
+    }, inst, tags;
+
+    if (!instance.Instances.length) {
+      return result;
+    }
+    inst = instance.Instances[0];
+    tags = inst.Tags;
+    result.ip = inst.PublicIpAddress;
+    result.state = inst.State.Name;
+
+    tags.forEach((tag) => {
+      if (tag.Key === constants.PR_TAG) {
+        result.type = 'PR';
+        result.identifier = tag.Value;
+      }
+      if (tag.Key === constants.DEPLOYMENT_TAG) {
+        result.type = 'Deployment';
+        result.identifier = tag.Value;
+      }
+    });
+
+    result.str = `${result.type} ${result.identifier} ` +
+      `(${result.ip}/${result.state})`;
+
+    return result;
+  }
+
+  function listSSHAbleInstances(projectId) {
+    return ec2mgr.describeProject(projectId)
+      .then((instances) => instances.map(mapEc2ProjectDetails));
+  }
+
 
   return Q.all([
      vpc.findProject(),
@@ -224,6 +263,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
       destroyDeployment,
       describeProject,
       listProjects,
+      listSSHAbleInstances,
       updateDeployment,
 
       deployment,

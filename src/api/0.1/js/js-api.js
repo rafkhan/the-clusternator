@@ -216,47 +216,9 @@ function getProjectAPI() {
   return cnProjectManager(config);
 }
 
-function mapEc2ProjectDetails(instance) {
-  var result = {
-    type: 'type',
-    identifier: '?',
-    str: '',
-    ip: '',
-    state: ''
-  }, inst, tags;
-  if (!instance.Instances.length) {
-    return result;
-  }
-  inst = instance.Instances[0];
-  tags = inst.Tags;
-  result.ip = inst.PublicIpAddress;
-  result.state = inst.State.Name;
-
-  tags.forEach((tag) => {
-    if (tag.Key === constants.PR_TAG) {
-      result.type = 'PR';
-      result.identifier = tag.Value;
-    }
-    if (tag.Key === constants.DEPLOYMENT_TAG) {
-      result.type = 'Deployment';
-      result.identifier = tag.Value;
-    }
-  });
-
-  result.str = `${result.type} ${result.identifier} ` +
-    `(${result.ip}/${result.state})`;
-
-  return result;
-}
-
 function listSSHAbleInstancesByProject(projectId) {
   return getProjectAPI()
-    .then((pm) => pm
-      .ec2
-      .describeProject(projectId)
-      .then((instances) => instances
-        .map(mapEc2ProjectDetails)
-      ));
+    .then((pm) => pm.listSSHAbleInstances(projectId));
 }
 
 function listSSHAbleInstances() {
@@ -492,9 +454,8 @@ function update(name) {
 
           return update_(projectAPI, cJson, appDefStr, name, sha);
         }).fail((err) => {
-          //util.info('Clusternator: Error stopping deployment: ' + err.message);
-          //util.info(err.stack);
-          console.log('ERR', err.stack);
+          util.info('Clusternator: Error stopping deployment: ' + err.message);
+          util.info(err.stack);
         });
       });
 }
