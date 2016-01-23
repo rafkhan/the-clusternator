@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const mkdirp = Q.nfbind(require('mkdirp'));
 
+const logSsh = require('./log-ssh');
 const cn = require('../js/js-api');
 
 const cmn = require('../common');
@@ -39,7 +40,7 @@ function newSshKey(name) {
  * @param {function(...):Q.Promise} logFn
  */
 function remoteFn(logFn) {
-  return cn
+  return logSsh
     .listSSHAbleInstances()
     .then((instanceDetails) => {
       if (!instanceDetails.length) {

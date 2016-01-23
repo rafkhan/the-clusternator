@@ -119,17 +119,14 @@ function getProjectAPI() {
   return cnProjectManager(config);
 }
 
-function listSSHAbleInstancesByProject(projectId) {
+/**
+ * @param {string} projectId
+ * @returns {Q.Promise}
+ */
+function listSSHAbleInstances(projectId) {
   return getProjectAPI()
     .then((pm) => pm.listSSHAbleInstances(projectId));
 }
-
-function listSSHAbleInstances() {
-  return clusternatorJson
-    .get()
-    .then((cJson) => listSSHAbleInstancesByProject(cJson.projectId));
-}
-
 
 /**
  * @param {string} name
@@ -321,18 +318,23 @@ function dockerBuild(name, passphrase) {
   });
 }
 
+/**
+ * @returns {Q.Promise<string[]>}
+ */
 function listProjects() {
   return getProjectAPI()
     .then((pm) => pm
       .listProjects());
 }
 
-function describeServices() {
+/**
+ * @param {string} projectId
+ * @returns {Q.Promise}
+ */
+function describeServices(projectId) {
   return getProjectAPI()
-    .then((pm) => clusternatorJson
-      .get()
-      .then((config) => pm
-        .describeProject(config.projectId)));
+    .then((pm) => pm
+      .describeProject(projectId));
 }
 
 /**

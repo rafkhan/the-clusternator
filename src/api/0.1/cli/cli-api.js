@@ -11,6 +11,7 @@ const deployments = require('./deployments');
 const stdioI = require('./stdio-inheritors');
 const project = require('./project-questions');
 const user = require('./user-questions');
+const aws = require('./aws');
 
 const privateFs = require('../project-fs/private');
 const deploymentsFs = require('../project-fs/deployments');
@@ -113,12 +114,12 @@ module.exports = (yargs) => {
     })
 
     .command('list-projects', 'List projects with clusternator resources',
-      (y) => cn
+      (y) => aws
         .listProjects()
         .then((projectNames) => projectNames
           .forEach(console.log))
         .done())
-    .command('describe-services', 'Describe project services', (y) => cn
+    .command('describe-services', 'Describe project services', (y) => aws
       .describeServices()
       .then((desc) => util
         .info(JSON.stringify(desc, null, 2)))
