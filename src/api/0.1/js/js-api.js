@@ -1,14 +1,10 @@
 'use strict';
 
 const UTF8 = 'utf8';
-const DOCKERFILE = 'Dockerfile';
-const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3';
-const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest';
 const SERVE_SH = 'serve.sh';
 const DECRYPT_SH = 'decrypt.sh';
 const DOCKER_BUILD_JS = 'docker-build.js';
 const NOTIFY_JS = 'notify.js';
-const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 const DEFAULT_API = /\$DEFAULT_API/g;
 const HOST = /\$HOST/g;
 const PROJECT_CREDS_FILE = 'aws-project-credentials.json';
@@ -28,6 +24,7 @@ const constants = cmn.src('constants');
 
 const privateFs = require('../project-fs/private');
 const deploymentsFs = require('../project-fs/deployments');
+const dockerFs = require('../project-fs/docker');
 
 const gpg = cmn.src('cli-wrappers', 'gpg');
 const git = cmn.src('cli-wrappers', 'git');
@@ -287,18 +284,6 @@ function initializeScripts(clustDir, tld) {
 }
 
 
-function initializeDockerFile(clustDir, dockerType) {
-  /** @todo do not overwrite existing Dockerfile */
-  const template = dockerType === 'static' ?
-    DOCKERFILE_STATIC_LATEST : DOCKERFILE_NODE_LATEST;
-  return clusternatorJson
-    .findProjectRoot()
-    .then((root) => getSkeletonFile(template)
-      .then((contents) => {
-        contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
-        return writeFile(path.join(root, DOCKERFILE), contents);
-      }) );
-}
 
 function initializeServeSh(root) {
   var sPath = path.join(root, SERVE_SH);
@@ -478,7 +463,7 @@ function initProject(root, options, skipNetwork) {
       deploymentsFs.init(dDir, projectId, options.ports),
       initializeScripts(cDir, options.tld),
       initializeOptionalDeployments(options, root),
-      initializeDockerFile(cDir, dockerType)])
+      dockerFs.init(cDir, dockerType)])
     .then(() => {
       if (skipNetwork) {
         util.info(output + ' Network Resources *NOT* Checked');
