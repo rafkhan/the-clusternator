@@ -1,23 +1,22 @@
 'use strict';
 
 const PRIVATE_CHECKSUM = '.private-checksum';
+const PROJECT_CREDS_FILE = 'aws-project-credentials.json';
+const PROJECT_AWS_FILE = 'clusternator-aws.json';
 
 const Q = require('q');
-const path = require('path');
-const fs = require('fs');
+const fs = require('./fs');
+
 const cmn = require('../common');
 const shaDir = cmn.src('cli-wrappers', 'generate-private-sha');
 const util = cmn.src('/util');
 const clusternatorJson = cmn.src('clusternator-json');
 
-const mkdirp = Q.nfbind(require('mkdirp'));
-
-const writeFile = Q.nbind(fs.writeFile, fs);
-const readFile = Q.nbind(fs.readFile, fs);
 
 module.exports = {
   checksum: privateChecksum,
-  diff: privateDiff
+  diff: privateDiff,
+  writeProjectDetails
 };
 
 
@@ -26,13 +25,13 @@ module.exports = {
  */
 function privateChecksum() {
   return getPrivateChecksumPaths()
-    .then((paths) => mkdirp(paths.clusternator).then(() => paths))
+    .then((paths) => fs.mkdirp(paths.clusternator).then(() => paths))
     .then((paths) => {
       process.chdir(paths.root);
       return paths;
     }).then((paths) =>shaDir
       .genSha(paths.priv)
-      .then((sha) => writeFile(paths.checksum, sha)
+      .then((sha) => fs.write(paths.checksum, sha)
         .then(() => util
           .info(`Generated shasum of ${paths.priv} => ${sha}`))));
 }
@@ -59,7 +58,7 @@ function privateDiff() {
   return getPrivateChecksumPaths()
     .then((paths) => shaDir
       .genSha(paths.priv)
-      .then((sha) => readFile(paths.checksum, 'utf8')
+      .then((sha) => fs.read(paths.checksum, 'utf8')
         .then(getPrivateDiffFn(sha))
         .fail(() => {
           // read file errors are expected
@@ -82,7 +81,7 @@ function getPrivateChecksumPaths() {
       clusternatorJson.findProjectRoot() ])
     .then((results) => {
       const privatePath = results[0].private,
-        checksumPath = path.join(results[1], results[0].clusternatorDir,
+        checksumPath = fs.path.join(results[1], results[0].clusternatorDir,
           PRIVATE_CHECKSUM);
       return {
         priv: privatePath,
@@ -93,3 +92,42 @@ function getPrivateChecksumPaths() {
     });
 }
 
+/**
+ * @param {string} privatePath
+ * @param {Object} creds
+ * @returns {Q.Promise}
+ */
+function writeCreds(privatePath, creds) {
+  util.info('NOTICE: Project Docker Credentials are being overwritten with ' +
+    'new credentials, if there were previous credentials, they have been ' +
+    'revoked. If you\'re reading this message, this will *not* impact you, ' +
+    'however it *will* impact any other team members you\'re working with ' +
+    'until your changes are committed to the master repo for this project');
+  util.info('');
+  return writeFile(
+    fs.path.join(privatePath, PROJECT_CREDS_FILE),
+    JSON.stringify(creds, null, 2), 'utf8');
+}
+
+/**
+ * @param {string} privatePath
+ * @param {Object} aws
+ * @returns {Q.Promise}
+ */
+function writeAws(privatePath, aws) {
+  return writeFile(
+    fs.path.join(privatePath, PROJECT_AWS_FILE),
+    JSON.stringify(aws, null, 2), 'utf8');
+}
+
+/**
+ * @param {string} privatePath
+ * @param {Object} details
+ * @returns {Q.Promise}
+ */
+function writeProjectDetails(privatePath, details) {
+  return Q.all([
+    writeCreds(privatePath, details.credentials),
+    writeAws(privatePath, details.aws)
+  ]);
+}

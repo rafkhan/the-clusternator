@@ -7,8 +7,6 @@ const DOCKER_BUILD_JS = 'docker-build.js';
 const NOTIFY_JS = 'notify.js';
 const DEFAULT_API = /\$DEFAULT_API/g;
 const HOST = /\$HOST/g;
-const PROJECT_CREDS_FILE = 'aws-project-credentials.json';
-const PROJECT_AWS_FILE = 'clusternator-aws.json';
 const PROJECT_CN_CREDS_FILE = 'clusternator-project-credentials.json';
 
 const Q = require('q');
@@ -128,45 +126,6 @@ function initializeSharedKey() {
   return gpg.generatePass();
 }
 
-/**
- * @param {string} privatePath
- * @param {Object} creds
- * @returns {Q.Promise}
- */
-function writeCreds(privatePath, creds) {
-  util.info('NOTICE: Project Docker Credentials are being overwritten with ' +
-    'new credentials, if there were previous credentials, they have been ' +
-    'revoked. If you\'re reading this message, this will *not* impact you, ' +
-    'however it *will* impact any other team members you\'re working with ' +
-    'until your changes are committed to the master repo for this project');
-  util.info('');
-  return writeFile(
-    path.join(privatePath, PROJECT_CREDS_FILE),
-    JSON.stringify(creds, null, 2), UTF8);
-}
-
-/**
- * @param {string} privatePath
- * @param {Object} aws
- * @returns {Q.Promise}
- */
-function writeAws(privatePath, aws) {
-  return writeFile(
-    path.join(privatePath, PROJECT_AWS_FILE),
-    JSON.stringify(aws, null, 2), UTF8);
-}
-
-/**
- * @param {string} privatePath
- * @param {Object} details
- * @returns {Q.Promise}
- */
-function writeProjectDetails(privatePath, details) {
-  return Q.all([
-    writeCreds(privatePath, details.credentials),
-    writeAws(privatePath, details.aws)
-  ]);
-}
 
 /**
  * @param {string} privatePath
@@ -188,7 +147,7 @@ function provisionProjectNetwork(projectId, output, privatePath) {
   return getProjectAPI()
     .then((pm) =>  pm
       .create(projectId)
-      .then((details) => writeProjectDetails(privatePath, details)
+      .then((details) => privateFs.writeProjectDetails(privatePath, details)
         .then(() => util
           .info(output + ' Network Resources Checked'))
         .then((token) => writeClusternatorCreds(privatePath, details.ghToken)))
