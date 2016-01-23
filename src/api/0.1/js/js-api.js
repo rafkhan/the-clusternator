@@ -26,12 +26,13 @@ const Config = cmn.src('config');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
 
-const privateFs = require('../project-fs/private')
+const privateFs = require('../project-fs/private');
+const deploymentsFs = require('../project-fs/deployments');
+
 const gpg = cmn.src('cli-wrappers', 'gpg');
 const git = cmn.src('cli-wrappers', 'git');
 const docker = cmn.src('cli-wrappers', 'docker');
 
-const appDefSkeleton = cmn.src('skeletons', 'app-def');
 
 const userAPI = cmn.src('clusternator', 'user');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
@@ -49,9 +50,7 @@ module.exports = {
   provisionProjectNetwork,
   listSSHAbleInstances,
   getProjectAPI,
-  generateDeploymentFromName,
   getSkeletonFile,
-  initializeDeployments,
   initializeScripts,
   addPrivateToIgnore,
   initializeServeSh,
@@ -241,9 +240,6 @@ function addPrivateToIgnore(ignoreFile, privatePath) {
     .then((ignores) => clusternatorJson.addToIgnore(ignoreFile, ignores));
 }
 
-function writeDeployment(name, dDir, appDef) {
-  return writeFile(path.join(dDir, name + '.json'), appDef);
-}
 
 function getProjectAPI() {
   var config = Config();
@@ -263,30 +259,6 @@ function listSSHAbleInstances() {
   return clusternatorJson
     .get()
     .then((cJson) => listSSHAbleInstancesByProject(cJson.projectId));
-}
-
-function addPortsToAppDef(ports, appDef) {
-  ports.forEach((port) => {
-    appDef.tasks[0].containerDefinitions[0].portMappings.push({
-      hostPort: port.portExternal,
-      containerPort: port.portInternal,
-      protocol: port.protocol
-    });
-  });
-}
-
-
-function generateDeploymentFromName(name, ports) {
-  util.info('Generating deployment: ',  name);
-  return clusternatorJson.get().then((config) => {
-    var appDef = util.clone(appDefSkeleton);
-    appDef.name = config.projectId;
-    if (ports) {
-      addPortsToAppDef(ports, appDef);
-    }
-    appDef = JSON.stringify(appDef, null, 2);
-    return writeDeployment(name, config.deploymentsDir, appDef);
-  });
 }
 
 /**
@@ -311,29 +283,6 @@ function initializeScripts(clustDir, tld) {
             .replace(HOST, tld)
             .replace(DEFAULT_API, constants.DEFAULT_API_VERSION))
           .then((contents) => writeFile(clusternatorPath, contents))]);
-  });
-}
-
-/**
- * @param {string} depDir
- * @param {string} projectId
- * @param {string} dockerType
- * @param {Object[]} ports
- * @returns {Q.Promise}
- */
-function initializeDeployments(depDir, clustDir, projectId, dockerType, ports) {
-  return mkdirp(depDir).then(() => {
-    var prAppDef = util.clone(appDefSkeleton);
-    prAppDef.name = projectId;
-    addPortsToAppDef(ports, prAppDef);
-    prAppDef = JSON.stringify(prAppDef, null, 2);
-
-    return Q.allSettled([
-      mkdirp(path.join(depDir, '..', constants.SSH_PUBLIC_PATH)),
-      writeFile(path.join(depDir, 'pr.json'), prAppDef),
-      writeFile(path.join(depDir, 'master.json'), prAppDef),
-      initializeDockerFile(clustDir, dockerType)
-    ]);
   });
 }
 
@@ -526,9 +475,10 @@ function initProject(root, options, skipNetwork) {
 
   return Q
     .allSettled([
-      initializeDeployments(dDir, cDir, projectId, dockerType, options.ports),
+      deploymentsFs.init(dDir, projectId, options.ports),
       initializeScripts(cDir, options.tld),
-      initializeOptionalDeployments(options, root)])
+      initializeOptionalDeployments(options, root),
+      initializeDockerFile(cDir, dockerType)])
     .then(() => {
       if (skipNetwork) {
         util.info(output + ' Network Resources *NOT* Checked');

@@ -8,6 +8,8 @@ const Config = cmn.src('config');
 const cn = require('../js/js-api');
 
 const privateFs = require('../project-fs/private');
+const deploymentsFs = require('../project-fs/deployments');
+
 const stdioI = require('./stdio-inheritors');
 const project = require('./project-questions');
 const user = require('./user-questions');
@@ -65,12 +67,13 @@ module.exports = (yargs) => {
       (y) =>  {
         y.demand('p')
           .alias('p', 'password')
-          .describe('p', 'your password (be careful with shell entry like this)')
+          .describe('p', 'your password (be careful with shell entry like ' +
+            'this)')
           .default('p', '')
           .demand('u')
           .alias('u', 'user-name')
-          .describe('u', 'user name to login with, (defaults to local config if' +
-            'available)')
+          .describe('u', 'user name to login with, (defaults to local config ' +
+            'if available)')
           .default('u', '');
 
         return user.login(y.argv.u, y.argv.p).fail((err) => console
@@ -166,7 +169,7 @@ module.exports = (yargs) => {
       alias('d', 'deployment-name').
       describe('d', 'Requires a deployment name');
 
-      cn.generateDeploymentFromName(y.argv.d).done();
+      deploymentsFs.generateDeploymentFromName(y.argv.d).done();
     })
     .command('generate-ssh-key', 'Adds a new SSH Key', (y) => {
       y.demand('n').

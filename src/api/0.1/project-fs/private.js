@@ -26,9 +26,8 @@ module.exports = {
  */
 function privateChecksum() {
   return getPrivateChecksumPaths()
+    .then((paths) => mkdirp(paths.clusternator).then(() => paths))
     .then((paths) => {
-      return mkdirp(paths.clusternator).then(() => paths);
-    }).then((paths) => {
       process.chdir(paths.root);
       return paths;
     }).then((paths) =>shaDir
@@ -41,6 +40,7 @@ function privateChecksum() {
 /**
  * @param {string} sha
  * @returns {Function}
+ * @todo migrate process exit logic to a wrapper file in cli
  */
 function getPrivateDiffFn(sha) {
   return (storedSha) => {
@@ -52,6 +52,9 @@ function getPrivateDiffFn(sha) {
   };
 }
 
+/**
+ * @todo migrate process exit logic to a wrapper file in cli
+ */
 function privateDiff() {
   return getPrivateChecksumPaths()
     .then((paths) => shaDir
