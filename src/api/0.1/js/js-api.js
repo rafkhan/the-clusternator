@@ -76,6 +76,13 @@ module.exports = {
   generatePass: git.generatePass
 };
 
+/**
+ * @param {string} username
+ * @param {string} password
+ * @param {string} newPassword
+ * @param {string} confirmPassword
+ * @returns {Q.Promise}
+ */
 function changePassword(username, password, newPassword, confirmPassword) {
   if (!username || !password) {
     return Q.reject(new Error('changePassword requires a username, and ' +
@@ -87,6 +94,11 @@ function changePassword(username, password, newPassword, confirmPassword) {
   userAPI.changePassword();
 }
 
+/**
+ * @param {string} username
+ * @param {string} password
+ * @returns {Q.Promise}
+ */
 function login(username, password) {
   if (!username || !password) {
     return Q.reject(new Error('login requires password, and username'));
@@ -94,6 +106,13 @@ function login(username, password) {
   return userAPI.login(username, password);
 }
 
+/**
+ * @param {string} username
+ * @param {string} password
+ * @param {string} confirm
+ * @param {number=} authority
+ * @returns {Q.Promise}
+ */
 function createUser(username, password, confirm, authority) {
   if (password !== password) {
     return Q.reject(new Error('password mismatch'));
@@ -116,6 +135,11 @@ function initializeSharedKey() {
   return gpg.generatePass();
 }
 
+/**
+ * @param {string} privatePath
+ * @param {Object} creds
+ * @returns {Q.Promise}
+ */
 function writeCreds(privatePath, creds) {
   util.info('NOTICE: Project Docker Credentials are being overwritten with ' +
     'new credentials, if there were previous credentials, they have been ' +
@@ -128,12 +152,22 @@ function writeCreds(privatePath, creds) {
     JSON.stringify(creds, null, 2), UTF8);
 }
 
+/**
+ * @param {string} privatePath
+ * @param {Object} aws
+ * @returns {Q.Promise}
+ */
 function writeAws(privatePath, aws) {
   return writeFile(
     path.join(privatePath, PROJECT_AWS_FILE),
     JSON.stringify(aws, null, 2), UTF8);
 }
 
+/**
+ * @param {string} privatePath
+ * @param {Object} details
+ * @returns {Q.Promise}
+ */
 function writeProjectDetails(privatePath, details) {
   return Q.all([
     writeCreds(privatePath, details.credentials),
@@ -141,11 +175,22 @@ function writeProjectDetails(privatePath, details) {
   ]);
 }
 
+/**
+ * @param {string} privatePath
+ * @param {string} token
+ * @returns {Q.Promise}
+ */
 function writeClusternatorCreds(privatePath, token) {
   return writeFile(path.join(privatePath, PROJECT_CN_CREDS_FILE),
     JSON.stringify({ token }, null, 2));
 }
 
+/**
+ * @param {string} projectId
+ * @param {string} output
+ * @param {string} privatePath
+ * @returns {Q.Promise}
+ */
 function provisionProjectNetwork(projectId, output, privatePath) {
   return getProjectAPI()
     .then((pm) =>  pm
@@ -157,6 +202,12 @@ function provisionProjectNetwork(projectId, output, privatePath) {
       .fail(Q.reject));
 }
 
+/**
+ * @param {string} destFilePath
+ * @param {*} fileContents
+ * @param {string=} perms
+ * @returns {Q.Promise}
+ */
 function installExecutable(destFilePath, fileContents, perms) {
   perms = perms || '700';
   return writeFile(destFilePath, fileContents).then(() => {
