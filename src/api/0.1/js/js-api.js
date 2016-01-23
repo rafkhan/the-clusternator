@@ -152,19 +152,17 @@ function provisionProjectNetwork(projectId, output, privatePath) {
   return getProjectAPI()
     .then((pm) =>  pm
       .create(projectId)
-      .then((details) => writeProjectDetails(privatePath, details))
-      .then(() => util
-        .info(output + ' Network Resources Checked'))
-      .then(() => pm
-        .initializeGithubWebhookToken(projectId))
-      .then((token) => writeClusternatorCreds(privatePath, token))
+      .then((details) => writeProjectDetails(privatePath, details)
+        .then(() => util
+          .info(output + ' Network Resources Checked'))
+        .then((token) => writeClusternatorCreds(privatePath, details.ghToken)))
       .fail(Q.reject));
 }
 
 function installExecutable(destFilePath, fileContents, perms) {
   perms = perms || '700';
   return writeFile(destFilePath, fileContents).then(() => {
-    return chmod(destFilePath, '700');
+    return chmod(destFilePath, perms);
   });
 }
 

@@ -74,7 +74,8 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
         return Q
           .all([
             subnet.create(projectId, routeId, aclId),
-            iam.createProjectUser(projectId, repoArn)])
+            iam.createProjectUser(projectId, repoArn),
+            initializeGithubWebhookToken(projectId)])
           .then((r) => {
             return {
               credentials:  r[1],
@@ -82,7 +83,8 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
                 vpcId: vpcId,
                 registryId: results[2].registryId,
                 region: DEFAULT_REGION
-              }
+              },
+              ghToken: r[2]
             };
           });
       });
