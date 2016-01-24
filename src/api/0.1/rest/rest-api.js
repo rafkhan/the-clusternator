@@ -34,6 +34,7 @@ const EXPORTS = {
   project: {
     create: (body) => createProject(body),
     list: listProjects,
+    'list-ssh-instances': listSSHAbleInstances,
     getProject: getProject,
     setProject: setProject,
     describe: noopP,
@@ -77,6 +78,20 @@ function sanitizePr(pr) {
   pr = parseInt(pr, 10);
   pr = pr !== pr ? 0 : pr;
   return pr + '';
+}
+
+/**
+ * @param {{ projectId: string }} body
+ * @returns {Q.Promise<string[]>}
+ */
+function listSSHAbleInstances(body) {
+  const projectId = body.projectId + '';
+  if (!projectId) {
+    return Q.reject(new Error('list-ssh-instances: requires projectId'));
+  }
+ return state()
+    .then((s) => s
+      .pm.listSSHAbleInstances(projectId));
 }
 
 /**
@@ -261,21 +276,16 @@ function createUser(body) {
 function initDbState(state) {
   state.db = Projects(state.config, state.pm);
   return state.db
-    .init()
-    .then(() => state.pm);
+    .init.then(() => state.pm);
 }
-
 
 /**
  * @param {{ config: Object, db: Object, pm: Object }} state
  * @returns {Q.Promise<{ config: Object, db: Object, pm: Object }>}
  */
 function initPmState(state) {
-  return cn.awsProjectManager(state.config)
-    .then((pm) => {
-      state.pm = pm;
-      return state.pm;
-    });
+  state.pm = cn.awsProjectManager(state.config);
+  return Q.resolve(state);
 }
 
 /**

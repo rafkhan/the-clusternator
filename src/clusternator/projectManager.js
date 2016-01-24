@@ -14,7 +14,8 @@ function getProjectManager() {
     destroy,
     destroyDeployment,
     describeProject,
-    listProjects
+    listProjects,
+    listSSHAbleInstances,
   };
 }
 
@@ -30,6 +31,17 @@ function create(projectId) {
     return Q.reject(new Error('projectManager.create requires a projectId'));
   }
   return makePostRequest('/project/create', { projectId });
+}
+
+/**
+ * @param {string} projectId
+ * @returns {Q.Promise}
+ */
+function listSSHAbleInstances(projectId) {
+  if (!projectId) {
+    return Q.reject(new Error('projectManager.create requires a projectId'));
+  }
+  return makePostRequest('/project/list-ssh-instances', { projectId });
 }
 
 function createPR() {

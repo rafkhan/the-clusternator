@@ -9,9 +9,10 @@ var util = require('../../util');
 function getProjectsDB(config, pm) {
 
   var db = Object.create(null),
-    init = populateFromAWS().fail((err) => {
-      util.error('Projects: Failed to populate existing resources', err);
-    });
+    init = populateFromAWS()
+      .fail((err) => {
+        util.error('Projects: Failed to populate existing resources', err);
+      });
 
   poll();
 
@@ -91,7 +92,7 @@ function getProjectsDB(config, pm) {
       return Q.reject(new TypeError(invalid));
     }
     if (!val.id || !val.repo) {
-      return Q.reject(new TypeError(invalid))
+      return Q.reject(new TypeError(invalid));
     }
 
 
@@ -110,7 +111,7 @@ function getProjectsDB(config, pm) {
         throw new Error('Project exists');
       }, () => {
         return setItem(val.id, newVal);
-      })
+      });
   }
 
   function list() {
