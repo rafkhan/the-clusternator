@@ -7,7 +7,7 @@ const cmn = require('../common');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
 const appDefSkeleton = cmn.src('skeletons', 'app-def');
-const clusternatorJson = cmn.src('clusternator-json');
+const clusternatorJson = require('./clusternator-json');
 
 module.exports = {
   init: initializeDeployments,

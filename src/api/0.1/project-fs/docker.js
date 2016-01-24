@@ -12,7 +12,7 @@ const cmn = require('../common');
 const docker = cmn.src('cli-wrappers', 'docker');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
-const clusternatorJson = cmn.src('clusternator-json');
+const clusternatorJson = require('./clusternator-json');
 
 module.exports = {
   init: initializeDockerFile,
@@ -29,7 +29,7 @@ function initializeDockerFile(clustDir, dockerType) {
   /** @todo do not overwrite existing Dockerfile */
   const template = dockerType === 'static' ?
     DOCKERFILE_STATIC_LATEST : DOCKERFILE_NODE_LATEST;
-  return clusternatorJson
+  return fs
     .findProjectRoot()
     .then((root) => fs.getSkeleton(template)
       .then((contents) => {
@@ -45,7 +45,7 @@ function initializeDockerFile(clustDir, dockerType) {
  */
 function dockerBuild(name, passphrase) {
   return privateFs.makePrivate(passphrase).then(() => {
-    return clusternatorJson
+    return fs
       .findProjectRoot()
       .then((root) => {
         var output, outputError;

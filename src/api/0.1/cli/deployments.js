@@ -9,7 +9,7 @@ const cmn = require('../common');
 const git = cmn.src('cli-wrappers', 'git');
 const util = cmn.src('util');
 
-const clusternatorJson = cmn.src('clusternator-json');
+const clusternatorJson = require('../project-fs/clusternator-json');
 
 module.exports = {
   deploy,

@@ -7,6 +7,8 @@ const NPM_IGNORE = '.npmignore';
 const Q = require('q');
 
 const fs = require('../project-fs/fs');
+const initProject = require('../project-fs/init');
+
 const privateFs = require('../project-fs/private');
 const cn = require('../js/js-api');
 const gitHooks = require('../project-fs/git-hooks');
@@ -14,7 +16,7 @@ const cmn = require('../common');
 
 const Config = cmn.src('config');
 const util = cmn.src('util');
-const clusternatorJson = cmn.src('clusternator-json');
+const clusternatorJson = require('../project-fs/clusternator-json');
 
 module.exports = {
   init
@@ -76,9 +78,8 @@ function addPrivateToDockerIgnore(fullAnswers) {
  */
 function initStage2(doOffline) {
   return getInitUserOptions()
-    .then((initDetails) => fs
-      .initProject(
-        initDetails.root, initDetails.fullAnswers.answers, doOffline)
+    .then((initDetails) => initProject(
+      initDetails.root, initDetails.fullAnswers.answers, doOffline)
       .then(() => cn
         .provisionProjectNetwork(initDetails.fullAnswers.answers.projectId)
         .then((details) => privateFs
@@ -136,7 +137,7 @@ function failOnExists() {
  * @returns {Q.Promise<Object>}
  */
 function getInitUserOptions() {
-  return fs
+  return clusternatorJson
     .getProjectRootRejectIfClusternatorJsonExists()
     .fail(failOnExists)
     .then((root) =>clusternatorJson

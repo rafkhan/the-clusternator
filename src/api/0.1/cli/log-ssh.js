@@ -1,8 +1,6 @@
 'use strict';
 const cn = require('../js/js-api');
-const cmn = require('../common');
-
-const clusternatorJson = cmn.src('clusternator-json');
+const clusternatorJson = require('../project-fs/clusternator-json');
 
 module.exports = {
   listSSHAbleInstances

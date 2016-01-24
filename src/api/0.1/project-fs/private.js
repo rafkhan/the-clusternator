@@ -11,7 +11,7 @@ const fs = require('./fs');
 const cmn = require('../common');
 const shaDir = cmn.src('cli-wrappers', 'generate-private-sha');
 const util = cmn.src('/util');
-const clusternatorJson = cmn.src('clusternator-json');
+const clusternatorJson = require('./clusternator-json');
 
 
 module.exports = {
@@ -83,7 +83,7 @@ function privateDiff() {
 function getPrivateChecksumPaths() {
   return Q.all([
       clusternatorJson.get(),
-      clusternatorJson.findProjectRoot() ])
+      fs.findProjectRoot() ])
     .then((results) => {
       const privatePath = results[0].private,
         checksumPath = fs.path.join(results[1], results[0].clusternatorDir,

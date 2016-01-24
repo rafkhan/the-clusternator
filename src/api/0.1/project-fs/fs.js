@@ -1,5 +1,6 @@
 'use strict';
 const UTF8 = 'utf8';
+const VCS_DIR = '.git';
 
 const path = require('path');
 const fs = require('fs');
@@ -7,19 +8,15 @@ const fs = require('fs');
 const Q = require('q');
 const cmn = require('../common');
 
-const deploymentsFs = require('./deployments');
-const scriptsFs = require('./clusternator-scripts');
-const dockerFs = require('./docker');
-
 const constants = cmn.src('constants');
-const clusternatorJson = cmn.src('clusternator-json');
 
 const read = Q.nbind(fs.readFile, fs);
 const write = Q.nbind(fs.writeFile, fs);
 const chmod = Q.nbind(fs.chmod, fs);
+const ls = Q.nbind(fs.readdir, fs);
 
 module.exports = {
-  getProjectRootRejectIfClusternatorJsonExists,
+  findProjectRoot,
   installExecutable,
   loadCertificateFiles,
   getSkeleton: getSkeletonFile,
@@ -28,8 +25,8 @@ module.exports = {
   read,
   write,
   chmod,
-  path,
-  initProject
+  ls,
+  path
 };
 
 /**
@@ -85,41 +82,49 @@ function loadCertificateFiles(privateKey, certificate, chain) {
     });
 }
 
-/**
- * @returns {Q.Promise<string>}
- */
-function getProjectRootRejectIfClusternatorJsonExists() {
-  return clusternatorJson
-    .findProjectRoot()
-    .then((root) => clusternatorJson
-      .skipIfExists(root)
-      .then(() => root ));
-}
 
 /**
- * @param {string} root
- * @param {{ deploymentsDir: string, clusternatorDir: string,
- projectId: string, backend: string, tld: string, circleCi: boolean }} options
- * @param skipNetwork
- * @returns {Request|Promise.<T>|*}
+ * This function searches (upwards) for a directory with a .git folder, starting
+ * from the CWD!
+ * @return {Q.Promise<string>} promise to return the full path of the project
  */
-function initProject(root, options, skipNetwork) {
-  var dDir = options.deploymentsDir,
-    cDir = options.clusternatorDir,
-    projectId = options.projectId,
-    dockerType = options.backend;
+function findProjectRoot(cwd) {
+  cwd = cwd || process.cwd();
 
-  return Q
-    .allSettled([
-      deploymentsFs.init(dDir, projectId, options.ports),
-      scriptsFs.init(cDir, options.tld),
-      scriptsFs.initOptional(options, root),
-      dockerFs.init(cDir, dockerType)])
-    .then(() => {
-      if (skipNetwork) {
-        util.info('Network Resources *NOT* Checked');
+  var d = Q.defer();
+
+  ls(cwd).then((files) => {
+    var index = files.indexOf(VCS_DIR), parentPath;
+    if (index === -1) {
+      parentPath = parent(cwd);
+      if (!parentPath) {
+        d.reject(new Error('Clusternator: No Version Control Folder Found'));
         return;
       }
-    });
+      return findProjectRoot(parentPath).then(d.resolve, d.reject);
+    } else {
+      process.chdir(cwd);
+      d.resolve(cwd);
+    }
+  }, d.reject);
+
+  return d.promise;
 }
 
+/**
+ * @param {string} somePath
+ * @returns {string}
+ */
+function parent(somePath) {
+  var splits = somePath.split(path.sep).filter(identity),
+    root = somePath[0] === path.sep ? path.sep : '';
+  if (splits.length === 1) {
+    return null;
+  }
+  splits.pop();
+  return root + splits.join(path.sep);
+}
+
+function identity(obj) {
+  return obj;
+}
