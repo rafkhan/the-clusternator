@@ -91,9 +91,13 @@ function initializeSharedKey() {
  */
 function provisionProjectNetwork(projectId) {
   return getProjectAPI()
-    .then((pm) =>  pm.create(projectId));
+    .create(projectId);
 }
 
+/**
+ * @returns {{ create: function(...):Q.Promise,
+  listSSHAbleInstances: function(...)Q.Promise }}
+ */
 function getProjectAPI() {
   var config = Config();
 
@@ -109,7 +113,7 @@ function getProjectAPI() {
  */
 function listSSHAbleInstances(projectId) {
   return getProjectAPI()
-    .then((pm) => pm.listSSHAbleInstances(projectId));
+    .listSSHAbleInstances(projectId);
 }
 
 /**
@@ -119,8 +123,8 @@ function listSSHAbleInstances(projectId) {
  * @param {string} sha
  */
 function deploy(name, projectId, deploymentDesc, sha) {
-  return getProjectAPI()
-    .then((pm) => deploy_(pm, projectId, deploymentDesc, name, sha))
+  const pm = getProjectAPI();
+  return deploy_(pm, projectId, deploymentDesc, name, sha)
     .fail((err) => {
       util.info('Clusternator: Error creating deployment: ' + err.message);
       util.info(err.stack);
@@ -135,14 +139,10 @@ function deploy(name, projectId, deploymentDesc, sha) {
  */
 function stop(name, projectId, sha) {
   return getProjectAPI()
-    .then((pm) => {
-
-      return pm.destroyDeployment(
-        projectId,
-        name,
-        sha
-      );
-    });
+    .destroyDeployment(
+      projectId,
+      name,
+      sha);
 }
 
 /**
@@ -152,8 +152,8 @@ function stop(name, projectId, sha) {
  * @param {string} sha
  */
 function update(name, projectId, deploymentDesc, sha) {
-  return getProjectAPI()
-    .then((pm) => update_(pm, projectId, deploymentDesc, name, sha))
+  const pm = getProjectAPI();
+  return update_(pm, projectId, deploymentDesc, name, sha)
     .fail((err) => {
       util.info('Clusternator: Error updating deployment: ' + err.message);
       util.info(err.stack);
@@ -231,8 +231,7 @@ function update_(pm, projectId, appDefStr, deployment, sha) {
  */
 function listProjects() {
   return getProjectAPI()
-    .then((pm) => pm
-      .listProjects());
+    .listProjects();
 }
 
 /**
@@ -241,8 +240,7 @@ function listProjects() {
  */
 function describeServices(projectId) {
   return getProjectAPI()
-    .then((pm) => pm
-      .describeProject(projectId));
+    .describeProject(projectId);
 }
 
 /**
@@ -252,9 +250,9 @@ function describeServices(projectId) {
  */
 function certUpload(certId, certs) {
   return getProjectAPI()
-    .then((pm) => pm.iam
-      .uploadServerCertificate(
-        certs.certificate, certs.privateKey, certs.chain, certId));
+    .iam
+    .uploadServerCertificate(
+      certs.certificate, certs.privateKey, certs.chain, certId);
 }
 
 /**
@@ -262,7 +260,7 @@ function certUpload(certId, certs) {
  */
 function certList() {
   return getProjectAPI()
-    .then((pm) => pm.iam
-      .listServerCertificates());
+    .iam
+    .listServerCertificates();
 }
 

@@ -10,7 +10,6 @@ const R = require('ramda');
 const Config = require('../../config');
 const logger = require('../loggers').logger;
 var getCommands = require('../../api')[API].rest;
-var initAwsProject = require('../../aws/project-init');
 var auth = require('../auth/authorities');
 var curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
 
@@ -122,14 +121,11 @@ function init(app) {
   const config = Config();
   logger.debug(`API ${API} Initializing`);
 
-  const commands = getCommands(config)
+  const commands = getCommands(config);
   logger.debug(`API ${API} Got CommandObjects`);
   app.post(`/${API}/:namespace/:command`, [
     authSwitch,
     authorizeCommand(config),
     executeCommand(commands)
   ]);
-
-  return initAwsProject(config);
 }
-
