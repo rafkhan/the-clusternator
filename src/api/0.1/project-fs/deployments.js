@@ -20,7 +20,7 @@ module.exports = {
  * @param {Object} appDef
  */
 function writeDeployment(name, dDir, appDef) {
-  return fs.write(path.join(dDir, name + '.json'), appDef);
+  return fs.write(fs.path.join(dDir, name + '.json'), appDef);
 }
 
 /**

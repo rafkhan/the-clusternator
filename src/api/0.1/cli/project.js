@@ -69,7 +69,7 @@ function addPrivateToNpmIgnore(fullAnswers) {
  * @returns {Q.Promise}
  */
 function addPrivateToDockerIgnore(fullAnswers) {
-  return cn.addToIgnore(DOCKER_IGNORE, fullAnswers.answers.private);
+  return privateFs.addToIgnore(DOCKER_IGNORE, fullAnswers.answers.private);
 }
 
 /**

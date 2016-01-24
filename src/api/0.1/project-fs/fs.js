@@ -26,7 +26,10 @@ module.exports = {
   write,
   chmod,
   ls,
-  path
+  path,
+  helpers: {
+    parent
+  }
 };
 
 /**

@@ -1,11 +1,11 @@
 'use strict';
 
 var rewire = require('rewire'),
-  fs = require('fs'),
   Q = require('q'),
   mockFs = require('mock-fs');
 
-var cn = rewire('../../src/clusternator-json'),
+var cn = rewire('../../src/api/0.1/project-fs/clusternator-json'),
+  fs = rewire('../../src/api/0.1/project-fs/fs'),
   C = require('./chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
@@ -57,19 +57,19 @@ describe('clusternator.json handling', () => {
   });
 
   it('parent should return the full path to a parent folder', () => {
-    expect(cn.helpers.parent('/a/b')).to.equal('/a');
+    expect(fs.helpers.parent('/a/b')).to.equal('/a');
   });
 
   it('parent should return the relative path to a parent folder', () => {
-    expect(cn.helpers.parent('a/b')).to.equal('a');
+    expect(fs.helpers.parent('a/b')).to.equal('a');
   });
 
   it('parent should return falsey if the path is root', () => {
-    expect(cn.helpers.parent('/a/')).to.not.be;
+    expect(fs.helpers.parent('/a/')).to.not.be;
   });
 
   it('findProjectRoot should resolve the cwd if it has a .git folder in it', (done) => {
-    cn.findProjectRoot(project).then((root) => {
+    fs.findProjectRoot(project).then((root) => {
       C.check(done, () => {
         expect(root).to.equal(project);
       });
@@ -77,7 +77,7 @@ describe('clusternator.json handling', () => {
   });
 
   it('findProjectRoot should resolve the project root from a sub directory', (done) => {
-    cn.findProjectRoot(project + '/src/components/').then((root) => {
+    fs.findProjectRoot(project + '/src/components/').then((root) => {
       C.check(done, () => {
         expect(root).to.equal(project);
       });
@@ -85,7 +85,7 @@ describe('clusternator.json handling', () => {
   });
 
   it('findProjectRoot should reject if it cannot find a .git folder in the parent directories ', (done) => {
-    cn.findProjectRoot(other).then(C.getFail(done), (err) => {
+    fs.findProjectRoot(other).then(C.getFail(done), (err) => {
       C.check(done, () => {
         expect(err instanceof Error).to.be.ok;
       });
@@ -209,15 +209,19 @@ describe('ignore file tests', () => {
   /*eslint no-unused-expressions:0*/
   beforeEach(() => {
     projectRoot = '/';
-    oldFindRoot = cn.__get__('findProjectRoot');
-    cn.__set__('findProjectRoot', () => Q.resolve(projectRoot) );
+    oldFindRoot = fs.__get__('findProjectRoot');
+    fs.__set__('findProjectRoot', () => Q.resolve(projectRoot) );
     mockFs({
+      '.git': {
+        'config': new Buffer([1, 2, 5])
+      },
       '/.gitignore':  new Buffer([ 1, 2, 3])
     });
   });
 
   afterEach(() => {
-    cn.__set__('findProjectRoot', oldFindRoot);
+    fs.__set__('findProjectRoot', oldFindRoot);
+    mockFs.restore();
   });
 
   it('ignoreHasItem should return true if a string *starts* a line in an' +

@@ -1,4 +1,11 @@
-const fs = require('./fs');
+const Q = require('q');
+
+const deploymentsFs = require('./deployments');
+const scriptsFs = require('./clusternator-scripts');
+const dockerFs = require('./docker');
+
+const cmn = require('../common');
+const util = cmn.src('util');
 
 module.exports = initProject;
 
