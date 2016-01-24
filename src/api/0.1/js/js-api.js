@@ -17,7 +17,6 @@ const awsProjectManager = cmn.src('aws', 'project-init');
 module.exports = {
   provisionProjectNetwork,
   listSSHAbleInstances,
-  getProjectAPI,
   deploy,
   stop,
   update,
@@ -160,6 +159,10 @@ function update(name, projectId, deploymentDesc, sha) {
 }
 
 
+/**
+ * @param {Object} config
+ * @returns {Q.Promise}
+ */
 function startServer(config) {
   const server = cmn.src('server', 'main');
   return server.startServer(config);
