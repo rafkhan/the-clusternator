@@ -14,6 +14,9 @@ var initAwsProject = require('../../aws/project-init');
 var auth = require('../auth/authorities');
 var curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
 
+module.exports = {
+  init
+};
 
 /**
  * @param {Object} config
@@ -116,21 +119,17 @@ function authSwitch(req, res, next) {
 }
 
 function init(app) {
-  var config = Config();
+  const config = Config();
   logger.debug(`API ${API} Initializing`);
 
-  getCommands(config).then((commands) => {
-    logger.debug(`API ${API} Got CommandObjects`);
-    app.post(`/${API}/:namespace/:command`, [
-      authSwitch,
-      authorizeCommand(config),
-      executeCommand(commands)
-    ]);
-  });
+  const commands = getCommands(config)
+  logger.debug(`API ${API} Got CommandObjects`);
+  app.post(`/${API}/:namespace/:command`, [
+    authSwitch,
+    authorizeCommand(config),
+    executeCommand(commands)
+  ]);
 
   return initAwsProject(config);
 }
 
-module.exports = {
-  init
-};

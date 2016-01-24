@@ -15,6 +15,8 @@ const awsProjectManager = cmn.src('aws', 'project-init');
 
 
 module.exports = {
+  awsProjectManager,
+  getProjectAPI,
   provisionProjectNetwork,
   listSSHAbleInstances,
   deploy,
