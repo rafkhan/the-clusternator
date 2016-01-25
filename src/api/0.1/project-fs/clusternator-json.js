@@ -476,7 +476,7 @@ function addToIgnore(ignoreFileName, toIgnore) {
 
       if (!newIgnores.length) {
         // items already exists
-        return;
+        return Q.resolve();
       }
 
       return ignorePath(ignoreFileName)
