@@ -72,26 +72,57 @@ function addPrivateToDockerIgnore(fullAnswers) {
   return privateFs.addToIgnore(DOCKER_IGNORE, fullAnswers.answers.private);
 }
 
+function initProjectDb(answers) {
+  return cn
+    .createProjectData(answers.projectId)
+    .then((results) => Q.all([
+        encrypDecrypt(results.sharedKey),
+        privateFs.writeClusternatorCreds(answers.private, results.authToken) ])
+      .then(() => results));
+}
+
+function encrypDecrypt(sharedKey) {
+  return privateFs.makePrivate(sharedKey)
+    .then(() => privateFs.readPrivate(sharedKey))
+    .then(privateFs.checksum);
+}
+
+function initFs(initDetails, doOffline) {
+  return initProject(initDetails.root,
+    initDetails.fullAnswers.answers, doOffline)
+    .then(() => initDetails.fullAnswers.answers);
+}
+
+function logLoop(someChar, val) {
+  val = parseInt(val, 10) >= 0 ? parseInt(val, 10) : 80;
+  console.log(new Array(val).join(someChar));
+}
+
+function logInitComplete(dbResults) {
+  logLoop('-');
+  console.log('Project Init Complete');
+  logLoop('-');
+  console.log('GitHub Key:');
+  console.log(dbResults.gitHubkey);
+  logLoop('-');
+  console.log('Shared Key:');
+  console.log(dbResults.sharedkey);
+  logLoop('-');
+}
+
 /**
  * @param {boolean=} doOffline
  * @returns {Q.Promise}
  */
 function initStage2(doOffline) {
   return getInitUserOptions()
-    .then((initDetails) => initProject(
-      initDetails.root, initDetails.fullAnswers.answers, doOffline)
-      .then(() => cn
-        .provisionProjectNetwork(initDetails.fullAnswers.answers.projectId)
+    .then((initDetails) => initFs(initDetails, doOffline))
+    .then((answers) => initProjectDb(answers)
+      .then((dbResults) => cn
+        .provisionProjectNetwork(answers.projectId)
         .then((details) => privateFs
-          .writeProjectDetails(initDetails.fullAnswers.answers.private, details)
-          .then((token) => privateFs
-            .writeClusternatorCreds(initDetails.fullAnswers.answers.private,
-              details.ghToken))))
-      .then(cn.initializeSharedKey)
-      .then((sharedKey) => privateFs.makePrivate(sharedKey)
-        .then(() => privateFs.readPrivate(sharedKey))
-        .then(privateFs.checksum)
-        .then(() => logKey(sharedKey))))
+          .writeProjectDetails(answers.private, details))
+        .then(() => logInitComplete(dbResults))))
     .fail((err) => {
       if (err instanceof ClusternatedError) {
         util.info('Project is already clusternated (clusternator.json exists)');
@@ -178,16 +209,5 @@ function pickBestName(names) {
   return {
     name: names[0]
   };
-}
-
-/**
- * @param {string} sharedKey
- */
-function logKey(sharedKey) {
-  console.log('');
-  console.log('Share this *SECRET* key with your team members');
-  console.log('Also use it as CLUSTERNATOR_SHARED_KEY on CircleCi');
-  console.log(`CLUSTERNATOR_SHARED_KEY ${sharedKey}`);
-  console.log('');
 }
 

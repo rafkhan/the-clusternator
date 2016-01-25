@@ -85,7 +85,7 @@ function getProjectsDB(config, pm) {
    * @returns {string}
    */
   function mapEncrypt(val, key) {
-    if (ENCRYPTED_PROPS.indexOf(key) === -1) {
+    if (ENCRYPTED_PROPS.indexOf(key) !== 0) {
       return val;
     }
     return encrypt(val);
@@ -97,15 +97,16 @@ function getProjectsDB(config, pm) {
    * @returns {*}
    */
   function mapDecrypt(val, key) {
-    if (ENCRYPTED_PROPS.indexOf(key) === -1) {
+    if (ENCRYPTED_PROPS.indexOf(key) !== 0) {
       return val;
     }
     return decrypt(val);
   }
 
   function setItem(id, val) {
+    console.log('here', id, val);
     db[id] = R.mapObjIndexed(mapEncrypt, val);
-    console.log('DEBUG', require('util').inspect(db[id]));
+    console.log('not here');
     return Q.resolve(val);
   }
 

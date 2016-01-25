@@ -24,7 +24,6 @@ module.exports = {
   stop,
   update,
   startServer,
-  initializeSharedKey,
   describeServices,
   listProjects,
   certUpload,
@@ -107,13 +106,6 @@ function createUser(username, password, confirm, authority) {
     return Q.reject(new Error('password mismatch'));
   }
   return userREST.create(username, password, confirm, authority);
-}
-
-/**
- * @returns {Q.Promise<string>}
- */
-function initializeSharedKey() {
-  return gpg.generatePass();
 }
 
 /**

@@ -25,15 +25,12 @@ function getProjectId() {
 
 function logLoop(someChar, val) {
   val = parseInt(val, 10) >= 0 ? parseInt(val, 10) : 80;
-  return new Array(val).map(() => someChar).join('');
+  console.log(new Array(val).join(someChar));
 }
 
 function logCreateData(results) {
   console.log('');
   console.log('');
-  logLoop('-');
-  console.log('Auth Token: (For POST requests, like from Circle CI)');
-  console.log(results.authToken);
   logLoop('-');
   console.log('GitHub Key: (For GitHub requests)');
   console.log(results.gitHubKey);

@@ -103,6 +103,48 @@ function listSSHAbleInstances(body) {
       .pm.listSSHAbleInstances(projectId));
 }
 
+function createIfNotFound(s, projectId, repoName) {
+  return s
+      .db.create({ id: projectId, repo: repoName })
+      .then((details) => Q
+        .all([
+          newToken(details.id),
+          newKey(details, 'gitHubKey'),
+          newKey(details, 'sharedKey') ])
+        .then((results) => {
+          details.gitHubKey = results[1].gitHubKey;
+          details.sharedKey = results[2].sharedKey;
+          return s.db.setItem(projectId, details)
+            .then(() => results);
+        }));
+}
+
+function resetData(details, repoName) {
+  details.repo = repoName || details.repo || details.id;
+  return Q
+    .all([
+      newToken(details.id),
+      newKey(details, 'gitHubKey'),
+      newKey(details, 'sharedKey') ]);
+}
+
+function resetIfFound(s, row, projectId, repoName) {
+  return resetData(row, repoName)
+    .then((result) => {
+      row.gitHubKey = result[1].gitHubKey;
+      row.sharedKey = result[2].sharedKey;
+      return s.db.setItem(projectId, row)
+        .then(() => result);
+    });
+}
+
+function findOrCreate(s, projectId, repoName) {
+  return s
+    .db.find(projectId)
+    .then((row) => resetIfFound(s, row, projectId, repoName),
+      createIfNotFound(s, projectId, repoName));
+}
+
 function createData(body) {
   if (!body || !body.projectId) {
     return Q.reject(new Error('Project requires a projectId'));
@@ -111,20 +153,15 @@ function createData(body) {
   body.repoName = body.repoName + '' || body.projectId;
 
   return state()
-    .then((s) => s
-      .db.create({ id: body.projectId, repo: body.repoName })
-      .then((details) => Q
-        .all([
-          newToken(details.id),
-          newKey(details, 'gitHubKey'),
-          newKey(details, 'sharedKey') ])
-        .then((results) => {
-          return {
-            authToken: results[0],
-            gitHubKey: results[1].gitHubKey,
-            sharedKey: results[2].sharedKey
-          };
-        })));
+    .then((s) => findOrCreate(s, body.projectId, body.repoName)
+      .then((results) => {
+        console.log('not here');
+        return {
+          authToken: results[0],
+          gitHubKey: results[1].gitHubKey,
+          sharedKey: results[2].sharedKey
+        };
+      }));
 }
 
 /**

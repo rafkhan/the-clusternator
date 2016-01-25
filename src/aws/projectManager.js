@@ -94,8 +94,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
           return Q
             .all([
               s.subnet.create(projectId, routeId, aclId),
-              iam.createProjectUser(projectId, repoArn),
-              initializeGithubWebhookToken(projectId)])
+              iam.createProjectUser(projectId, repoArn)])
             .then((r) => {
               return {
                 credentials:  r[1],
@@ -103,8 +102,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
                   vpcId: s.vpcId,
                   registryId: results[2].registryId,
                   region: DEFAULT_REGION
-                },
-                ghToken: r[2]
+                }
               };
             });
         }));
@@ -188,20 +186,14 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    * @param {string} projectId
    * @returns {Q.Promise}
    */
-  function initializeGithubWebhookToken(projectId) {
-    return gpg.generatePass()
-      .then((passphrase) => {
-        var item = {
-          ProjectName: { S: projectId },
-          GithubSecretToken: { S: passphrase }
-        };
+  function writeGitHubKey(projectId, token) {
+    var item = {
+      ProjectName: { S: projectId },
+      GithubSecretToken: { S: token }
+    };
 
-        return ddbManager
-          .insertItem(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE, item)
-          .then(() => {
-            return passphrase;
-          }, Q.reject);
-      }, Q.reject);
+    return ddbManager
+      .insertItem(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE, item);
   }
 
   function listProjects() {
@@ -317,7 +309,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
     updateDeployment,
     iam,
     ddbManager,
-    initializeGithubWebhookToken
+    writeGitHubKey
   };
 }
 
