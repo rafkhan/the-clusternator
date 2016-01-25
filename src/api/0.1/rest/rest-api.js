@@ -1,5 +1,6 @@
 'use strict';
 
+const inspect = require('util').inspect;
 const path = require('path');
 const Q = require('q');
 const cn = require('../js/js-api');
@@ -85,11 +86,13 @@ function sanitizePr(pr) {
  * @returns {Q.Promise<string[]>}
  */
 function listSSHAbleInstances(body) {
-  const projectId = body.projectId + '';
-  if (!projectId) {
-    return Q.reject(new Error('list-ssh-instances: requires projectId'));
+  if (!body || !body.projectId) {
+    return Q.reject(
+      new Error('list-ssh-instances: requires projectId, given: ' +
+        inspect(body)));
   }
- return state()
+  const projectId = body.projectId + '';
+  return state()
     .then((s) => s
       .pm.listSSHAbleInstances(projectId));
 }

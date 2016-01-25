@@ -1,7 +1,5 @@
 'use strict';
 
-const TEST_VPC = 'vpc-ab07b4cf';
-const TEST_ZONE = '/hostedzone/Z1K98SX385PNRP';
 const LOGIN_PATH = '/login';
 const PRODUCTION = 'production';
 const DEBUG = 'debug';
@@ -12,14 +10,12 @@ const q = require('q');
 const os = require('os');
 const path = require('path');
 const express = require('express');
-const aws = require('aws-sdk');
 const Config = require('../config');
-const getPRManager = require('../aws/prManager');
-const getDynamoDBManager = require('../aws/dynamoManager');
 const waitFor = require('../util').waitFor;
 const loggers = require('./loggers');
 const log = loggers.logger;
 const prHandler = require('./pullRequest');
+const getProjectManager = require('../aws/project-init');
 const pushHandler = require('./push');
 const authentication = require('./auth/authentication');
 const githubAuthMiddleware = require('./auth/githubHook');
@@ -28,15 +24,13 @@ const util = require('../util');
 const clusternatorApi = require('./clusternator-api');
 const API = require('../constants').DEFAULT_API_VERSION;
 
-var compression = require('compression');
-var ensureAuth = require('connect-ensure-login').ensureLoggedIn;
+const compression = require('compression');
+const ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 
-var GITHUB_AUTH_TOKEN_TABLE = 'github_tokens';
+const bodyParser = require('body-parser-rawbody');
+let lex;
 
-var bodyParser = require('body-parser-rawbody');
-var lex;
-
-function startSSL(app) {
+function startSSL(app, config) {
   if (NODE_ENV === PRODUCTION) {
     log.info('Clusternator SSL set for production');
     lex = require('letsencrypt-express');
@@ -48,7 +42,6 @@ function startSSL(app) {
     lex = require('letsencrypt-express').testing();
   }
 
-  const config = Config();
   /** @todo fetch .private from clusternator.json this might not be valid */
   const configDir = path.join(__dirname, '..', '..', '.private');
 
@@ -75,11 +68,7 @@ function hostInfo() {
     `Cores: ${os.cpus().length}`);
 }
 
-function createServer(prManager, ddbManager) {
-  hostInfo();
-  var app = express(),
-    leApp = startSSL(app);
-
+function initExpress(app) {
   /**
    *  @todo the authentication package could work with a "mount", or another
    *  mechanism that is better encapsulated
@@ -90,25 +79,35 @@ function createServer(prManager, ddbManager) {
   app.use(express['static'](
     path.join(__dirname, '..', 'www'))
   );
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
 
+  app.use(bodyParser.json());
+  app.use(loggers.request);
+}
+
+function createServer(pm, config) {
+  hostInfo();
+  const app = express();
+  const leApp = startSSL(app, config);
+
+  initExpress(app);
   /**
    * @todo the clusternator package could work  with a "mount", or another
    * mechanism that is better encapsulated
    */
   clusternatorApi.init(app);
+  bindRoutes(app, pm);
 
-  function ping(req, res) {
-    res.send('Still alive.');
+  if (NODE_ENV === DEBUG) {
+    return app;
   }
+  return leApp;
+}
 
-  // TODO: SSL, auth
+function bindRoutes(app, pm) {
+  const curriedPushHandler = R.curry(pushHandler)(pm);
+  const curriedPRHandler = R.curry(prHandler)(pm);
+  const ghMiddleware = githubAuthMiddleware(pm.ddbManager);
 
-  var curriedPushHandler = R.curry(pushHandler)(prManager);
-  var curriedPRHandler = R.curry(prHandler)(prManager);
-
-  app.use(loggers.request);
 
   app.set('views', path.join(__dirname, '..', 'views'));
   app.set('view engine', 'ejs');
@@ -157,44 +156,12 @@ function createServer(prManager, ddbManager) {
       curriedPushHandler
     ]); // CI post-build hook
 
-  var ghMiddleware = githubAuthMiddleware(ddbManager)
   app.post('/github/pr', [
     ghMiddleware,
     curriedPRHandler
   ]);     // github close PR hook
 
   app.use(loggers.error);
-
-  if (NODE_ENV === DEBUG) {
-    return app;
-  }
-  return leApp;
-}
-
-function getAwsResources(config) {
-  var creds = config.awsCredentials;
-
-  var ec2 = new aws.EC2(creds);
-  var ecs = new aws.ECS(creds);
-  var r53 = new aws.Route53(creds);
-  var ddb = new aws.DynamoDB(creds);
-
-  return {
-    ec2: ec2,
-    ecs: ecs,
-    r53: r53,
-    ddb: ddb
-  };
-}
-
-// XXX
-// This function is here to force the PR manager to load asynchronously,
-// such that we can query for a VPC ID before starting (as opposed to
-// using a hardcoded one right now).
-//
-function loadPRManagerAsync(ec2, ecs, r53) {
-  var prm = getPRManager(ec2, ecs, r53, TEST_VPC, TEST_ZONE);
-  return q.resolve(prm);
 }
 
 function createAndPollTable(ddbManager, tableName) {
@@ -206,7 +173,7 @@ function createAndPollTable(ddbManager, tableName) {
       return waitFor(() => {
         log.info('Polling...');
         return ddbManager.checkActiveTable(tableName);
-      }, 500, 100, 'ddb table create ' + tableName)
+      }, 500, 100, 'ddb table create ' + tableName);
     }, q.reject);
 }
 
@@ -241,38 +208,42 @@ function exposeUser(req, res, next) {
   next();
 }
 
-function getServer(config) {
-  var a = getAwsResources(config);
-
-  var ddbManager = getDynamoDBManager(a.ddb);
-  var initDynamoTable = R.curry(initializeDynamoTable)(ddbManager);
-  var githubAuthTokenTable = ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE;
+/**
+ * @returns {Q.Promise}
+ */
+function getServer() {
+  const config = Config();
+  const pm = getProjectManager(config);
+  const ddbManager = pm.ddbManager;
+  const initDynamoTable = R.curry(initializeDynamoTable)(ddbManager);
+  const githubAuthTokenTable = ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE;
 
   return initDynamoTable(githubAuthTokenTable)
-    .then(() => {
-      return loadPRManagerAsync(a.ec2, a.ecs, a.r53)
-    }, q.reject)
-    .then((prManager) => {
-      return createServer(prManager, ddbManager);
-    }, q.reject);
+    .then(() => createServer(pm, config));
 }
 
 function startServer(config) {
   return getServer(config)
-  .then((server) => {
-    if (NODE_ENV === DEBUG) {
-      server.listen(config.port);
-      log.info(
-        `Clusternator listening on port: ${config.port}`);
+    .then((server) => {
+      if (NODE_ENV === DEBUG) {
+        server.listen(config.port);
+        log.info(
+          `Clusternator listening on port: ${config.port}`);
       } else {
         server.listen([config.port], [config.portSSL]);
         log.info(
           `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
-        }
-      }, (err) => {
-        log.error(err, err.stack);
-      });
+      }
+    }, (err) => {
+      log.error(err, err.stack);
+    });
 }
+
+function ping(req, res) {
+  res.send('Still alive.');
+}
+
+
 
 module.exports = {
   getServer: getServer,

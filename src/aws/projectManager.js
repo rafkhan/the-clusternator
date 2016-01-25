@@ -316,6 +316,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
     listSSHAbleInstances,
     updateDeployment,
     iam,
+    ddbManager,
     initializeGithubWebhookToken
   };
 }

@@ -15,7 +15,7 @@ function getProjectManager() {
     destroyDeployment,
     describeProject,
     listProjects,
-    listSSHAbleInstances,
+    listSSHAbleInstances
   };
 }
 
@@ -32,6 +32,7 @@ function create(projectId) {
   }
   return makePostRequest('/project/create', { projectId });
 }
+
 
 /**
  * @param {string} projectId
