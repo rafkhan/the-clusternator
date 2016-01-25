@@ -32,7 +32,7 @@ function deploy(name) {
           fs.read(dPath, 'utf8')
             .fail(getAppDefNotFound(dPath))])
         .then((results) => cn
-          .deploy(name, cJson.projectId, results[2], results[0]));
+          .deploy(name, cJson.projectId, results[1], results[0]));
     });
 }
 
