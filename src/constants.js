@@ -7,6 +7,7 @@ const PROJECT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project';
 const PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr';
 const DEPLOYMENT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'deployment';
 const SHA_TAG = CLUSTERNATOR_PREFIX + DELIM + 'sha';
+const PROJECT_USER_TAG = 'clusternator-project-';
 /**const NOTEconst EC2const AMI'sconst areconst regionconst specificconst */
 //const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
 //const AWS_DEFAULT_EC2_AMI = 'ami-e2b1f988';
@@ -24,6 +25,7 @@ const AWS_APIS = Object.freeze({
 
 
 const constants = Object.freeze({
+  PROJECT_USER_TAG,
   DEFAULT_API_VERSION: '0.1',
   LOG_LEVELS: Object.freeze({
     0: 'error',

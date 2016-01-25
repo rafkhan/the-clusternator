@@ -4,11 +4,12 @@
   "config.hasReadLetsEncryptTOS": false,
   "port":9090,
   "portSSL":3000,
-  "sessionSecret":"Make This UNIQUE and crypto random on install/deployment",
-  "sessionCookieName":"clusternator.sid",
+  "setupRootPass": "super secret",
+  "dbKey": "change this to a long secret passphrase used to encrypt db",
   "tld":".example.com",
   "slackURI":"",
   "dockerRegistryPrefix":"",
+  "minPasswordLength": 13,
   "defaultRepo": {
     "protocol":"https://",
     "token":"",
@@ -20,12 +21,19 @@
     "2": "users"
   },
   "commandPrivileges": {
-    "projects": {
+    "project": {
       "create": 1,
       "build": 2,
       "list": 2,
       "describe": 1,
-      "destroy": 1
+      "destroy": 1,
+      "list-ssh-instances": 2,
+      "create-data": 1,
+      "reset-auth-token": 1,
+      "reset-shared-key": 1,
+      "reset-git-hub-key": 1,
+      "shared-key": 2,
+      "git-hub-key": 1
     },
     "pr": {
       "create": 2,

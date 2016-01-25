@@ -1,6 +1,8 @@
 'use strict';
 
-const  path = require('path');
+const API = '0.1';
+
+const path = require('path');
 
 const cmn = require('../common');
 const util = cmn.src('util');
@@ -11,6 +13,7 @@ const deployments = require('./deployments');
 const stdioI = require('./stdio-inheritors');
 const project = require('./project');
 const user = require('./user');
+const projectDb = require('./project-db');
 const aws = require('./aws');
 
 const privateFs = require('../project-fs/private');
@@ -18,6 +21,8 @@ const dockerFs = require('../project-fs/docker');
 const deploymentsFs = require('../project-fs/deployments');
 
 const legacy = require('./legacy-yargs');
+
+const getPackage = () => require('../../../../package.json');
 
 module.exports = (yargs) => {
 
@@ -41,6 +46,27 @@ module.exports = (yargs) => {
 
       project.init(y.argv.o).done();
     })
+    .command('project', 'Project management commands (try ' +
+      'clusternator project --help)',
+      (y) => {
+        y.usage('Usage: $0 project <command> [opts]')
+          .command('create-data', 'create project db entry',
+            () => projectDb.createData().done())
+          .command('git-hub-key', 'Display GitHub key ' +
+            '(warning returns secret GitHub key)',
+            () => projectDb.getGitHub().done())
+          .command('shared-key', 'Display shared key ' +
+            '(warning returns secret shared key)',
+            () => projectDb.getShared().done())
+          .command('reset-auth-token', 'Reset authentication token',
+            () => projectDb.resetAuth().done())
+          .command('reset-git-hub-key', 'Reset GitHub key',
+            () => projectDb.resetGitHub().done())
+          .command('reset-shared-key', 'Reset shared key',
+            () => projectDb.resetShared().done())
+          .help('h')
+          .alias('h', 'help');
+      })
     .command('config', 'Configure the local clusternator user',
       () => Config.interactiveUser().done())
     .command('create-user', 'Create a user on the clusternator server', (y) => {
@@ -66,7 +92,7 @@ module.exports = (yargs) => {
           .log(`Error creating user: ${err.message}`))
         .done();
     })
-    .command('login', 'Change your clusternator server password',
+    .command('login', 'Login to the clusternator server',
       (y) =>  {
         y.demand('p')
           .alias('p', 'password')
@@ -240,7 +266,11 @@ module.exports = (yargs) => {
       stdioI.logApp)
     .command('log-ecs', 'ECS logs from a user selected server',
       stdioI.logEcs)
-    .command('ssh', 'SSH to a selected server', stdioI.sshShell);
+    .command('ssh', 'SSH to a selected server', stdioI.sshShell)
+    .version(() => {
+      const pkg = getPackage();
+      return `Package: ${pkg.version} API: ${API}`;
+    });
 
   legacy(yargs);
 };

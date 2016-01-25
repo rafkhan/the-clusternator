@@ -243,8 +243,6 @@ function ping(req, res) {
   res.send('Still alive.');
 }
 
-
-
 module.exports = {
   getServer: getServer,
   startServer: startServer

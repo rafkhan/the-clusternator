@@ -12,8 +12,10 @@ const dockernate = cmn.src('dockernate');
 
 const users = cmn.src('server','auth','users');
 const passwords = cmn.src('server','auth','passwords');
+const tokens = cmn.src('server','auth','tokens');
 const Projects = cmn.src('server','db','projects');
 
+const gpg = cmn.src('cli-wrappers', 'gpg');
 const slack = cmn.src('cli-wrappers','slack');
 
 const API = constants.DEFAULT_API_VERSION;
@@ -33,11 +35,15 @@ const EXPORTS = {
     passwd: (body) => changePass(body)
   },
   project: {
+    'create-data': createData,
+    'reset-auth-token': resetAuthToken,
+    'reset-shared-key': resetSharedKey,
+    'reset-git-hub-key': resetGitHubKey,
+    'shared-key': sharedKey,
+    'git-hub-key': gitHubKey,
     create: (body) => createProject(body),
     list: listProjects,
     'list-ssh-instances': listSSHAbleInstances,
-    getProject: getProject,
-    setProject: setProject,
     describe: noopP,
     destroy: pmDestroy,
     build: (body) => {
@@ -95,6 +101,136 @@ function listSSHAbleInstances(body) {
   return state()
     .then((s) => s
       .pm.listSSHAbleInstances(projectId));
+}
+
+function createData(body) {
+  if (!body || !body.projectId) {
+    return Q.reject(new Error('Project requires a projectId'));
+  }
+  body.projectId += '';
+  body.repoName = body.repoName + '' || body.projectId;
+
+  return state()
+    .then((s) => s
+      .db.create({ id: body.projectId, repo: body.repoName })
+      .then((details) => Q
+        .all([
+          newToken(details.id),
+          newKey(details, 'gitHubKey'),
+          newKey(details, 'sharedKey') ])
+        .then((results) => {
+          return {
+            authToken: results[0],
+            gitHubKey: results[1].gitHubKey,
+            sharedKey: results[2].sharedKey
+          };
+        })));
+}
+
+/**
+ * @param {string} projectId
+ * @returns {Q.Promise<string>}
+ */
+function newToken(projectId) {
+  return tokens.clear(makeTokenName(projectId))
+    .then(() => tokens.create(makeTokenName(projectId)));
+}
+
+/**
+ * @param {{ projectId: string}} body
+ * @returns {Q.Promise<{ data: string }>}
+ */
+function resetAuthToken(body) {
+  if (!body || !body.projectId) {
+    return Q.reject(new Error('Project requires a projectId'));
+  }
+  return newToken(body.projectId)
+    .then((token) => {
+      return { data: token };
+    });
+}
+
+/**
+ * @param {{ projectId: string}} body
+ * @param {string} attr
+ * @returns {Q.Promise<string>}
+ */
+function getKey(body, attr) {
+  if (!body || !body.projectId) {
+    return Q.reject(new Error('Project requires a projectId'));
+  }
+  return state()
+    .then((s) => s
+      .db.getItem(body.projectId)
+      .then((details) => {
+        return { data: details[attr] };
+      }));
+}
+
+/**
+ * @param {Object} dbRow
+ * @param {attr} string
+ * @returns {Object}
+ */
+function newKey(dbRow, attr) {
+  return gpg
+    .generatePass()
+    .then((pass) => {
+      dbRow[attr] = pass;
+      return dbRow;
+    });
+}
+
+/**
+ * @param {{ projectId: string}} body
+ * @param {string} attr
+ * @returns {Q.Promise<string>}
+ */
+function resetKey(body, attr) {
+  if (!body || !body.projectId) {
+    return Q.reject(new Error('Project requires a projectId'));
+  }
+  return state()
+    .then((s) => s
+      .db.getItem(body.projectId)
+      .then((details) => newKey(details, attr))
+      .then((details) => s
+        .db.setItem(body.projectId, details)
+        .then(() => {
+          return { data: details[attr] };
+        })));
+}
+
+/**
+ * @param {{ projectId: string }} body
+ * @returns {Q.Promise<{ data: string }>}
+ */
+function resetSharedKey(body) {
+  return resetKey(body, 'sharedKey');
+}
+
+/**
+ * @param {{ projectId: string }} body
+ * @returns {Q.Promise<{ data: string }>}
+ */
+function resetGitHubKey(body) {
+  return resetKey(body, 'gitHubKey');
+}
+
+/**
+ * @param {{ projectId: string }} body
+ * @returns {Q.Promise<{ data: string }>}
+ */
+function sharedKey(body) {
+  return getKey(body, 'sharedKey');
+}
+
+/**
+ * @param {{ projectId: string }} body
+ * @returns {Q.Promise<{ data: string }>}
+ */
+function gitHubKey(body) {
+  return getKey(body, 'gitHubKey');
 }
 
 /**
@@ -178,48 +314,6 @@ function validateBackend(db, be) {
     return db.BACKENDS[0];
   }
   return db.BACKENDS[1];
-}
-
-function setProject(req, res) {
-  return state()
-    .then((s) => s.db
-      .find(req.params.project)
-      .then((p) => {
-        p.name = req.body.name;
-        p.sharedKey = req.body.sharedKey;
-        p.repoToken = req.body.repoToken;
-        p.channel = req.body.channel;
-        p.backend = validateBackend(s.db, req.body.backend);
-        return s
-          .db.setItem(p.id, p)
-          .then(() => {
-            res.json(p);
-          });
-      }, () => {
-        res.status(404).json({ error: 'Not Found'});
-      }).fail(getPFail(res)));
-}
-
-function getProject(req, res) {
-  return state()
-    .then((s) => s
-      .db.find(req.params.project)
-      .then((project) => {
-        if (req.get('ContentType') === 'application/json') {
-          res.json({
-            id: project.id,
-            name: project.name,
-            sharedKey: project.sharedKey,
-            channel: project.channel
-          });
-        } else {
-          res.render('project', {
-            api: API, project: project, backends: s.db.BACKENDS
-          });
-        }
-      }, () => {
-        res.status(404).json({ error: 'Not Found'});
-      }).fail(getPFail(res)));
 }
 
 function pmDestroy() {
@@ -306,6 +400,15 @@ function init(config) {
 }
 
 /**
+ * @param projectId
+ * @returns {*}
+ */
+function makeTokenName(projectId) {
+  projectId = projectId + '';
+  return  constants.PROJECT_USER_TAG + projectId;
+}
+
+/**
  * @param {Object=} config
  * @returns {Q.Promise<{ config: Object, db: Object, pm: Object }>}
  */
@@ -323,13 +426,16 @@ function state(config) {
 }
 
 /**
- * @param {Object} config
+ * @param config
  * @returns {{user: {create: EXPORTS.user.create, passwd: EXPORTS.user.passwd},
- project: {create: EXPORTS.project.create, list: listProjects,
- getProject: getProject, setProject: setProject, describe: noopP, destroy: *,
- build: EXPORTS.project.build}, pr: {create: EXPORTS.pr.create, list: noopP,
- describe: noopP, destroy}, deployment: {create: createDeployment, list: noopP,
- describe: noopP, destroy: destroyDeployment}}}
+ project: {create-data: createData, reset-auth-key: resetAuthKey,
+ reset-shared-key: resetSharedKey, reset-git-hub-key: resetGitHubKey,
+ shared-key: sharedKey, git-hub-key: gitHubKey, create: EXPORTS.project.create,
+ list: listProjects, list-ssh-instances: listSSHAbleInstances, describe: noopP,
+ destroy: pmDestroy, build: EXPORTS.project.build}, pr: {create: prCreate,
+ list: noopP, describe: noopP, destroy: prDestroy},
+ deployment: {create: pmCreateDeployment, list: noopP, describe: noopP
+ , destroy: pmDestroyDeployment}}}
  */
 function getCommands(config) {
   STATE.config = config;

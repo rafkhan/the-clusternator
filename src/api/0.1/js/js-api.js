@@ -10,6 +10,7 @@ const constants = cmn.src('constants');
 const gpg = cmn.src('cli-wrappers', 'gpg');
 
 const userREST = cmn.src('clusternator', 'user');
+const projectREST = cmn.src('clusternator', 'project-data');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
 
@@ -31,8 +32,38 @@ module.exports = {
   createUser,
   login,
   changePassword,
-  generatePass: gpg.generatePass
+  generatePass: gpg.generatePass,
+  createProjectData,
+  resetProjectAuth,
+  resetProjectShared,
+  resetProjectGitHub,
+  getProjectShared,
+  getProjectGitHub
 };
+
+function createProjectData(projectId, channel) {
+  return projectREST.create(projectId, channel);
+}
+
+function resetProjectAuth(projectId) {
+  return projectREST.resetAuth(projectId);
+}
+
+function resetProjectShared(projectId) {
+  return projectREST.resetShared(projectId);
+}
+
+function resetProjectGitHub(projectId) {
+  return projectREST.resetGitHub(projectId);
+}
+
+function getProjectShared(projectId) {
+  return projectREST.getShared(projectId);
+}
+
+function getProjectGitHub(projectId) {
+  return projectREST.getGitHub(projectId);
+}
 
 /**
  * @param {string} username
