@@ -1,17 +1,28 @@
 'use strict';
 
-const  path = require('path');
+const API = '0.1';
+
+const path = require('path');
 
 const cmn = require('../common');
 const util = cmn.src('util');
 const Config = cmn.src('config');
-const cn = require('../js/js-api');
 
+const cn = require('../js/js-api');
+const deployments = require('./deployments');
 const stdioI = require('./stdio-inheritors');
-const project = require('./project-questions');
-const user = require('./user-questions');
+const project = require('./project');
+const user = require('./user');
+const projectDb = require('./project-db');
+const aws = require('./aws');
+
+const privateFs = require('../project-fs/private');
+const dockerFs = require('../project-fs/docker');
+const deploymentsFs = require('../project-fs/deployments');
 
 const legacy = require('./legacy-yargs');
+
+const getPackage = () => require('../../../../package.json');
 
 module.exports = (yargs) => {
 
@@ -35,6 +46,27 @@ module.exports = (yargs) => {
 
       project.init(y.argv.o).done();
     })
+    .command('project', 'Project management commands (try ' +
+      'clusternator project --help)',
+      (y) => {
+        y.usage('Usage: $0 project <command> [opts]')
+          .command('create-data', 'create project db entry',
+            () => projectDb.createData().done())
+          .command('git-hub-key', 'Display GitHub key ' +
+            '(warning returns secret GitHub key)',
+            () => projectDb.getGitHub().done())
+          .command('shared-key', 'Display shared key ' +
+            '(warning returns secret shared key)',
+            () => projectDb.getShared().done())
+          .command('reset-auth-token', 'Reset authentication token',
+            () => projectDb.resetAuth().done())
+          .command('reset-git-hub-key', 'Reset GitHub key',
+            () => projectDb.resetGitHub().done())
+          .command('reset-shared-key', 'Reset shared key',
+            () => projectDb.resetShared().done())
+          .help('h')
+          .alias('h', 'help');
+      })
     .command('config', 'Configure the local clusternator user',
       () => Config.interactiveUser().done())
     .command('create-user', 'Create a user on the clusternator server', (y) => {
@@ -60,16 +92,17 @@ module.exports = (yargs) => {
           .log(`Error creating user: ${err.message}`))
         .done();
     })
-    .command('login', 'Change your clusternator server password',
+    .command('login', 'Login to the clusternator server',
       (y) =>  {
         y.demand('p')
           .alias('p', 'password')
-          .describe('p', 'your password (be careful with shell entry like this)')
+          .describe('p', 'your password (be careful with shell entry like ' +
+            'this)')
           .default('p', '')
           .demand('u')
           .alias('u', 'user-name')
-          .describe('u', 'user name to login with, (defaults to local config if' +
-            'available)')
+          .describe('u', 'user name to login with, (defaults to local config ' +
+            'if available)')
           .default('u', '');
 
         return user.login(y.argv.u, y.argv.p).fail((err) => console
@@ -108,12 +141,12 @@ module.exports = (yargs) => {
     })
 
     .command('list-projects', 'List projects with clusternator resources',
-      (y) => cn
+      (y) => aws
         .listProjects()
         .then((projectNames) => projectNames
           .forEach(console.log))
         .done())
-    .command('describe-services', 'Describe project services', (y) => cn
+    .command('describe-services', 'Describe project services', (y) => aws
       .describeServices()
       .then((desc) => util
         .info(JSON.stringify(desc, null, 2)))
@@ -129,8 +162,8 @@ module.exports = (yargs) => {
 
       util.info('Building Docker Image: ', argv.i);
 
-      return cn
-        .dockerBuild(argv.i, argv.p).fail((err) => {
+      return dockerFs
+        .build(argv.i, argv.p).fail((err) => {
           util.error('Error building local Docker image: ', err);
         }).done();
     })
@@ -139,7 +172,7 @@ module.exports = (yargs) => {
       alias('d', 'deployment-name').
       describe('d', 'Requires a deployment name');
 
-      cn.deploy(y.argv.d).done();
+      deployments.deploy(y.argv.d).done();
     })
     .command('stop', 'Stops a deployment, and cleans up', (y) => {
       y.demand('d').
@@ -149,7 +182,7 @@ module.exports = (yargs) => {
       default('s', '', 'HEAD').
       describe('s', 'Requires a SHA');
 
-      cn.stop(y.argv.d, y.argv.s).done();
+      deployments.stop(y.argv.d, y.argv.s).done();
     })
 
     .command('update', 'Updates a deployment in place', (y) => {
@@ -157,7 +190,7 @@ module.exports = (yargs) => {
       alias('d', 'deployment-name').
       describe('d', 'Requires a deployment name');
 
-      cn.update(y.argv.d).done();
+      deployments.update(y.argv.d).done();
     })
 
     .command('generate-deployment', 'Generates a deployment config', (y) => {
@@ -165,7 +198,7 @@ module.exports = (yargs) => {
       alias('d', 'deployment-name').
       describe('d', 'Requires a deployment name');
 
-      cn.generateDeploymentFromName(y.argv.d).done();
+      deploymentsFs.generateDeploymentFromName(y.argv.d).done();
     })
     .command('generate-ssh-key', 'Adds a new SSH Key', (y) => {
       y.demand('n').
@@ -187,7 +220,7 @@ module.exports = (yargs) => {
       'clusternator.json)', (y) => {
       demandPassphrase(y);
 
-      cn.makePrivate(y.argv.p);
+      privateFs.makePrivate(y.argv.p);
 
     })
     .command('read-private', 'Decrypts private assets (defined in ' +
@@ -195,7 +228,7 @@ module.exports = (yargs) => {
 
       demandPassphrase(y);
 
-      cn.readPrivate(y.argv.p).done();
+      privateFs.readPrivate(y.argv.p).done();
     })
 
     .command('cert-upload', 'Upload a new SSL certificate', (y) => {
@@ -213,7 +246,7 @@ module.exports = (yargs) => {
         .describe('h', 'Path to certificate chain')
         .default('h', '');
 
-      cn.certUpload(y.argv.p, y.argv.c, y.argv.n, y.argv.h)
+      aws.certUpload(y.argv.p, y.argv.c, y.argv.n, y.argv.h)
         .fail(console.log)
         .done();
     })
@@ -223,17 +256,21 @@ module.exports = (yargs) => {
       .then(console.log))
 
     .command('private-checksum', 'Calculates the hash of .private, and ' +
-      'writes it to .clusternator/.private-checksum', cn.privateChecksum)
+      'writes it to .clusternator/.private-checksum', privateFs.checksum)
     .command('private-diff', 'Exits 0 if there is no difference between ' +
       '.clusternator/.private-checksum and a fresh checksum Exits 1 on ' +
       'mismatch, and exits 2 if private-checksum is not found',
-      cn.privateDiff)
+      privateFs.diff)
 
     .command('log', 'Application logs from a user selected server',
       stdioI.logApp)
     .command('log-ecs', 'ECS logs from a user selected server',
       stdioI.logEcs)
-    .command('ssh', 'SSH to a selected server', stdioI.sshShell);
+    .command('ssh', 'SSH to a selected server', stdioI.sshShell)
+    .version(() => {
+      const pkg = getPackage();
+      return `Package: ${pkg.version} API: ${API}`;
+    });
 
   legacy(yargs);
 };

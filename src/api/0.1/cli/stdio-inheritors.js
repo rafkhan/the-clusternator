@@ -1,14 +1,14 @@
 'use strict';
 
 const Q = require('q');
-const fs = require('fs');
+const fs = require('../project-fs/fs');
 const path = require('path');
 const mkdirp = Q.nfbind(require('mkdirp'));
 
-const cn = require('../js/js-api');
+const logSsh = require('./log-ssh');
+const clusternatorJson = require('../project-fs/clusternator-json');
 
 const cmn = require('../common');
-const clusternatorJson = cmn.src('clusternator-json');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
 const sshKey = cmn.src('cli-wrappers', 'ssh-keygen');
@@ -25,7 +25,7 @@ module.exports = {
 
 function newSshKey(name) {
   return Q.all([
-      clusternatorJson.findProjectRoot(),
+      fs.findProjectRoot(),
       clusternatorJson.get()])
     .then((results) => {
       const publicPath =
@@ -39,7 +39,7 @@ function newSshKey(name) {
  * @param {function(...):Q.Promise} logFn
  */
 function remoteFn(logFn) {
-  return cn
+  return logSsh
     .listSSHAbleInstances()
     .then((instanceDetails) => {
       if (!instanceDetails.length) {

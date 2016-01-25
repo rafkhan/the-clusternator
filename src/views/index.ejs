@@ -3,27 +3,66 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>THE CLUSTERNATOR</title>
+    <style>
+        body, html {
+            background: black;
+            color: #e7f1ff;
+            font-family: 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;
+            height: 100%;
+        }
+        #container {
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+        .contents {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
 </head>
 <body>
-<h1>Clusternator</h1>
-<noscript>
-    Disabling JS is a smart choice
-</noscript>
-<div id="output"></div>
+<div id="container">
+    <div class="contents">
+        <h1 class="contents">Clusternator</h1>
+        <noscript class="contents">
+            Disabling JS is a smart choice
+        </noscript>
+        <div id="output" class="contents"></div>
+    </div>
+</div>
 <script>
     var output = document.getElementById('output');
     var rando = random(10000000000) + '';
+    var loopMin = 300;
+    var loopMax = 1500;
+    var maxSwap = 5;
     output.innerHTML = rando;
-    setInterval(swap, 1500);
+    loop(random(loopMax, loopMin));
 
-    function swap() {
+    function loop(time) {
+        setTimeout(function () {
+            swapN(random(maxSwap));
+            loop(random(loopMax, loopMin));
+        }, time);
+    }
+    function swap(str) {
         var swapIndex = random(rando.length);
-        rando = rando.slice(0, swapIndex - 1) + random(10) +
-                rando.slice(swapIndex);
+        return str.slice(0, swapIndex - 1) + random(9) +
+                str.slice(swapIndex)
+    }
+
+    function swapN(n) {
+        for (var i = 0; i < n; i += 1) {
+            rando = swap(rando);
+        }
         output.innerHTML = rando;
     }
-    function random(m) {
-        return Math.floor(Math.random() * m);
+    function random(m, n) {
+        n = parseInt(n, 10) > 0 ? parseInt(n, 10) : 1;
+        return Math.floor(Math.random() * m) + n;
     }
 </script>
 </body>

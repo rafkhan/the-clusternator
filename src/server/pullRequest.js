@@ -19,7 +19,7 @@ function writeFailure(res, err) {
 
 // Extracts relevant data from github webhook body
 function getPRInfo(body) {
-  var prBody = body['pull_request'];
+  var prBody = body.pull_request;
   var number = prBody.number;
   var name = prBody.head.repo.name;
 
@@ -29,12 +29,12 @@ function getPRInfo(body) {
   };
 }
 
-function onPrClose(prManager, body) {
+function onPrClose(pm, body) {
   var pr = getPRInfo(body);
-  return prManager.destroy(pr.name, pr.number);
+  return pm.destroyPR(pr.name, pr.number);
 }
 
-function pullRequestRouteHandler(prManager, req, res) {
+function pullRequestRouteHandler(pm, req, res) {
   var error = R.curry(serverUtil.sendError)(res);
 
   var body = req.body;
@@ -42,7 +42,7 @@ function pullRequestRouteHandler(prManager, req, res) {
   var onSuccess = R.curry(writeSuccess)(res);
   var onFail   = R.curry(writeFailure)(res);
 
-  var ghEventType = req.header('X-Github-Event')
+  var ghEventType = req.header('X-Github-Event');
 
   if(ghEventType !== 'pull_request') {
     error(403, 'Pull requests only!');
@@ -52,7 +52,7 @@ function pullRequestRouteHandler(prManager, req, res) {
   var ghAction = body.action;
 
   if(ghAction === 'closed') {
-    onPrClose(prManager, body)
+    onPrClose(pm, body)
       .then(onSuccess, onFail);
   } else {
     error(403, 'We only want "closed" PR events right now.');

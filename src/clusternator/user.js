@@ -2,7 +2,6 @@
 
 const makePostRequest = require('./common').makePostRequest;
 const Q = require('q');
-const Config = require('../config');
 
 module.exports = {
   create,

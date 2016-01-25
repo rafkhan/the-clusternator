@@ -11,24 +11,12 @@ var Pm = rewire('../../../src/clusternator/projectManager'),
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
 describe('Clusternator\'s project manager', () => {
-  var oldReq, pm, validConfig = {
-    user: {
-      credentials: {
-        user: 'test',
-        token: 'testPass',
-        host: '127.0.0.1'
-      },
-      apiVersion: '0.1'
-    }
-  };
+  var oldReq, pm;
 
-  beforeEach((done) => {
+  beforeEach(() => {
     oldReq = common.__get__('request');
     common.__set__('request', mockRequest);
-    Pm(validConfig).then((p) => {
-      pm = p;
-      done();
-    }, C.getFail(done));
+      pm = Pm();
   });
 
   afterEach(() => {
@@ -37,22 +25,6 @@ describe('Clusternator\'s project manager', () => {
     });
     mockRequest.setResult({ payload: null });
     common.__set__('request', oldReq);
-  });
-
-  it('Pm should resolve a new clusternator project manager', (done) => {
-    Pm(validConfig).then((pm) => {
-      C.check(done, () => {
-        expect(pm).to.be.ok;
-      });
-    }, C.getFail(done));
-  });
-
-  it('Pm should reject without valid credentials', (done) => {
-    Pm().then(C.getFail(done), (err) => {
-      C.check(done, () => {
-        expect(err instanceof Error).to.be.ok;
-      });
-    });
   });
 
   it('makePostRequest should fail on error', (done) => {

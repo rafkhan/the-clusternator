@@ -1,5 +1,4 @@
 'use strict';
-const LOGIN_PATH = '/login';
 
 const constants = require('../../constants');
 const API = constants.DEFAULT_API_VERSION;
@@ -10,10 +9,12 @@ const R = require('ramda');
 const Config = require('../../config');
 const logger = require('../loggers').logger;
 var getCommands = require('../../api')[API].rest;
-var initAwsProject = require('../../aws/project-init');
 var auth = require('../auth/authorities');
 var curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
 
+module.exports = {
+  init
+};
 
 /**
  * @param {Object} config
@@ -79,19 +80,22 @@ function executeCommand(commands) {
 
   return (req, res) => {
     logger.info('Attempting To Execute Command', req.params.namespace,
-      req.params.command);
-    var fn = commands[req.params.namespace];
-    if (!fn) {
+      req.params.command, req.body);
+
+    if (!commands[req.params.namespace]) {
       getPFail(res)(new Error('Invalid Command (bad namespace)'));
       return;
     }
-    fn = fn[req.params.command];
+    const fn = commands[req.params.namespace][req.params.command];
+
     if (typeof fn !== 'function') {
       getPFail(res)(new Error('Invalid Command (bad function)'));
       return;
     }
 
-    logger.info('executing command', req.params.namespace, req.params.command);
+    logger.info('executing command', req.params.namespace, req.params.command,
+      req.body);
+
     fn(req.body)
       .then((output) => res.json(output))
       .fail(getPFail(res));
@@ -99,38 +103,16 @@ function executeCommand(commands) {
 }
 
 
-function authSwitch(req, res, next) {
-  if (req.params.namespace === 'pr') {
-    console.log('DEBUG');
-    console.log('DEBUG');
-    console.log(JSON.stringify(req.body, null, 2));
-    console.log('DEBUG');
-    console.log('DEBUG');
-  }
-  if (req.isAuthenticated()) {
-    next();
-  } else {
-    passport.authenticate(['auth-header'],
-      { failureRedirect: LOGIN_PATH})(req, res, next);
-  }
-}
-
 function init(app) {
-  var config = Config();
+  const config = Config();
   logger.debug(`API ${API} Initializing`);
 
-  getCommands(config).then((commands) => {
-    logger.debug(`API ${API} Got CommandObjects`);
-    app.post(`/${API}/:namespace/:command`, [
-      authSwitch,
-      authorizeCommand(config),
-      executeCommand(commands)
-    ]);
-  });
+  const commands = getCommands(config);
+  logger.debug(`API ${API} Got CommandObjects`);
 
-  return initAwsProject(config);
+  app.post(`/${API}/:namespace/:command`, [
+    passport.authenticate(['auth-header']),
+    authorizeCommand(config),
+    executeCommand(commands)
+  ]);
 }
-
-module.exports = {
-  init
-};

@@ -64,26 +64,25 @@ function createToken(id) {
     if (foundTokens.length > MAX_TOKENS) {
       throw new Error(`User has maximum tokens (${MAX_TOKENS})`);
     }
-    return createToken_().then((newToken) => {
-      return hash.saltHash(newToken).then((shash) => {
-        foundTokens.push(shash);
-        return saveUserTokens(id, foundTokens);
-      }).then(() => {
-        return id + DELIM + newToken;
-      });
-    });
+    return createToken_()
+      .then((newToken) => hash
+        .saltHash(newToken).then((shash) => {
+          foundTokens.push(shash);
+          return saveUserTokens(id, foundTokens);
+        })
+        .then(() => id + DELIM + newToken));
   });
 }
 
 function splitToken(token) {
-  var splitToken = token.split(DELIM);
-  if (splitToken.length !== 2) {
+  const st = token.split(DELIM);
+  if (st.length !== 2) {
     throw new TypeError('Invalid Token');
   }
   return {
-    id: splitToken[0],
-    token: splitToken[1]
-  }
+    id: st[0],
+    token: st[1]
+  };
 }
 
 function invalidateToken(token) {

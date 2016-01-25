@@ -1,17 +1,24 @@
 'use strict';
 
-const BACKENDS = ['static-npm', 'node'];
 const POLL_INTERVAL = 30000;
+const ENCRYPTED_PROPS = Object.freeze(['sharedKey', 'gitHubKey']);
 
+const R = require('ramda');
 const Q = require('q');
-var util = require('../../util');
+
+const util = require('../../util');
+const crypto = require('../auth/crypto-symmetric');
+
 
 function getProjectsDB(config, pm) {
+  const encrypt = R.partial(crypto.encrypt, config.dbKey);
+  const decrypt = R.partial(crypto.decrypt, config.dbKey);
 
-  var db = Object.create(null),
-    init = populateFromAWS().fail((err) => {
-      util.error('Projects: Failed to populate existing resources', err);
-    });
+  const db = Object.create(null),
+    init = populateFromAWS()
+      .fail((err) => {
+        util.error('Projects: Failed to populate existing resources', err);
+      });
 
   poll();
 
@@ -67,22 +74,40 @@ function getProjectsDB(config, pm) {
 
   function getItem(id) {
     if (db[id]) {
-      return Q.resolve(db[id]);
+      return Q.resolve(R.mapObjIndexed(mapDecrypt, db[id]));
     }
     return Q.reject(new Error(`${id} not found`));
   }
 
-  function setItem(id, val) {
-    db[id] = val;
-    return Q.resolve(val);
+  /**
+   * @param {*} val
+   * @param {string} key
+   * @returns {string}
+   */
+  function mapEncrypt(val, key) {
+    if (ENCRYPTED_PROPS.indexOf(key) !== 0) {
+      return val;
+    }
+    return encrypt(val);
   }
 
-  function validateBackend(be) {
-    var index = BACKENDS.indexOf(be);
-    if (index === -1) {
-      return BACKENDS[0];
+  /**
+   * @param {string} val
+   * @param {string} key
+   * @returns {*}
+   */
+  function mapDecrypt(val, key) {
+    if (ENCRYPTED_PROPS.indexOf(key) !== 0) {
+      return val;
     }
-    return BACKENDS[index];
+    return decrypt(val);
+  }
+
+  function setItem(id, val) {
+    console.log('here', id, val);
+    db[id] = R.mapObjIndexed(mapEncrypt, val);
+    console.log('not here');
+    return Q.resolve(val);
   }
 
   function create(val) {
@@ -91,18 +116,16 @@ function getProjectsDB(config, pm) {
       return Q.reject(new TypeError(invalid));
     }
     if (!val.id || !val.repo) {
-      return Q.reject(new TypeError(invalid))
+      return Q.reject(new TypeError(invalid));
     }
 
-
-    var newVal = {
+    const newVal = {
       id: val.id,
       repo: val.repo,
       name: val.name || '',
       sharedKey: val.sharedKey || '',
-      repoToken: val.repoToken || '',
-      channel: val.channel || val.id,
-      backend: validateBackend(val.backend)
+      gitHubKey: val.gitHubKey || '',
+      channel: val.channel || val.id
     };
 
     return getItem(val.id)
@@ -110,7 +133,7 @@ function getProjectsDB(config, pm) {
         throw new Error('Project exists');
       }, () => {
         return setItem(val.id, newVal);
-      })
+      });
   }
 
   function list() {
@@ -123,8 +146,7 @@ function getProjectsDB(config, pm) {
     getItem,
     setItem,
     list,
-    init,
-    BACKENDS
+    init
   };
 }
 

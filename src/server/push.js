@@ -9,7 +9,7 @@ var util = require('../util');
 
 var missingPropertyStatus = 400;
 
-function pushHandler(prManager, req, res) {
+function pushHandler(pm, req, res) {
   var error = R.curry(serverUtil.sendError)(res);
 
   var body = req.body;
@@ -56,15 +56,13 @@ function pushHandler(prManager, req, res) {
     return;
   }
 
-  var prStr = parsedTag.pr + '';
-
   log.info('Building project %s:%s',
             parsedTag.pid, parsedTag.pr);
 
   // XXX SWAP FOR WINSTON
   log.info('Generating application with tags:', parsedTag);
 
-  prManager.create(parsedTag.pid, parsedTag.pr, parsedAppdef)
+  pm.createPR(parsedTag.pid, parsedTag.pr, parsedAppdef)
     .then((res) => { log.info('Successfully build %s:%s',
                               parsedTag.pid, parsedTag.pr); },
           (err) => {

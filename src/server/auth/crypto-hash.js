@@ -22,12 +22,7 @@ module.exports = {
  * @returns {Q.Promise}
  */
 function saltHash(password) {
-  try {
-    return pwHash(password + '');
-  } catch (err) {
-    console.log('hash error');
-    return Q.reject(err);
-  }
+  return pwHash(password + '');
 }
 
 
@@ -47,10 +42,13 @@ function saltHashUser(user) {
  * @param {string} input
  */
 function verify(storedSaltedHash, input) {
-  try {
-    return pwVerify(storedSaltedHash, input + '');
-  } catch (err) {
-    return Q.reject(err);
-  }
+  return pwVerify(storedSaltedHash, input + '')
+    .then((isValid) => {
+      if (isValid) {
+        return Q.resolve(true);
+      } else {
+        return Q.reject(new Error('Password does not match salted hash'));
+      }
+    });
 }
 

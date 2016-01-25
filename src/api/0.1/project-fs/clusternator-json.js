@@ -11,7 +11,10 @@ const FILENAME = 'clusternator.json';
 const UTF8 = 'utf8';
 const CLUSTERNATOR_TAR = 'clusternator.tar.gz';
 const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
-const SKELETON = require('./skeletons/clusternator-json-skeleton');
+const SKELETON =
+  require('../../../../src/skeletons/clusternator-json-skeleton');
+const questions =
+  require('../../../../src/skeletons/create-interactive-questions');
 const RX_NEWLINE = /\r?\n/;
 const NEWLINE = '\r\n';
 const DEFAULT_PORT_INTERNAL_NODE = 3000;
@@ -20,20 +23,18 @@ const DEFAULT_PORT_EXTERNAL = 80;
 
 const Q = require('q');
 const path = require('path');
-const fs = require('fs');
 const rimraf = Q.nfbind(require('rimraf'));
 
+const fs = require('./fs');
+
+const cmn = require('../common');
+
 var git = Q.nfbind(require('parse-git-config'));
-var util = require('./util');
-var questions = require('./skeletons/create-interactive-questions');
-var gpg = require('./cli-wrappers/gpg');
-var tar = require('./cli-wrappers/tar');
+var util = cmn.src('util');
+var gpg = cmn.src('cli-wrappers', 'gpg');
+var tar = cmn.src('cli-wrappers', 'tar');
 
 const GIT_CONFIG = VCS_DIR + path.sep + 'config';
-
-const ls = Q.nbind(fs.readdir, fs);
-const readFile = Q.nbind(fs.readFile, fs);
-const writeFile = Q.nbind(fs.writeFile, fs);
 
 function identity(obj) {
   return obj;
@@ -45,44 +46,6 @@ function identity(obj) {
  */
 function fullPath(dirPath) {
   return path.join(dirPath, FILENAME);
-}
-
-function parent(somePath) {
-  var splits = somePath.split(path.sep).filter(identity),
-    root = somePath[0] === path.sep ? path.sep : '';
-  if (splits.length === 1) {
-    return null;
-  }
-  splits.pop();
-  return root + splits.join(path.sep);
-}
-
-/**
- * This function searches (upwards) for a directory with a .git folder, starting
- * from the CWD!
- * @return {Q.Promise<string>} promise to return the full path of the project
- */
-function findProjectRoot(cwd) {
-  cwd = cwd || process.cwd();
-
-  var d = Q.defer();
-
-  ls(cwd).then((files) => {
-    var index = files.indexOf(VCS_DIR), parentPath;
-    if (index === -1) {
-      parentPath = parent(cwd);
-      if (!parentPath) {
-        d.reject(new Error('Clusternator: No Version Control Folder Found'));
-        return;
-      }
-      return findProjectRoot(parentPath).then(d.resolve, d.reject);
-    } else {
-      process.chdir(cwd);
-      d.resolve(cwd);
-    }
-  }, d.reject);
-
-  return d.promise;
 }
 
 /**
@@ -290,7 +253,7 @@ function createInteractive(params) {
  */
 function skipIfExists(dir) {
   dir = fullPath(dir);
-  return readFile(dir)
+  return fs.read(dir)
     .then(() => {
     throw new Error(dir + ' already exists.');
   }, () => {
@@ -305,7 +268,7 @@ function skipIfExists(dir) {
  */
 function privateExists_(root) {
   var dir = path.join(root, CLUSTERNATOR_PRIVATE);
-  return readFile(dir).then(() => {
+  return fs.read(dir).then(() => {
     return dir;
   }, (err) => {
     util.info(`Clusternator: Encrypted Private File: ${dir} does not exist, or
@@ -319,7 +282,7 @@ function privateExists_(root) {
  * @returns {Q.Promise}
  */
 function privateExists() {
-  return findProjectRoot()
+  return fs.findProjectRoot()
     .then((root) => {
       return privateExists_(root);
   });
@@ -348,14 +311,14 @@ function answersToClusternatorJSON(answers) {
 function writeFromFullAnswers(fullAnswers) {
   var json = answersToClusternatorJSON(fullAnswers.answers),
     dir = fullPath(fullAnswers.projectDir);
-  return writeFile(dir, json, UTF8).then(() => {
+  return fs.write(dir, json, UTF8).then(() => {
     return fullAnswers;
   });
 }
 
 function getConfigFrom(root) {
   var file = fullPath(root);
-  return readFile(file, UTF8).then((file) => {
+  return fs.read(file, UTF8).then((file) => {
     return JSON.parse(file);
   });
 }
@@ -364,7 +327,7 @@ function getConfigFrom(root) {
  * @return {Q.Promise<Object>}
  */
 function getConfig() {
-  return findProjectRoot()
+  return fs.findProjectRoot()
     .then(getConfigFrom);
 }
 
@@ -385,7 +348,7 @@ function untar(tarPath) {
  */
 function readPrivate(passPhrase, root) {
   if (!root) {
-    return findProjectRoot()
+    return fs.findProjectRoot()
       .then(readPrivateFromRoot);
   } else {
     return readPrivateFromRoot(root);
@@ -433,7 +396,7 @@ function makePrivate(passPhrase, root) {
       if (root) {
         return makePrivateFromRoot(root);
       }
-      return findProjectRoot()
+      return fs.findProjectRoot()
         .then(makePrivateFromRoot);
     });
 }
@@ -443,7 +406,7 @@ function makePrivate(passPhrase, root) {
  * @returns {Q.Promise<string>}
  */
 function ignorePath(ignoreFileName) {
-  return findProjectRoot()
+  return fs.findProjectRoot()
     .then((root) => path.join(root, ignoreFileName));
 }
 
@@ -461,7 +424,7 @@ function splitIgnoreFile(file) {
  * @return {Q.Promise<string[]>}
  */
 function readAndSplitIgnore(file) {
-  return readFile(file, UTF8)
+  return fs.read(file, UTF8)
     .then(splitIgnoreFile)
     .fail(() => []);
 }
@@ -504,7 +467,7 @@ function addToIgnore(ignoreFileName, toIgnore) {
     toIgnore = [toIgnore];
   }
   return ignorePath(ignoreFileName)
-    .then((path) => readFile(path, UTF8)
+    .then((path) => fs.read(path, UTF8)
       .fail(() => '')) // not all starters might have ignore file, fail over
     .then((rawIgnore) => {
       const ignores = splitIgnoreFile(rawIgnore);
@@ -513,16 +476,25 @@ function addToIgnore(ignoreFileName, toIgnore) {
 
       if (!newIgnores.length) {
         // items already exists
-        return;
+        return Q.resolve();
       }
 
       return ignorePath(ignoreFileName)
         .then((ignoreOutputFile) => {
           const output = NEWLINE + rawIgnore + NEWLINE +
             newIgnores.join(NEWLINE) + NEWLINE;
-          return writeFile(ignoreOutputFile, output);
+          return fs.write(ignoreOutputFile, output);
         });
     });
+}
+
+/**
+ * @returns {Q.Promise<string>}
+ */
+function getProjectRootRejectIfClusternatorJsonExists() {
+  return fs.findProjectRoot()
+    .then((root) => skipIfExists(root)
+      .then(() => root ));
 }
 
 
@@ -530,7 +502,7 @@ module.exports = {
   createInteractive,
   skipIfExists,
   findProjectNames,
-  findProjectRoot,
+  getProjectRootRejectIfClusternatorJsonExists,
   fullPath,
   get: getConfig,
   getFrom: getConfigFrom,
@@ -544,7 +516,6 @@ module.exports = {
   FILENAME,
   CLUSTERNATOR_PRIVATE,
   helpers: {
-    parent,
     parseGitUrl,
     findGitName,
     findPackageName,
