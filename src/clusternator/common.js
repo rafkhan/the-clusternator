@@ -51,7 +51,6 @@ function safeParse(input) {
  */
 function warnNoEncryption(uri) {
   if (uri.indexOf('https://') === 0) {
-    console.log('word');
     return;
   }
   console.log(' ');

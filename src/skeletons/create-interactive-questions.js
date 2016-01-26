@@ -169,40 +169,13 @@ function projectInit(defaults) {
       default: defaults.deploymentsDir,
       validate: truthy
     },
-    {
-      when: hasBackend,
-      type: 'confirm',
-      name: 'passphrase',
-      message: 'Do you have a passphrase, or would you like a passphrase (If unsure say no)',
-      default: false
-    },
-    {
-      when: hasPassphrase,
-      type: 'input',
-      name: 'passphraseInput',
-      message: 'If you have a passphrase paste it in here, otherwise enter "gen" to generate one',
-      default: 'gen',
-      validate: (input) => {
-        if (!input) {
-          return false;
-        }
-        if (input.toLowerCase() === 'gen') {
-          return true;
-        }
-        if (input.length < 20) {
-          return false;
-        }
-        return true;
-      }
-    },
-    {
-      when: hasPassphrase,
-      type: 'confirm',
-      name: 'gitHooks',
-      message: 'Would you like git hooks installed that will encrypt/decrypt ' +
-      'your .private files before/after commit, and after pulls?',
-      default: true
-    },
+    //{
+    //  type: 'confirm',
+    //  name: 'gitHooks',
+    //  message: 'Would you like git hooks installed that will encrypt/decrypt ' +
+    //  'your .private files before/after commit, and after pulls?',
+    //  default: true
+    //},
     {
       type: 'confirm',
       name: 'circleCI',

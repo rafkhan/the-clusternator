@@ -231,19 +231,7 @@ function createInteractive(params) {
 
   return util
     .inquirerPrompt(init)
-    .then(promptPorts)
-    .then((answers) => {
-      if (answers.passphraseInput === 'gen') {
-        // generate
-        return gpg
-          .generatePass()
-          .then((pass) => {
-            answers.passphrase = pass;
-            return answers;
-          });
-      }
-      return answers;
-    });
+    .then(promptPorts);
 }
 
 /**
@@ -256,9 +244,7 @@ function skipIfExists(dir) {
   return fs.read(dir)
     .then(() => {
     throw new Error(dir + ' already exists.');
-  }, () => {
-      return;
-  });
+  }, () => undefined); // fail over
 }
 
 /**
@@ -305,15 +291,14 @@ function answersToClusternatorJSON(answers) {
 }
 
 /**
- * @param {Object} fullAnswers
+ * @param {answers} Object
  * @return {Q.Promise}
  */
-function writeFromFullAnswers(fullAnswers) {
-  var json = answersToClusternatorJSON(fullAnswers.answers),
-    dir = fullPath(fullAnswers.projectDir);
-  return fs.write(dir, json, UTF8).then(() => {
-    return fullAnswers;
-  });
+function writeFromAnswers(answers) {
+  var json = answersToClusternatorJSON(answers),
+    dir = fullPath(answers.root);
+  return fs.write(dir, json, UTF8)
+    .then(() => answers);
 }
 
 function getConfigFrom(root) {
@@ -510,7 +495,7 @@ module.exports = {
   readPrivate,
   makePrivate,
   validate,
-  writeFromFullAnswers,
+  writeFromAnswers,
   addToIgnore,
   readIgnoreFile,
   FILENAME,

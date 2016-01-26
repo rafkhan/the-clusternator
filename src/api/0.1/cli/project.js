@@ -25,51 +25,42 @@ module.exports = {
 class ClusternatedError extends Error {}
 
 /**
- * @param {Object} results
- * @param {string} root - the project's root folder
+ * @param {Object} answers
  * @returns {Q.Promise}
  */
-function processInitUserOptions(results, root) {
+function processInitUserOptions(answers) {
   // parse results
   return clusternatorJson
-    .writeFromFullAnswers({
-      projectDir: root,
-      answers: results
-    })
-    .then((fullAnswers) => Q.all([
-      addPrivateToGitIgnore(fullAnswers),
-      addPrivateToNpmIgnore(fullAnswers),
-      addPrivateToDockerIgnore(fullAnswers)
-    ]).then(() => {
-      return {
-        root,
-        fullAnswers
-      };
-    }));
+    .writeFromAnswers(answers)
+    .then(() => Q.all([
+      addPrivateToGitIgnore(answers.private),
+      addPrivateToNpmIgnore(answers.private),
+      addPrivateToDockerIgnore(answers.private)
+    ]).then(() => answers));
 }
 
 /**
- * @param {Object} fullAnswers
+ * @param {string} privatePath
  * @returns {Q.Promise}
  */
-function addPrivateToGitIgnore(fullAnswers) {
-  return privateFs.addToIgnore(GIT_IGNORE, fullAnswers.answers.private);
+function addPrivateToGitIgnore(privatePath) {
+  return privateFs.addToIgnore(GIT_IGNORE, privatePath);
 }
 
 /**
- * @param {Object} fullAnswers
+ * @param {string} privatePath
  * @returns {Q.Promise}
  */
-function addPrivateToNpmIgnore(fullAnswers) {
-  return privateFs.addToIgnore(NPM_IGNORE, fullAnswers.answers.private);
+function addPrivateToNpmIgnore(privatePath) {
+  return privateFs.addToIgnore(NPM_IGNORE, privatePath);
 }
 
 /**
- * @param {Object} fullAnswers
+ * @param {string} privatePath
  * @returns {Q.Promise}
  */
-function addPrivateToDockerIgnore(fullAnswers) {
-  return privateFs.addToIgnore(DOCKER_IGNORE, fullAnswers.answers.private);
+function addPrivateToDockerIgnore(privatePath) {
+  return privateFs.addToIgnore(DOCKER_IGNORE, privatePath);
 }
 
 function initProjectDb(answers) {
@@ -87,10 +78,9 @@ function encrypDecrypt(sharedKey) {
     .then(privateFs.checksum);
 }
 
-function initFs(initDetails, doOffline) {
-  return initProject(initDetails.root,
-    initDetails.fullAnswers.answers, doOffline)
-    .then(() => initDetails.fullAnswers.answers);
+function initFs(answers, doOffline) {
+  return initProject(answers.root, answers, doOffline)
+    .then(() => answers);
 }
 
 function logLoop(someChar, val) {
@@ -103,10 +93,10 @@ function logInitComplete(dbResults) {
   console.log('Project Init Complete');
   logLoop('-');
   console.log('GitHub Key:');
-  console.log(dbResults.gitHubkey);
+  console.log(dbResults.gitHubKey);
   logLoop('-');
   console.log('Shared Key:');
-  console.log(dbResults.sharedkey);
+  console.log(dbResults.sharedKey);
   logLoop('-');
 }
 
@@ -116,12 +106,13 @@ function logInitComplete(dbResults) {
  */
 function initStage2(doOffline) {
   return getInitUserOptions()
-    .then((initDetails) => initFs(initDetails, doOffline))
+    .then((answers) => initFs(answers, doOffline))
     .then((answers) => initProjectDb(answers)
       .then((dbResults) => cn
         .provisionProjectNetwork(answers.projectId)
         .then((details) => privateFs
           .writeProjectDetails(answers.private, details))
+        .then(() => processGitHooks(answers, answers.root, dbResults.sharedKey))
         .then(() => logInitComplete(dbResults))))
     .fail((err) => {
       if (err instanceof ClusternatedError) {
@@ -176,28 +167,28 @@ function getInitUserOptions() {
       .then(pickBestName)
       .then(applyUserConfig)
       .then(clusternatorJson.createInteractive)
-      .then((results) => Q
-        .all([
-          processInitUserOptions(results, root),
-          processGitHooks(results, root)])
-        .then((results) => results[0])));
+      .then((answers) => {
+        answers.root = root;
+        return processInitUserOptions(answers);
+      }));
 }
 
-function processGitHooks(results, root) {
-  if (!results.passphrase) {
-    return;
-  }
-  if (!results.gitHooks) {
-    return;
+/**
+ * @param {Object} answers
+ * @param {string} root
+ * @param {string} passphrase
+ * @returns {Q.Promise}
+ */
+function processGitHooks(answers, root, passphrase) {
+  if (!answers.gitHooks) {
+    return Q.resolve();
   }
   return Q.all([
-    gitHooks.install(root, 'post-commit', results.passphrase),
-    gitHooks.install(root, 'pre-commit', results.passphrase),
-    gitHooks.install(root, 'post-merge', results.passphrase)
+    gitHooks.install(root, 'post-commit', passphrase),
+    gitHooks.install(root, 'pre-commit', passphrase),
+    gitHooks.install(root, 'post-merge', passphrase)
   ]).then(() => {
     util.info('Git Hooks Installed');
-    util.info('Shared Secret: ', results.passphrase);
-    util.info('Do not lose the shared secret, and please keep it safe');
   });
 }
 
