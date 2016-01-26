@@ -128,13 +128,13 @@ function writeAws(privatePath, aws) {
 /**
  * @param {string} privatePath
  * @param {Object} details
- * @returns {Q.Promise}
+ * @returns {Q.Promise<Object>}
  */
 function writeProjectDetails(privatePath, details) {
   return Q.all([
     writeCreds(privatePath, details.credentials),
     writeAws(privatePath, details.aws)
-  ]);
+  ]).then(() => details);
 }
 
 /**
