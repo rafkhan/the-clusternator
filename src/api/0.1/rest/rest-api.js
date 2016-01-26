@@ -18,7 +18,6 @@ const Projects = cmn.src('server','db','projects');
 const gpg = cmn.src('cli-wrappers', 'gpg');
 const slack = cmn.src('cli-wrappers','slack');
 
-const API = constants.DEFAULT_API_VERSION;
 const DEFAULT_AUTHORITY = 2;
 
 const STATE = {
@@ -42,40 +41,19 @@ const EXPORTS = {
     'shared-key': sharedKey,
     'git-hub-key': gitHubKey,
     create: createProject,
-    list: listProjects,
     'list-ssh-instances': listSSHAbleInstances,
-    describe: noopP,
-    destroy: pmDestroy,
-    build: (body) => {
-      console.log('BODY', body);
-      console.log('figure this out');
-      //projectBuild();
-    }
+    destroy: pmDestroy
   },
   pr: {
     create: prCreate,
-    list: noopP,
-    describe: noopP,
     destroy: prDestroy
   },
   deployment: {
     create: pmCreateDeployment,
-    list: noopP,
-    describe: noopP,
     destroy: pmDestroyDeployment
   }
 };
 
-
-function noopP() {
-  return Q.resolve(true);
-}
-
-function getPFail(res) {
-  return (err) => {
-    res.status(500).json({ error: err.message });
-  };
-}
 
 /**
  * @param {*} pr
@@ -119,6 +97,11 @@ function createIfNotFound(s, projectId, repoName) {
         }));
 }
 
+/**
+ * @param {{ id: string }} details
+ * @param { name } repoName
+ * @returns {Q.Promise<Object[]>}
+ */
 function resetData(details, repoName) {
   details.repo = repoName || details.repo || details.id;
   return Q
@@ -128,6 +111,13 @@ function resetData(details, repoName) {
       newKey(details, 'sharedKey') ]);
 }
 
+/**
+ * @param {{ db: { setItem: function(): Q.Promise } }} s
+ * @param {{ gitHubKey: string, sharedKey: string }} row
+ * @param {string} projectId
+ * @param {string} repoName
+ * @returns {Q.Promise}
+ */
 function resetIfFound(s, row, projectId, repoName) {
   return resetData(row, repoName)
     .then((result) => {
@@ -138,6 +128,12 @@ function resetIfFound(s, row, projectId, repoName) {
     });
 }
 
+/**
+ * @param {{ db: { find: function(): Q.Promise } }} s
+ * @param {string} projectId
+ * @param {string} repoName
+ * @returns {Q.Promise}
+ */
 function findOrCreate(s, projectId, repoName) {
   return s
     .db.find(projectId)
@@ -145,6 +141,10 @@ function findOrCreate(s, projectId, repoName) {
       createIfNotFound(s, projectId, repoName));
 }
 
+/**
+ * @param {{ projectId: string }} body
+ * @returns {Q.Promise}
+ */
 function createData(body) {
   if (!body || !body.projectId) {
     return Q.reject(new Error('Project requires a projectId'));
@@ -206,7 +206,7 @@ function getKey(body, attr) {
 
 /**
  * @param {Object} dbRow
- * @param {attr} string
+ * @param {string} attr
  * @returns {Object}
  */
 function newKey(dbRow, attr) {
@@ -332,27 +332,9 @@ function prDestroy(body) {
         .pm.destroyPR(project.id, sanitizePr(body.pr))));
 }
 
-function listProjects(req, res) {
-  return state()
-    .then((s) => s
-      .db.list()
-      .then((projectIds) => {
-        if (req.get('ContentType') === 'application/json') {
-          res.json(projectIds);
-        } else {
-          res.render('projects', { api: API, projects: projectIds });
-        }
-      }, getPFail(res)));
-}
-
-function validateBackend(db, be) {
-  var index = db.BACKENDS.indexOf(be);
-  if (index === -1) {
-    return db.BACKENDS[0];
-  }
-  return db.BACKENDS[1];
-}
-
+/**
+ * @returns {Q.Promise}
+ */
 function pmDestroy() {
   const args = Array.prototype.slice.call(arguments, 0);
   return state()
@@ -374,6 +356,10 @@ function createProject(body) {
       .pm.create(body.projectId));
 }
 
+/**
+ * @param {{ username: string, password: string }} body
+ * @returns {Q.Promise}
+ */
 function changePass(body) {
   if (!body.username) {
     return Q.reject(new Error('Create user requires a username'));
@@ -465,14 +451,12 @@ function state(config) {
 /**
  * @param config
  * @returns {{user: {create: EXPORTS.user.create, passwd: EXPORTS.user.passwd},
- project: {create-data: createData, reset-auth-key: resetAuthKey,
- reset-shared-key: resetSharedKey, reset-git-hub-key: resetGitHubKey,
- shared-key: sharedKey, git-hub-key: gitHubKey, create: EXPORTS.project.create,
- list: listProjects, list-ssh-instances: listSSHAbleInstances, describe: noopP,
- destroy: pmDestroy, build: EXPORTS.project.build}, pr: {create: prCreate,
- list: noopP, describe: noopP, destroy: prDestroy},
- deployment: {create: pmCreateDeployment, list: noopP, describe: noopP
- , destroy: pmDestroyDeployment}}}
+ project: {create-data: createData, reset-auth-token: resetAuthToken,
+   reset-shared-key: resetSharedKey, reset-git-hub-key: resetGitHubKey,
+   shared-key: sharedKey, git-hub-key: gitHubKey, create: createProject,
+   list-ssh-instances: listSSHAbleInstances, destroy: pmDestroy},
+ pr: {create: prCreate, destroy: prDestroy},
+ deployment: {create: pmCreateDeployment, destroy: pmDestroyDeployment}}}
  */
 function getCommands(config) {
   STATE.config = config;
