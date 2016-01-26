@@ -7,6 +7,7 @@ const OKAY = 200;
 const Q = require('q');
 const Config = require('../config');
 const constants = require('../constants');
+const util = require('../util');
 var request = require('request');
 
 module.exports = {
@@ -45,7 +46,24 @@ function safeParse(input) {
   }
 }
 
+/**
+ * @param {string} uri
+ */
+function warnNoEncryption(uri) {
+  if (uri.indexOf('https://') === 0) {
+    console.log('word');
+    return;
+  }
+  console.log(' ');
+  console.log('** WARNING ** Not Using SSL!');
+  console.log(' ');
+}
 
+/**
+ * @param {string} endpoint
+ * @param {Object} user
+ * @returns {string}
+ */
 function buildURI(endpoint, user) {
   const credentials = user.credentials;
   const host = normalizeEndSlash(credentials.host);
@@ -67,6 +85,7 @@ function buildURI(endpoint, user) {
 function makeRequestObject(verb, endpoint, data,  noToken) {
   const user = getUserConfig();
   const uri = buildURI(endpoint, user);
+  warnNoEncryption(uri);
   let headers;
   if (noToken) {
     headers = {};

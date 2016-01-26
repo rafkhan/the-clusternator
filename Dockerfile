@@ -1,4 +1,4 @@
-FROM rafkhan/rangle-node:14.04-4.2.3
+FROM rafkhan/rangle-node:14.04-4.2.6
 
 # application installs
 RUN sudo apt-get update
