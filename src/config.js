@@ -167,8 +167,8 @@ function writeUserConfig(options) {
   if (!options) {
     throw new TypeError('User config requires a parameters object');
   }
-  if (!options.host || !options.username || !options.token) {
-    throw new TypeError('User config requires a host/user/token');
+  if (!options.host || !options.username) {
+    throw new TypeError('User config requires a host/user');
   }
   return writeFile(DOT_CLUSTERNATOR_CONFIG, JSON.stringify({
     name: options.name || 'Mysterious Stranger',
@@ -176,17 +176,12 @@ function writeUserConfig(options) {
     tld: options.tld || 'example.com',
     credentials: {
       user: options.username,
-      token: options.token,
+      token: options.token || '',
       host: options.host
     },
     apiVersion: options.apiVersion
   }, null, 2))
     .then(() => chmod(DOT_CLUSTERNATOR_CONFIG, '600'));
-}
-
-function maskString(str) {
-  if (!str) { return ''; }
-  return 'XXXXXXXXXXXXXXXXXXXXXXXXXXXX' + str.slice(str.length - 5);
 }
 
 function interactiveUser() {
@@ -198,10 +193,9 @@ function interactiveUser() {
     .inquirerPrompt(questions.userInit({
       name: user.name || 'Mysterious Stranger',
       email: user.email || '',
-      tld: user.tld || 'example.com',
+      tld: user.tld || '',
       host: user.credentials.host || '',
       username: user.credentials.user || '',
-      token: maskString(user.credentials.token) || '',
       apiVersion: user.apiVersion || DEFAULT_VERSION
   }))
   .then(writeUserConfig);
