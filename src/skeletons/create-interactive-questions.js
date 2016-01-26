@@ -14,6 +14,10 @@ function validatePort(a) {
   return +a > 0 && +a < 65535;
 }
 
+function validateEmail(str) {
+  return str.split('@').length === 2;
+}
+
 
 function userInit(defaults) {
   return [
@@ -29,13 +33,13 @@ function userInit(defaults) {
       name: 'email',
       message: 'Email address',
       default: defaults.email || '',
-      validate: truthy
+      validate: validateEmail
     },
     {
       type: 'input',
       name: 'tld',
       message: 'Top Level Domain (TLD) Projects Will Be Served From',
-      default: defaults.tld || '',
+      default: (ans) => defaults.tld || ans.email.split('@')[1],
       validate: truthy
     },
     {
@@ -49,14 +53,8 @@ function userInit(defaults) {
       type: 'input',
       name: 'username',
       message: 'Clusternator User Name',
-      default: defaults.username || '',
-      validate: truthy
-    },
-    {
-      type: 'password',
-      name: 'token',
-      message: 'Clusternator token',
-      default: defaults.token || '',
+      default: (ans) => defaults.username || ans.name
+        .split(' ')[0].toLowerCase(),
       validate: truthy
     }
   ];
