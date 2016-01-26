@@ -41,7 +41,7 @@ const EXPORTS = {
     'reset-git-hub-key': resetGitHubKey,
     'shared-key': sharedKey,
     'git-hub-key': gitHubKey,
-    create: (body) => createProject(body),
+    create: createProject,
     list: listProjects,
     'list-ssh-instances': listSSHAbleInstances,
     describe: noopP,
@@ -369,7 +369,7 @@ function createProject(body) {
     return Q.reject(new Error('No projectId given in post request'));
   }
   util.info('Attempting to create project:', body.projectId);
-  state()
+  return state()
     .then((s) => s
       .pm.create(body.projectId));
 }
