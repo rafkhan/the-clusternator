@@ -112,7 +112,7 @@ function initStage2(doOffline) {
         .provisionProjectNetwork(answers.projectId)
         .then((details) => privateFs
           .writeProjectDetails(answers.private, details))
-        .then(() => processGitHooks(answers, answers.root, dbResults.sharedKey))
+        .then(gitHooks.install)
         .then(() => logInitComplete(dbResults))))
     .fail((err) => {
       if (err instanceof ClusternatedError) {
@@ -173,24 +173,6 @@ function getInitUserOptions() {
       }));
 }
 
-/**
- * @param {Object} answers
- * @param {string} root
- * @param {string} passphrase
- * @returns {Q.Promise}
- */
-function processGitHooks(answers, root, passphrase) {
-  if (!answers.gitHooks) {
-    return Q.resolve();
-  }
-  return Q.all([
-    gitHooks.install(root, 'post-commit', passphrase),
-    gitHooks.install(root, 'pre-commit', passphrase),
-    gitHooks.install(root, 'post-merge', passphrase)
-  ]).then(() => {
-    util.info('Git Hooks Installed');
-  });
-}
 
 /**
  * @param {string[]} names

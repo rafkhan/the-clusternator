@@ -19,6 +19,7 @@ const aws = require('./aws');
 const privateFs = require('../project-fs/private');
 const dockerFs = require('../project-fs/docker');
 const deploymentsFs = require('../project-fs/deployments');
+const gitHooks = require('../project-fs/git-hooks');
 
 const legacy = require('./legacy-yargs');
 
@@ -215,6 +216,12 @@ module.exports = (yargs) => {
         .info('Keep this passphrase secure: ' + passphrase))
       .fail((err) => util
         .info('Error generating passphrase: ' + err.message)))
+
+    .command('git-hook-install', 'Install auto-encrypt/decrypt git hooks',
+      gitHooks.install)
+
+    .command('git-hook-remove', 'Remove auto-encrypt/decrypt git hooks',
+      gitHooks.remove)
 
     .command('make-private', 'Encrypts private assets (defined in ' +
       'clusternator.json)', (y) => {

@@ -14,6 +14,7 @@ const read = Q.nbind(fs.readFile, fs);
 const write = Q.nbind(fs.writeFile, fs);
 const chmod = Q.nbind(fs.chmod, fs);
 const ls = Q.nbind(fs.readdir, fs);
+const unlink = Q.nbind(fs.unlink, fs);
 
 module.exports = {
   findProjectRoot,
@@ -26,6 +27,7 @@ module.exports = {
   write,
   chmod,
   ls,
+  unlink,
   path,
   helpers: {
     parent
