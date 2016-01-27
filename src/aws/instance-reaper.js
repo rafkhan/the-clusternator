@@ -1,0 +1,25 @@
+'use strict';
+
+const EC2_BILLING_PERIOD  = 10000 * 60 * 60;
+const config = require('../config')();
+const pm = require('./project-init')(config);
+
+var intervalID;
+
+function start() {
+  if (!intervalID) {
+    intervalID = setInterval(pm.destroyExpiredPRs, EC2_BILLING_PERIOD);
+  }
+}
+
+function stop() {
+  if (intervalID) {
+    clearInterval(intervalID);
+    intervalID = undefined;
+  }
+}
+
+module.exports = {
+  start,
+  stop
+};

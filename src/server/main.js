@@ -16,6 +16,7 @@ const loggers = require('./loggers');
 const log = loggers.logger;
 const prHandler = require('./pullRequest');
 const getProjectManager = require('../aws/project-init');
+const instanceReaper = require('../aws/instance-reaper');
 const pushHandler = require('./push');
 const authentication = require('./auth/authentication');
 const githubAuthMiddleware = require('./auth/githubHook');
@@ -88,6 +89,7 @@ function createServer(pm, config) {
   hostInfo();
   const app = express();
   const leApp = startSSL(app, config);
+  instanceReaper.start();
 
   initExpress(app);
   /**

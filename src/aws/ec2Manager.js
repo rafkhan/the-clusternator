@@ -5,6 +5,7 @@ const SETUP_SSH = 'mkdir -p /home/ec2-user/.ssh';
 const CHOWN_SSH ='chown -R ec2-user:ec2-user /home/ec2-user/.ssh && chmod -R ' +
   'go-rwx /home/ec2-user/.ssh';
 const OUTPUT_SSH = '>> /home/ec2-user/.ssh/authorized_keys';
+const Config = require('../config');
 const configAttributes = ['clusterName', 'sgId', 'subnetId', 'pid'];
 const prConfigAttributes = configAttributes.concat(['pr']);
 const deploymentConfigAttributes = configAttributes.concat(
@@ -197,6 +198,8 @@ function getEC2Manager(ec2, vpcId) {
    * @returns {*}
    */
   function tagPrInstance(instance, pr, pid) {
+    const config = Config();
+
     return common.awsTagEc2(ec2, instance.InstanceId, [{
       Key: constants.CLUSTERNATOR_TAG,
       Value: 'true'
@@ -206,6 +209,9 @@ function getEC2Manager(ec2, vpcId) {
     }, {
       Key: constants.PROJECT_TAG,
       Value: pid + ''
+    }, {
+      Key: constants.EXPIRES_TAG,
+      Value: (Date.now() + (config.prTTL || 259200000)) + ''
     }]);
   }
 

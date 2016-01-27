@@ -3,11 +3,12 @@
 const CLUSTERNATOR_PREFIX = 'clusternator';
 const DELIM = '-';
 const CLUSTERNATOR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'created';
-const PROJECT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project';
-const PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr';
 const DEPLOYMENT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'deployment';
+const EXPIRES_TAG = CLUSTERNATOR_PREFIX + DELIM + 'expires';
+const PROJECT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project';
+const PROJECT_USER_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project' + DELIM;
+const PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr';
 const SHA_TAG = CLUSTERNATOR_PREFIX + DELIM + 'sha';
-const PROJECT_USER_TAG = 'clusternator-project-';
 /**const NOTEconst EC2const AMI'sconst areconst regionconst specificconst */
 //const AWS_DEFAULT_EC2_AMI = 'ami-8da458e6';
 //const AWS_DEFAULT_EC2_AMI = 'ami-e2b1f988';
@@ -53,9 +54,10 @@ const constants = Object.freeze({
   }],
   CLUSTERNATOR_PREFIX,
   CLUSTERNATOR_TAG,
+  DEPLOYMENT_TAG,
+  EXPIRES_TAG,
   PROJECT_TAG,
   PR_TAG,
-  DEPLOYMENT_TAG,
   SHA_TAG,
   SSH_PUBLIC_PATH,
   AWS_DEFAULT_EC2: Object.freeze({
