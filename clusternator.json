@@ -1,6 +1,7 @@
 {
   "projectId": "the-clusternator",
   "private": ".private",
+  "prTTL": 259200000,
   "clusternatorDir": ".clusternator",
   "deploymentsDir": ".private/deployments",
   "useInternalSSL": false

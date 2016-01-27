@@ -126,8 +126,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    * @returns {Q.Promise}
    */
   function createPR(projectId, pr, appDef, sshData) {
-    return state().then((s) => s
-      .findOrCreateProject(projectId)
+    return state().then((s) => findOrCreateProject(projectId)
       .then((snDesc) => {
         return s.pullRequest
           .create(projectId, pr, appDef, sshData);
@@ -143,6 +142,32 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
     return state()
       .then((s) => s
       .pullRequest.destroy(pid, pr));
+  }
+
+  /**
+   * @returns {Q.Promise}
+   */
+  function destroyExpiredPRs() {
+    const now = Date.now();
+
+    const extractKeys = R.compose(
+      R.map(R.reduce((m, p) => R.assoc(p.Key, p.Value, m), {})),
+      R.unnest,
+      R.map(R.compose(R.map(R.prop('Tags')),
+                      R.prop('Instances'))));
+
+    const extractDeadPRs = R.filter(R.allPass([R.compose(R.gt(now), R.prop(constants.EXPIRES_TAG)),
+                                               R.prop(constants.PR_TAG)]));
+
+    const mapDestroy = R.map(R.compose(R.apply(destroyPR), (v) => [v[constants.PROJECT_TAG], v[constants.PR_TAG]]));
+
+    return state()
+      .then((s) => s.ec2Mgr.describe().then((d) => {
+        const keys = extractKeys(d);
+        const deadPRs = extractDeadPRs(keys);
+
+        return Q.all(mapDestroy(deadPRs));
+      }));
   }
 
   /**
@@ -286,7 +311,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
       state.route = Route(ec2, state.vpcId);
       state.subnet = Subnet(ec2, state.vpcId);
       state.acl = Acl(ec2, state.vpcId);
-      state.ec2mgr = Ec2(ec2, state.vpcId);
+      state.ec2Mgr = Ec2(ec2, state.vpcId);
       state.pullRequest = Pr(ec2, ecs, awsRoute53, elb, state.vpcId,
         state.zoneId);
       state.deployment = Deployment(ec2, ecs, awsRoute53, elb, state.vpcId,
@@ -298,17 +323,18 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
 
   return {
     create,
-    createPR,
     createDeployment,
-    destroy,
-    destroyPR,
-    destroyDeployment,
+    createPR,
+    ddbManager,
     describeProject,
+    destroy,
+    destroyDeployment,
+    destroyExpiredPRs,
+    destroyPR,
+    iam,
     listProjects,
     listSSHAbleInstances,
     updateDeployment,
-    iam,
-    ddbManager,
     writeGitHubKey
   };
 }

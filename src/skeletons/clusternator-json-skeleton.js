@@ -9,5 +9,6 @@ module.exports = Object.freeze({
 
   // These are defaults
   deploymentsDir: path.join('.private', 'deployments'),
-  useInternalSSL: false
+  useInternalSSL: false,
+  prTTL: 1000 * 60 * 60 * 24 * 3 // 3 days
 });
