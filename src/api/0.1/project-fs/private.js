@@ -169,7 +169,9 @@ function makePrivate(passphrase) {
     .makePrivate(passphrase)
     .then(() => {
       util.info('Clusternator: Private files/directories encrypted');
-    });
+    })
+    .fail((err) => util
+      .error(`Clusternator: Failed to encrypt private: ${err.message}`));
 }
 
 /**
@@ -179,5 +181,13 @@ function makePrivate(passphrase) {
 function readPrivate(passphrase) {
   return clusternatorJson.readPrivate(passphrase).then(() => {
     util.info('Clusternator: Private files/directories un-encrypted');
-  });
+  })
+    .fail((err) => {
+      if (err.code === 'ENONENT') {
+        util.Error('Clusternator cannot find encrypted .private folder ' +
+          '(clusternator.tar.gz.asc');
+      } else {
+        util.error('Clusternator error reading file: ');
+      }
+    });
 }

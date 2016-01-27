@@ -1,18 +1,43 @@
 #!/bin/sh
 
+# Fail on all errors
+set -e
+
 if clusternator private-diff;
 then
-  echo "No Changes to private files, skipping encryption.  Please ensure your \
-  private folder is ignored by version control"
+  echo ""
+  echo "Clusternator:"
+  echo "No Changes to private files, skipping encryption."
+  echo "Please ensure your private folder is ignored by version control"
+  echo ""
 else
   DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
   cd $DIR
   cd ../../
-  rm ./clusternator.tar.gz
+  rm -f ./clusternator.tar.gz.asc
   clusternator make-private -p $CLUSTERNATOR_PASS
   clusternator private-checksum
   git add ./clusternator.tar.gz.asc
   # note adding .private-checksum to .clusternator litarally
   # is _not_ good practice as .clusternator is "configurable"
   git add ./.clusternator/.private-checksum
+
+  if git diff --exit-code
+  then
+    echo ""
+    echo "Clusternator:"
+    echo "If no other changes were made to the project *other* than changes to "
+    echo ".private, git might not even commit."
+    echo ""
+    echo "If that s the case, please run 'git commit' again"
+    echo ""
+  else
+    echo ""
+    echo "Clusternator:"
+    echo "Private files updated."
+    echo ""
+    echo "If you use auto git messages, they may not correctly show the"
+    echo "encrypted tarball as being added, even though it is added."
+    echo ""
+  fi
 fi
