@@ -179,9 +179,6 @@ module.exports = (yargs) => {
       y.demand('d').
       alias('d', 'deployment-name').
       describe('d', 'Requires a deployment name').
-      alias('s', 'SHA (git hash)').
-      default('s', '', 'HEAD').
-      describe('s', 'Requires a SHA');
 
       deployments.stop(y.argv.d, y.argv.s).done();
     })

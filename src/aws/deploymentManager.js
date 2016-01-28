@@ -36,7 +36,6 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
         clusterName: creq.name,
         pid: creq.projectId,
         deployment: creq.deployment,
-        sha: creq.sha,
         sgId: creq.groupId,
         subnetId: creq.subnetId,
         sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
@@ -81,14 +80,13 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @param {boolean=} useInternalSSL
    * @returns {Request|Promise.<T>|*}
    */
-  function create(projectId, deployment, sha, appDef, useInternalSSL) {
+  function create(projectId, deployment, appDef, useInternalSSL) {
     const creq = {
       projectId,
       deployment,
-      sha,
       appDef,
       useInternalSSL,
-      name: rid.generateRID({ pid: projectId, deployment, sha })
+      name: rid.generateRID({ pid: projectId, deployment })
     };
 
     return common
@@ -151,11 +149,10 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @param {string} sha
    * @returns {Request}
    */
-  function destroy(projectId, deployment, sha) {
+  function destroy(projectId, deployment) {
     var clusterName = rid.generateRID({
       pid: projectId,
-      deployment,
-      sha
+      deployment
     });
     return destroyRoutes(projectId, deployment)
       .then(() => destroyEc2(projectId, deployment, clusterName),
