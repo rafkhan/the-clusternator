@@ -9,7 +9,7 @@ const Config = require('../config');
 const configAttributes = ['clusterName', 'sgId', 'subnetId', 'pid'];
 const prConfigAttributes = configAttributes.concat(['pr']);
 const deploymentConfigAttributes = configAttributes.concat(
-  ['deployment', 'sha']);
+  ['deployment']);
 
 const Q = require('q');
 const R = require('ramda');
@@ -218,20 +218,16 @@ function getEC2Manager(ec2, vpcId) {
   /**
    * @param {string} instance
    * @param {string} deployment
-   * @param {string} sha
    * @param {string} pid
    * @returns {*}
    */
-  function tagDeploymentInstance(instance, deployment, sha, pid) {
+  function tagDeploymentInstance(instance, deployment, pid) {
     return common.awsTagEc2(ec2, instance.InstanceId, [{
       Key: constants.CLUSTERNATOR_TAG,
       Value: 'true'
     }, {
       Key: constants.DEPLOYMENT_TAG,
       Value: deployment
-    }, {
-      Key: constants.SHA_TAG,
-      Value: sha
     }, {
       Key: constants.PROJECT_TAG,
       Value: pid
@@ -319,7 +315,7 @@ function getEC2Manager(ec2, vpcId) {
 
   /**
    * @param {{ clusterName: string, sgId: string, subnetId: string,
-   * pid: string, deployment: string, sha: string }} config
+   * pid: string, deployment: string }} config
    * @throws {Error}
    */
   function validateCreateDeploymentConfig(config) {
@@ -402,7 +398,7 @@ function getEC2Manager(ec2, vpcId) {
 
   /**
    * @param {{ clusterName: string, sgId: string, subnetId: string,
-   * pid: string, deployment: string, sha: string, auth: Object=,
+   * pid: string, deployment: string, auth: Object=,
    * apiConfig: Object=, sshPath: string|string[] }} config
    * config will merge with default ec2 config
    */
@@ -429,7 +425,7 @@ function getEC2Manager(ec2, vpcId) {
           readyPromises = [];
         results.Instances.forEach(function(instance) {
           tagPromises.push(tagDeploymentInstance(
-            instance, config.deployment, config.sha, config.pid
+            instance, config.deployment,config.pid
           ));
           readyPromises.push(waitForReady(instance.InstanceId));
         });

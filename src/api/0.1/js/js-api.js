@@ -145,9 +145,9 @@ function listSSHAbleInstances(projectId) {
  * @param {Object} deploymentDesc
  * @param {string} sha
  */
-function deploy(name, projectId, deploymentDesc, sha) {
+function deploy(name, projectId, deploymentDesc) {
   const pm = getProjectAPI();
-  return deploy_(pm, projectId, deploymentDesc, name, sha)
+  return deploy_(pm, projectId, deploymentDesc, name)
     .fail((err) => {
       util.info('Clusternator: Error creating deployment: ' + err.message);
       util.info(err.stack);
@@ -160,12 +160,11 @@ function deploy(name, projectId, deploymentDesc, sha) {
  * @param {string} sha
  * @returns {Q.Promise}
  */
-function stop(name, projectId, sha) {
+function stop(name, projectId) {
   return getProjectAPI()
     .destroyDeployment(
       projectId,
-      name,
-      sha);
+      name);
 }
 
 /**
@@ -202,7 +201,7 @@ function startServer(config) {
  * @returns {Request|Promise.<T>}
  * @private
  */
-function deploy_(pm, projectId, appDefStr, deployment, sha) {
+function deploy_(pm, projectId, appDefStr, deployment) {
   util.info('Requirements met, creating deployment...');
   var appDef = util.safeParse(appDefStr);
   if (!appDef) {
@@ -212,7 +211,6 @@ function deploy_(pm, projectId, appDefStr, deployment, sha) {
   return pm.createDeployment(
     projectId,
     deployment,
-    sha,
     appDef,
     config.useInternalSSL || false
   ).then((result) => {

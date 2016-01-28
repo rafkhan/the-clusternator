@@ -85,14 +85,12 @@ function getSecurityGroupManager(ec2, vpcId) {
   /**
    * @param {string} pid
    * @param {string} deployment
-   * @param {string} sha
    * @returns {Q.Promise}
    */
-  function createSecurityGroupDeployment(pid, deployment, sha) {
+  function createSecurityGroupDeployment(pid, deployment) {
     var id = rid.generateRID({
         pid: pid,
-        deployment: deployment,
-        sha: sha
+        deployment: deployment
       }),
       params = {
         GroupName: id,
@@ -112,9 +110,6 @@ function getSecurityGroupManager(ec2, vpcId) {
         }, {
           Key: constants.DEPLOYMENT_TAG,
           Value: deployment
-        },{
-          Key: constants.SHA_TAG,
-          Value: sha
         }]),
         defaultInOutRules(result.GroupId)
       ]).then(function() {
@@ -124,24 +119,23 @@ function getSecurityGroupManager(ec2, vpcId) {
   }
 
   /**
-   * @param {string} pid * @param {string} deployment @param {string} sha
+   * @param {string} pid * @param {string} deployment
    * @returns {Q.Promise<string>}
    */
-  function createDeployment(pid, deployment, sha) {
-    if (!pid || !deployment || !sha) {
-      throw new TypeError('Create SecurityGroup requires a projectId, a ' +
-        'deployment label, and a SHA');
+  function createDeployment(pid, deployment) {
+    if (!pid || !deployment) {
+      throw new TypeError('Create SecurityGroup requires a projectId, and a ' +
+        'deployment label');
     }
     return describeDeployment(pid, deployment)
       .then((list) => {
         if (list.length) {
           // return the id
-          util.info('Security Group Found For ', pid, ' Deployment: ', deployment,
-            ' SHA:', sha);
+          util.info('Security Group Found For ', pid, ' Deployment: ', deployment);
           return list[0].GroupId;
         } else {
           // make a new one
-          return createSecurityGroupDeployment(pid, deployment, sha)
+          return createSecurityGroupDeployment(pid, deployment)
             .then((results) => results.GroupId);
         }
       });

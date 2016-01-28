@@ -62,9 +62,8 @@ function stop(name, sha) {
       .shaHead()
       .then((shaHead) => {
         sha = sha || shaHead;
-        util.info('Stopping Deployment...: ', cJson.projectId, ': ', name,
-          ' sha: ', sha);
-        return cn.stop(name, cJson.projectId, sha);
+        util.info('Stopping Deployment...: ', cJson.projectId, ': ', name);
+        return cn.stop(name, cJson.projectId);
       }));
 }
 
