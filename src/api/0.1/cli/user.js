@@ -67,12 +67,20 @@ const makeUsernameQ = (username) => {
 
 const makeAuthorityQ = () => {
   return  [{
-    type: 'input',
+    type: 'list',
     name: 'authority',
-    message : 'Authority (lower number === more authority)',
-    default: DEFAULT_AUTHORITY,
-    validate: (val) => parseInt(val, 10) >= 0 ?
-      parseInt(val, 10) : DEFAULT_AUTHORITY
+    message: 'Authority',
+    choices: ['Admin', 'Project Lead', 'User'],
+    default: 'User',
+    filter: (val) => {
+      if (val === 'Admin') {
+        return 0;
+      } else if (val === 'Project Lead') {
+        return 1;
+      } else {
+        return 2;
+      }
+    }
   }];
 };
 
@@ -85,7 +93,7 @@ const confirmQ = (config) => {
 
 const usernameQ = (username) => {
   return util
-    .inquirerPrompt(makeUsernameQ(username).concat(makePasswordQ()));
+    .inquirerPrompt(makeUsernameQ(username));
 };
 
 const usernamePasswordQ = (username) => {
@@ -95,7 +103,7 @@ const usernamePasswordQ = (username) => {
 
 const usernameAuthorityQ = (username) => {
   return util
-    .inquirerPrompt(usernameQ(username).concat(makeAuthorityQ()));
+    .inquirerPrompt(makeUsernameQ(username).concat(makeAuthorityQ()));
 };
 
 
@@ -136,18 +144,27 @@ function createUser(username, password, confirm, authority) {
     return cn.createUser(username, password, confirm, parseInt(authority, 10));
   }
 
-  return usernameQ(username)
-    .then((usernameAnswer) => confirmQ(c)
+  return usernameAuthorityQ('new user')
+    .then((usernameAuthAnswer) => confirmQ(c)
       .then((pwConfirm) => cn
-        .createUser(usernameAnswer.username,
-          pwConfirm.password, pwConfirm.confirm, authority)));
+        .createUser(usernameAuthAnswer.username,
+          pwConfirm.password, pwConfirm.confirm,
+          usernameAuthAnswer.authority)));
 }
 
+/**
+ * @param {{ token: string }} loginDetails
+ * @return {Q.promise}
+ */
 function saveLoginDetails(loginDetails) {
-  Config.saveToken(loginDetails.token);
+  return Config.saveToken(loginDetails.token);
 }
 
-function postLogin(loginDetails) {
+/**
+ * @param {Object} loginDetails
+ * @return {Promise}
+ */
+function afterLogin(loginDetails) {
   console.log('Login Successful');
   util.inquirerPrompt(makeSaveTokenQ(true))
     .then((answers) => {
@@ -169,7 +186,7 @@ function login(username, password) {
   }
   return usernamePasswordQ(username)
     .then((answers) => cn.login(answers.username, answers.password)
-      .then(postLogin));
+      .then(afterLogin));
 }
 
 /**

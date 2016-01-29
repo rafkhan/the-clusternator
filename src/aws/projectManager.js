@@ -294,7 +294,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   function listSSHAbleInstances(projectId) {
     return state()
       .then((s) => s
-        .ec2mgr.describeProject(projectId)
+        .ec2Mgr.describeProject(projectId)
         .then((instances) => instances
           .map(mapEc2ProjectDetails)));
   }
