@@ -46,7 +46,7 @@ function changePassword(username, password, newPassword, confirm) {
     username,
     password,
     passwordNew: newPassword
-  }, true);
+  }, false);
 
 }
 
@@ -58,5 +58,5 @@ function login(username, password) {
   return makePostRequest('/login', {
     username,
     password
-  }, true);
+  }, false);
 }

@@ -32,7 +32,7 @@ var globalPath = '/etc/clusternator/';
  * @returns {string}
  */
 function getUserHome() {
-  return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+  return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
 }
 
 function validateAwsCreds(c) {
@@ -106,7 +106,7 @@ function validateUserConfig(c) {
     return null;
   }
   if (!c.credentials.token) {
-    return null;
+    c.credentials.token = '';
   }
   if (!c.apiVersion) {
     c.apiVersion = DEFAULT_VERSION;
@@ -161,7 +161,8 @@ function getConfig() {
 /**
  * @param {{ host: string, username: string, token: string, name: string=,
  email: string=, apiVersion: string=, tld: string= }} options
- * @return {Q.Promise}
+ * @return {Q.Promise<{ host: string, username: string, token: string,
+ name: string=, email: string=, apiVersion: string=, tld: string= }> }
  */
 function writeUserConfig(options) {
   if (!options) {
@@ -170,7 +171,7 @@ function writeUserConfig(options) {
   if (!options.host || !options.username) {
     throw new TypeError('User config requires a host/user');
   }
-  return writeFile(DOT_CLUSTERNATOR_CONFIG, JSON.stringify({
+  const user = {
     name: options.name || 'Mysterious Stranger',
     email: options.email || '',
     tld: options.tld || 'example.com',
@@ -180,10 +181,15 @@ function writeUserConfig(options) {
       host: options.host
     },
     apiVersion: options.apiVersion
-  }, null, 2))
-    .then(() => chmod(DOT_CLUSTERNATOR_CONFIG, '600'));
+  };
+  return writeFile(DOT_CLUSTERNATOR_CONFIG, JSON.stringify(user, null, 2))
+    .then(() => chmod(DOT_CLUSTERNATOR_CONFIG, '600'))
+    .then(() => user);
 }
 
+/**
+ * @returns {Q.Promise<Object>}
+ */
 function interactiveUser() {
   var user = getConfig().user;
   if (!user) {
@@ -198,7 +204,7 @@ function interactiveUser() {
       username: user.credentials.user || '',
       apiVersion: user.apiVersion || DEFAULT_VERSION
   }))
-  .then(writeUserConfig);
+    .then(writeUserConfig);
 }
 
 /**

@@ -191,7 +191,6 @@ function safeParse(string) {
   }
 }
 
-
 module.exports = {
   errLog: errLog,
   plog: plog,

@@ -108,7 +108,7 @@ const usernameAuthorityQ = (username) => {
 
 
 /**
- * @param {Object} config
+ * @param {{ user: { credentials: string} }} c
  * @param {string=} username
  * @returns {string}
  */
@@ -162,14 +162,14 @@ function saveLoginDetails(loginDetails) {
 
 /**
  * @param {Object} loginDetails
- * @return {Promise}
+ * @return {Q.Promise}
  */
 function afterLogin(loginDetails) {
   console.log('Login Successful');
-  util.inquirerPrompt(makeSaveTokenQ(true))
+  return util.inquirerPrompt(makeSaveTokenQ(true))
     .then((answers) => {
       if (answers.saveToken) {
-        saveLoginDetails(loginDetails);
+        return saveLoginDetails(loginDetails);
       }
     });
 }
@@ -185,8 +185,18 @@ function login(username, password) {
     return cn.login(username, password);
   }
   return usernamePasswordQ(username)
-    .then((answers) => cn.login(answers.username, answers.password)
-      .then(afterLogin));
+    .then((answers) => cn
+      .login(answers.username, answers.password)
+      .then(afterLogin))
+    .fail((err) => {
+      if (err.message.indexOf('401') >= 0) {
+        console.log('');
+        console.log('Unauthorized, plese try again:');
+        console.log('');
+        return login(username);
+      }
+      throw err;
+    });
 }
 
 /**

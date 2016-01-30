@@ -66,11 +66,12 @@ function sshShell() {
  * @param {Error} err
  */
 function logFail(err) {
-  if (+err.code === 1) {
+  const code = +err.code;
+  if (code === 1) {
     console.log('');
     console.log('Error: Can connect to host, but cannot find Docker container:');
     console.log('Try manually debugging using "clusternator ssh"');
-  } else {
+  }  else {
     console.log(`Error: ${err.message}`);
   }
 }
