@@ -1,4 +1,5 @@
 #!/bin/bash
+# Please keep exit error numbers unique
 
 # fail on error
 set -e
@@ -21,6 +22,7 @@ LINE_COUNT=`${SSH} docker ps | wc -l`
 
 if [ ${LINE_COUNT} -lt 2 ]
 then
+  ## NOTE ## consumers *depend* on this being 1
   exit 1
 fi
 

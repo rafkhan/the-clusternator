@@ -49,6 +49,26 @@ function failString(command, args, code, stderr) {
 }
 
 /**
+ * @param {string} command
+ * @param {string[]} args
+ * @param {number} code
+ * @param {string=} stderr
+ * @returns {Error}
+ */
+function failError(command, args, code, stderr) {
+  util.verbose('Failed: ', command, args, code, stderr);
+
+  code = parseInt(code, 10);
+  stderr = stderr || '';
+
+  const errString = failString(command, args, code, stderr);
+  const e = new Error(errString);
+  e.code = code;
+
+  return e;
+}
+
+/**
  * Resolves stdout, rejects with stderr, also streams
  * @param {string} command
  * @param {string[]=} args
@@ -77,10 +97,10 @@ function output(command, args, opts) {
   });
 
   child.on('close', (code) => {
-    util.verbose(successString(command, args, code));
     if (+code) {
-      d.reject(new Error(failString(command, args, code, stderr)));
+      d.reject(failError(command, args, code, stderr));
     } else {
+      util.verbose(successString(command, args, code));
       d.resolve(stdout.trim());
     }
   });
@@ -116,11 +136,10 @@ function quiet(command, args, opts) {
   });
 
   child.on('close', (code) => {
-    util.verbose(successString(command, args, code));
     if (+code) {
-      d.reject(
-        new Error(failString(command, args, code, stderr)));
+      d.reject(failError(command, args, code, stderr));
     } else {
+      util.verbose(successString(command, args, code));
       d.resolve();
     }
   });
@@ -155,10 +174,10 @@ function stream(command, args, opts) {
   });
 
   child.on('close', (code) => {
-    util.verbose(successString(command, args, code));
     if (+code) {
-      d.reject(new Error(failString(command, args, code)));
+      d.reject(failError(command, args, code));
     } else {
+      util.verbose(successString(command, args, code));
       d.resolve();
     }
   });
@@ -184,10 +203,10 @@ function inherit(command, args, opts) {
     child = spawn(command, args, options);
 
   child.on('close', (code) => {
-    util.verbose(successString(command, args, code));
     if (+code) {
-      d.reject(new Error(failString(command, args, code)));
+      d.reject(failError(command, args, code));
     } else {
+      util.verbose(successString(command, args, code));
       d.resolve();
     }
   });
@@ -225,7 +244,7 @@ function stdin(stdin, command, args, opts) {
 
   child.on('close', (code) => {
     if (+code) {
-      d.reject(failString(command, args, code, stderr));
+      d.reject(failError(command, args, code, stderr));
     } else {
       d.resolve(stdout);
     }

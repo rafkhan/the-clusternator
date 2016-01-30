@@ -1,7 +1,5 @@
 'use strict';
 
-const Q = require('q');
-
 const cn = require('../js/js-api');
 const fs = require('../project-fs/fs');
 const cmn = require('../common');
@@ -26,14 +24,13 @@ function deploy(name) {
     .get()
     .then((cJson) => {
       var dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
-      return Q
-        .all([
-          git.shaHead(),
-          fs.read(dPath, 'utf8')
-            .fail(getAppDefNotFound(dPath))])
+      return fs
+        .read(dPath, 'utf8')
+        .fail(getAppDefNotFound(dPath))
         .then((results) => cn
-          .deploy(name, cJson.projectId, results[1], results[0]));
-    });
+          .deploy(name, cJson.projectId, results));
+    }).fail((err) => util
+      .error(`Failed to deploy deployment: ${err.message}`));
 }
 
 /**
@@ -45,26 +42,29 @@ function update(name) {
     .get()
     .then((cJson) => {
       var dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
-      return Q
-        .all([
-          git.shaHead(),
-          fs.read(dPath, 'utf8')
-            .fail(getAppDefNotFound(dPath))])
+      return fs
+        .read(dPath, 'utf8')
+        .fail(getAppDefNotFound(dPath))
         .then((results) => cn
-          .update(name, cJson.projectId, results[1], results[0]));
-    });
+          .update(name, cJson.projectId, results));
+    })
+    .fail((err) => util
+      .error(`Failed to update deployment: ${err.message}`));
 }
 
-function stop(name, sha) {
+/**
+ * @param {string} name
+ * @returns {Request|Promise.<T>|*}
+ */
+function stop(name) {
   return clusternatorJson
     .get()
-    .then((cJson) => git
-      .shaHead()
-      .then((shaHead) => {
-        sha = sha || shaHead;
-        util.info('Stopping Deployment...: ', cJson.projectId, ': ', name);
-        return cn.stop(name, cJson.projectId);
-      }));
+    .then((cJson) => {
+      util.info('Stopping Deployment...: ', cJson.projectId, ': ', name);
+      return cn.stop(name, cJson.projectId);
+    })
+    .fail((err) => util
+      .error(`Failed to stop deployment: ${err.message}`));
 }
 
 /**

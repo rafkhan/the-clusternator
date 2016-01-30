@@ -47,34 +47,43 @@ function authLocal(user, pass, done) {
   });
 }
 
+/**
+ * @param {Error|null} err
+ * @param {Object} res
+ * @param {Object} user
+ */
+function afterLogin(err, res, user) {
+  logger.debug('Authenticate User Post Login');
+  if (err) {
+    res.status(500).json({ error: true });
+  } else {
+    tokens
+      .clear(user.id)
+      .then(() => tokens
+        .create(user.id)
+        .then((token) => {
+          user.token = token;
+          res.json(user);
+        }))
+      .fail((err) => res.status(500).json({ error: err.message }));
+  }
+}
+
 function authenticateUserEndpoint(req, res, next) {
   logger.debug('Authenticate User Start');
-  passport.authenticate('login-local', (err, user, info) => {
+  passport.authenticate('login-local', (err, user) => {
     logger.debug('Authenticate User Post Passport');
     if (err) {
-      res.status(500).json({error: true });
+      logger.error(err.message);
+      res.status(500).json({ error: true });
       return;
     }
     if (!user) {
+      logger.error('User not found');
       res.sendStatus(401);
       return;
     }
-    req.logIn(user, (err) => {
-      logger.debug('Authenticate User Post Login');
-      if (err) {
-        res.status(500).json({error: true});
-      } else {
-        tokens
-          .clear(user.id)
-          .then(() => tokens
-            .create(user.id)
-            .then((token) => {
-              user.token = token;
-              res.json(user);
-            }))
-          .fail((err) => res.status(500).json({ error: err.message }));
-      }
-    });
+    req.logIn(user, afterLogin(err, res, user));
   })(req, res, next);
 }
 

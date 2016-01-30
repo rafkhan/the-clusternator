@@ -62,12 +62,27 @@ function sshShell() {
     .done();
 }
 
+/**
+ * @param {Error} err
+ */
+function logFail(err) {
+  if (+err.code === 1) {
+    console.log('');
+    console.log('Error: Can connect to host, but cannot find Docker container:');
+    console.log('Try manually debugging using "clusternator ssh"');
+  } else {
+    console.log(`Error: ${err.message}`);
+  }
+}
+
 function logApp() {
   return remoteFn(logRemote.logApp)
+    .fail(logFail)
     .done();
 }
 
 function logEcs() {
   return remoteFn(logRemote.logEcs)
+    .fail(logFail)
     .done();
 }

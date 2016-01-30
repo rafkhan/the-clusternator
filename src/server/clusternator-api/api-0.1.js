@@ -51,8 +51,8 @@ function getPFail(res) {
 /**
  * @param {Resource} res
  */
-function noAuth(res) {
-  res.status(401).json({ error: 'Not Authorized'});
+function noAuthority(res) {
+  res.status(403).json({ error: 'Not Authorized'});
 }
 
 function authorizeCommand(config) {
@@ -71,7 +71,7 @@ function authorizeCommand(config) {
           return;
         }
         logger.warn(`NOT AUTHORIZED: ${req.user.id} On: ${ns}.${cmd}`);
-        noAuth(res);
+        noAuthority(res);
       }).fail(getPFail(res));
   };
 }

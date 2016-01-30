@@ -173,22 +173,19 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   /**
    * @param {string} projectId
    * @param {string} dep
-   * @param {string} sha
    * @param {Object} appDef
    * @returns {Q.Promise}
    */
-  function createDeployment(projectId, dep, sha, appDef) {
-    console.log('sha', sha);
+  function createDeployment(projectId, dep, appDef) {
     return state()
       .then((s) => findOrCreateProject(projectId)
       .then((snDesc) => s
-        .deployment.create(projectId, dep, sha, appDef )));
+        .deployment.create(projectId, dep, appDef )));
   }
 
   /**
    * @param {string} projectId
    * @param {string} dep
-   * @param {string} sha
    * @returns {Q.Promise}
    */
   function destroyDeployment(projectId, dep) {

@@ -132,7 +132,7 @@ function getClusterManager(ecs) {
 
   }
 
-  function describeDeployment(projectId, sha) {
+  function describeDeployment(projectId) {
 
   }
 

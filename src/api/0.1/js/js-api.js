@@ -143,7 +143,6 @@ function listSSHAbleInstances(projectId) {
  * @param {string} name
  * @param {string} projectId
  * @param {Object} deploymentDesc
- * @param {string} sha
  */
 function deploy(name, projectId, deploymentDesc) {
   const pm = getProjectAPI();
@@ -157,7 +156,6 @@ function deploy(name, projectId, deploymentDesc) {
 /**
  * @param {string} name
  * @param {string} projectId
- * @param {string} sha
  * @returns {Q.Promise}
  */
 function stop(name, projectId) {
@@ -171,11 +169,10 @@ function stop(name, projectId) {
  * @param {string} name
  * @param {string} projectId
  * @param {Object} deploymentDesc
- * @param {string} sha
  */
-function update(name, projectId, deploymentDesc, sha) {
+function update(name, projectId, deploymentDesc) {
   const pm = getProjectAPI();
-  return update_(pm, projectId, deploymentDesc, name, sha)
+  return update_(pm, projectId, deploymentDesc, name)
     .fail((err) => {
       util.info('Clusternator: Error updating deployment: ' + err.message);
       util.info(err.stack);
@@ -197,7 +194,6 @@ function startServer(config) {
  * @param {string} projectId
  * @param {string} appDefStr
  * @param {string} deployment
- * @param {string} sha
  * @returns {Request|Promise.<T>}
  * @private
  */
@@ -223,11 +219,10 @@ function deploy_(pm, projectId, appDefStr, deployment) {
  * @param {string} projectId
  * @param {string} appDefStr
  * @param {string} deployment
- * @param {string} sha
  * @returns {Request|Promise.<T>}
  * @private
  */
-function update_(pm, projectId, appDefStr, deployment, sha) {
+function update_(pm, projectId, appDefStr, deployment) {
   util.info('Updating deployment...');
   var appDef = util.safeParse(appDefStr);
   if (!appDef) {
@@ -237,7 +232,6 @@ function update_(pm, projectId, appDefStr, deployment, sha) {
   return pm.updateDeployment(
     projectId,
     deployment,
-    sha,
     appDef
   ).then((result) => {
     util.info('Deployment updated', result);

@@ -64,7 +64,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    */
   function setGroupId(creq) {
     return securityGroup
-      .createDeployment(creq.projectId, creq.deployment, creq.sha)
+      .createDeployment(creq.projectId, creq.deployment)
       .then((groupId) => {
         creq.groupId = groupId;
         return creq;
@@ -75,7 +75,6 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   /**
    * @param {string} projectId
    * @param {string} deployment
-   * @param {string} sha
    * @param {Object} appDef
    * @param {boolean=} useInternalSSL
    * @returns {Request|Promise.<T>|*}
@@ -146,7 +145,6 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   /**
    * @param {string} projectId
    * @param {string} deployment
-   * @param {string} sha
    * @returns {Request}
    */
   function destroy(projectId, deployment) {
@@ -174,11 +172,10 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
         .fail(() => undefined));
   }
 
-  function update(projectId, deployment, sha, appdef) {
+  function update(projectId, deployment, appdef) {
     var clusterName = rid.generateRID({
       pid: projectId,
-      deployment,
-      sha
+      deployment
     });
 
     return task

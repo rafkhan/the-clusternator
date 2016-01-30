@@ -178,9 +178,9 @@ module.exports = (yargs) => {
     .command('stop', 'Stops a deployment, and cleans up', (y) => {
       y.demand('d').
       alias('d', 'deployment-name').
-      describe('d', 'Requires a deployment name').
+      describe('d', 'Requires a deployment name');
 
-      deployments.stop(y.argv.d, y.argv.s).done();
+      deployments.stop(y.argv.d).done();
     })
 
     .command('update', 'Updates a deployment in place', (y) => {
