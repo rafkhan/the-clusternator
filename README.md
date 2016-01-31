@@ -44,6 +44,8 @@ _note this is *NOT* yet completely implemented_
 These instructions assume that by installing the server the user will be using
 a clusternator CLI client to deploy a clusternator server to a cloud service.
 
+Having a locally installed copy of Docker is required for this.
+
 ```bash
 clusternator bootstrap
 ```
