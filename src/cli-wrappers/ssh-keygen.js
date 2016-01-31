@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module provides a few promise based shortcuts to the `ssh-keygen`
+ * command
+ *
+ * @module childProcess/ssh-keygen
+ */
 
 const COMMAND = 'ssh-keygen';
 

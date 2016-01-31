@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module provides promised based shortcuts to the `npm` command
+ *
+ * @module childProcess/npm
+ */
 
 const COMMAND = 'npm';
 const FLAG_INSTALL = 'install';

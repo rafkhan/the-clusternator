@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module provides promised based shortcuts to some `gpg` commands
+ *
+ * @module childProcess/gpg
+ */
 
 /* @todo make COMMAND configurable */
 const COMMAND = 'gpg';

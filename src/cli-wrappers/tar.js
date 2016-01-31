@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module provides a few promise based shortcuts to the `tar` command
+ *
+ * @module childProcess/tar
+ */
 
 const COMMAND = 'tar';
 const FLAG_BALL = 'cfz';

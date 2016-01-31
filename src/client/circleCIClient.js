@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module is seemingly deprecated
+ * @module circleCIClient
+ * @deprecated
+ * @todo determine if this can be deleted
+ */
 
 var fs = require('fs');
 var q = require('q');

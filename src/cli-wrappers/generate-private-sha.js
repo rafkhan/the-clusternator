@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module runs a script that generates a private sha, script can be found
+ * in `the-clusternator/bin`
+ *
+ * @module childProcess/privateSha
+ */
 
 const path = require('path');
 

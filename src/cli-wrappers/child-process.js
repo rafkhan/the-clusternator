@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module contains a variety of generic promise wrapped
+ `node.child_process.spawn` commands
+
+ * @module childProcess
+ */
 
 const  R = require('ramda'),
   Q = require('q');
