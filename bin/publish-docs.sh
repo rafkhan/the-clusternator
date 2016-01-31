@@ -18,12 +18,9 @@ cd ..
 npm run doc
 cd ./docs/_site
 ln -s ../../README.md ./
-cd ../../
-
 # tar the docs
-cd ./docs/_site
 tar cvfz ${TEMP_PATH}${TEMP_FILE} ./
-cd ..
+cd ../../
 
 # switch branches
 git checkout gh-pages
