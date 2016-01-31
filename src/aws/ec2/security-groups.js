@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Types for managing AWS EC2 SecurityGroups
+ *
+ * @module aws/ec2/sg/groups
+ */
 
 const filter = require('./ec2-filter');
 const constants = require('../../constants');

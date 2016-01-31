@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Filter functions for AWS EC2
+ *
+ * @module aws/ec2/filter
+ */
 
 const constants = require('../../constants');
 

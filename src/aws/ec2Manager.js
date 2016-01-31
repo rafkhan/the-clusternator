@@ -1,8 +1,8 @@
 'use strict';
 /**
  * Internal aws resource for managing ec2s
+ *
  * @module aws/ec2Manager
- * @type {string}
  */
 
 const UTF8 = 'utf8';

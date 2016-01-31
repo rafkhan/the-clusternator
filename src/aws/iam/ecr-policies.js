@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Encapsualtes functions required to CRUD AWS ECR Policies
+ *
+ * @module aws/iam/ecrPolicies
+ */
 
 module.exports = {
   user,

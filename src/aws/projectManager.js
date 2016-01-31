@@ -1,6 +1,7 @@
 'use strict';
 /**
  * Primary interface for dealing with AWS resources
+ *
  * @module aws/projectManager
  */
 

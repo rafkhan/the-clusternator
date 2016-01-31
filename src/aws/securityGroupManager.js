@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Simplifies AWS EC2/VPC securityGroups
+ *
+ * @module aws/securityGroupManager
+ */
 
 const Q = require('q');
 const common = require('./common');

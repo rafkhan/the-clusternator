@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module assembles/builds all primitive AWS SDK objects needed to use this
+ * API, promisifies them, and locks them to a consistent version
+ *
+ * @module aws/aws
+ */
 
 const AWS = require('aws-sdk');
 const constants = require('../constants');

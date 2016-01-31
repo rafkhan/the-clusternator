@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Encapsulates functions required to build deployments on AWS
+ *
+ * @module aws/deploymentManager
+ */
 const Q = require('q');
 const Subnet = require('./subnetManager');
 const SG = require('./securityGroupManager');

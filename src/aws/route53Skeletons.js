@@ -1,3 +1,8 @@
+/**
+ * Prototypes for dealing with AWS's route53
+ *
+ * @module aws/route53Skeletons
+ */
 module.exports = Object.freeze({
   RECORD_TYPES: [
     'SOA', 'A', 'TXT', 'NS', 'CNAME', 'MX', 'PTR', 'SRV', 'SPF', 'AAAA'

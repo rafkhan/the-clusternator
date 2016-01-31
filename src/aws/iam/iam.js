@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Interface to AWS IAM wrappers
+ *
+ * @module aws/iam
+ */
 
 const Q = require('q');
 const policies = { ecr: require('./ecr-policies') }

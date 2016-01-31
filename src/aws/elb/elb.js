@@ -1,6 +1,10 @@
 'use strict';
+/**
+ * Interface to AWS ELB wrappers (Elastic Load Balancing)
+ *
+ * @module aws/elb
+ */
 
-const R = require('ramda');
 const constants = require('../../constants');
 const tag = require('./elb-tag.js');
 const pListeners = require('./port-listener');

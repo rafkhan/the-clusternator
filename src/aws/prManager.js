@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Functions to encapsulate assembling a PR
+ *
+ * @module aws/prManager
+ */
 const Q = require('q');
 const Subnet = require('./subnetManager');
 const SG = require('./securityGroupManager');

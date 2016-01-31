@@ -1,6 +1,7 @@
 'use strict';
 /**
  * Provides a simple interface to AWS's Route53 DNS API
+ *
  * @module aws/route53Manager
  */
 
