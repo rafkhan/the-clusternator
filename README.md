@@ -1,5 +1,7 @@
 # THE CLUSTERNATOR
 
+_Status_: alpha
+
 The Clusternator attempts to make managing deployments of containers easy for 
 front end developers.  Specifically The Clusternator was built to fill the
 deoployment challenges of CI setups.
@@ -36,6 +38,8 @@ npm install -g clusternator
 ```
 
 ## Installation (Server)
+
+_note this is *NOT* yet completely implemented_
 
 These instructions assume that by installing the server the user will be using
 a clusternator CLI client to deploy a clusternator server to a cloud service.
