@@ -45,10 +45,8 @@ function middlewareFactory(ddbManager) {
     }
 
 
-    var body = req.body;
     var text = req.rawBody;
-    var prBody = body['pull_request'];
-    var prBody = req.rawBody['pull_request'];
+    var prBody = req.rawBody.pull_request;
     var projectName = prBody.head.repo.name;
 
     ddbManager.getItems(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE,
