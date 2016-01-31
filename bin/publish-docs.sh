@@ -18,7 +18,7 @@ cd ..
 npm run doc
 
 # tar the docs
-cd ./docs
+cd ./docs/_site
 tar cvfz ${TEMP_PATH}${TEMP_FILE} ./
 cd ..
 
