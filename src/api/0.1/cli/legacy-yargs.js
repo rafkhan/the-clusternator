@@ -1,5 +1,11 @@
 'use strict';
 
+/**
+ * This/these are legacy Yargs CLI commands, they are deprecated
+ * @module api/'0.1'/cli/legacYargs
+ * @deprecated
+ */
+
 const dockerCredOpts = {
   'docker-email': {
     alias: 'de',

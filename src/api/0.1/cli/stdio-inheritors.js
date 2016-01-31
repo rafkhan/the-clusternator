@@ -1,4 +1,11 @@
 'use strict';
+/**
+ * This module is an "endware" that serves {@link module:api/'0.1'/cli}
+ * this module provides functions that are designed to inherit the current STDIO
+ * and eventually end/die, often with Ctrl-c
+ *
+ * @module api/'0.1'/cli/stdioInheritors
+ */
 
 const Q = require('q');
 const fs = require('../project-fs/fs');

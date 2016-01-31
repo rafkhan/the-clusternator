@@ -2,7 +2,7 @@
 /**
  * The clusternator public JavaScript API
  *
- * @module api/'0.1'/Clusternator
+ * @module api/'0.1'/clusternator
  * @version 0.1.0
  */
 

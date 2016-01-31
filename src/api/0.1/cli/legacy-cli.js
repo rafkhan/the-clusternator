@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This/these are legacy CLI commands, they are deprecated
+ * @module api/'0.1'/cli/legacyCli
+ * @deprecated
+ */
 const UTF8 = 'utf8';
 
 const fs = require('fs');

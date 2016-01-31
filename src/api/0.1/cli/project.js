@@ -1,4 +1,13 @@
 'use strict';
+/**
+ * This module is a middleware that sits between {@link module:api/'0.1'/cli}
+ and {@link module:api/'0.1'/clusternator} as well as the relevant cloudService
+ API.
+
+ This module largely deals with prompting the user for info on how to build a
+ project
+ * @module api/'0.1'/cli/project
+ */
 
 const NOT_AUTHENTICATED = 401;
 const DOCKER_IGNORE = '.dockerignore';
