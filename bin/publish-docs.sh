@@ -17,7 +17,7 @@ cd ..
 # build the docs
 npm run doc
 cd ./docs/_site
-ln -s ../../README.md ./README.md
+cp ../../README.md ./
 # tar the docs
 tar cvfz ${TEMP_PATH}${TEMP_FILE} ./
 cd ../../
