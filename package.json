@@ -29,7 +29,7 @@
     "watch": "gulp watch",
     "test": "gulp test-unit",
     "build": "gulp transpile",
-    "doc": "",
+    "doc": "jekyll build -s ./docs -d ./docs/_site",
     "doc-dev": "jekyll serve -s ./docs -d ./docs/_site --drafts",
     "graph": "echo 'Requires GraphViz (If it is not already installed)'; madge --exclude \"node_modules|bin-src|lib|path|spec|coverage|tmp|examples\"  --image coverage/clusternator-graph.png ./"
   },
