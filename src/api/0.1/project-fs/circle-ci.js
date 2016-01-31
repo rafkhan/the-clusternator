@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module manages dealing with CircleCI files, specifically adding
+ clusternator commands to them
+
+ * @module api/'0.1'/projectFs/circleCi
+ */
 
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 const UTF8 = 'utf8';
@@ -8,7 +14,7 @@ const merge = require('deepmerge');
 const Q = require('q');
 const YAML = require('yamljs');
 
-const fs = require('./fs');
+const fs = require('./projectFs');
 
 module.exports = {
   loadExistingCircleCIFile,

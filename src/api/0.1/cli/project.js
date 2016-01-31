@@ -18,7 +18,7 @@ const Q = require('q');
 
 const userCLI = require('./user');
 
-const fs = require('../project-fs/fs');
+const fs = require('../project-fs/projectFs');
 const initProject = require('../project-fs/init');
 
 const privateFs = require('../project-fs/private');

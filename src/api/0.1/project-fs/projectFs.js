@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module encapsulates general file system related functions
+ *
+ * @module api/'0.1'/projectFs/projectFs
+ */
 const UTF8 = 'utf8';
 const VCS_DIR = '.git';
 
