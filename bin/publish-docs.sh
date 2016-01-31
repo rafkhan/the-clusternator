@@ -7,18 +7,20 @@ TEMP_FILE=/clusternator-docs.tar.gz
 set -e
 
 # Locate *this* file
-echo "Discovering Docker Environment"
+echo "Discovering Environment"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # change to this directory
 cd $DIR
-cd ../docs
+cd ..
 
 # build the docs
 npm run doc
 
 # tar the docs
-tar cvfz ${TEMP_PATH}${TEMP_FILE}
+cd ./docs
+tar cvfz ${TEMP_PATH}${TEMP_FILE} ./
+cd ..
 
 # switch branches
 git checkout gh-pages
