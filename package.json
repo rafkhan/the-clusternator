@@ -32,7 +32,7 @@
     "doc": "npm run doc-api; jekyll build -s ./docs -d ./docs/_site",
     "doc-dev": "jekyll serve -s ./docs -d ./docs/_site --drafts",
     "doc-publish": "./bin/publish-docs.sh",
-    "doc-api": "jsdoc -R ./README.md -d ./docs/api/ -r ./src",
+    "doc-api": "jsdoc -c ./js-doc.json",
     "graph": "echo 'Requires GraphViz (If it is not already installed)'; madge --exclude \"node_modules|bin-src|lib|path|spec|coverage|tmp|examples\"  --image coverage/clusternator-graph.png ./"
   },
   "repository": {

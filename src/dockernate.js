@@ -1,4 +1,11 @@
 'use strict';
+/**
+ * Dockernate module, gets repos and builds them with docker
+ * This module is deprecated.  Future container fetching/building will be done
+ * on an internal work computer for security, and performance reasons.
+ * @deprecated
+ * @module dockernate
+ */
 
 const DOCKER_BUILD_HOOK_TIMEOUT = 120000;
 
@@ -77,10 +84,10 @@ function dockerBuild(repo, repoDesc, image, tag, middleware, dockerFile) {
 }
 
 /**
- * @param {Q.Promise} promise
+ * @param {Promise} promise
  * @param {number} delay
  * @param {string=} label
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function timeout(promise, delay, label) {
   label = label || '';
@@ -104,8 +111,8 @@ function timeout(promise, delay, label) {
 }
 
 /**
- * @param {function():Q.Promise} middleware
- * @returns {function():Q.Promise}
+ * @param {function():Promise} middleware
+ * @returns {function():Promise}
  */
 function validateMiddleware(middleware) {
 
@@ -142,9 +149,9 @@ function prepareProject(backend) {
  * @param {string} repo repository path/URI
  * @param {string} image name of docker image
  * @param {string=} tag SHA git tag, or actual git tag
- * @param {function():Q.Promise = } middleware
+ * @param {function():Promise= } middleware
  * @param {string=} dockerFile
- * @returns {Q.Promise<string>} the image name
+ * @returns {Promise<string>} the image name
  */
 function create(backend, repo, image, tag, middleware, dockerFile) {
   if (!repo || !image) {
