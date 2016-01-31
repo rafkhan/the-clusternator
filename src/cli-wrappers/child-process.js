@@ -71,9 +71,9 @@ function failError(command, args, code, stderr) {
 /**
  * Resolves stdout, rejects with stderr, also streams
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise<string>}
+ * @returns {Promise<string>}
  */
 function output(command, args, opts) {
   args = args || [];
@@ -113,9 +113,9 @@ function output(command, args, opts) {
 /**
  * Does not resolve stdout, but streams, and resolves stderr
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function quiet(command, args, opts) {
   args = args || [];
@@ -152,9 +152,9 @@ function quiet(command, args, opts) {
 /**
  * Only streams stdout/stderr, no output on resolve/reject
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function stream(command, args, opts) {
   args = args || [];
@@ -190,9 +190,9 @@ function stream(command, args, opts) {
 /**
  * Stdio inherits, meaning that the given command takes over stdio
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function inherit(command, args, opts) {
   args = args || [];
@@ -218,9 +218,9 @@ function inherit(command, args, opts) {
  * like output, but puts stdin in as stdin
  * @param {string} stdin
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise<string>}
+ * @returns {Promise<string>}
  */
 function stdin(stdin, command, args, opts) {
   stdin = stdin || '';

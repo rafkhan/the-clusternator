@@ -137,8 +137,8 @@ function getClusterManager(ecs) {
   }
 
   /**
-   * @param {*<T>} o
-   * @returns {*<T>}
+   * @param {*} o
+   * @returns {*}
    */
   function identity(o) {
     return o;

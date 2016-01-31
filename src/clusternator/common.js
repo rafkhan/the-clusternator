@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Common functions for the clusternator CLI/REST interface
+ * @module clusternator/common
+ * @type {string}
+ */
 
 const PROTOCOL_PREFIX = 'http';
 const PROTOCOL = PROTOCOL_PREFIX + 's://';
@@ -100,7 +105,7 @@ function makeHeaders(useToken, user) {
  * @param {*} data
  * @param {Object} headers
  * @returns {{method: string, uri: string, gzip: boolean, json: Object,
- headers: Object}}
+  headers: Object}}
  */
 function makePutPostReqObject(verb, uri, data, headers) {
   return {
@@ -132,7 +137,7 @@ function makeGetRequestObject(uri, headers) {
  * @param {*=} data
  * @param {boolean=} useToken defaults true
  * @returns {{ method: string, uri: string, gzip: boolean,
- json?: Object }|Error}
+ json: Object= }|Error}
  */
 function makeRequestObject(verb, endpoint, data,  useToken) {
   useToken = useToken === false ? false : true;

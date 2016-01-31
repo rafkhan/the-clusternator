@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Internal aws resource for managing ec2s
+ * @module aws/ec2Manager
+ * @type {string}
+ */
 
 const UTF8 = 'utf8';
 const SETUP_SSH = 'mkdir -p /home/ec2-user/.ssh';
@@ -24,23 +29,10 @@ const readFile = Q.nbind(fs.readFile, fs);
 const DEFAULT_INSTANCE_PARAMS = constants.AWS_DEFAULT_EC2;
 
 
-//var DEFAULT_SECURITY_GROUP = 'sg-356bb652'; // Default SG allows all traffic
-
-// NETWORK INTERFACE MUST HAVE MATCHING SECURITY GROUP
-//var NETWORK_INTERFACE_ID = 'eni-66bd8349';
-
-/**
- * @param input
- * @returns {boolean}
- */
-function isString(input) {
-  return typeof input === 'string';
-}
-
 /**
  * Loads _all_ the contents of a given path, it assumes they're public keys
  * @param {string} keyPath
- * @returns {Q.Promise<string[]>}
+ * @returns {Promise<string[]>}
  */
 function loadUserPublicKeys(keyPath) {
   return ls(keyPath).then((keyFiles) => {
@@ -121,7 +113,7 @@ function processSSHKeys(keys) {
 
 /**
  * @param {string} sshPath to user defined ssh public keys
- * @returns {Q.Promise<string[]>}
+ * @returns {Promise<string[]>}
  */
 function makeSSHUserData(sshPath) {
   return loadUserPublicKeys(sshPath)
@@ -143,7 +135,7 @@ function stringArrayToNewLineBase64(arr) {
  * @param {{ username: string, password: string,
  email:string}|{cfg:string}} auth
  * @param {string|string[]} sshDataOrPath
- * @returns {Q.Promise<string>}
+ * @returns {Promise<string>}
  */
 function getECSContainerInstanceUserData(clusterName, auth, sshDataOrPath) {
   var data = ['#!/bin/bash',
@@ -195,7 +187,7 @@ function getEC2Manager(ec2, vpcId) {
    * @param {string} instance
    * @param {string} pr
    * @param {string} pid
-   * @returns {*}
+   * @returns {Promise}
    */
   function tagPrInstance(instance, pr, pid) {
     const config = Config();
@@ -219,7 +211,7 @@ function getEC2Manager(ec2, vpcId) {
    * @param {string} instance
    * @param {string} deployment
    * @param {string} pid
-   * @returns {*}
+   * @returns {Promise}
    */
   function tagDeploymentInstance(instance, deployment, pid) {
     return common.awsTagEc2(ec2, instance.InstanceId, [{
@@ -348,7 +340,7 @@ function getEC2Manager(ec2, vpcId) {
    * @param {string} subnetId
    * @param {string} sgId
    * @returns {{DeviceIndex: number, AssociatePublicIpAddress: boolean,
-   * SubnetId: *, DeleteOnTermination: boolean, Groups: *[]}}
+    SubnetId: *, DeleteOnTermination: boolean, Groups: Array}}
    */
   function getNICConfig(subnetId, sgId) {
     return {
@@ -464,7 +456,7 @@ function getEC2Manager(ec2, vpcId) {
   /**
    * @param {string} pid
    * @param {string} pr
-   * @returns {Q.Promise}
+   * @returns {Promise}
    */
   function destroyPr(pid, pr) {
     if (!pid || !pr) {
@@ -485,7 +477,7 @@ function getEC2Manager(ec2, vpcId) {
   /**
    * @param {string} pid
    * @param {string} deployment
-   * @returns {Q.Promise}
+   * @returns {Promise}
    */
   function destroyDeployment(pid, deployment) {
     if (!pid || !deployment) {

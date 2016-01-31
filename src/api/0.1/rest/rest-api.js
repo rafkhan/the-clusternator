@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module is used by the server to provide a REST interface to the CLI
+ * @module api/'0.1'/rest
+ * @version 0.1.0
+ */
 
 const inspect = require('util').inspect;
 const path = require('path');
@@ -372,7 +377,7 @@ function changePass(body) {
 }
 
 /**
- * @param {{ username: string, password: string, authority?: number }} body
+ * @param {{ username: string, password: string, authority: number= }} body
  */
 function createUser(body) {
   if (!body.username) {

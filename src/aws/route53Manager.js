@@ -1,4 +1,8 @@
 'use strict';
+/**
+ * Provides a simple interface to AWS's Route53 DNS API
+ * @module aws/route53Manager
+ */
 
 const R = require('ramda');
 const util = require('../util');
@@ -7,15 +11,15 @@ const skeletons = require('./route53Skeletons');
 const constants = require('../constants');
 
 /**
-  @param {Route53} AWS Library
+  @param {Route53} route53 AWS Library
   @param {string} zoneId
-  @return {Route53Manager}
+  @return {Object}
 */
 function getRoute53(route53, zoneId) {
   route53 = util.makePromiseApi(route53);
 
   /**
-    @param {GetHostedZoneResult}
+    @param {{ HostedZone: { Name: string } }} getHostedZoneResult
     @return {string}
   */
   function pluckHostedZoneName(getHostedZoneResult) {
@@ -23,7 +27,7 @@ function getRoute53(route53, zoneId) {
   }
 
   /**
-    @return Q.Promise<string> promise to find the TLD for the hosted zone
+    @return Promise<string> promise to find the TLD for the hosted zone
   */
   function findTld() {
     return route53.getHostedZone({
@@ -33,7 +37,7 @@ function getRoute53(route53, zoneId) {
 
   /**
     @param {string} action
-    @return {Change}
+    @return {{ Action: string }}
   */
   function createChange(action) {
     var actionIndex = skeletons.CHANGE_ACTIONS.indexOf(action),
@@ -49,7 +53,7 @@ function getRoute53(route53, zoneId) {
 
   /**
     @param {string=} comment
-    @return {ChangeBatch}
+    @return {{ Comment: string }}
   */
   function createChangeBatch(comment) {
     var changeBatch = util.clone(skeletons.CHANGE_BATCH);
@@ -61,7 +65,7 @@ function getRoute53(route53, zoneId) {
 
   /**
     @param {string} value
-    @return {ResourceRecord}
+    @return {{ Value: string }}
   */
   function createResourceRecord(value) {
     if (!value) {
@@ -155,8 +159,8 @@ function getRoute53(route53, zoneId) {
     @param {string} pid
     @param {string} pr
     @param {string} ip
-    @param {Object=} Route53 config object (optional)
-    @return {Q.Promise}
+    @param {Object=} config Route53 config object (optional)
+    @return {Promise}
   */
   function createPRARecord(pid, pr, ip, config) {
     return findTld().then((tld) => {
@@ -173,7 +177,7 @@ function getRoute53(route53, zoneId) {
    @param {string} pr
    @param {string} url
    @param {Object=} config object (optional)
-   @return {Q.Promise}
+   @return {Promise}
    */
   function createPRCNameRecord(pid, pr, url, config) {
     return findTld().then((tld) => {
@@ -201,8 +205,8 @@ function getRoute53(route53, zoneId) {
    @param {string} pid
    @param {string} deployment
    @param {string} ip
-   @param {Object=} Route53 config object (optional)
-   @return {Q.Promise}
+   @param {Object=} config Route53 config object (optional)
+   @return {Promise}
    */
   function createDeploymentARecord(pid, deployment, ip, config) {
     return findTld()
@@ -220,7 +224,7 @@ function getRoute53(route53, zoneId) {
    @param {string} deployment
    @param {string} url
    @param {Object=} config object (optional)
-   @return {Q.Promise}
+   @return {Promise}
    */
   function createDeploymentCNameRecord(pid, deployment, url, config) {
     return findTld()
@@ -237,8 +241,8 @@ function getRoute53(route53, zoneId) {
     @param {string} pid
     @param {string} pr
     @param {string} ip
-    @param {Object=} Route53 config object (optional)
-    @return {Q.Promise}
+    @param {Object=} config Route53 config object (optional)
+    @return {Promise}
   */
   function destroyPRARecord(pid, pr, ip, config) {
     return findTld().then((tld) => {
@@ -253,8 +257,8 @@ function getRoute53(route53, zoneId) {
    @param {string} pid
    @param {string} pr
    @param {string} url
-   @param {Object=} Route53 config object (optional)
-   @return {Q.Promise}
+   @param {Object=} config Route53 config object (optional)
+   @return {Promise}
    */
   function destroyPRCNameRecord(pid, pr, url, config) {
     return findTld().then((tld) => {
@@ -270,7 +274,7 @@ function getRoute53(route53, zoneId) {
    * @param deployment
    * @param ip
    * @param config
-   * @returns {Request|Promise.<T>}
+   * @returns {Promise}
    */
   function destroyDeploymentARecord(pid, deployment, ip, config) {
     return findTld().then((tld) => {
@@ -286,7 +290,7 @@ function getRoute53(route53, zoneId) {
    * @param deployment
    * @param url
    * @param config
-   * @returns {Request|Promise.<T>}
+   * @returns {Promise}
    */
   function destroyDeploymentCNameRecord(pid, deployment, url, config) {
     return findTld().then((tld) => {
@@ -298,7 +302,7 @@ function getRoute53(route53, zoneId) {
   }
 
   /**
-    @return {Q.Promise<Object[]>}
+    @return {Promise<Object[]>}
   */
   function list() {
     return route53.listHostedZones({}).then((result) => {
@@ -316,7 +320,8 @@ function getRoute53(route53, zoneId) {
   }
 
   /**
-    @param {{ Tags: {{ Key: string, Value: string }}[] }} tagset
+    @param {Array.<{ Tags: { Key: string, Value: string },
+    ResourceId: string }>} tagSet
     @return {string}
   */
   function findFirstTag(tagSet) {
@@ -333,7 +338,7 @@ function getRoute53(route53, zoneId) {
 
   /**
     @param {HostedZone[]} l
-    @return {Q.Promise}
+    @return {Promise}
   */
   function listTags(l) {
     return route53.listTagsForResources({
@@ -345,7 +350,7 @@ function getRoute53(route53, zoneId) {
   }
 
   /**
-    @return {Q.Promise<string>}
+    @return {Promise<string>}
   */
   function findId() {
     return list().then((l) => {

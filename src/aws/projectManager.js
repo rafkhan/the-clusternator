@@ -1,4 +1,8 @@
 'use strict';
+/**
+ * Primary interface for dealing with AWS resources
+ * @module aws/projectManager
+ */
 
 const Subnet = require('./subnetManager');
 const ecrWrap = require('./ecr/ecr');
@@ -11,7 +15,6 @@ const Pr = require('./prManager');
 const Ec2 = require('./ec2Manager');
 const Deployment = require('./deploymentManager');
 const DynamoManager = require('./dynamoManager');
-const gpg = require('../cli-wrappers/gpg');
 const constants = require('../constants');
 const util = require('../util');
 const Q = require('q');

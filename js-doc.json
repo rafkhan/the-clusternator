@@ -5,6 +5,7 @@
   },
   "source": {
     "include": ["src/", "bin-src"],
+    "exclude": ["src/skeletons"],
     "includePattern": ".+\\.js(doc)?$",
     "excludePattern": "(^|\\/|\\\\)_"
   },
