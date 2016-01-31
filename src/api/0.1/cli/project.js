@@ -139,18 +139,8 @@ function initStage2(doOffline) {
  * @returns {Q.Promise}
  */
 function configUserLoginAndInit(doOffline) {
-  console.log('');
-  console.log('Clusternator could not find a user configuration.');
-  console.log('Please enter configuration details:');
-  console.log('');
-  return Config
-    .interactiveUser()
-    .then((user) => {
-      console.log('');
-      console.log('Please Login To Proceed: ');
-      console.log('');
-      return userCLI.login(user.credentials.user);
-    })
+  return userCLI
+    .checkConfiguredAndLoggedIn()
     .then(() => initStage2(doOffline));
 }
 

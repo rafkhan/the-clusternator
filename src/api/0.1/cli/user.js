@@ -1,7 +1,5 @@
 'use strict';
 
-const DEFAULT_AUTHORITY = 2;
-
 const Q = require('q');
 const cmn = require('../common');
 const Config = cmn.src('config');
@@ -11,7 +9,9 @@ const cn = require('../js/js-api');
 module.exports = {
   createUser,
   login,
-  changePassword
+  changePassword,
+  checkConfigured,
+  checkConfiguredAndLoggedIn
 };
 
 const truthy = (i) => i ? true : false;
@@ -106,6 +106,42 @@ const usernameAuthorityQ = (username) => {
     .inquirerPrompt(makeUsernameQ(username).concat(makeAuthorityQ()));
 };
 
+/**
+ * resolves if a user has a config file
+ * @returns {Q.Promise<Object>}
+ */
+function checkConfigured() {
+  const user = Config().user;
+  if (user && user.credentials) {
+    return Q.resolve();
+  }
+  console.log('');
+  console.log('Clusternator could not find a user configuration.');
+  console.log('Please enter configuration details:');
+  console.log('');
+  return Config
+    .interactiveUser()
+    .then((user) => {
+      console.log('User configuration complete');
+      console.log('');
+      return user;
+    });
+
+}
+
+/**
+ * resolves if a user has a config file, and seems to be logged in
+ * @returns {Q.Promise<Object>}
+ */
+function checkConfiguredAndLoggedIn() {
+  return checkConfigured()
+    .then((user) => {
+      console.log('');
+      console.log('Please Login To Proceed: ');
+      console.log('');
+      return login(user.credentials.user);
+    });
+}
 
 /**
  * @param {{ user: { credentials: string} }} c
@@ -157,24 +193,25 @@ function userHasToken(user) {
  * @returns {Q.Promise}
  */
 function createUser(username, password, confirm, authority) {
+  if (password !== confirm) { return passwordMismatch(); }
   const c = Config();
 
-  // if the user is not logged in, log them in
-  if (!userHasToken(c.user)) {
-    console.log('');
-    console.log('Please Login: ');
-    return login()
-      .then(() => createUser(username, password, confirm, authority));
-  }
-  username = getUserName(c, username);
+  return checkConfiguredAndLoggedIn()
+  .then(() => {
+    username = getUserName(c, username);
 
-  // actually start creating user
-  if (password !== confirm) { return passwordMismatch(); }
-  if (username && password) {
-    return cn.createUser(username, password, confirm, parseInt(authority, 10));
-  }
+    // actually start creating user
+    if (username && password) {
+      return cn
+        .createUser(username, password, confirm, parseInt(authority, 10));
+    }
 
-  return promptCreateUser(c);
+    return promptCreateUser(c);
+
+  });
+
+
+
 }
 
 /**
@@ -207,21 +244,23 @@ function login(username, password) {
   const c = Config();
   username = getUserName(c, username);
   if (password && username) {
-    return cn.login(username, password);
+    return checkConfigured()
+      .then(() => cn.login(username, password));
   }
-  return usernamePasswordQ(username)
-    .then((answers) => cn
-      .login(answers.username, answers.password)
-      .then(afterLogin))
-    .fail((err) => {
-      if (err.message.indexOf('401') >= 0) {
-        console.log('');
-        console.log('Unauthorized, plese try again:');
-        console.log('');
-        return login(username);
-      }
-      throw err;
-    });
+  return checkConfigured()
+    .then(() => usernamePasswordQ(username)
+      .then((answers) => cn
+        .login(answers.username, answers.password)
+        .then(afterLogin))
+      .fail((err) => {
+        if (err.message.indexOf('401') >= 0) {
+          console.log('');
+          console.log('Unauthorized, plese try again:');
+          console.log('');
+          return login(username);
+        }
+        throw err;
+      }));
 }
 
 /**
@@ -236,12 +275,15 @@ function changePassword(username, password, newPassword, confirm) {
   username = getUserName(c, username);
   if (newPassword !== confirm) { return passwordMismatch(); }
   if (username && password && newPassword) {
-    return cn.changePassword(username, password, newPassword, confirm);
+    return checkConfigured()
+    .then(() => cn
+      .changePassword(username, password, newPassword, confirm));
   }
-  return usernamePasswordQ(username)
-    .then((userAnswer) => confirmQ(c)
-      .then((confirmAnswers) => cn
-        .changePassword(userAnswer.username, userAnswer.password,
-          confirmAnswers.password, confirmAnswers.confirm)))
-    .then(() => console.log('Password changed'));
+  return checkConfigured()
+    .then(() => usernamePasswordQ(username)
+      .then((userAnswer) => confirmQ(c)
+        .then((confirmAnswers) => cn
+          .changePassword(userAnswer.username, userAnswer.password,
+            confirmAnswers.password, confirmAnswers.confirm)))
+      .then(() => console.log('Password changed')));
 }
