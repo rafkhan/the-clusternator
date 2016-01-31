@@ -1,19 +1,52 @@
 # THE CLUSTERNATOR
 
-The clusternator is a tool for temporarily deploying applications on pull requests.
-It uses [AWS ECS](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html)
-to manage deployments, therefore **you must be using [Docker]
-(https://www.docker.com/)** to run your application.
+The Clusternator attempts to make managing deployments of containers easy for 
+front end developers.  Specifically The Clusternator was built to fill the
+deoployment challenges of CI setups.
 
+The current version of The Clusternator uses Docker containers on Amazon's AWS
+infrastructure.  
 
-#### Install the `clusternator` CLI
+There are two components to The Clusternator.  The command line client, and the
+server.  Although it is not _strictly_ necessary to run a server it is the
+target use case, and use of a clusternator server will be assumed, unless 
+otherwise noted.
 
-```sh
+## Client Requirements
+
+- [NodeJs](https://nodejs.org/en/ "Node JS") >= 12
+- [GPG](https://www.gnupg.org/ "GNU Privacy Guard")  ~1.4 not included in OS X 
+or Windows
+- OpenSSH (included on OS X, GNU/Linux)
+- [Docker](https://docker.io) (optional)
+
+## Server Requirements
+
+- [NodeJs](https://nodejs.org/en/ "Node JS") >= 4.2.6
+
+The server is designed to be deployed as a Docker container, so in a way, 
+Docker is a requirement.
+
+## Installation (Client)
+
+Make sure your system has the third party requirements, then from a shell run:
+
+```bash
 npm install -g clusternator
-clusternator --help
 ```
 
-## [READ THE WIKI](https://github.com/rangle/the-clusternator/wiki)
+## Installation (Server)
+
+These instructions assume that by installing the server the user will be using
+a clusternator CLI client to deploy a clusternator server to a cloud service.
+
+```bash
+clusternator bootstrap
+```
+
+There will be a series of prompts.  Once this is done other clients will be
+able to start using your clusternator server.
+
 
 ## Quick Start
 
@@ -27,7 +60,7 @@ organization has a _private_ GitHub repository for your project.
 - `clusternator init`
 - Follow the prompts
 - If everything goes well there will be a `CLUSTERNATOR_SHARED_KEY`, and a
-`CLUSTERNATOR_AUTH` token provided at the end of the init
+`GITHUB_KEY`  provided at the end of the init
 - Turn on CircleCI for `my-cool-project`
 - _One_ (1) environment variables need to be added:
     - `CLUSTERNATOR_SHARED_KEY` (from init)
@@ -45,7 +78,6 @@ That's it the project will produce new deployments each time a pull request is
 issued.  The project will tear down those deployments when PR's close.
 
 
-
 ## Developing Clusternator
 
 _yay contributions!_
@@ -53,39 +85,14 @@ _yay contributions!_
 All code is in `src/`. The CLI entry point is `bin/clusternator-cli.js`,
 but includes from `lib/` (the compile destination).
 
-There are unit tests, and e2e tests.  Unit tests can be done by running
+There are unit tests, and repl tests.  Unit tests can be done by running
 `npm test`, assuming the project has been `npm install`'d.  This is an alias
 to `gulp test-unit`
-
-The e2e tests require AWS credentials, and can be run directly from gulp with
-`gulp test-e2e`
-
-The `gulp test` task will run both the unit, and e2e tests.
 
 Code coverage can be found _after_ tests are run, and is located in the
 (generated) `coverage` folder.  Coverage includes lcov, json, and html.
 
-#### Compile ES6
 
-`npm run build` will transform your ES6 source into ES5
-
-`gulp transpile` will transpile `src/**/*.js` to `lib/**/*.js`
-
-`gulp watch` will look at `src/**/*.js`, and transpile them to `lib/**/*.js`
-
-
-
-#### Running the clusternator CLI
-
-Run `./bin/clusternator.sh` from the root directory.
-
-#### Project Init
-
-Requires the Current Working Directory to be a git repository, or a subfolder
-within a git repository.  The command will interactively create a
-`.clusternator` file in the project\'s root directory, and will provision the
-*networking* infrastructure for a project on AWS.  This currently requires an
-existing VPC, and Route (AWS bootstrapping coming soon!),
 
 ## License
 
