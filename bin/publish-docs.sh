@@ -21,7 +21,13 @@ npm run doc
 tar cvfz ${TEMP_PATH}${TEMP_FILE}
 
 # switch branches
-git checkout gh-pages mv ${TEMP_PATH}${TEMP_FILE} ./
+git checkout gh-pages
+
+# prune
+rm -rf ./*
+
+# move in the file
+mv ${TEMP_PATH}${TEMP_FILE} ./
 
 # extract
 tar xvfz .${TEMP_FILE}

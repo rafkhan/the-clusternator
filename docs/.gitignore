@@ -2,16 +2,20 @@ _site
 .sass-cache
 .jekyll-metadata
 
+
+# clusternator project things:
+
 node_modules/
 .DS_Store
 npm-debug.log
 
-# exclude JetBrains IDE
+## exclude JetBrains IDE
 .idea
 
-# skip private folder
+## skip private folder
 .private
 gpg-pass.txt
 
-# clusternator ignores
+## clusternator ignores
 clusternator.tar.gz
+
