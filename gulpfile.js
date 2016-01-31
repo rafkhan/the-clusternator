@@ -1,18 +1,41 @@
 'use strict';
 
-var gulp = require('gulp'),
-  babel = require('gulp-babel'),
-  eslint = require('gulp-eslint'),
-  mocha = require('gulp-mocha'),
-  plumber = require('gulp-plumber'),
-  istanbul = require('gulp-istanbul');
+var gulp = require('gulp');
+var babel = require('gulp-babel');
+var eslint = require('gulp-eslint');
+var mocha = require('gulp-mocha');
+var plumber = require('gulp-plumber');
+var istanbul = require('gulp-istanbul');
+var gutil = require('gulp-util');
+var spawn = require('child_process').spawn;
 
-var jsPaths = ['src/**/*.js'],
-  cliPath = ['bin-src/**/*.js'],
-  specPaths = ['spec/unit/**/*.spec.js'];
+var jsPaths = ['src/**/*.js'];
+var cliPath = ['bin-src/**/*.js'];
+var specPaths = ['spec/unit/**/*.spec.js'];
 
 gulp.task('default', ['transpile']);
 gulp.task('test', ['test-unit']);
+
+gulp.task('jsdoc', function jsDoc() {
+  // Finally execute your script below - here 'ls -lA'
+  var child = spawn('npm', ['run', 'doc'], {cwd: process.cwd()});
+
+  child.stdout.setEncoding('utf8');
+
+  child.stdout.on('data', function (data) {
+    gutil.log(data);
+  });
+
+  child.stderr.setEncoding('utf8');
+  child.stderr.on('data', function (data) {
+    gutil.log(gutil.colors.red(data));
+    gutil.beep();
+  });
+
+  child.on('close', function(code) {
+    gutil.log('Done with JSDoc exit code', code);
+  });
+});
 
 gulp.task('transpile', ['transpile-cli', 'transpile-src']);
 
@@ -30,7 +53,7 @@ gulp.task('transpile-src', function transpileSrc() {
 });
 
 gulp.task('watch', function watch() {
-  gulp.watch(jsPaths, ['transpile']);
+  gulp.watch(jsPaths, ['transpile', 'jsdoc']);
 });
 
 gulp.task('watch-tests', function watch() {

@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * The clusternator public JavaScript API
+ *
+ *
+ * @module Clusternator
+ */
 
 const Q = require('q');
 
