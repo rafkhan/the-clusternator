@@ -3,7 +3,7 @@
 const R = require('ramda');
 
 var serverUtil = require('./util');
-var resourceId = require('../resourceIdentifier');
+var resourceId = require('../resource-dentifier');
 var log = require('./loggers').logger;
 var util = require('../util');
 

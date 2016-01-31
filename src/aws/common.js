@@ -1,6 +1,6 @@
 'use strict';
 const constants = require('../constants');
-const rid = require('../resourceIdentifier');
+const rid = require('../resource-dentifier');
 const Q = require('q');
 
 /**

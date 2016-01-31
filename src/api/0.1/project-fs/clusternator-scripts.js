@@ -10,11 +10,11 @@ const HOST = /\$HOST/g;
 const Q = require('q');
 
 const fs = require('./fs');
+const circle = require('./circle-ci');
 const cmn = require('../common');
 
 const util = cmn.src('util');
 const constants = cmn.src('constants');
-const circle = cmn.src('circle-ci');
 
 module.exports = {
   init: initializeScripts,

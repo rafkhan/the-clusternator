@@ -1,6 +1,6 @@
 'use strict';
 
-var resourceId = require('../../src/resourceIdentifier');
+var resourceId = require('../../src/resource-dentifier');
 var cPrefix = 'clusternator-';
 
 /*global describe, it, expect */

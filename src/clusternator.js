@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This file is in all probability *deprecated* but that needs to be confirmed
+ * @deprecated
+ * @module clusternator
+ */
 
 const q = require('q');
 const R = require('ramda');
@@ -6,7 +11,6 @@ const AWS = require('aws-sdk');
 
 var util = require('./util');
 var EC2Manager = require('./aws/ec2Manager');
-var VpcManager = require('./aws/vpcManager');
 var ClusterManager = require('./aws/clusterManager');
 var TaskServiceManager = require('./aws/taskServiceManager');
 

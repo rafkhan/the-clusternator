@@ -4,7 +4,7 @@ var fs = require('fs');
 var q = require('q');
 var R = require('ramda');
 var request = require('superagent');
-var resourceId = require('../resourceIdentifier');
+var resourceId = require('../resource-dentifier');
 
 var clusternateEndpoint = '/clusternate';
 

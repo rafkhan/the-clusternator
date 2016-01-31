@@ -2,7 +2,7 @@
 
 const R = require('ramda');
 const util = require('../util');
-const rid = require('../resourceIdentifier');
+const rid = require('../resource-dentifier');
 const skeletons = require('./route53Skeletons');
 const constants = require('../constants');
 

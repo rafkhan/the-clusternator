@@ -1,7 +1,8 @@
 'use strict';
 /**
-This file loads AWS credentials, and configuration for the server, or possibly
+This module loads AWS credentials, and configuration for the server, or possibly
 a "local server".
+@module Config
 */
 
 const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID';
@@ -25,6 +26,10 @@ var credFileName = 'credentials';
 var configFileName = 'config';
 var localPath = path.join(__dirname, '..', '.private');
 var globalPath = '/etc/clusternator/';
+
+getConfig.saveToken = saveToken;
+getConfig.interactiveUser = interactiveUser;
+module.exports = getConfig;
 
 /**
  * @todo replace this with `os.homedir()`?
@@ -147,6 +152,10 @@ function checkConfig() {
   return {};
 }
 
+/**
+ * Synchronously gets a copy of the current configuration object
+ * @returns {{}}
+ */
 function getConfig() {
   var config = checkConfig();
 
@@ -159,7 +168,7 @@ function getConfig() {
 /**
  * @param {{ host: string, username: string, token: string, name: string=,
  email: string=, apiVersion: string=, tld: string= }} options
- * @return {Q.Promise<{ host: string, username: string, token: string,
+ * @return {Promise<{ host: string, username: string, token: string,
  name: string=, email: string=, apiVersion: string=, tld: string= }> }
  */
 function writeUserConfig(options) {
@@ -186,7 +195,8 @@ function writeUserConfig(options) {
 }
 
 /**
- * @returns {Q.Promise<Object>}
+ * Interactively prompts the user for input needed to create a user config
+ * @returns {Promise<Object>}
  */
 function interactiveUser() {
   var user = getConfig().user;
@@ -206,8 +216,9 @@ function interactiveUser() {
 }
 
 /**
+ * Promises to save the given token to the user's credentials
  * @param {string} token
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function saveToken(token) {
   let user = checkUser();
@@ -219,6 +230,3 @@ function saveToken(token) {
   return writeFile(DOT_CLUSTERNATOR_CONFIG, JSON.stringify(user, null, 2));
 }
 
-getConfig.saveToken = saveToken;
-getConfig.interactiveUser = interactiveUser;
-module.exports = getConfig;
