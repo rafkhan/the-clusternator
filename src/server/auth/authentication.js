@@ -1,4 +1,7 @@
 'use strict';
+/**
+ * @module server/authentication
+ */
 
 /*global require, __dirname, module */
 

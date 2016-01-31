@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Handler for GitHub pull request events
+ *
+ * @module server/gitHubPullRequest
+ */
 
 const R = require('ramda');
 

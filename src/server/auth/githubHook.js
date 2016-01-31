@@ -1,10 +1,15 @@
 'use strict';
+/**
+ * Not sure if this is still active?
+ *
+ * @deprecated
+ * @module server/gitHubHook
+ */
 
 var crypto = require('crypto');
 
 var q = require('q');
-var getRawBody = require('raw-body')
-var typer = require('media-typer')
+var typer = require('media-typer');
 var loggers = require('../loggers');
 var log = loggers.logger;
 

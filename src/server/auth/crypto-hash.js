@@ -1,7 +1,11 @@
 'use strict';
-
 /**
  *  More or less a promise wrapper around credential
+ *
+ * @module server/cryptoHash
+ */
+
+/**
  */
 /*global require, module */
 

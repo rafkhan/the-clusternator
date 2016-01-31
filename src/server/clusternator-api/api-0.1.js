@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * Authentication layer/execution layer that sits between {@link module:server}
+ * and {@link module:api/'0.1'/rest}
+ *
+ * @module server/'api-0.1'
+ */
 
 const constants = require('../../constants');
 const API = constants.DEFAULT_API_VERSION;

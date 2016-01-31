@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Token salt/hash management system for the server
+ *
+ * @module server/tokens
+ */
 /*global require, module*/
 const TOKEN_SIZE = 64;
 const MAX_TOKENS = 5;

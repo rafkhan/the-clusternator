@@ -4,7 +4,7 @@ const Q = require('q');
 const policies = { ecr: require('./ecr-policies') }
 const constants = require('../../constants');
 const common = require('../common');
-const rid = require('../../resource-dentifier');
+const rid = require('../../resource-identifier');
 const ECR_USER_TAG = 'ecr-user';
 const ECR_GENERAL_TAG = 'ecr-general';
 

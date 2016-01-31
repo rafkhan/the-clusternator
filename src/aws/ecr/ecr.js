@@ -2,7 +2,7 @@
 
 const common = require('../common');
 const util = require('../../util');
-const rid = require('../../resource-dentifier');
+const rid = require('../../resource-identifier');
 
 module.exports = {
   create,

@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Interface to the projects database
+ *
+ * @module server/db/projects
+ */
 
 const POLL_INTERVAL = 30000;
 const ENCRYPTED_PROPS = Object.freeze(['sharedKey', 'gitHubKey']);

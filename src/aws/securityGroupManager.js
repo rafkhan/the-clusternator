@@ -4,7 +4,7 @@ const Q = require('q');
 const common = require('./common');
 const skeletons = require('./ec2Skeletons');
 const util = require('../util');
-const rid = require('../resource-dentifier');
+const rid = require('../resource-identifier');
 const constants = require('../constants');
 
 function getSecurityGroupManager(ec2, vpcId) {
