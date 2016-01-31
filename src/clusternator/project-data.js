@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Interface for bridging project DB functions from CLI to REST api
+ *
+ * @module clusternator/projectData
+ */
 
 const MISSING_PROJ = 'missing projectId';
 

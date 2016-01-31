@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module deals with installing/removing a project's local git hooks
+ *
+ * @module api/'0.1'/projectFs/gitHooks
+ */
 
 const NEWLINE = '\n';
 const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
