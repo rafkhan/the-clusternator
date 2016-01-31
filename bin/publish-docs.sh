@@ -16,6 +16,9 @@ cd ..
 
 # build the docs
 npm run doc
+cd ./docs/_site
+ln -s ../../README.md ./
+cd ../../
 
 # tar the docs
 cd ./docs/_site
