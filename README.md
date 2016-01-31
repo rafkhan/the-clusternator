@@ -50,11 +50,8 @@ issued.  The project will tear down those deployments when PR's close.
 
 _yay contributions!_
 
-All code is in `src/`. The CLI entry point is `bin/clusternatorCli.js`,
+All code is in `src/`. The CLI entry point is `bin/clusternator-cli.js`,
 but includes from `lib/` (the compile destination).
-
-`bin/clusternatorCli-es5.js` is ultimately what gets run as the CLI
-from `bin/clusternator.sh`.
 
 There are unit tests, and e2e tests.  Unit tests can be done by running
 `npm test`, assuming the project has been `npm install`'d.  This is an alias

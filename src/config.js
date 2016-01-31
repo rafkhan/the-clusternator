@@ -110,8 +110,6 @@ function validateUserConfig(c) {
   }
   if (!c.apiVersion) {
     c.apiVersion = DEFAULT_VERSION;
-  } else {
-    c.apiVersion = semver.clean(c.apiVersion);
   }
   return c;
 }
@@ -180,7 +178,7 @@ function writeUserConfig(options) {
       token: options.token || '',
       host: options.host
     },
-    apiVersion: options.apiVersion
+    apiVersion: options.apiVersion || DEFAULT_VERSION
   };
   return writeFile(DOT_CLUSTERNATOR_CONFIG, JSON.stringify(user, null, 2))
     .then(() => chmod(DOT_CLUSTERNATOR_CONFIG, '600'))

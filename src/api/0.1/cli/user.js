@@ -128,6 +128,26 @@ function passwordMismatch() {
   return Q.reject(new Error('password mismatch'));
 }
 
+/**
+ * @param {Object} config
+ * @returns {Q.Promise}
+ */
+function promptCreateUser(config) {
+  return usernameAuthorityQ('new user')
+    .then((usernameAuthAnswer) => confirmQ(config)
+      .then((pwConfirm) => cn
+        .createUser(usernameAuthAnswer.username,
+          pwConfirm.password, pwConfirm.confirm,
+          usernameAuthAnswer.authority)));
+}
+
+/**
+ * @param {{ credentials: { token: string } }} user
+ * @returns {boolean}
+ */
+function userHasToken(user) {
+  return user && user.credentials && user.credentials.token;
+}
 
 /**
  * @param {string=} username
@@ -138,18 +158,23 @@ function passwordMismatch() {
  */
 function createUser(username, password, confirm, authority) {
   const c = Config();
+
+  // if the user is not logged in, log them in
+  if (!userHasToken(c.user)) {
+    console.log('');
+    console.log('Please Login: ');
+    return login()
+      .then(() => createUser(username, password, confirm, authority));
+  }
   username = getUserName(c, username);
+
+  // actually start creating user
   if (password !== confirm) { return passwordMismatch(); }
   if (username && password) {
     return cn.createUser(username, password, confirm, parseInt(authority, 10));
   }
 
-  return usernameAuthorityQ('new user')
-    .then((usernameAuthAnswer) => confirmQ(c)
-      .then((pwConfirm) => cn
-        .createUser(usernameAuthAnswer.username,
-          pwConfirm.password, pwConfirm.confirm,
-          usernameAuthAnswer.authority)));
+  return promptCreateUser(c);
 }
 
 /**
