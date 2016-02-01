@@ -6,18 +6,22 @@
 /*global require, __dirname, module */
 
 // sets up, and initializes authentication
-var LocalStrategy = require('passport-local').Strategy;
-var HeaderStrategy = require('passport-http-header-token').Strategy;
-var Config = require('../../config');
-var passport = require('passport');
-var users = require('./users');
-var passwords = require('./passwords');
-var logger = require('../loggers').logger;
-var tokens = require('./tokens');
+const LocalStrategy = require('passport-local').Strategy;
+const HeaderStrategy = require('passport-http-header-token').Strategy;
+const Config = require('../../config');
+const passport = require('passport');
+const logger = require('../loggers').logger;
+const constants = require('../../constants');
 
-var config = Config();
+let users = require('./users');
+let passwords = require('./passwords');
+let tokens = require('./tokens');
 
-function init(app) {
+let config = Config();
+let app = null;
+
+function init(appObj) {
+  app = appObj;
   passport.use('login-local', new LocalStrategy(authLocal));
   passport.use('auth-header', new HeaderStrategy({}, authToken));
   app.use(passport.initialize());
@@ -30,7 +34,13 @@ function authToken(token, done) {
   logger.info('authToken');
   tokens.verify(token).then(() => {
     logger.info('authToken: verified');
-    return users.find(tokens.userFromToken(token)).then((user) => {
+    const user = tokens.userFromToken(token);
+    if (user.indexOf(constants.PROJECT_USER_TAG) === 0) {
+      return app.locals.projectDb
+        .find(user.slice(constants.PROJECT_USER_TAG.length))
+        .then({ id: constants.PROJECT_USER_TAG, authority: 0 });
+    }
+    return users.find(user).then((user) => {
       logger.verbose('authToken: user found');
       done(null, user);
     });

@@ -18,7 +18,6 @@ const dockernate = cmn.src('dockernate');
 const users = cmn.src('server','auth','users');
 const passwords = cmn.src('server','auth','passwords');
 const tokens = cmn.src('server','auth','tokens');
-const Projects = cmn.src('server','db','projects');
 
 const gpg = cmn.src('cli-wrappers', 'gpg');
 const slack = cmn.src('cli-wrappers','slack');
@@ -398,11 +397,6 @@ function createUser(body) {
  * @param {{ config: Object, db: Object, pm: Object }} state
  * @returns {Q.Promise<{ config: Object, db: Object, pm: Object }>}
  */
-function initDbState(state) {
-  state.db = Projects(state.config, state.pm);
-  return state.db
-    .init.then(() => state.pm);
-}
 
 /**
  * @param {{ config: Object, db: Object, pm: Object }} state
@@ -415,15 +409,15 @@ function initPmState(state) {
 
 /**
  * @param {Object} config
+ * @param {object} projectDb
  * @returns {Q.Promise<{ config: Object, db: Object, pm: Object }>}
  */
-function init(config) {
+function init(config, projectDb) {
   const state = STATE;
   state.config = config;
-  state.db = null;
+  state.db = db;
   state.pm = null;
   return initPmState(state)
-    .then((pm) => initDbState(state))
   .then(() => state);
 }
 

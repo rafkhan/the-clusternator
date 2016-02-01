@@ -14,7 +14,7 @@ const R = require('ramda');
 
 const Config = require('../../config');
 const logger = require('../loggers').logger;
-var getCommands = require('../../api')[API].rest;
+var getCommands = require(`../../api/${API}/rest/rest-api`);
 var auth = require('../auth/authorities');
 var curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
 
@@ -108,12 +108,11 @@ function executeCommand(commands) {
   };
 }
 
-
 function init(app) {
   const config = Config();
   logger.debug(`API ${API} Initializing`);
 
-  const commands = getCommands(config);
+  const commands = getCommands(config, app.locals.projectDb);
   logger.debug(`API ${API} Got CommandObjects`);
 
   app.post(`/${API}/:namespace/:command`, [
