@@ -300,6 +300,12 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
           .map(mapEc2ProjectDetails)));
   }
 
+  function listDeployments(projectId) {
+    return state()
+      .then((s) => s
+        .ec2Mgr.describeProject(projectId));
+  }
+
   function initState() {
     return Q.all([
       vpc.findProject(),
@@ -336,7 +342,8 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
     listProjects,
     listSSHAbleInstances,
     updateDeployment,
-    writeGitHubKey
+    writeGitHubKey,
+    listDeployments
   };
 }
 

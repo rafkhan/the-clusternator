@@ -55,6 +55,7 @@
     "ejs": "^2.3.4",
     "express": "^4.13.3",
     "express-winston": "^0.4.1",
+    "gulp-util": "^3.0.7",
     "inquirer": "^0.11.0",
     "kbpgp": "^2.0.48",
     "letsencrypt-express": "^1.0.3",

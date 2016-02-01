@@ -28,6 +28,7 @@ module.exports = {
   provisionProjectNetwork,
   listAuthorities,
   listSSHAbleInstances,
+  listDeployments,
   deploy,
   stop,
   update,
@@ -151,6 +152,15 @@ function getProjectAPI() {
 function listSSHAbleInstances(projectId) {
   return getProjectAPI()
     .listSSHAbleInstances(projectId);
+}
+
+/**
+ * @param {string} projectId
+ * @returns {Promise}
+ */
+function listDeployments(projectId) {
+  return getProjectAPI()
+    .listDeployments(projectId);
 }
 
 /**
