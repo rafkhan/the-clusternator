@@ -22,7 +22,7 @@
     "!win32"
   ],
   "scripts": {
-    "prepublish": "npm run build",
+    "prepublish": "npm run doc-publish; npm run build",
     "start": "node ./server-init.js",
     "staging": "NODE_ENV=staging; node ./server-init.js",
     "dev": "NODE_ENV=debug; nodemon ./server-init.js",
