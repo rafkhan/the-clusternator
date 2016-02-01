@@ -19,15 +19,40 @@ layout: api
 {% include header.html %}
 
 {% raw  %}
-<div id="main">
+<div class="page-content">
+  <div class="wrapper">
+    <article id="main">
+      <header class="post-header">
+        <h1 class="post-title"><?js= title ?></h1>
+      </header>
 
-    <h1 class="page-title"><?js= title ?></h1>
+      <div class="post-content">
+        <?js= content ?>
+      </div>
 
-    <?js= content ?>
+    </article>
+  </div>
 </div>
-<nav class="jsdoc-nav">
-    <?js= this.nav ?>
+<nav class="jsdoc-nav" id="jsdoc-nav">
+  <?js= this.nav ?>
 </nav>
+<h2 class="toggle-nav" id="toggle-nav" onclick="toggleVisibility('jsdoc-nav')">Docs</h2>
+<script type="text/javascript">
+    function setToggleNav(char) {
+      var e = document.getElementById('toggle-nav');
+      e.innerHTML = char;
+     }
+    function toggleVisibility(id, doInit) {
+       var e = document.getElementById(id);
+       if(e.style.display == 'block') {
+          setToggleNav('<');
+          e.style.display = 'none';
+       } else {
+          setToggleNav('>');
+          e.style.display = 'block';
+       }
+    }
+</script>
 {% endraw %}
 
 <footer>

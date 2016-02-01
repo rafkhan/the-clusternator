@@ -13,11 +13,6 @@ tt, code, kbd, samp {
     margin: 0;
 }
 
-#main {
-    float: left;
-    width: 70%;
-}
-
 article dl {
     margin-bottom: 40px;
 }
@@ -42,15 +37,46 @@ section
     font-weight: lighter;
 }
 
+.toggle-nav {
+    background-color: #EEEEEE;
+
+    position: absolute;
+    width: 70px;
+    height: 45px;
+    top: 5%;
+    right: 0;
+
+    text-align: center;
+
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    border-radius: 2px;
+}
+
+.toggle-nav:hover {
+    background-color: #BBBBBB;
+}
+
 nav.jsdoc-nav
 {
-    display: block;
-    float: right;
+    position: absolute;
+    top: 5%;
+    right: 0;
+
+    background-color: rgba(240, 240, 240, .85);
+    display: none;
     margin-top: 28px;
     width: 30%;
     box-sizing: border-box;
     border-left: 1px solid #ccc;
     padding-left: 16px;
+
+    overflow-y: auto;
+}
+
+nav.jsdoc-nav.hidden {
+
 }
 
 nav.jsdoc-nav ul {
@@ -258,3 +284,4 @@ h6
 .disabled {
     color: #454545;
 }
+
