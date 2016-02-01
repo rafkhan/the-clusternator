@@ -1,7 +1,11 @@
 #!/bin/bash
 
-TEMP_PATH=/tmp
-TEMP_FILE=/clusternator-docs.tar.gz
+DEPLOYMENT_PROJECT="the-clusternator-docs"
+DEPLOYMENT_REPO="ssh://git@github.com/rangle/${DEPLOYMENT_PROJECT}.git"
+TEMP_PATH="/tmp"
+TEMP_FILE="/clusternator-docs.tar.gz"
+TD="${TEMP_PATH}/${DEPLOYMENT_PROJECT}"
+GH_PAGES="gh-pages"
 
 # Fail on error
 set -e
@@ -19,31 +23,39 @@ npm run doc
 cd ./docs/_site
 cp ../../README.md ./
 # tar the docs
-tar cvfz ${TEMP_PATH}${TEMP_FILE} ./
+tar cvfz "${TEMP_PATH}${TEMP_FILE}" ./
 cd ../../
 
-# switch branches
-git checkout gh-pages
-
+# clone the pages repo
+cd ${TEMP_PATH}
+rm -rf "${TD}"
+git clone ${DEPLOYMENT_REPO}
 # prune
-rm -rf ./*
+cd "${TD}"
+git checkout ${GH_PAGES}
+rm -rf "${TD}/*"
 
 # move in the file
-mv ${TEMP_PATH}${TEMP_FILE} ./
+mv ${TEMP_PATH}${TEMP_FILE} "${TD}/"
 
 # extract
+cd ${TD}
 tar xvfz .${TEMP_FILE}
-
 # clean up
-rm .${TEMP_FILE}
+rm "${TD}/${TEMP_FILE}"
 
 # commit
 git add .
+cd ${TD}
 git commit -a
 
 # push
-git push origin gh-pages
+git push origin ${GH_PAGES}
 
-# return to master
-git checkout master
+# clean up
+cd ${TEMP_PATH}
+rm -rf ${TD}
+
+# back to DIR
+cd ${DIR}
 

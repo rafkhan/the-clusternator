@@ -11,7 +11,7 @@ description: > # this means to ignore newlines until "baseurl:"
   The Clustenator is a container deployment tool designed to help front end web
   developers manage deployments in their continuous integration flow. The
   Clusternator currently works with Docker, and Amazon's AWS cloud service.
-baseurl: "/the-clusternator" # the subpath of your site, e.g. /blog
+baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://the-clusternator.rangle.io" # the base hostname & protocol for your site
 
 # Build settings
