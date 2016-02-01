@@ -106,4 +106,4 @@ Copyright (c) 2015 rangle.io
 
 [MIT License][MIT]
 
-[MIT]: ./LICENSE "Mit License"
+[MIT]: https://github.com/rangle/the-clusternator/blob/master/LICENSE "Mit License"

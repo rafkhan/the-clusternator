@@ -16,6 +16,7 @@
   },
   "opts": {
     "destination": "docs/api",
+    "package": "package.json",
     "readme": "README.md",
     "recurse": true
   }
