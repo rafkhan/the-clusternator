@@ -117,11 +117,11 @@ function resetData(details, repoName) {
 }
 
 /**
- * @param {{ db: { setItem: function(): Q.Promise } }} s
+ * @param {{ db: { setItem: function(): Promise }}} s
  * @param {{ gitHubKey: string, sharedKey: string }} row
  * @param {string} projectId
  * @param {string} repoName
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function resetIfFound(s, row, projectId, repoName) {
   return resetData(row, repoName)
@@ -134,10 +134,10 @@ function resetIfFound(s, row, projectId, repoName) {
 }
 
 /**
- * @param {{ db: { find: function(): Q.Promise } }} s
+ * @param {{ db: { find: function(): Promise }}} s
  * @param {string} projectId
  * @param {string} repoName
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function findOrCreate(s, projectId, repoName) {
   return s
@@ -148,7 +148,7 @@ function findOrCreate(s, projectId, repoName) {
 
 /**
  * @param {{ projectId: string }} body
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function createData(body) {
   if (!body || !body.projectId) {
@@ -455,13 +455,7 @@ function state(config) {
 
 /**
  * @param config
- * @returns {{user: {create: EXPORTS.user.create, passwd: EXPORTS.user.passwd},
- project: {create-data: createData, reset-auth-token: resetAuthToken,
-   reset-shared-key: resetSharedKey, reset-git-hub-key: resetGitHubKey,
-   shared-key: sharedKey, git-hub-key: gitHubKey, create: createProject,
-   list-ssh-instances: listSSHAbleInstances, destroy: pmDestroy},
- pr: {create: prCreate, destroy: prDestroy},
- deployment: {create: pmCreateDeployment, destroy: pmDestroyDeployment}}}
+ * @returns {}
  */
 function getCommands(config) {
   STATE.config = config;

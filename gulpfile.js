@@ -18,7 +18,7 @@ gulp.task('test', ['test-unit']);
 
 gulp.task('jsdoc', function jsDoc() {
   // Finally execute your script below - here 'ls -lA'
-  var child = spawn('npm', ['run', 'doc'], {cwd: process.cwd()});
+  var child = spawn('npm', ['run', 'doc-api'], {cwd: process.cwd()});
 
   child.stdout.setEncoding('utf8');
 

@@ -145,7 +145,7 @@ function initStage2(doOffline) {
 
 /**
  * @param {boolean=} doOffline
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function configUserLoginAndInit(doOffline) {
   return userCLI
@@ -156,7 +156,7 @@ function configUserLoginAndInit(doOffline) {
 /**
  * @param {boolean=} doOffline
  * @param {{ credentials: { user: string } }} user
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function loginAndInit(doOffline, user) {
   console.log('');
