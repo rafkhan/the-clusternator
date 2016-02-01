@@ -7,5 +7,8 @@ categories: blog
 
 The Clusternator now has a blog. This blog is part of the documentation
 project.  This site will also serve to host the documentation for The 
-Clusternator.
+Clusternator.  There is primitive [API Documentation][api] that is auto
+generated on prepublish.
+
+[api]: {{ site.baseurl }}/api/ "Clusternator API"
 
