@@ -1,4 +1,13 @@
 'use strict';
+/**
+ * This module is a middleware that sits between {@link module:api/'0.1'/cli}
+ and {@link module:api/'0.1'/clusternator} as well as the relevant cloudService
+ API.
+
+ This module largely deals with prompting the user for info on how to build a
+ project
+ * @module api/'0.1'/cli/project
+ */
 
 const NOT_AUTHENTICATED = 401;
 const DOCKER_IGNORE = '.dockerignore';
@@ -9,7 +18,7 @@ const Q = require('q');
 
 const userCLI = require('./user');
 
-const fs = require('../project-fs/fs');
+const fs = require('../project-fs/projectFs');
 const initProject = require('../project-fs/init');
 
 const privateFs = require('../project-fs/private');
@@ -136,7 +145,7 @@ function initStage2(doOffline) {
 
 /**
  * @param {boolean=} doOffline
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function configUserLoginAndInit(doOffline) {
   return userCLI
@@ -147,7 +156,7 @@ function configUserLoginAndInit(doOffline) {
 /**
  * @param {boolean=} doOffline
  * @param {{ credentials: { user: string } }} user
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function loginAndInit(doOffline, user) {
   console.log('');

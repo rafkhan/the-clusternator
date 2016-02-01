@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module manages the installation of clusternator scripts into a project's
+ * file system
+ *
+ * @module api/'0.1'/projectFs/clusternatorScripts
+ */
 
 const SERVE_SH = 'serve.sh';
 const DECRYPT_SH = 'decrypt.sh';
@@ -9,12 +15,12 @@ const HOST = /\$HOST/g;
 
 const Q = require('q');
 
-const fs = require('./fs');
+const fs = require('./projectFs');
+const circle = require('./circle-ci');
 const cmn = require('../common');
 
 const util = cmn.src('util');
 const constants = cmn.src('constants');
-const circle = cmn.src('circle-ci');
 
 module.exports = {
   init: initializeScripts,

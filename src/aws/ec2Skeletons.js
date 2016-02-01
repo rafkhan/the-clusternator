@@ -1,3 +1,8 @@
+/**
+ * Prototypes for assembling AWS ec2 entities
+ *
+ * @module aws/ec2Skeletons
+ */
 module.exports = Object.freeze({
   SECURITY_GROUP: {
     GroupName: '',

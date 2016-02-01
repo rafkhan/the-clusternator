@@ -1,3 +1,9 @@
+'use strict';
+/**
+ * This module encapsulates function that initialize a project's file system
+ *
+ * @module api/'0.1'/projectFs/init
+ */
 const Q = require('q');
 
 const deploymentsFs = require('./deployments');

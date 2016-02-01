@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Tagging functions for AWS EC2
+ *
+ * @module aws/ec2/tag
+ */
 
 module.exports = {
   create,

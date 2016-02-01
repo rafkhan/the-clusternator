@@ -26,10 +26,15 @@
     "start": "node ./server-init.js",
     "staging": "NODE_ENV=staging; node ./server-init.js",
     "dev": "NODE_ENV=debug; nodemon ./server-init.js",
+    "watch": "gulp watch",
     "test": "gulp test-unit",
     "build": "gulp transpile",
-    "graph": "echo 'Requires GraphViz (If it is not already installed)'; madge --exclude \"node_modules|bin-src|lib|path|spec|coverage|tmp|examples\"  --image coverage/clusternator-graph.png ./",
-    "docker-build": "npm run build && docker build -t rafkhan/clusternator-test ."
+    "doc": "npm run doc-api; jekyll build -s ./docs -d ./docs/_site",
+    "doc-dev": "concurrent \"npm run doc-dev-serve\" \"npm run watch\"",
+    "doc-dev-serve": "jekyll serve -s ./docs -d ./docs/_site --drafts",
+    "doc-publish": "./bin/publish-docs.sh",
+    "doc-api": "jsdoc -c ./js-doc.json",
+    "graph": "echo 'Requires GraphViz (If it is not already installed)'; madge --exclude \"node_modules|bin-src|lib|path|spec|coverage|tmp|examples\"  --image coverage/clusternator-graph.png ./"
   },
   "repository": {
     "type": "git",
@@ -76,6 +81,7 @@
   },
   "devDependencies": {
     "chai": "^3.4.0",
+    "concurrently": "^1.0.0",
     "eslint": "^1.8.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.3.0",
@@ -83,6 +89,8 @@
     "gulp-istanbul": "^0.10.2",
     "gulp-mocha": "^2.1.3",
     "gulp-plumber": "^1.0.1",
+    "gulp-util": "^3.0.7",
+    "jsdoc": "^3.4.0",
     "madge": "^0.5.3",
     "mocha": "^2.3.3",
     "mock-fs": "^3.6.0",

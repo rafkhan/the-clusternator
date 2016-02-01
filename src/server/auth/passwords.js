@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Password management system for the server
+ *
+ * @module server/passwords
+ */
 
 /*global require, module*/
 

@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Simplifies dealing with AWS's ECS taskServices
+ *
+ * @module aws/taskServiceManager
+ */
 
 const SERVICE_POLL_DELAY = 15000;
 

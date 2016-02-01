@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module deals with installing/removing a project's local git hooks
+ *
+ * @module api/'0.1'/projectFs/gitHooks
+ */
 
 const NEWLINE = '\n';
 const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
@@ -8,7 +13,7 @@ const SHELL_DIR = 'DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"';
 const path = require('path');
 const Q = require('q');
 
-const fs = require('./fs');
+const fs = require('./projectFs');
 const clusternatorJson = require('./clusternator-json');
 const cn = require('../js/js-api');
 

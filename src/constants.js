@@ -1,4 +1,7 @@
 'use strict';
+/**
+ * @module constants
+ */
 
 const CLUSTERNATOR_PREFIX = 'clusternator';
 const DELIM = '-';

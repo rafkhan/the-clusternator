@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * User management system for the server
+ *
+ * @module server/users
+ */
 
 /*global require, module*/
 

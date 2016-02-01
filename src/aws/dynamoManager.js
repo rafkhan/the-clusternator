@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Encapsulates AWS DynamoDB Functionality
+ *
+ * @module aws/dynamoManager
+ */
 
 const q = require('q');
 const R = require('ramda');

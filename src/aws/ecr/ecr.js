@@ -1,8 +1,13 @@
 'use strict';
+/**
+ * Interface for managing AWS ECR functions (Private Docker Registries)
+ *
+ * @module aws/ecr
+ */
 
 const common = require('../common');
 const util = require('../../util');
-const rid = require('../../resourceIdentifier');
+const rid = require('../../resource-identifier');
 
 module.exports = {
   create,

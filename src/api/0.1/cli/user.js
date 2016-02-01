@@ -1,4 +1,12 @@
 'use strict';
+/**
+ * This module is a middleware that sits between {@link module:api/'0.1'/cli}
+ and {@link module:api/'0.1'/clusternator}
+
+ This module manages/organizes user input for user management, and passes it to
+ {@link module:api/'0.1'/clusternator}
+ * @module api/'0.1'/cli/cloudService
+ */
 
 const Q = require('q');
 const cmn = require('../common');

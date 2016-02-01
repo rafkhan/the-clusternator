@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module provides promise based shortcuts to the `docker` command
+ *
+ * @module childProcess/docker
+ */
 
 const COMMAND = 'docker';
 const FLAG_BUILD = 'build';

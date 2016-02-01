@@ -1,6 +1,11 @@
 'use strict';
+/**
+ * Functions common to all aws/* modules
+ *
+ * @module aws/common
+ */
 const constants = require('../constants');
-const rid = require('../resourceIdentifier');
+const rid = require('../resource-identifier');
 const Q = require('q');
 
 /**

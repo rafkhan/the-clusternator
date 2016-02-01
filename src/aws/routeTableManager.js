@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Simplifies dealing with AWS VPC route tables
+ *
+ * @module aws/routeTableManager
+ */
 
 const constants = require('../constants');
 const util = require('../util');

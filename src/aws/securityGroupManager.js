@@ -1,10 +1,15 @@
 'use strict';
+/**
+ * Simplifies AWS EC2/VPC securityGroups
+ *
+ * @module aws/securityGroupManager
+ */
 
 const Q = require('q');
 const common = require('./common');
 const skeletons = require('./ec2Skeletons');
 const util = require('../util');
-const rid = require('../resourceIdentifier');
+const rid = require('../resource-identifier');
 const constants = require('../constants');
 
 function getSecurityGroupManager(ec2, vpcId) {

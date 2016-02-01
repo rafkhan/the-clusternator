@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Encapsulates functions needed to CRUD AWS VPC ACLs
+ *
+ * @module aws/aclManager
+ */
 
 const Q = require('q');
 const skeletons = require('./ec2Skeletons');

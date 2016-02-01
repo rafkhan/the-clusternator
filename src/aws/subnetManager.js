@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Simplifies dealing with AWS VPC subnets
+ *
+ * @module aws/subnetManager
+ */
 
 const Q = require('q');
 const util = require('../util');

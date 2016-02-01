@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * The Clusternator server
+ *
+ * @module server
+ */
 
 const LOGIN_PATH = '/login';
 const PRODUCTION = 'production';

@@ -1,10 +1,16 @@
 'use strict';
+/**
+ * This module is seemingly deprecated
+ * @module circleCIClient
+ * @deprecated
+ * @todo determine if this can be deleted
+ */
 
 var fs = require('fs');
 var q = require('q');
 var R = require('ramda');
 var request = require('superagent');
-var resourceId = require('../resourceIdentifier');
+var resourceId = require('../resource-identifier');
 
 var clusternateEndpoint = '/clusternate';
 

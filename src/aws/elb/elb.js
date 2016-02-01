@@ -1,6 +1,10 @@
 'use strict';
+/**
+ * Interface to AWS ELB wrappers (Elastic Load Balancing)
+ *
+ * @module aws/elb
+ */
 
-const R = require('ramda');
 const constants = require('../../constants');
 const tag = require('./elb-tag.js');
 const pListeners = require('./port-listener');
@@ -91,7 +95,7 @@ function elbPrId(projectId, pr) {
 /**
  * @param {string} certId
  * @param {boolean=} useInternalSSL
- * @returns {*[]}
+ * @returns {Array}
  */
 function defaultListeners(certId, useInternalSSL) {
   return [
@@ -148,12 +152,12 @@ function createPr(aws, projectId, pr, subnet, securityGroup, certId,
 
 /**
  * @param {AwsWrapper} aws
- * @param {ElbPortListener[]=} listeners
+ * @param {Array.<ElbPortListener>=} listeners
  * @param {string[]} subnets
  * @param {string[]} securityGroups
  * @param {string} loadBalancerId
- * @param {ElbTag[]=}tags
- * @returns {Q.Promise}
+ * @param {Array.<ElbTag>=}tags
+ * @returns {Promise}
  */
 function create(aws, listeners, subnets, securityGroups, loadBalancerId, tags) {
   tags = Array.isArray(tags) ? tags : [];
@@ -280,7 +284,7 @@ function describeTags(aws, loadBalancerIds) {
  * @param {AwsWrapper} aws
  * @param {string} loadBalancerId
  * @param {string[]} instances
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function registerInstances(aws, loadBalancerId, instances) {
   if (!Array.isArray(instances)) {

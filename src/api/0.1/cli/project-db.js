@@ -1,4 +1,11 @@
 'use strict';
+/**
+ * This module is a middleware that sits between {@link module:api/'0.1'/cli}
+ and {@link module:api/'0.1'/clusternator}
+
+ This module deals with helping the user manage their project databases
+ * @module api/'0.1'/cli/projectDb
+ */
 
 const cmn = require('../common');
 const util = cmn.src('util');

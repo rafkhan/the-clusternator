@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Sets up a ProjectManager
+ *
+ * @module aws/projectInit
+ */
 
 const awsProjectManager = require('./projectManager');
 

@@ -1,7 +1,12 @@
 'use strict';
+/**
+ * This module has functions relating to managing deployment files
+ *
+ * @module api/'0.1'/projectFs/deployments
+ */
 
 const Q = require('q');
-const fs = require('./fs');
+const fs = require('./projectFs');
 const cmn = require('../common');
 
 const util = cmn.src('util');

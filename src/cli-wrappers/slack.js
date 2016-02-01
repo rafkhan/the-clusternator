@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module provides shortcuts to a slack post script located in
+ * `the-clusternator/bin`
+ *
+ * @module childProcess/slack
+ */
 
 const path = require('path');
 const config = require('../config')();

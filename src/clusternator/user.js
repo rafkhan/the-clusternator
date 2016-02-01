@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Interface between the CLI, and remote REST API
+ *
+ * @module clusternator/user
+ */
 
 const makePostRequest = require('./common').makePostRequest;
 const Q = require('q');

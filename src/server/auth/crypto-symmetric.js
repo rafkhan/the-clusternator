@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Symmetric encryption module (wraps node crypto)
+ *
+ * @module server/cryptoSymmetric
+ */
 
 const crypto = require('crypto');
 const ALGO = 'aes-256-ctr';

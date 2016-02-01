@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * This is a shell script stub that references {@link module:api/'0.1'/cli}
+ This script serves only a basic utility purpose of loading the API the user
+ has configured.
+ * @module clusternatorCli
+ */
 
 'use strict';
 
