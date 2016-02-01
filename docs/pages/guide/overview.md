@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Overview 
-permalink: /overview/
+permalink: /guide/overview/
 ---
 The first feature that The Clusternator was designed for was auto-deployment on
 pull request from Circle CI. The process is as follows:

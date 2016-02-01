@@ -1,10 +1,10 @@
 ---
 layout: page
 title: Running Clusternator On OS X
-permalink: /os-x/
+permalink: /guide/os-x/
 ---
 
-## Requirements
+## OS X Requirements
 
 - nodejs
 - gpg
