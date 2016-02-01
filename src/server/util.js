@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Utility functions for the clusternator server
+ *
+ * @module server/util
+ */
 
 const log = require('./loggers').logger;
 

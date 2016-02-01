@@ -1,13 +1,18 @@
 'use strict';
+/**
+ * Common functions for the clusternator CLI/REST interface
+ * @module clusternator/common
+ * @type {string}
+ */
 
 const PROTOCOL_PREFIX = 'http';
 const PROTOCOL = PROTOCOL_PREFIX + 's://';
 const OKAY = 200;
+const NOT_AUTHENTICATED = 401;
 
 const Q = require('q');
 const Config = require('../config');
 const constants = require('../constants');
-const util = require('../util');
 var request = require('request');
 
 module.exports = {
@@ -21,11 +26,16 @@ module.exports = {
   }
 };
 
+/**
+ * @returns {Object|Error}
+ */
 function getUserConfig() {
   const config = Config();
   if (!config.user || !config.user.credentials) {
-    throw new Error(
+    let e = new Error(
       'No clusternator user credentials found.  Try clusternator login');
+    e.code = NOT_AUTHENTICATED;
+    return e;
   }
   return config.user;
 }
@@ -75,42 +85,85 @@ function buildURI(endpoint, user) {
 }
 
 /**
- * @param {string} verb
- * @param {string} endpoint
- * @param {*=} data
- * @param {boolean=} noToken
- * @returns {{ method: string, uri: string, gzip: boolean, json: Object }}
+ * @param {boolean} useToken
+ * @param {{ credentials: { token: string} }} user
+ * @returns {Object}
  */
-function makeRequestObject(verb, endpoint, data,  noToken) {
-  const user = getUserConfig();
-  const uri = buildURI(endpoint, user);
-  warnNoEncryption(uri);
-  let headers;
-  if (noToken) {
-    headers = {};
-  } else {
-    headers = {
+function makeHeaders(useToken, user) {
+  if (useToken) {
+    return {
       Authorization: 'Token ' + user.credentials.token
     };
+  } else {
+    return {};
   }
-  if (verb === 'PUT' || verb === 'POST') {
-    data = data || null;
-    return {
+}
+
+/**
+ * @param {string} verb
+ * @param {string} uri
+ * @param {*} data
+ * @param {Object} headers
+ * @returns {{method: string, uri: string, gzip: boolean, json: Object,
+  headers: Object}}
+ */
+function makePutPostReqObject(verb, uri, data, headers) {
+  return {
       method: verb,
       uri: uri,
       gzip: true,
       json: data,
       headers: headers
     };
-  }
+}
+
+/**
+ * @param {string} uri
+ * @param {Object} headers
+ * @returns {{method: string, uri: string, gzip: boolean, headers: Object}}
+ */
+function makeGetRequestObject(uri, headers) {
   return {
-    method: verb,
+    method: 'GET',
     uri: uri,
     gzip: true,
-    headers: {
-      Authorization: 'Token ' + user.credentials.token
-    }
+    headers: headers
   };
+}
+
+/**
+ * @param {string} verb
+ * @param {string} endpoint
+ * @param {*=} data
+ * @param {boolean=} useToken defaults true
+ * @returns {{ method: string, uri: string, gzip: boolean,
+ json: Object= }|Error}
+ */
+function makeRequestObject(verb, endpoint, data,  useToken) {
+  useToken = useToken === false ? false : true;
+  const user = getUserConfig();
+  if (user instanceof Error) {
+    return user;
+  }
+  const uri = buildURI(endpoint, user);
+
+  warnNoEncryption(uri);
+
+  let headers = makeHeaders(useToken, user);
+
+  if (useToken) {
+    if (!user.credentials.token) {
+      let e = new Error('No saved token')
+      e.code = NOT_AUTHENTICATED;
+      return e;
+    }
+  }
+
+  if (verb === 'PUT' || verb === 'POST') {
+    data = data || null;
+    return makePutPostReqObject(verb, uri, data, headers);
+  }
+  return makeGetRequestObject(uri, headers);
 }
 
 /**
@@ -156,15 +209,25 @@ function failResponse(body, statusCode) {
  * @param {string} verb
  * @param {string} endpoint
  * @param {*=} data
- * @param {boolean=} noToken defaults to false, if true, won't use token
+ * @param {boolean=} useToken defaults to true, if false, won't use token
  * @returns {Q.Promise}
  */
-function makeRequest(verb, endpoint, data, noToken) {
-  var d = Q.defer();
+function makeRequest(verb, endpoint, data, useToken) {
+  let d = Q.defer();
+  const reqObject  = makeRequestObject(verb, endpoint, data, useToken);
+  if (reqObject instanceof Error) {
+    d.reject(reqObject);
+    return d.promise;
+  }
   request(
-    makeRequestObject(verb, endpoint, data, noToken),
+    reqObject,
     (error, response, body) => {
       if (error) {
+        if (error.message.indexOf('ENOTFOUND') >= 0) {
+          d.reject(new Error(`Address ${reqObject.uri} not found (Domain not ` +
+            'found): Please ensure your clusternator server exists'));
+          return;
+        }
         d.reject(error);
         return;
       }
@@ -181,20 +244,20 @@ function makeRequest(verb, endpoint, data, noToken) {
 /**
  * @param {string} endpoint
  * @param {*=} data
- * @param {boolean=} noToken
+ * @param {boolean=} useToken
  * @returns {Q.Promise}
  */
-function makePostRequest(endpoint, data, noToken) {
-  return makeRequest('POST', endpoint, data, noToken);
+function makePostRequest(endpoint, data, useToken) {
+  return makeRequest('POST', endpoint, data, useToken);
 }
 
 /**
  * @param {string} endpoint
- * @param {boolean=} noToken
+ * @param {boolean=} useToken
  * @returns {Q.Promise}
  */
-function makeGetRequest(endpoint, noToken) {
-  return makeRequest('GET', endpoint, null, noToken);
+function makeGetRequest(endpoint, useToken) {
+  return makeRequest('GET', endpoint, null, useToken);
 }
 
 function normalizeEndSlash(host) {

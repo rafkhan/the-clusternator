@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Primary interface for dealing with AWS resources
+ *
+ * @module aws/projectManager
+ */
 
 const Subnet = require('./subnetManager');
 const ecrWrap = require('./ecr/ecr');
@@ -11,7 +16,6 @@ const Pr = require('./prManager');
 const Ec2 = require('./ec2Manager');
 const Deployment = require('./deploymentManager');
 const DynamoManager = require('./dynamoManager');
-const gpg = require('../cli-wrappers/gpg');
 const constants = require('../constants');
 const util = require('../util');
 const Q = require('q');
@@ -173,22 +177,19 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   /**
    * @param {string} projectId
    * @param {string} dep
-   * @param {string} sha
    * @param {Object} appDef
    * @returns {Q.Promise}
    */
-  function createDeployment(projectId, dep, sha, appDef) {
-    console.log('sha', sha);
+  function createDeployment(projectId, dep, appDef) {
     return state()
       .then((s) => findOrCreateProject(projectId)
       .then((snDesc) => s
-        .deployment.create(projectId, dep, sha, appDef )));
+        .deployment.create(projectId, dep, appDef )));
   }
 
   /**
    * @param {string} projectId
    * @param {string} dep
-   * @param {string} sha
    * @returns {Q.Promise}
    */
   function destroyDeployment(projectId, dep) {
@@ -294,7 +295,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   function listSSHAbleInstances(projectId) {
     return state()
       .then((s) => s
-        .ec2mgr.describeProject(projectId)
+        .ec2Mgr.describeProject(projectId)
         .then((instances) => instances
           .map(mapEc2ProjectDetails)));
   }

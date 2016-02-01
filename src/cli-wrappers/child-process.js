@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module contains a variety of generic promise wrapped
+ `node.child_process.spawn` commands
+
+ * @module childProcess
+ */
 
 const  R = require('ramda'),
   Q = require('q');
@@ -49,11 +55,31 @@ function failString(command, args, code, stderr) {
 }
 
 /**
+ * @param {string} command
+ * @param {string[]} args
+ * @param {number} code
+ * @param {string=} stderr
+ * @returns {Error}
+ */
+function failError(command, args, code, stderr) {
+  util.verbose('Failed: ', command, args, code, stderr);
+
+  code = parseInt(code, 10);
+  stderr = stderr || '';
+
+  const errString = failString(command, args, code, stderr);
+  const e = new Error(errString);
+  e.code = code;
+
+  return e;
+}
+
+/**
  * Resolves stdout, rejects with stderr, also streams
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise<string>}
+ * @returns {Promise<string>}
  */
 function output(command, args, opts) {
   args = args || [];
@@ -77,10 +103,10 @@ function output(command, args, opts) {
   });
 
   child.on('close', (code) => {
-    util.verbose(successString(command, args, code));
     if (+code) {
-      d.reject(new Error(failString(command, args, code, stderr)));
+      d.reject(failError(command, args, code, stderr));
     } else {
+      util.verbose(successString(command, args, code));
       d.resolve(stdout.trim());
     }
   });
@@ -93,9 +119,9 @@ function output(command, args, opts) {
 /**
  * Does not resolve stdout, but streams, and resolves stderr
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function quiet(command, args, opts) {
   args = args || [];
@@ -116,11 +142,10 @@ function quiet(command, args, opts) {
   });
 
   child.on('close', (code) => {
-    util.verbose(successString(command, args, code));
     if (+code) {
-      d.reject(
-        new Error(failString(command, args, code, stderr)));
+      d.reject(failError(command, args, code, stderr));
     } else {
+      util.verbose(successString(command, args, code));
       d.resolve();
     }
   });
@@ -133,9 +158,9 @@ function quiet(command, args, opts) {
 /**
  * Only streams stdout/stderr, no output on resolve/reject
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function stream(command, args, opts) {
   args = args || [];
@@ -155,10 +180,10 @@ function stream(command, args, opts) {
   });
 
   child.on('close', (code) => {
-    util.verbose(successString(command, args, code));
     if (+code) {
-      d.reject(new Error(failString(command, args, code)));
+      d.reject(failError(command, args, code));
     } else {
+      util.verbose(successString(command, args, code));
       d.resolve();
     }
   });
@@ -171,9 +196,9 @@ function stream(command, args, opts) {
 /**
  * Stdio inherits, meaning that the given command takes over stdio
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function inherit(command, args, opts) {
   args = args || [];
@@ -184,10 +209,10 @@ function inherit(command, args, opts) {
     child = spawn(command, args, options);
 
   child.on('close', (code) => {
-    util.verbose(successString(command, args, code));
     if (+code) {
-      d.reject(new Error(failString(command, args, code)));
+      d.reject(failError(command, args, code));
     } else {
+      util.verbose(successString(command, args, code));
       d.resolve();
     }
   });
@@ -199,9 +224,9 @@ function inherit(command, args, opts) {
  * like output, but puts stdin in as stdin
  * @param {string} stdin
  * @param {string} command
- * @param {string[]=} args
+ * @param {Array.<string>=} args
  * @param {Object=} opts
- * @returns {Q.Promise<string>}
+ * @returns {Promise<string>}
  */
 function stdin(stdin, command, args, opts) {
   stdin = stdin || '';
@@ -225,7 +250,7 @@ function stdin(stdin, command, args, opts) {
 
   child.on('close', (code) => {
     if (+code) {
-      d.reject(failString(command, args, code, stderr));
+      d.reject(failError(command, args, code, stderr));
     } else {
       d.resolve(stdout);
     }

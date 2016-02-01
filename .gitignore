@@ -30,3 +30,9 @@ gpg-pass.txt
 
 # clusternator ignores
 clusternator.tar.gz
+
+# Jekyyl Site
+_site
+.sass-cache
+.jekyll-metadata
+docs/api

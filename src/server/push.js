@@ -1,9 +1,14 @@
 'use strict';
+/**
+ * Handler for GitHub push events
+ *
+ * @module server/gitHubPush
+ */
 
 const R = require('ramda');
 
 var serverUtil = require('./util');
-var resourceId = require('../resourceIdentifier');
+var resourceId = require('../resource-identifier');
 var log = require('./loggers').logger;
 var util = require('../util');
 

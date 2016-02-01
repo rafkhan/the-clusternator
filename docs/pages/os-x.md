@@ -1,5 +1,8 @@
-Clusternator On OS X
-====================
+---
+layout: page
+title: Running Clusternator On OS X
+permalink: /os-x/
+---
 
 ## Requirements
 

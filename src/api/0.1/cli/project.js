@@ -1,28 +1,44 @@
 'use strict';
+/**
+ * This module is a middleware that sits between {@link module:api/'0.1'/cli}
+ and {@link module:api/'0.1'/clusternator} as well as the relevant cloudService
+ API.
 
+ This module largely deals with prompting the user for info on how to build a
+ project
+ * @module api/'0.1'/cli/project
+ */
+
+const NOT_AUTHENTICATED = 401;
 const DOCKER_IGNORE = '.dockerignore';
 const GIT_IGNORE = '.gitignore';
 const NPM_IGNORE = '.npmignore';
 
 const Q = require('q');
 
-const fs = require('../project-fs/fs');
+const userCLI = require('./user');
+
+const fs = require('../project-fs/projectFs');
 const initProject = require('../project-fs/init');
 
 const privateFs = require('../project-fs/private');
 const cn = require('../js/js-api');
 const gitHooks = require('../project-fs/git-hooks');
+const clusternatorJson = require('../project-fs/clusternator-json');
 const cmn = require('../common');
 
 const Config = cmn.src('config');
 const util = cmn.src('util');
-const clusternatorJson = require('../project-fs/clusternator-json');
 
 module.exports = {
   init
 };
 
-class ClusternatedError extends Error {}
+class ClusternatedError extends Error {
+  constructor(message) {
+    super(message);
+  }
+}
 
 /**
  * @param {Object} answers
@@ -119,9 +135,35 @@ function initStage2(doOffline) {
         util.info('Project is already clusternated (clusternator.json exists)');
         return;
       }
+      if (+err.code === NOT_AUTHENTICATED) {
+        throw err;
+      }
       util.info('Clusternator: Initialization Error: ' + err.message);
       util.info(err.stack);
     });
+}
+
+/**
+ * @param {boolean=} doOffline
+ * @returns {Promise}
+ */
+function configUserLoginAndInit(doOffline) {
+  return userCLI
+    .checkConfiguredAndLoggedIn()
+    .then(() => initStage2(doOffline));
+}
+
+/**
+ * @param {boolean=} doOffline
+ * @param {{ credentials: { user: string } }} user
+ * @returns {Promise}
+ */
+function loginAndInit(doOffline, user) {
+  console.log('');
+  console.log('No access token stored locally.  Please login');
+  return userCLI
+      .login(user.credentials.user)
+      .then(() => initStage2(doOffline));
 }
 
 /**
@@ -129,12 +171,23 @@ function initStage2(doOffline) {
  * @returns {Q.Promise}
  */
 function init(doOffline) {
-  if (Config().user) {
-    return initStage2(doOffline);
+  const user = Config().user;
+  if (user && user.credentials && user.credentials.token ) {
+    return initStage2(doOffline)
+      .fail((err) => {
+        if (+err.code === NOT_AUTHENTICATED) {
+          console.log('');
+          console.log('Invalid credentials found, please login');
+          console.log('');
+          return userCLI
+            .login()
+            .then(() => initStage2(doOffline));
+        }
+      });
+  } else if (user && user.credentials) {
+    return loginAndInit(doOffline, user);
   } else {
-    return Config
-      .interactiveUser()
-      .then(() => initStage2(doOffline));
+    return configUserLoginAndInit(doOffline);
   }
 }
 

@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Types for managing AWS EC2 SecurityGroups IP Permissions
+ *
+ * @module aws/ec2/sg/ipPermissions
+ */
 
 module.exports = {
   create

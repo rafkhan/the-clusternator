@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Clusternator REST API's CLI projectManager interface
+ *
+ * @module clusternator/projectManager
+ */
 
 const Q = require('q');
 const constants = require('../constants');

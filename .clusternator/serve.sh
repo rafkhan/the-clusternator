@@ -12,8 +12,9 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # change to this directory
 cd $DIR
+cd ..
 
-# mkdir for certs
+# mkdir for certs (lets encrypt)
 mkdir -p .private/live/${HOST}
 touch .private/live/${HOST}/privkey.pem
 touch .private/live/${HOST}/fullchain.pem
@@ -29,9 +30,6 @@ if [ -e ./$ENCRYPTED_TARBALL ]; then
   # extract the configuration tarball
   echo "Extracting Configuration Tarball"
   tar xfz ./$TARBALL
-
-  # run docker login (Clusternator only)
-  ./.private/docker-login.sh
 fi
 
 

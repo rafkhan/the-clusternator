@@ -1,10 +1,16 @@
 'use strict';
+/**
+ * This module encapsulates file system commands relating to Docker, and
+ * Dockerfiles
+ *
+ * @module api/'0.1'/projectFs/docker
+ */
 const DOCKERFILE = 'Dockerfile';
-const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-14.04-4.2.3';
+const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-latest';
 const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 
-const fs = require('./fs');
+const fs = require('./projectFs');
 const privateFs = require('./private');
 
 const cmn = require('../common');
@@ -12,7 +18,6 @@ const cmn = require('../common');
 const docker = cmn.src('cli-wrappers', 'docker');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
-const clusternatorJson = require('./clusternator-json');
 
 module.exports = {
   init: initializeDockerFile,

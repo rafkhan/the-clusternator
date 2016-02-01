@@ -1,20 +1,27 @@
 'use strict';
+/**
+ * @module server/authentication
+ */
 
 /*global require, __dirname, module */
 
 // sets up, and initializes authentication
-var LocalStrategy = require('passport-local').Strategy;
-var HeaderStrategy = require('passport-http-header-token').Strategy;
-var Config = require('../../config');
-var passport = require('passport');
-var users = require('./users');
-var passwords = require('./passwords');
-var logger = require('../loggers').logger;
-var tokens = require('./tokens');
+const LocalStrategy = require('passport-local').Strategy;
+const HeaderStrategy = require('passport-http-header-token').Strategy;
+const Config = require('../../config');
+const passport = require('passport');
+const logger = require('../loggers').logger;
+const constants = require('../../constants');
 
-var config = Config();
+let users = require('./users');
+let passwords = require('./passwords');
+let tokens = require('./tokens');
 
-function init(app) {
+let config = Config();
+let app = null;
+
+function init(appObj) {
+  app = appObj;
   passport.use('login-local', new LocalStrategy(authLocal));
   passport.use('auth-header', new HeaderStrategy({}, authToken));
   app.use(passport.initialize());
@@ -27,7 +34,13 @@ function authToken(token, done) {
   logger.info('authToken');
   tokens.verify(token).then(() => {
     logger.info('authToken: verified');
-    return users.find(tokens.userFromToken(token)).then((user) => {
+    const user = tokens.userFromToken(token);
+    if (user.indexOf(constants.PROJECT_USER_TAG) === 0) {
+      return app.locals.projectDb
+        .find(user.slice(constants.PROJECT_USER_TAG.length))
+        .then({ id: constants.PROJECT_USER_TAG, authority: 0 });
+    }
+    return users.find(user).then((user) => {
       logger.verbose('authToken: user found');
       done(null, user);
     });
@@ -47,34 +60,43 @@ function authLocal(user, pass, done) {
   });
 }
 
+/**
+ * @param {Error|null} err
+ * @param {Object} res
+ * @param {Object} user
+ */
+function afterLogin(err, res, user) {
+  logger.debug('Authenticate User Post Login');
+  if (err) {
+    res.status(500).json({ error: true });
+  } else {
+    tokens
+      .clear(user.id)
+      .then(() => tokens
+        .create(user.id)
+        .then((token) => {
+          user.token = token;
+          res.json(user);
+        }))
+      .fail((err) => res.status(500).json({ error: err.message }));
+  }
+}
+
 function authenticateUserEndpoint(req, res, next) {
   logger.debug('Authenticate User Start');
-  passport.authenticate('login-local', (err, user, info) => {
+  passport.authenticate('login-local', (err, user) => {
     logger.debug('Authenticate User Post Passport');
     if (err) {
-      res.status(500).json({error: true });
+      logger.error(err.message);
+      res.status(500).json({ error: true });
       return;
     }
     if (!user) {
+      logger.error('User not found');
       res.sendStatus(401);
       return;
     }
-    req.logIn(user, (err) => {
-      logger.debug('Authenticate User Post Login');
-      if (err) {
-        res.status(500).json({error: true});
-      } else {
-        tokens
-          .clear(user.id)
-          .then(() => tokens
-            .create(user.id)
-            .then((token) => {
-              user.token = token;
-              res.json(user);
-            }))
-          .fail((err) => res.status(500).json({ error: err.message }));
-      }
-    });
+    req.logIn(user, afterLogin(err, res, user));
   })(req, res, next);
 }
 

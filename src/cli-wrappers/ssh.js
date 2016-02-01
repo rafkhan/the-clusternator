@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module provides promise based shortcuts to the `ssh` command
+ *
+ * @module childProcess/ssh
+ */
 
 const COMMAND = 'ssh';
 const USER = 'ec2-user@';

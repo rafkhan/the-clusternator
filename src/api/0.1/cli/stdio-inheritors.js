@@ -1,7 +1,14 @@
 'use strict';
+/**
+ * This module is an "endware" that serves {@link module:api/'0.1'/cli}
+ * this module provides functions that are designed to inherit the current STDIO
+ * and eventually end/die, often with Ctrl-c
+ *
+ * @module api/'0.1'/cli/stdioInheritors
+ */
 
 const Q = require('q');
-const fs = require('../project-fs/fs');
+const fs = require('../project-fs/projectFs');
 const path = require('path');
 const mkdirp = Q.nfbind(require('mkdirp'));
 
@@ -62,12 +69,28 @@ function sshShell() {
     .done();
 }
 
+/**
+ * @param {Error} err
+ */
+function logFail(err) {
+  const code = +err.code;
+  if (code === 1) {
+    console.log('');
+    console.log('Error: Can connect to host, but cannot find Docker container:');
+    console.log('Try manually debugging using "clusternator ssh"');
+  }  else {
+    console.log(`Error: ${err.message}`);
+  }
+}
+
 function logApp() {
   return remoteFn(logRemote.logApp)
+    .fail(logFail)
     .done();
 }
 
 function logEcs() {
   return remoteFn(logRemote.logEcs)
+    .fail(logFail)
     .done();
 }

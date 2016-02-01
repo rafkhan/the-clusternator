@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Logger configuration for The Clusternator server
+ *
+ * @module server/loggers
+ */
 
 var winston = require('winston');
 var expressWinston = require('express-winston');

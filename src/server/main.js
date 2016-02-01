@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * The Clusternator server
+ *
+ * @module server
+ */
 
 const LOGIN_PATH = '/login';
 const PRODUCTION = 'production';
@@ -13,6 +18,7 @@ const express = require('express');
 const Config = require('../config');
 const waitFor = require('../util').waitFor;
 const loggers = require('./loggers');
+const Projects = require('./db/projects');
 const log = loggers.logger;
 const prHandler = require('./pullRequest');
 const getProjectManager = require('../aws/project-init');
@@ -69,12 +75,12 @@ function hostInfo() {
     `Cores: ${os.cpus().length}`);
 }
 
-function initExpress(app) {
+function initExpress(app, db) {
   /**
    *  @todo the authentication package could work with a "mount", or another
    *  mechanism that is better encapsulated
    */
-  authentication.init(app);
+  authentication.init(app, db);
 
   app.use(compression());
   app.use(express['static'](
@@ -89,6 +95,7 @@ function createServer(pm, config) {
   hostInfo();
   const app = express();
   const leApp = startSSL(app, config);
+  app.locals.projectDb = Projects(config, pm);
   instanceReaper.start();
 
   initExpress(app);

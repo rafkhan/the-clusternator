@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * Authentication layer/execution layer that sits between {@link module:server}
+ * and {@link module:api/'0.1'/rest}
+ *
+ * @module server/'api-0.1'
+ */
 
 const constants = require('../../constants');
 const API = constants.DEFAULT_API_VERSION;
@@ -8,7 +14,7 @@ const R = require('ramda');
 
 const Config = require('../../config');
 const logger = require('../loggers').logger;
-var getCommands = require('../../api')[API].rest;
+var getCommands = require(`../../api/${API}/rest/rest-api`);
 var auth = require('../auth/authorities');
 var curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
 
@@ -51,8 +57,8 @@ function getPFail(res) {
 /**
  * @param {Resource} res
  */
-function noAuth(res) {
-  res.status(401).json({ error: 'Not Authorized'});
+function noAuthority(res) {
+  res.status(403).json({ error: 'Not Authorized'});
 }
 
 function authorizeCommand(config) {
@@ -71,7 +77,7 @@ function authorizeCommand(config) {
           return;
         }
         logger.warn(`NOT AUTHORIZED: ${req.user.id} On: ${ns}.${cmd}`);
-        noAuth(res);
+        noAuthority(res);
       }).fail(getPFail(res));
   };
 }
@@ -102,12 +108,11 @@ function executeCommand(commands) {
   };
 }
 
-
 function init(app) {
   const config = Config();
   logger.debug(`API ${API} Initializing`);
 
-  const commands = getCommands(config);
+  const commands = getCommands(config, app.locals.projectDb);
   logger.debug(`API ${API} Got CommandObjects`);
 
   app.post(`/${API}/:namespace/:command`, [

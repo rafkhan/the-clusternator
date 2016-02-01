@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Simplifies dealing with AWS task definitions
+ *
+ * @module aws/taskDefinitionManager
+ */
 
 const common = require('./common');
 const util = require('../util');

@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * This module manages a project's `clusternator.json`
+ *
+ * @todo this module currently does way to much, pare it down
+ * @module api/'0.1'/projectFs/clusternatorJson
+ */
 
 /** @todo make VCS_DIR configurable */
 const VCS_DIR = '.git';
@@ -25,7 +31,7 @@ const Q = require('q');
 const path = require('path');
 const rimraf = Q.nfbind(require('rimraf'));
 
-const fs = require('./fs');
+const fs = require('./projectFs');
 
 const cmn = require('../common');
 

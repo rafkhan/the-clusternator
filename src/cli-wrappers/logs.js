@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module provides shortcuts to some log scripts in `the-clusternator/bin`
+ *
+ * @module childProcess/logs
+ */
 
 const path = require('path');
 

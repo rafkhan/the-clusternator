@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Encapsualtes functions relating to managing/deploying AWS ECS clusters
+ *
+ * @module aws/clusterManager
+ */
 
 const Q = require('q');
 const R = require('ramda');
@@ -132,13 +137,13 @@ function getClusterManager(ecs) {
 
   }
 
-  function describeDeployment(projectId, sha) {
+  function describeDeployment(projectId) {
 
   }
 
   /**
-   * @param {*<T>} o
-   * @returns {*<T>}
+   * @param {*} o
+   * @returns {*}
    */
   function identity(o) {
     return o;

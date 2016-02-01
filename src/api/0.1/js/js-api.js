@@ -1,4 +1,10 @@
 'use strict';
+/**
+ * The clusternator public JavaScript API
+ *
+ * @module api/'0.1'/clusternator
+ * @version 0.1.0
+ */
 
 const Q = require('q');
 
@@ -69,7 +75,7 @@ function getProjectGitHub(projectId) {
  * @param {string} password
  * @param {string} newPassword
  * @param {string} confirmPassword
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function changePassword(username, password, newPassword, confirmPassword) {
   if (!username || !password) {
@@ -85,7 +91,7 @@ function changePassword(username, password, newPassword, confirmPassword) {
 /**
  * @param {string} username
  * @param {string} password
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function login(username, password) {
   if (!username || !password) {
@@ -99,7 +105,7 @@ function login(username, password) {
  * @param {string} password
  * @param {string} confirm
  * @param {number=} authority
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function createUser(username, password, confirm, authority) {
   if (password !== password) {
@@ -110,7 +116,7 @@ function createUser(username, password, confirm, authority) {
 
 /**
  * @param {string} projectId
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function provisionProjectNetwork(projectId) {
   return getProjectAPI()
@@ -118,8 +124,7 @@ function provisionProjectNetwork(projectId) {
 }
 
 /**
- * @returns {{ create: function(...):Q.Promise,
-  listSSHAbleInstances: function(...)Q.Promise }}
+ * @return {{ create: function(...), listSSHAbleInstances: function(...) }}
  */
 function getProjectAPI() {
   var config = Config();
@@ -132,7 +137,7 @@ function getProjectAPI() {
 
 /**
  * @param {string} projectId
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function listSSHAbleInstances(projectId) {
   return getProjectAPI()
@@ -143,7 +148,6 @@ function listSSHAbleInstances(projectId) {
  * @param {string} name
  * @param {string} projectId
  * @param {Object} deploymentDesc
- * @param {string} sha
  */
 function deploy(name, projectId, deploymentDesc) {
   const pm = getProjectAPI();
@@ -157,8 +161,7 @@ function deploy(name, projectId, deploymentDesc) {
 /**
  * @param {string} name
  * @param {string} projectId
- * @param {string} sha
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function stop(name, projectId) {
   return getProjectAPI()
@@ -171,11 +174,10 @@ function stop(name, projectId) {
  * @param {string} name
  * @param {string} projectId
  * @param {Object} deploymentDesc
- * @param {string} sha
  */
-function update(name, projectId, deploymentDesc, sha) {
+function update(name, projectId, deploymentDesc) {
   const pm = getProjectAPI();
-  return update_(pm, projectId, deploymentDesc, name, sha)
+  return update_(pm, projectId, deploymentDesc, name)
     .fail((err) => {
       util.info('Clusternator: Error updating deployment: ' + err.message);
       util.info(err.stack);
@@ -185,7 +187,7 @@ function update(name, projectId, deploymentDesc, sha) {
 
 /**
  * @param {Object} config
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function startServer(config) {
   const server = cmn.src('server', 'main');
@@ -193,12 +195,11 @@ function startServer(config) {
 }
 
 /**
- * @param {ProjectManager} pm
+ * @param {Object} pm
  * @param {string} projectId
  * @param {string} appDefStr
  * @param {string} deployment
- * @param {string} sha
- * @returns {Request|Promise.<T>}
+ * @returns {Promise}
  * @private
  */
 function deploy_(pm, projectId, appDefStr, deployment) {
@@ -219,15 +220,14 @@ function deploy_(pm, projectId, appDefStr, deployment) {
 }
 
 /**
- * @param {ProjectManager} pm
+ * @param {Object} pm
  * @param {string} projectId
  * @param {string} appDefStr
  * @param {string} deployment
- * @param {string} sha
- * @returns {Request|Promise.<T>}
+ * @returns {Promise}
  * @private
  */
-function update_(pm, projectId, appDefStr, deployment, sha) {
+function update_(pm, projectId, appDefStr, deployment) {
   util.info('Updating deployment...');
   var appDef = util.safeParse(appDefStr);
   if (!appDef) {
@@ -237,7 +237,6 @@ function update_(pm, projectId, appDefStr, deployment, sha) {
   return pm.updateDeployment(
     projectId,
     deployment,
-    sha,
     appDef
   ).then((result) => {
     util.info('Deployment updated', result);
@@ -248,7 +247,7 @@ function update_(pm, projectId, appDefStr, deployment, sha) {
 
 
 /**
- * @returns {Q.Promise<string[]>}
+ * @returns {Promise<string[]>}
  */
 function listProjects() {
   return getProjectAPI()
@@ -257,7 +256,7 @@ function listProjects() {
 
 /**
  * @param {string} projectId
- * @returns {Q.Promise}
+ * @returns {Promise<Object[]>}
  */
 function describeServices(projectId) {
   return getProjectAPI()
@@ -267,7 +266,7 @@ function describeServices(projectId) {
 /**
  * @param {string} certId
  * @param {string} certs
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function certUpload(certId, certs) {
   return getProjectAPI()
@@ -277,7 +276,7 @@ function certUpload(certId, certs) {
 }
 
 /**
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function certList() {
   return getProjectAPI()

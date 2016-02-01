@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Simplifies dealing with AWS's VPC's
+ *
+ * @module aws/vpcManager
+ */
 
 const util = require('../util');
 const constants = require('../constants');

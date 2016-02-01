@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Tagging functions for AWS ELB
+ *
+ * @module aws/elb/tag
+ */
 
 module.exports = {
   create

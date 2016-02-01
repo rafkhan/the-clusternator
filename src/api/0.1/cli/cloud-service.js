@@ -1,7 +1,12 @@
 'use strict';
+/**
+ * This module is a middleware that sits between {@link module:api/'0.1'/cli}
+ and {@link module:api/'0.1'/clusternator}
+ * @module api/'0.1'/cli/cloudService
+ */
 
 const cn = require('../js/js-api');
-const fs = require('../project-fs/fs');
+const fs = require('../project-fs/projectFs');
 const clusternatorJson = require('../project-fs/clusternator-json');
 
 module.exports = {

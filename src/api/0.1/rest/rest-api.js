@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module is used by the server to provide a REST interface to the CLI
+ * @module api/'0.1'/rest
+ * @version 0.1.0
+ */
 
 const inspect = require('util').inspect;
 const path = require('path');
@@ -13,7 +18,6 @@ const dockernate = cmn.src('dockernate');
 const users = cmn.src('server','auth','users');
 const passwords = cmn.src('server','auth','passwords');
 const tokens = cmn.src('server','auth','tokens');
-const Projects = cmn.src('server','db','projects');
 
 const gpg = cmn.src('cli-wrappers', 'gpg');
 const slack = cmn.src('cli-wrappers','slack');
@@ -112,11 +116,11 @@ function resetData(details, repoName) {
 }
 
 /**
- * @param {{ db: { setItem: function(): Q.Promise } }} s
+ * @param {{ db: { setItem: function(): Promise }}} s
  * @param {{ gitHubKey: string, sharedKey: string }} row
  * @param {string} projectId
  * @param {string} repoName
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function resetIfFound(s, row, projectId, repoName) {
   return resetData(row, repoName)
@@ -129,10 +133,10 @@ function resetIfFound(s, row, projectId, repoName) {
 }
 
 /**
- * @param {{ db: { find: function(): Q.Promise } }} s
+ * @param {{ db: { find: function(): Promise }}} s
  * @param {string} projectId
  * @param {string} repoName
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function findOrCreate(s, projectId, repoName) {
   return s
@@ -143,7 +147,7 @@ function findOrCreate(s, projectId, repoName) {
 
 /**
  * @param {{ projectId: string }} body
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function createData(body) {
   if (!body || !body.projectId) {
@@ -372,7 +376,7 @@ function changePass(body) {
 }
 
 /**
- * @param {{ username: string, password: string, authority?: number }} body
+ * @param {{ username: string, password: string, authority: number= }} body
  */
 function createUser(body) {
   if (!body.username) {
@@ -393,11 +397,6 @@ function createUser(body) {
  * @param {{ config: Object, db: Object, pm: Object }} state
  * @returns {Q.Promise<{ config: Object, db: Object, pm: Object }>}
  */
-function initDbState(state) {
-  state.db = Projects(state.config, state.pm);
-  return state.db
-    .init.then(() => state.pm);
-}
 
 /**
  * @param {{ config: Object, db: Object, pm: Object }} state
@@ -410,15 +409,15 @@ function initPmState(state) {
 
 /**
  * @param {Object} config
+ * @param {object} projectDb
  * @returns {Q.Promise<{ config: Object, db: Object, pm: Object }>}
  */
-function init(config) {
+function init(config, projectDb) {
   const state = STATE;
   state.config = config;
-  state.db = null;
+  state.db = db;
   state.pm = null;
   return initPmState(state)
-    .then((pm) => initDbState(state))
   .then(() => state);
 }
 
@@ -450,13 +449,7 @@ function state(config) {
 
 /**
  * @param config
- * @returns {{user: {create: EXPORTS.user.create, passwd: EXPORTS.user.passwd},
- project: {create-data: createData, reset-auth-token: resetAuthToken,
-   reset-shared-key: resetSharedKey, reset-git-hub-key: resetGitHubKey,
-   shared-key: sharedKey, git-hub-key: gitHubKey, create: createProject,
-   list-ssh-instances: listSSHAbleInstances, destroy: pmDestroy},
- pr: {create: prCreate, destroy: prDestroy},
- deployment: {create: pmCreateDeployment, destroy: pmDestroyDeployment}}}
+ * @returns {}
  */
 function getCommands(config) {
   STATE.config = config;

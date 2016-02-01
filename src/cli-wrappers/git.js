@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * This module provides promise based shortcuts to `git` commands
+ *
+ * @module childProcess/git
+ */
 
 const TMP = require('os').tmpdir();
 const COMMAND = 'git';

@@ -1,4 +1,12 @@
 'use strict';
+/**
+ * This is the primary interface to the {@link module:clusternatorCli} stub
+ *
+ * This module uses yargs to communicate with the user/CLI and has no utility
+ * outside of being the place to configure the CLI arguments.
+ *
+ * @module api/'0.1'/cli
+ */
 
 const API = '0.1';
 
@@ -14,7 +22,7 @@ const stdioI = require('./stdio-inheritors');
 const project = require('./project');
 const user = require('./user');
 const projectDb = require('./project-db');
-const aws = require('./aws');
+const aws = require('./cloud-service');
 
 const privateFs = require('../project-fs/private');
 const dockerFs = require('../project-fs/docker');
@@ -178,9 +186,9 @@ module.exports = (yargs) => {
     .command('stop', 'Stops a deployment, and cleans up', (y) => {
       y.demand('d').
       alias('d', 'deployment-name').
-      describe('d', 'Requires a deployment name').
+      describe('d', 'Requires a deployment name');
 
-      deployments.stop(y.argv.d, y.argv.s).done();
+      deployments.stop(y.argv.d).done();
     })
 
     .command('update', 'Updates a deployment in place', (y) => {

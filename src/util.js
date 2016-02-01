@@ -1,4 +1,8 @@
 'use strict';
+/**
+ * Utility functions global to The Clusternator
+ * @module util
+ */
 
 const WAIT_DEFAULT_INTERVAL = 10000;
 
@@ -11,6 +15,29 @@ var winston;
 
 initWinston();
 
+module.exports = {
+  errLog: errLog,
+  plog: plog,
+  isFunction,
+  quote: quote,
+  getCidrPrefixFromIPString,
+  waitFor,
+  makePromiseApi,
+  clone,
+  info,
+  debug,
+  verbose,
+  warn,
+  error,
+  winston,
+  inquirerPrompt,
+  cliLogger,
+  safeParse
+};
+
+/**
+ *  Starts up the winston logger for STDIO
+ */
 function initWinston() {
   winston = new (Winston.Logger)({
     transports: [
@@ -19,38 +46,63 @@ function initWinston() {
   });
 }
 
+/**
+ * logs an info message(s) through winston (takes any args)
+ */
 function info() {
   winston.info.apply(winston, arguments);
 }
 
+/**
+ * logs a debug message(s) through winston (takes any args)
+ */
 function debug() {
   winston.debug.apply(winston, arguments);
 }
 
+/**
+ * logs a verbose message(s) through winston (takes any args)
+ */
 function verbose() {
   winston.verbose.apply(winston, arguments);
 }
 
+/**
+ * logs a warning message(s) through winston (takes any args)
+ */
 function warn() {
   winston.verbose.apply(winston, arguments);
 }
 
+/**
+ * logs an error message(s) through winston (takes any args)
+ */
 function error() {
   winston.error.apply(winston, arguments);
 }
 
+/**
+ * Logs an info error labelled as error, and returns a Promise
+ * @param {*} x
+ * @returns {Promise}
+ */
 function errLog(x) {
   winston.info('ERROR', x);
   return Q.reject(new Error(x));
 }
 
+/**
+ * @deprecated
+ * @returns {*}
+ */
 function plog() {
   winston.info.apply(null, arguments);
   return arguments[0];
 }
 
 /**
-  @param {string}
+  Double quote something
+  @param {string} str
   @return {string} (double) quoted version
 */
 function quote(str) {
@@ -58,8 +110,8 @@ function quote(str) {
 }
 
 /**
-  @param {string} ip '1.2.3.0/24'
-  @return {string} '1.2'
+  @param {string} ip something like: '1.2.3.0/24'
+  @return {string} first two classes, like: '1.2'
 */
 function getCidrPrefixFromIPString(ip) {
   var classes = ip.split('.');
@@ -67,11 +119,19 @@ function getCidrPrefixFromIPString(ip) {
 }
 
 /**
-  @param {function(...):Q.Promise} asyncPredicateFunction
-  @param {number} interval ms to retry (defaults to 10000)
+  Wait function for polling something.
+
+  Provide a function a that uses a promise to check something asynchronously.
+  This "asyncPredicateFunction" should resolve when it's "ready" to proceed,
+  and reject if it is not ready.
+
+  @param {function(...):Promise} asyncPredicateFunction should resolve when its
+    condition is eventually satisfied, and reject otherwise
+  @param {number} interval ms to retry asyncPredicateFunction (defaults to
+    10000)
   @param {number=} max maximum number of retries (default 0 for infinity)
   @param {string=} label label for debugging
-  @return {Q.Promise}
+  @return {Promise}
 */
 function waitFor(asyncPredicateFunction, interval, max, label) {
   max = Math.abs(+max) || 0;
@@ -98,7 +158,8 @@ function waitFor(asyncPredicateFunction, interval, max, label) {
 }
 
 /**
-  @param {*} something to test
+  Is the given argument a function?
+  @param {*} fn to test
   @return {boolean}
 */
 function isFunction(fn) {
@@ -106,6 +167,8 @@ function isFunction(fn) {
 }
 
 /**
+  Shallow iterates over a given object and *assumes* all functions are node
+  callback style and converts them to Promises
   @param {Object} api some collection/object of nodejs style functions
   @return {Object} a new object with promisified functions
 */
@@ -135,11 +198,13 @@ function clone(obj) {
 }
 
 /**
+ * Uses inquirer to prompt for STDIO input/output
+ * @todo move this to a CLI utility section
  * @param {Array} qs
  * @param {function(...)=} onEachAnswer
  * @param {function(...)=} onEachError
  * @param {function(...)=} onComplete
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function inquirerPrompt(qs, onEachAnswer, onEachError, onComplete) {
   var d = Q.defer();
@@ -156,7 +221,9 @@ function inquirerPrompt(qs, onEachAnswer, onEachError, onComplete) {
 }
 
 /**
- * @param {Yargs} yargs
+ * Sets up verbosity for the CLI
+ * @todo move this function into the CLI api, or somewhere else
+ * @param {Object} yargs
  */
 function cliLogger(yargs) {
   const INFO = 2;
@@ -181,7 +248,7 @@ function cliLogger(yargs) {
 
 /**
  * @param {string} string
- * @returns {null||*}
+ * @returns {null|*}
  */
 function safeParse(string) {
   try {
@@ -191,23 +258,3 @@ function safeParse(string) {
   }
 }
 
-
-module.exports = {
-  errLog: errLog,
-  plog: plog,
-  isFunction,
-  quote: quote,
-  getCidrPrefixFromIPString,
-  waitFor,
-  makePromiseApi,
-  clone,
-  info,
-  debug,
-  verbose,
-  warn,
-  error,
-  winston,
-  inquirerPrompt,
-  cliLogger,
-  safeParse
-};

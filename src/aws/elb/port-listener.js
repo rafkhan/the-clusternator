@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Types required to manage AWS ELB Port Listeners
+ *
+ * @module aws/elb/portListener
+ */
 
 module.exports = {
   create

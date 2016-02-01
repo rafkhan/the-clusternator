@@ -1,9 +1,14 @@
 'use strict';
+/**
+ * Functions to encapsulate assembling a PR
+ *
+ * @module aws/prManager
+ */
 const Q = require('q');
 const Subnet = require('./subnetManager');
 const SG = require('./securityGroupManager');
 const Ec2 = require('./ec2Manager');
-const rid = require('./../resourceIdentifier');
+const rid = require('./../resource-identifier');
 const Cluster = require('./clusterManager');
 const Route53 = require('./route53Manager');
 const Task = require('./taskServiceManager');
