@@ -11,7 +11,7 @@ layout: api
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link rel="stylesheet" href="{{ "/css/jsdoc.css" | prepend: site.baseurl | prepend: site.github.url }}">
     {% include common-head.html %}
 </head>
 <body>
@@ -25,7 +25,7 @@ layout: api
 
     <?js= content ?>
 </div>
-<nav>
+<nav class="jsdoc-nav">
     <?js= this.nav ?>
 </nav>
 {% endraw %}
