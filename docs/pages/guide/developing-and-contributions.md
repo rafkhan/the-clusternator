@@ -34,6 +34,21 @@ amount of room in your `/tmp`
 - `npm run doc-dev-serve` runs the Jekyll dev server, and is for _internal use_
 - `npm run doc-api` builds JSDoc only, and is for _internal use_
 
+## Process
+
+The Clusternator uses a SCRUM style process.  Being an open project, The
+Clusternator uses GitHub to publicly manage its issues, and developments.  There
+is a ["Zen Board"][theBoard] that groups issues into Icebox, Backlog,
+In Progress, Done, and Closed columns.  This is where developers should look to
+find information on what to develop.
+
+There is a daily standup at 17:00.  Remote contributors can join in via Google
+Hangouts if they choose.  There is currently no formal system for organizing
+this so if anyone is interested, please file an issue.
+
+_Note the "Zen Board" may not load for you.  It requires a third party plugin
+for your browser.  Please see: [zenhub.io](https://www.zenhub.io/ "Zen Hub")_
+
 ## Code
 
 All code is in `src/`. The CLI entry point is `bin/clusternator-cli.js`,
@@ -45,3 +60,5 @@ to `gulp test-unit`
 
 Code coverage can be found _after_ tests are run, and is located in the
 (generated) `coverage` folder.  Coverage includes lcov, json, and html.
+
+[theBoard]: https://github.com/rangle/the-clusternator/issues/#boards "The Clusternator Board"
