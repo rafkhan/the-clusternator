@@ -155,11 +155,8 @@ module.exports = (yargs) => {
         .then((projectNames) => projectNames
           .forEach(console.log))
         .done())
-    .command('describe-services', 'Describe project services', (y) => aws
-      .describeServices()
-      .then((desc) => util
-        .info(JSON.stringify(desc, null, 2)))
-      .done())
+    .command('describe-services', 'Describe project services', aws
+      .describeServices())
     .command('build', 'Local Docker Build', (y) => {
       var id = (+Date.now()).toString(16),
         argv = demandPassphrase(y)
