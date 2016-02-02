@@ -23,13 +23,6 @@ module.exports = {
 };
 
 /**
- * @return {string}
- */
-function getSkeletonPath() {
-  return fs.path.join(__dirname, '..', 'src', 'skeletons');
-}
-
-/**
  * @param {string} fullPath
  * @param {function(...):string=} filter
  * @returns {Q.Promise<Object>}
@@ -59,8 +52,9 @@ function loadExistingCircleCIFile(root) {
  * @return {Q.Promise<string>}
  */
 function getCircleSkeleton(clustDir) {
-  return loadCircleCIFile(fs.path.join(getSkeletonPath(), CIRCLEFILE), (f) => f
-    .replace(CLUSTERNATOR_DIR, clustDir));
+  return loadCircleCIFile(fs.path.join(fs.getSkeletonPath(), CIRCLEFILE),
+    (f) => f
+      .replace(CLUSTERNATOR_DIR, clustDir));
 }
 
 /**
