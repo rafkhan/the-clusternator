@@ -109,16 +109,16 @@ function createUser(user) {
  * @returns {Q.Promise}
  */
 function find(id) {
-  var d = Q.defer();
-  authorities.find(id).then((auth) => {
-    if (users[id]) {
-      users[id].authority = auth.authority;
-      d.resolve(users[id]);
-    } else {
-      d.reject(new Error('findUser: user not found'));
-    }
-  }, d.reject);
-  return d.promise;
+  return authorities
+    .find(id)
+    .then((auth) => {
+      if (users[id]) {
+        users[id].authority = auth.authority;
+        return users[id];
+      } else {
+        throw new Error('findUser: user not found');
+      }
+    });
 }
 
 function changePassword(req, res) {
