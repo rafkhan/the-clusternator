@@ -121,7 +121,7 @@ const usernameAuthorityQ = (username) => {
 function checkConfigured() {
   const user = Config().user;
   if (user && user.credentials) {
-    return Q.resolve();
+    return Q.resolve(user);
   }
   console.log('');
   console.log('Clusternator could not find a user configuration.');
@@ -144,6 +144,9 @@ function checkConfigured() {
 function checkConfiguredAndLoggedIn() {
   return checkConfigured()
     .then((user) => {
+      if (userHasToken(user)) {
+        return Q.resolve();
+      }
       console.log('');
       console.log('Please Login To Proceed: ');
       console.log('');

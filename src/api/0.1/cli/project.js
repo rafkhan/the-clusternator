@@ -168,7 +168,7 @@ function loginAndInit(doOffline, user) {
 
 /**
  * @param {boolean} doOffline
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function init(doOffline) {
   const user = Config().user;
