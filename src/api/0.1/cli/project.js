@@ -84,7 +84,7 @@ function initProjectDb(answers) {
     .createProjectData(answers.projectId)
     .then((results) => Q.all([
         encrypDecrypt(results.sharedKey),
-        privateFs.writeClusternatorCreds(answers.private, results.authToken) ])
+        privateFs.writeClusternatorCreds(results.authToken, answers.private) ])
       .then(() => results));
 }
 

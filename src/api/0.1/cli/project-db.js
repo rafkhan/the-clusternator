@@ -11,6 +11,7 @@ const cmn = require('../common');
 const util = cmn.src('util');
 const cn = require('../js/js-api');
 const cj = require('../project-fs/clusternator-json');
+const privateFs = require('../project-fs/private');
 
 module.exports = {
   createData,
@@ -60,7 +61,10 @@ function createData(channel) {
   return getProjectId()
     .then((projectId) => cn
       .createProjectData(projectId, channel))
-    .then((results) => logCreateData(results))
+    .then((results) => {
+      logCreateData(results);
+      return privateFs.writeClusternatorCreds(results.authToken);
+    })
     .fail((err) => logError('creating Project Data', err.message));
 }
 

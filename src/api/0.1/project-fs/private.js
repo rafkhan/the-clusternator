@@ -143,13 +143,27 @@ function writeProjectDetails(privatePath, details) {
 }
 
 /**
- * @param {string} privatePath
  * @param {string} token
+ * @param {string} privatePath
+ * @private
+ */
+function writeClusternatorCreds_(token, privatePath) {
+  return fs.write(fs.path.join(privatePath, PROJECT_CN_CREDS_FILE),
+    JSON.stringify({token}, null, 2));
+}
+
+/**
+ * @param {string} token
+ * @param {string=} privatePath
  * @returns {Q.Promise}
  */
-function writeClusternatorCreds(privatePath, token) {
-  return fs.write(fs.path.join(privatePath, PROJECT_CN_CREDS_FILE),
-    JSON.stringify({ token }, null, 2));
+function writeClusternatorCreds(token, privatePath) {
+  if (privatePath) {
+    return writeClusternatorCreds_(token, privatePath);
+  }
+  return clusternatorJson
+    .get()
+    .then((cJson) => writeClusternatorCreds_(token, cJson.private));
 }
 
 /**
