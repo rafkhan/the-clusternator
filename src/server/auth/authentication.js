@@ -36,10 +36,13 @@ function authToken(token, done) {
     logger.info('authToken: verified');
     const user = tokens.userFromToken(token);
     if (user.indexOf(constants.PROJECT_USER_TAG) === 0) {
+      logger.info('authToken: project token');
       return app.locals.projectDb
         .find(user.slice(constants.PROJECT_USER_TAG.length))
-        .then({ id: constants.PROJECT_USER_TAG, authority: 0 });
+        .then(() => done(null,
+          { id: constants.PROJECT_USER_TAG, authority: 0 }));
     }
+    logger.info('authToken: user token');
     return users.find(user).then((user) => {
       logger.verbose('authToken: user found');
       done(null, user);
@@ -48,16 +51,20 @@ function authToken(token, done) {
 }
 
 function authLocal(user, pass, done) {
-  return passwords.verify(user, pass).then(() => {
-    logger.info('authLocal: Password Verified');
-    return users.find(user).then((found) => {
-      logger.verbose('authLocal: User Found');
-      done(null, found);
+  return passwords
+    .verify(user, pass)
+    .then(() => {
+      logger.info(`authLocal: ${user} password verified`);
+      return users
+        .find(user)
+        .then((found) => {
+          logger.verbose('authLocal: User Found');
+          done(null, found);
+        });
+    }).fail((err) => {
+      logger.error('Authentication Error', err.message);
+      done(null, false, {message: 'Invalid Login Credentials'});
     });
-  }).fail((err) => {
-    logger.error('Authentication Error', err.message);
-    done(null, false, {message: 'Invalid Login Credentials'});
-  });
 }
 
 /**
@@ -92,11 +99,11 @@ function authenticateUserEndpoint(req, res, next) {
       return;
     }
     if (!user) {
-      logger.error('User not found');
+      logger.error('User not found: ');
       res.sendStatus(401);
       return;
     }
-    req.logIn(user, afterLogin(err, res, user));
+    req.logIn(user, () => afterLogin(err, res, user));
   })(req, res, next);
 }
 

@@ -415,7 +415,7 @@ function initPmState(state) {
 function init(config, projectDb) {
   const state = STATE;
   state.config = config;
-  state.db = db;
+  state.db = projectDb;
   state.pm = null;
   return initPmState(state)
   .then(() => state);
@@ -449,10 +449,12 @@ function state(config) {
 
 /**
  * @param config
- * @returns {}
+ * @param projectDb
+ * @returns {{}}
  */
-function getCommands(config) {
-  STATE.config = config;
+function getCommands(config, projectDb) {
+
+  init(config, projectDb);
 
   return EXPORTS;
 }

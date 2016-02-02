@@ -23,7 +23,10 @@ function describeServices() {
   return clusternatorJson
     .get()
     .then((config) => cn
-      .describeProject(config.projectId));
+      .describeServices(config.projectId)
+      .then((results) => JSON.stringify(results, null, 2)))
+    .fail((err) => console.log(`Error: ${err.message} ${err.stack}`))
+    .done();
 }
 
 /**

@@ -123,7 +123,7 @@ function getClusterManager(ecs) {
   /**
    * @param {string} cluster
    * @param {string[]} services
-   * @returns {*}
+   * @returns {Q.Promise}
    */
   function describeServices(cluster, services) {
     return ecs
@@ -196,15 +196,14 @@ function getClusterManager(ecs) {
 
   /**
    * @param {string} projectId
-   * @returns {Request}
+   * @returns {Q.Promise<Array>}
    */
   function describeProject(projectId) {
     return listClusters()
       .then((list) => Q
         .all(list
           .filter(common.getProjectIdFilter(projectId))
-          .map(promiseServiceDescription))
-      )
+          .map(promiseServiceDescription)) )
       .then(processServiceDescriptions);
   }
 

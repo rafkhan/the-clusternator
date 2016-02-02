@@ -84,7 +84,7 @@ function initProjectDb(answers) {
     .createProjectData(answers.projectId)
     .then((results) => Q.all([
         encrypDecrypt(results.sharedKey),
-        privateFs.writeClusternatorCreds(answers.private, results.authToken) ])
+        privateFs.writeClusternatorCreds(results.authToken, answers.private) ])
       .then(() => results));
 }
 
@@ -168,7 +168,7 @@ function loginAndInit(doOffline, user) {
 
 /**
  * @param {boolean} doOffline
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function init(doOffline) {
   const user = Config().user;
