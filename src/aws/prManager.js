@@ -53,7 +53,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   function createElb(creq) {
     return elb.createPr(creq.projectId, creq.pr, creq.subnetId,
-      creq.groupId, constants.AWS_SSL_ID, creq.useInternalSSL);
+      creq.groupId, constants.AWS_SSL_ID);
   }
 
   function setUrl(creq) {
@@ -83,16 +83,14 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @param {string} pr
    * @param {Object} appDef
    * @param {string[]|string} sshKeys
-   * @param {boolean=} useInternalSSL
    * @returns {Request|Promise.<T>|*}
    */
-  function create(projectId, pr, appDef, sshKeys, useInternalSSL) {
+  function create(projectId, pr, appDef, sshKeys) {
     const creq = {
       projectId,
       pr: pr + '',
       appDef,
       sshPath: sshKeys || '',
-      useInternalSSL,
       name: rid.generateRID({ pid: projectId, pr })
     };
 

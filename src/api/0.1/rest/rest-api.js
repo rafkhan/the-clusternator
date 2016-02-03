@@ -302,18 +302,17 @@ function prCreate(body) {
       const appDef = JSON.parse(body.appDef);
       const projectId = body.repo;
       const sshData = body.sshKeys;
-      const useInternalSSL = body.useInternalSSL || false;
 
       console.log('DEBUG');
       console.log(JSON.stringify(body,  null, 2));
       console.log('DEBUG');
 
       return s.db.find(projectId).then((project) => s
-        .pm.pr.create(projectId, pr + '', appDef, sshData, useInternalSSL)
-        .then((prResult) => {
+        .pm.createPR(projectId, pr + '', appDef, sshData)
+        .then((url) => {
           return slack.message(`Create: ${projectId}, PR ${pr} ` +
             `successful.  Application will be available at ` +
-            `<https://${prResult.url}>`,
+            `<https://${url}>`,
             project.channel);
         })
         .fail((err) => {
