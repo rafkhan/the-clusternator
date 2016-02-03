@@ -55,6 +55,9 @@ const EXPORTS = {
   deployment: {
     create: pmCreateDeployment,
     destroy: pmDestroyDeployment
+  },
+  authorities: {
+    list: listAuthorities
   }
 };
 
@@ -83,6 +86,14 @@ function listSSHAbleInstances(body) {
   return state()
     .then((s) => s
       .pm.listSSHAbleInstances(projectId));
+}
+
+/**
+ * @returns {Q.Promise<string[]>}
+ */
+function listAuthorities() {
+  return state()
+    .then((s) => s.config.commandPrivileges);
 }
 
 function createIfNotFound(s, projectId, repoName) {

@@ -23,6 +23,7 @@ const project = require('./project');
 const user = require('./user');
 const projectDb = require('./project-db');
 const aws = require('./cloud-service');
+const authorities = require('./cli-authorities');
 
 const privateFs = require('../project-fs/private');
 const dockerFs = require('../project-fs/docker');
@@ -32,6 +33,7 @@ const gitHooks = require('../project-fs/git-hooks');
 const legacy = require('./legacy-yargs');
 
 const getPackage = () => require('../../../../package.json');
+
 
 module.exports = (yargs) => {
 
@@ -148,6 +150,8 @@ module.exports = (yargs) => {
       const config = Config();
       return cn.startServer(config);
     })
+    .command('list-authorities', 'List your Clusternator server\'s authorities',
+      authorities.list)
 
     .command('list-projects', 'List projects with clusternator resources',
       (y) => aws

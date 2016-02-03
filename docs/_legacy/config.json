@@ -53,6 +53,9 @@
       "list": 2,
       "describe": 0,
       "destroy": 0
+    },
+    "authorities": {
+      "list": 1
     }
   }
 }

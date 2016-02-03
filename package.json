@@ -25,7 +25,7 @@
     "prepublish": "npm run doc-publish; npm run build",
     "start": "node ./server-init.js",
     "staging": "NODE_ENV=staging; node ./server-init.js",
-    "dev": "NODE_ENV=debug; nodemon ./server-init.js",
+    "dev": "NODE_ENV=debug; concurrent \"nodemon ./server-init.js\" \"npm run watch\"",
     "watch": "gulp watch",
     "test": "gulp test-unit",
     "build": "gulp transpile",
