@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: guide-admin
 title: Authentication
 permalink: /guide/admin/authentication
 ---

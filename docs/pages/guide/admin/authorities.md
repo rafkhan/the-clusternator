@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: guide-admin
 title: Authorities
 permalink: /guide/admin/authorities
 ---

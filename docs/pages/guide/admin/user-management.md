@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: guide-admin
 title: User Management
 permalink: /guide/admin/user-management
 ---
