@@ -1,0 +1,60 @@
+{
+  "description":"Update this with production values, or use a config.local.json (same structure as this file)",
+  "adminEmail":"user@example.com",
+  "config.hasReadLetsEncryptTOS": false,
+  "port":9090,
+  "portSSL":3000,
+  "setupRootPass": "super secret",
+  "dbKey": "change this to a long secret passphrase used to encrypt db",
+  "tld":".example.com",
+  "slackURI":"",
+  "dockerRegistryPrefix":"",
+  "minPasswordLength": 13,
+  "defaultRepo": {
+    "protocol":"https://",
+    "token":"",
+    "prefix":"github.com/"
+  },
+  "privilegeGroups": {
+    "0": "admins",
+    "1": "managers",
+    "2": "users"
+  },
+  "commandPrivileges": {
+    "project": {
+      "create": 1,
+      "build": 2,
+      "list": 2,
+      "describe": 1,
+      "destroy": 1,
+      "list-ssh-instances": 2,
+      "create-data": 1,
+      "reset-auth-token": 1,
+      "reset-shared-key": 1,
+      "reset-git-hub-key": 1,
+      "shared-key": 2,
+      "git-hub-key": 1
+    },
+    "pr": {
+      "create": 2,
+      "list": 2,
+      "describe": 2,
+      "destroy": 2
+    },
+    "deployment": {
+      "create": 2,
+      "list": 2,
+      "describe": 2,
+      "destroy": 2
+    },
+    "user": {
+      "create": 0,
+      "list": 2,
+      "describe": 0,
+      "destroy": 0
+    },
+    "authorities": {
+      "list": 1
+    }
+  }
+}

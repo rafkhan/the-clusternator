@@ -70,23 +70,27 @@ function validateCreateUser(user) {
  * @returns {Q.Promise}
  */
 function createUser(user) {
-  var d = validateCreateUser(user);
-  if (d) {
-    // if validation returns a promise it's invalid
-    return d;
+  const promise = validateCreateUser(user);
+  if (promise) {
+    return promise;
   }
 
-  d = Q.defer();
+  let d = Q.defer();
 
+  console.log('createUser', user);
+  console.log('odd', user.password.length, ' ??');
   if (user.password.length < MIN_PASS_LEN) {
+    console.log('TOOO SHORT');
     d.reject(new Error(
       `password too short.  Must be at least ${MIN_PASS_LEN}`));
     return d.promise;
   }
+  console.log('what?', user);
   if (user.id.indexOf(PROJECT_USER_TAG) === 0) {
     d.reject(new Error(`User Names cannot begin with ${PROJECT_USER_TAG}`));
     return d.promise;
   }
+  console.log('whoa, past guards');
 
   Q.all([
     passwords.create(user.id, user.password),

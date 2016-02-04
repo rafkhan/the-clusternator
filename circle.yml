@@ -1,10 +1,17 @@
 machine:
     node:
         version: 4.2.6
+    ruby:
+        version: rbx-2.2.6
     services:
         - docker
 dependencies:
   pre:
     - npm install aws-sdk
-  post:
-    - ./.clusternator/decrypt.sh
+    - gem install jekyll
+    - mkdir .private
+    - cp ./.clusternator/aws.json ./.private
+    - cp ./.clusternator/aws-project-credentials.json ./.private
+    - cp ./.clusternator/config.json ./.private
+    - cp ./.clusternator/credentials.json ./.private
+    - cp ./.clusternator/.clusternator_config.json ~/

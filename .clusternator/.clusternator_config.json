@@ -1,0 +1,11 @@
+{
+  "name": "Pat",
+  "email": "pat@clusternator.com",
+  "tld": "clusternator.com",
+  "credentials": {
+    "user": "pat",
+    "token": "abc",
+    "host": "http://127.0.0.1:9090"
+  },
+  "apiVersion": "0.1"
+}
