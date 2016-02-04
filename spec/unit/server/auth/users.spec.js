@@ -11,14 +11,14 @@ describe('Users interface', function() {
     testUser1, testUser2, testUser3, testUser4, testUser5;
 
   beforeEach(() => {
-    testUser1 = {id: 'test', password: '12345678'};
-    testUser2 = {id: 'test2', password: '123456789'};
-    testUser3 = {id: 'test3', password: '123456789A'};
-    testUser4 = {id: 'test4', password: '123456789AB'};
+    testUser1 = {id: 'test', password: '123456789ABCD'};
+    testUser2 = {id: 'test2', password: '123456789ABCD'};
+    testUser3 = {id: 'test3', password: '123456789ABCDE'};
+    testUser4 = {id: 'test4', password: '123456789ABCDEF'};
     testUser5 = {id: 'test5', password: '12'};
   });
 
-  it('createUser should reject a new user object *without* a short',
+  it('createUser should reject a new user object *with* a short password',
     (done) => {
       users.create(testUser5).then((newU) => C.getFail(done), () => {
         C.check(() => {

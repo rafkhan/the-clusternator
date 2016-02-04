@@ -13,7 +13,7 @@ var tokens = require('./tokens');
 var authorities = require('./authorities');
 var config = require('../../config')();
 var Q = require('q');
-const MIN_PASS_LEN = config.minPasswordLength;
+const MIN_PASS_LEN = config.minPasswordLength || 13;
 const PROJECT_USER_TAG = require('../../constants').PROJECT_USER_TAG;
 
 module.exports = {
@@ -77,20 +77,15 @@ function createUser(user) {
 
   let d = Q.defer();
 
-  console.log('createUser', user);
-  console.log('odd', user.password.length, ' ??');
   if (user.password.length < MIN_PASS_LEN) {
-    console.log('TOOO SHORT');
     d.reject(new Error(
       `password too short.  Must be at least ${MIN_PASS_LEN}`));
     return d.promise;
   }
-  console.log('what?', user);
   if (user.id.indexOf(PROJECT_USER_TAG) === 0) {
     d.reject(new Error(`User Names cannot begin with ${PROJECT_USER_TAG}`));
     return d.promise;
   }
-  console.log('whoa, past guards');
 
   Q.all([
     passwords.create(user.id, user.password),
