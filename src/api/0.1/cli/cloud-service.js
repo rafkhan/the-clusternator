@@ -6,7 +6,7 @@
  */
 
 const cn = require('../js/js-api');
-const fs = require('../project-fs/projectFs');
+const fs = require('../project-fs/project-fs');
 const clusternatorJson = require('../project-fs/clusternator-json');
 
 module.exports = {

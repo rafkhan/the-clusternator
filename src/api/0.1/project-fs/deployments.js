@@ -6,7 +6,7 @@
  */
 
 const Q = require('q');
-const fs = require('./projectFs');
+const fs = require('./project-fs');
 const cmn = require('../common');
 
 const util = cmn.src('util');

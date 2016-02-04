@@ -13,7 +13,7 @@ const SHELL_DIR = 'DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"';
 const path = require('path');
 const Q = require('q');
 
-const fs = require('./projectFs');
+const fs = require('./project-fs');
 const clusternatorJson = require('./clusternator-json');
 const cn = require('../js/js-api');
 

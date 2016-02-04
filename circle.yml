@@ -1,19 +1,5 @@
 machine:
     node:
-        version: 4.2.4
+        version: 4.2.6
     services:
         - docker
-dependencies:
-    pre:
-        - 'sudo apt-get install -y libffi-dev libssl-dev'
-        - 'pip install requests[security]'
-        - 'pip install awscli'
-test:
-    post:
-        - 'node ./.clusternator/docker-build.js'
-deployment:
-    master:
-        branch: master
-        owner: rangle
-        commands:
-            - 'clusternator update -d master'

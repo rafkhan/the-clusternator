@@ -31,7 +31,7 @@ const Q = require('q');
 const path = require('path');
 const rimraf = Q.nfbind(require('rimraf'));
 
-const fs = require('./projectFs');
+const fs = require('./project-fs');
 
 const cmn = require('../common');
 
