@@ -15,7 +15,7 @@ const HOST = /\$HOST/g;
 
 const Q = require('q');
 
-const fs = require('./projectFs');
+const fs = require('./project-fs');
 const circle = require('./circle-ci');
 const cmn = require('../common');
 

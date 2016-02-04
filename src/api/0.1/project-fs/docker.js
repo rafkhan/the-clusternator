@@ -10,7 +10,7 @@ const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-latest';
 const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 
-const fs = require('./projectFs');
+const fs = require('./project-fs');
 const privateFs = require('./private');
 
 const cmn = require('../common');

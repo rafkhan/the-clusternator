@@ -13,7 +13,7 @@ var tokens = require('./tokens');
 var authorities = require('./authorities');
 var config = require('../../config')();
 var Q = require('q');
-const MIN_PASS_LEN = config.minPasswordLength;
+const MIN_PASS_LEN = config.minPasswordLength || 13;
 const PROJECT_USER_TAG = require('../../constants').PROJECT_USER_TAG;
 
 module.exports = {
@@ -70,13 +70,12 @@ function validateCreateUser(user) {
  * @returns {Q.Promise}
  */
 function createUser(user) {
-  var d = validateCreateUser(user);
-  if (d) {
-    // if validation returns a promise it's invalid
-    return d;
+  const promise = validateCreateUser(user);
+  if (promise) {
+    return promise;
   }
 
-  d = Q.defer();
+  let d = Q.defer();
 
   if (user.password.length < MIN_PASS_LEN) {
     d.reject(new Error(

@@ -2,7 +2,6 @@
   "description":"Update this with production values, or use a config.local.json (same structure as this file)",
   "adminEmail":"user@example.com",
   "config.hasReadLetsEncryptTOS": false,
-  "prTTL": 259200000,
   "port":9090,
   "portSSL":3000,
   "setupRootPass": "super secret",

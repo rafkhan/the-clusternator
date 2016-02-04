@@ -14,7 +14,7 @@ const merge = require('deepmerge');
 const Q = require('q');
 const YAML = require('yamljs');
 
-const fs = require('./projectFs');
+const fs = require('./project-fs');
 
 module.exports = {
   loadExistingCircleCIFile,

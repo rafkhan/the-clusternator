@@ -11,7 +11,7 @@ const PROJECT_AWS_FILE = 'clusternator-aws.json';
 const PROJECT_CN_CREDS_FILE = 'clusternator-project-credentials.json';
 
 const Q = require('q');
-const fs = require('./projectFs');
+const fs = require('./project-fs');
 
 const cmn = require('../common');
 const shaDir = cmn.src('cli-wrappers', 'generate-private-sha');

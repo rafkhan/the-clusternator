@@ -8,7 +8,7 @@
  */
 
 const Q = require('q');
-const fs = require('../project-fs/projectFs');
+const fs = require('../project-fs/project-fs');
 const path = require('path');
 const mkdirp = Q.nfbind(require('mkdirp'));
 

@@ -16,6 +16,7 @@ const constants = cmn.src('constants');
 const gpg = cmn.src('cli-wrappers', 'gpg');
 
 const userREST = cmn.src('clusternator', 'user');
+const authoritiesREST = cmn.src('clusternator', 'authorities');
 const projectREST = cmn.src('clusternator', 'project-data');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
@@ -25,6 +26,7 @@ module.exports = {
   awsProjectManager,
   getProjectAPI,
   provisionProjectNetwork,
+  listAuthorities,
   listSSHAbleInstances,
   deploy,
   stop,
@@ -86,6 +88,13 @@ function changePassword(username, password, newPassword, confirmPassword) {
     return Q.reject(new Error('password mismatch'));
   }
   userREST.changePassword();
+}
+
+/**
+ * @return {Promise}
+ */
+function listAuthorities() {
+  return authoritiesREST.list();
 }
 
 /**

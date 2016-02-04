@@ -1,0 +1,5 @@
+- fast testing mechanism needed for local servers
+- simple null AWS "simulator" with a pass/fail control
+- Script to _simulate_ PR call and close call
+- Ability to run CircleCI scripts dobable
+- Fix login to be non-interactive

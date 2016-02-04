@@ -5,7 +5,7 @@ var rewire = require('rewire'),
   mockFs = require('mock-fs');
 
 var cn = rewire('../../src/api/0.1/project-fs/clusternator-json'),
-  fs = rewire('../../src/api/0.1/project-fs/fs'),
+  fs = rewire('../../src/api/0.1/project-fs/project-fs'),
   C = require('./chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
@@ -197,8 +197,10 @@ describe('clusternator.json handling', () => {
     });
   });
 
-  it('writeFromFullAnswers should return a promise', () => {
-    expect(typeof cn.writeFromFullAnswers({ answers: { projectId: '', appDefPr: '' }, projectDir: '/'}).then).to.equal('function');
+  it('writeFromAnswers should return a promise', () => {
+    expect(typeof cn
+      .writeFromAnswers({ projectId: '', appDefPr: '', root: '/' })
+      .then).to.equal('function');
   });
 });
 

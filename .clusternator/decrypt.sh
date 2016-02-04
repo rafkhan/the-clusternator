@@ -15,7 +15,13 @@ cd ..
 # check if decryption is necessary
 if [ -e ./$ENCRYPTED_TARBALL ]; then
   # decrypt the configuration(s)
+  gpg --version
+  echo ""
   echo "Decrypting Configuration"
+  SHORT="${CLUSTERNATOR_SHARED_KEY:0:5}XXXXXXXXXXXXXXXXXXXX"
+  echo "gpg --passphrase ${SHORT} --output ./${TARBALL}\
+   --decrypt ./${ENCRYPTED_TARBALL}"
+  echo ""
   gpg --passphrase ${CLUSTERNATOR_SHARED_KEY} --output ./${TARBALL}\
    --decrypt ./${ENCRYPTED_TARBALL}
 
