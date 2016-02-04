@@ -3,3 +3,8 @@ machine:
         version: 4.2.6
     services:
         - docker
+dependencies:
+  pre:
+    - npm install aws-sdk
+  post:
+    - ./.clusternator/decrypt.sh
