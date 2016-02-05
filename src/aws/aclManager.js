@@ -83,14 +83,14 @@ function getAclManager(ec2, vpcId) {
       throw new TypeError('Create ACL requires a ProjectId');
     }
     var params = util.clone(skeletons.ACL);
-    params.VpcId = vpcId
+    params.VpcId = vpcId;
 
     return describeProject(pid).
     then((aclList) => {
       if (aclList.length) {
         return {
           NetworkAcl: aclList[0]
-        }
+        };
       } else {
         return createAcl(pid, params);
       }

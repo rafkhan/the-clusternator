@@ -5,7 +5,7 @@
  * @module api/'0.1'/cli/cloudService
  */
 
-const cn = require('../js/js-api');
+let cn = require('../js/js-api');
 const fs = require('../project-fs/project-fs');
 const clusternatorJson = require('../project-fs/clusternator-json');
 
@@ -25,8 +25,7 @@ function describeServices() {
     .then((config) => cn
       .describeServices(config.projectId)
       .then((results) => JSON.stringify(results, null, 2)))
-    .fail((err) => console.log(`Error: ${err.message} ${err.stack}`))
-    .done();
+    .fail((err) => console.log(`Error: ${err.message} ${err.stack}`));
 }
 
 /**

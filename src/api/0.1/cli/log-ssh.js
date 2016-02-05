@@ -5,7 +5,7 @@
  * @module api/'0.1'/cli/log-ssh
  */
 
-const cn = require('../js/js-api');
+let cn = require('../js/js-api');
 const clusternatorJson = require('../project-fs/clusternator-json');
 const user = require('./user');
 const NOT_AUTHENTICATED = 401;

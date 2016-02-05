@@ -12,10 +12,11 @@ const DEFAULT_VERSION = require('./constants').DEFAULT_API_VERSION;
 const Q = require('q');
 const fs = require('fs');
 const path = require('path');
-const semver = require('semver');
 
 var util = require('./util');
-var questions = require('./skeletons/create-interactive-questions');
+var questions = require(
+  `./api/${DEFAULT_VERSION}/project-fs/skeletons/create-interactive-questions`);
+
 
 const DOT_CLUSTERNATOR_CONFIG =
   path.join(getUserHome(), '.clusternator_config.json');
@@ -60,7 +61,7 @@ function loadJSON(fullpath) {
   try {
     return require(fullpath);
   } catch (err) {
-    util.winston.debug('Error', err.message);
+    util.winston.debug('Winston Error', err.message);
     return null;
   }
 }

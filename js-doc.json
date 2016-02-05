@@ -7,7 +7,7 @@
   "plugins": ["plugins/markdown"],
   "source": {
     "include": ["src/", "bin-src"],
-    "exclude": ["src/skeletons"],
+    "exclude": ["*.spec.*"],
     "includePattern": ".+\\.js(doc)?$",
     "excludePattern": "(^|\\/|\\\\)_"
   },

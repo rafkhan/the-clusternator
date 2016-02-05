@@ -29,7 +29,7 @@ function initProject(root, options, skipNetwork) {
     dockerType = options.backend;
 
   return Q
-    .allSettled([
+    .all([
       deploymentsFs.init(dDir, projectId, options.ports),
       scriptsFs.init(cDir, options.tld),
       scriptsFs.initOptional(options, root),

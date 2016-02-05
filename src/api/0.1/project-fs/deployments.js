@@ -8,10 +8,10 @@
 const Q = require('q');
 const fs = require('./project-fs');
 const cmn = require('../common');
+const appDefSkeleton = require('./skeletons/app-def');
 
 const util = cmn.src('util');
 const constants = cmn.src('constants');
-const appDefSkeleton = cmn.src('skeletons', 'app-def');
 const clusternatorJson = require('./clusternator-json');
 
 module.exports = {
@@ -59,7 +59,7 @@ function initializeDeployments(depDir, projectId, ports) {
     addPortsToAppDef(ports, prAppDef);
     prAppDef = JSON.stringify(prAppDef, null, 2);
 
-    return Q.allSettled([
+    return Q.all([
       fs.mkdirp(fs.path.join(depDir, '..', constants.SSH_PUBLIC_PATH)),
       fs.write(fs.path.join(depDir, 'pr.json'), prAppDef),
       fs.write(fs.path.join(depDir, 'master.json'), prAppDef)

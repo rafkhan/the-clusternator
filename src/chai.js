@@ -1,8 +1,47 @@
-var chai = require('chai');
+'use strict';
+/**
+ * These functions are used as helpers for unit tests
+ * @module chai
+ */
+
+const chai = require('chai');
 
 chai.config.includeStack = true;
 
 global.expect = chai.expect;
+
+module.exports = {
+  check,
+  getFail,
+  checkResolve,
+  checkReject
+};
+
+/*global describe, it, expect, beforeEach, afterEach */
+/*eslint no-unused-expressions:0*/
+/**
+ * @param {function(..)} fn
+ * @param {function(...)} done
+ */
+function checkResolve(fn, done) {
+  fn().then((l) => {
+    check(done, () => {
+      expect(true).to.be.ok;
+    });
+  }, getFail(done));
+}
+
+/**
+ * @param {function(..)} fn
+ * @param {function(...)} done
+ */
+function checkReject(fn, done) {
+  fn().then(() => {
+    check(done, () => {
+      expect(true).to.be.ok;
+    });
+  }, getFail(done));
+}
 
 /**
   @param {function(...)} done
@@ -32,7 +71,3 @@ function getFail(done) {
   return fail;
 }
 
-module.exports = {
-  check,
-  getFail
-};

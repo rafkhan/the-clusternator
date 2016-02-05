@@ -11,8 +11,8 @@
 const Q = require('q');
 const cmn = require('../common');
 const Config = cmn.src('config');
-const util = cmn.src('util');
-const cn = require('../js/js-api');
+let util = cmn.src('util');
+let cn = require('../js/js-api');
 
 module.exports = {
   createUser,

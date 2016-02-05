@@ -1,6 +1,6 @@
 'use strict';
 
-const cn = require('../js/js-api');
+let cn = require('../js/js-api');
 const GAP = '  ';
 
 module.exports = {
@@ -45,5 +45,8 @@ function logObject(obj, prefix) {
 function list() {
   return cn
     .listAuthorities()
-    .then(logObject);
+    .then(logObject)
+    .fail((err) => {
+      console.log(`Error listing authorities: ${err.message}`);
+    });
 }

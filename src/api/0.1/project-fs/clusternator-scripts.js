@@ -39,7 +39,7 @@ function initializeScripts(clustDir, tld) {
       clusternatorPath = fs.path.join(clustDir, NOTIFY_JS);
 
     return Q
-      .allSettled([
+      .all([
         fs.getSkeleton(DECRYPT_SH)
           .then((contents) => fs.installExecutable(decryptPath, contents)),
         fs.getSkeleton(DOCKER_BUILD_JS)
@@ -68,7 +68,7 @@ function initOptional(options, projectRoot) {
     promises.push(initializeServeSh(
       fs.path.join(projectRoot, options.clusternatorDir)));
   }
-  return Q.allSettled(promises);
+  return Q.all(promises);
 }
 
 /**
