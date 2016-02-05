@@ -5,7 +5,7 @@
  * @module api/'0.1'/cli/cloudService
  */
 
-const cn = require('../js/js-api');
+let cn = require('../js/js-api');
 const fs = require('../project-fs/project-fs');
 const cmn = require('../common');
 

@@ -9,7 +9,7 @@
 
 const cmn = require('../common');
 const util = cmn.src('util');
-const cn = require('../js/js-api');
+let cn = require('../js/js-api');
 const cj = require('../project-fs/clusternator-json');
 const privateFs = require('../project-fs/private');
 

@@ -12,15 +12,15 @@ const fs = require('../project-fs/project-fs');
 const path = require('path');
 const mkdirp = Q.nfbind(require('mkdirp'));
 
-const logSsh = require('./log-ssh');
+let logSsh = require('./log-ssh');
 const clusternatorJson = require('../project-fs/clusternator-json');
 
 const cmn = require('../common');
 const util = cmn.src('util');
 const constants = cmn.src('constants');
-const sshKey = cmn.src('cli-wrappers', 'ssh-keygen');
-const ssh = cmn.src('cli-wrappers', 'ssh');
-const logRemote = cmn.src('cli-wrappers', 'logs');
+let sshKey = cmn.src('cli-wrappers', 'ssh-keygen');
+let ssh = cmn.src('cli-wrappers', 'ssh');
+let logRemote = cmn.src('cli-wrappers', 'logs');
 
 
 module.exports = {

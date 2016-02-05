@@ -16,13 +16,13 @@ const NPM_IGNORE = '.npmignore';
 
 const Q = require('q');
 
+let cn = require('../js/js-api');
 const userCLI = require('./user');
 
 const fs = require('../project-fs/project-fs');
 const initProject = require('../project-fs/init');
 
 const privateFs = require('../project-fs/private');
-const cn = require('../js/js-api');
 const gitHooks = require('../project-fs/git-hooks');
 const clusternatorJson = require('../project-fs/clusternator-json');
 const cmn = require('../common');

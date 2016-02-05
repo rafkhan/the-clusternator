@@ -9,9 +9,9 @@ var istanbul = require('gulp-istanbul');
 var gutil = require('gulp-util');
 var spawn = require('child_process').spawn;
 
-var jsPaths = ['src/**/*.js'];
+var jsPaths = ['src/**/*.js', 'src/*.js'];
 var cliPath = ['bin-src/**/*.js'];
-var specPaths = ['spec/unit/**/*.spec.js', 'src/**/*.spec.js'];
+var specPaths = ['src/**/*.spec.js'];
 
 gulp.task('default', ['transpile']);
 gulp.task('test', ['test-unit']);
