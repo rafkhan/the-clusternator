@@ -43,7 +43,10 @@ module.exports = {
  * @returns {string}
  */
 function getSkeletonPath() {
-  return path.join(__dirname, '..', '..', '..', '..', 'src', 'skeletons');
+  /** @todo move these assets somewhere that does not interfere with
+   * tranpsilation  */
+  return path.join(__dirname, '..', '..', '..', '..', 'src', 'api', '0.1',
+    'project-fs', 'skeletons');
 }
 
 /**

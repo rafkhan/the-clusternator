@@ -215,7 +215,7 @@ function getInitUserOptions() {
   return clusternatorJson
     .getProjectRootRejectIfClusternatorJsonExists()
     .fail(failOnExists)
-    .then((root) =>clusternatorJson
+    .then((root) => clusternatorJson
       .findProjectNames(root)
       .then(pickBestName)
       .then(applyUserConfig)

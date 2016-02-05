@@ -79,7 +79,7 @@ function logFail(err) {
     console.log('Error: Can connect to host, but cannot find Docker container:');
     console.log('Try manually debugging using "clusternator ssh"');
   }  else {
-    console.log(`Error: ${err.message}`);
+    console.log(`stdio Error: ${err.message}`);
   }
 }
 

@@ -160,7 +160,7 @@ module.exports = (yargs) => {
           .forEach(console.log))
         .done())
     .command('describe-services', 'Describe project services', aws
-      .describeServices())
+      .describeServices)
     .command('build', 'Local Docker Build', (y) => {
       var id = (+Date.now()).toString(16),
         argv = demandPassphrase(y)

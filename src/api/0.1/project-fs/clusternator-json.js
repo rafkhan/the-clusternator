@@ -18,9 +18,9 @@ const UTF8 = 'utf8';
 const CLUSTERNATOR_TAR = 'clusternator.tar.gz';
 const CLUSTERNATOR_PRIVATE = CLUSTERNATOR_TAR + '.asc';
 const SKELETON =
-  require('../../../../src/skeletons/clusternator-json-skeleton');
+  require('./skeletons/clusternator-json-skeleton');
 const questions =
-  require('../../../../src/skeletons/create-interactive-questions');
+  require('./skeletons/create-interactive-questions');
 const RX_NEWLINE = /\r?\n/;
 const NEWLINE = '\r\n';
 const DEFAULT_PORT_INTERNAL_NODE = 3000;
@@ -250,7 +250,7 @@ function skipIfExists(dir) {
   return fs.read(dir)
     .then(() => {
     throw new Error(dir + ' already exists.');
-  }, () => undefined); // fail over
+  }, (err) => null); // fail over
 }
 
 /**
@@ -485,7 +485,7 @@ function addToIgnore(ignoreFileName, toIgnore) {
 function getProjectRootRejectIfClusternatorJsonExists() {
   return fs.findProjectRoot()
     .then((root) => skipIfExists(root)
-      .then(() => root ));
+      .then(() => root));
 }
 
 

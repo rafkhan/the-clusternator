@@ -39,7 +39,7 @@ function main() {
     })
     .then(() => process.exit(0))
     .catch((err) => {
-      console.log(`Error: ${err.message}`);
+      console.log(`Docker Build Error: ${err.message}`);
       process.exit(1);
     });
 
@@ -155,7 +155,7 @@ function getToken(creds, registryId) {
 }
 
 /**
- * @param {base64string} data
+ * @param {string} data (base64 data)
  * @returns {{user: string, token: string}}
  */
 function decodeToken(data) {
@@ -167,8 +167,8 @@ function decodeToken(data) {
   };
 }
 /**
- * @param {{ token: base64String, proxyEndpoint: string }} data
- * @return {Promise<{{ token: base64string, proxyEndpoint: string}}>}
+ * @param {{ token: string, proxyEndpoint: string }} data
+ * @return {Promise<{ token: string, proxyEndpoint: string }>}
  */
 function login(data) {
   const decoded = decodeToken(data);
@@ -224,7 +224,7 @@ function getAwsConfig(privatePath) {
 
 /**
  * @param {string} command
- * @param {*[]} args
+ * @param {Array} args
  * @returns {Promise}
  */
 function spawnOutput(command, args) {

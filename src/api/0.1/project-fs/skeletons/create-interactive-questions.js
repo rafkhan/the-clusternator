@@ -1,6 +1,7 @@
 'use strict';
 const skeleton = require('./clusternator-json-skeleton');
-const util = require('../util');
+const cmn = require('../../common');
+const util = cmn.src('util');
 
 function truthy(value) {
   return value ? true : false;
@@ -99,7 +100,7 @@ function projectPorts(defaults) {
 
 /**
  * @param {Object} defaults
- * @returns {[]}
+ * @returns {Array}
  */
 function projectInit(defaults) {
   defaults = defaults || {};

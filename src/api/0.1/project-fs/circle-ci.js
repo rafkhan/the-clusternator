@@ -33,6 +33,10 @@ function loadCircleCIFile(fullPath, filter) {
       if (typeof filter === 'function') {
         contents = filter(contents);
       }
+      if (!contents) {
+        // circle.yml is an empty file case
+        return {};
+      }
       return YAML.parse(contents);
     })
     .fail(() => {

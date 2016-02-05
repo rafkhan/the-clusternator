@@ -54,7 +54,7 @@ function log(data) {
 }
 
 function logError(message, data) {
-  console.log(`Error: ${message}: ${data}`);
+  console.log(`Project DB Error: ${message}: ${data}`);
 }
 
 function createData(channel) {
