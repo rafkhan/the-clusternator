@@ -11,7 +11,7 @@ var spawn = require('child_process').spawn;
 
 var jsPaths = ['src/**/*.js'];
 var cliPath = ['bin-src/**/*.js'];
-var specPaths = ['spec/unit/**/*.spec.js'];
+var specPaths = ['spec/unit/**/*.spec.js', 'src/**/*.spec.js'];
 
 gulp.task('default', ['transpile']);
 gulp.task('test', ['test-unit']);
