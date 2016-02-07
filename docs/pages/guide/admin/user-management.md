@@ -33,3 +33,15 @@ Using an admin account, Clusternator users can be created with:
 ```
 clusternator create-user
 ```
+
+## User Configuration
+
+In order to keep things convenient for the clusternator end user, Clusternator
+stores a little bit of information about the user.  The Clusternator keeps this
+information in: `~/.clusternator-config.json`.  This file should have its
+permissions set to be user read only.  Clusternator currently enforces this
+restriction on write.
+
+This file contains basic information about a user, but The Clusternator only
+currently cares about the remote host, and the remote token.  Both of which
+are automatically managed by `clusternator login`

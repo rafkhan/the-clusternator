@@ -19,7 +19,7 @@ var questions = require(
 
 
 const DOT_CLUSTERNATOR_CONFIG =
-  path.join(getUserHome(), '.clusternator_config.json');
+  path.join(getUserHome(), '.clusternator-config.json');
 const  writeFile = Q.nbind(fs.writeFile, fs);
 const chmod = Q.nbind(fs.chmod, fs);
 
