@@ -18,9 +18,8 @@ module.exports = {
 };
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 /**
- * @param {function(..)} fn
+ * @param {function(...)} fn
  * @param {function(...)} done
  */
 function checkResolve(fn, done) {
@@ -32,7 +31,7 @@ function checkResolve(fn, done) {
 }
 
 /**
- * @param {function(..)} fn
+ * @param {function(...)} fn
  * @param {function(...)} done
  */
 function checkReject(fn, done) {
