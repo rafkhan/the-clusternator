@@ -16,6 +16,9 @@ var specPaths = ['src/**/*.spec.js'];
 gulp.task('default', ['transpile']);
 gulp.task('test', ['test-unit']);
 
+/**
+ * Builds JSDoc documentation from source
+ */
 gulp.task('jsdoc', function jsDoc() {
   // Finally execute your script below - here 'ls -lA'
   var child = spawn('npm', ['run', 'doc-api'], {cwd: process.cwd()});
@@ -37,14 +40,23 @@ gulp.task('jsdoc', function jsDoc() {
   });
 });
 
+/**
+ * transpiles to es5
+ */
 gulp.task('transpile', ['transpile-cli', 'transpile-src']);
 
+/**
+ * transpiles the CLI entry point only
+ */
 gulp.task('transpile-cli', function transpileCli() {
   return gulp.src(cliPath)
     .pipe(babel())
     .pipe(gulp.dest('bin'));
 });
 
+/**
+ * transpiles the main source
+ */
 gulp.task('transpile-src', function transpileSrc() {
   return gulp.src(jsPaths)
     .pipe(plumber())
@@ -52,14 +64,30 @@ gulp.task('transpile-src', function transpileSrc() {
     .pipe(gulp.dest('lib'));
 });
 
+/**
+ * transpiles and builds docs on change
+ */
 gulp.task('watch', function watch() {
   gulp.watch(jsPaths, ['transpile', 'jsdoc']);
 });
 
-gulp.task('watch-tests', function watch() {
+/**
+ * transpiles on change
+ */
+gulp.task('watch-quick', function watchQuick() {
+  gulp.watch(jsPaths, ['transpile']);
+});
+
+/**
+ * re-tests on change
+ */
+gulp.task('watch-tests', function watchTest() {
   gulp.watch(jsPaths.concat(specPaths), ['test-unit']);
 });
 
+/**
+ * wires up istanbul
+ */
 gulp.task('pre-test-unit', function preUnitTest() {
   return gulp
     .src(jsPaths)
@@ -69,6 +97,9 @@ gulp.task('pre-test-unit', function preUnitTest() {
     .pipe(istanbul.hookRequire());
 });
 
+/**
+ * lints then runs the mocha unit tests
+ */
 gulp.task('test-unit', ['lint', 'pre-test-unit'], function testUnit() {
   return gulp
     .src(specPaths)
@@ -91,6 +122,9 @@ gulp.task('test-unit', ['lint', 'pre-test-unit'], function testUnit() {
     }));
 });
 
+/**
+ * lints the source
+ */
 gulp.task('lint', function lint() {
   return gulp.src(jsPaths.concat(specPaths))
     .pipe(eslint())
