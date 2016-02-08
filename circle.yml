@@ -11,4 +11,4 @@ dependencies:
     - cp ./.clusternator/aws-project-credentials.json ./.private
     - cp ./.clusternator/config.json ./.private/config.local.json
     - cp ./.clusternator/credentials.json ./.private/credentials.local.json
-    - cp ./.clusternator/.clusternator_config.json ~/
+    - cp ./.clusternator/.clusternator-config.json ~/
