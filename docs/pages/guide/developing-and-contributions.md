@@ -51,6 +51,8 @@ for your browser.  Please see: [zenhub.io](https://www.zenhub.io/ "Zen Hub")_
 
 ## Code
 
+[Navigating The Source](source "Navigating The Source")
+
 All code is in `src/`. The CLI entry point is `bin/clusternator-cli.js`,
 but includes from `lib/` (the compile destination).
 

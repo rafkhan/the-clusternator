@@ -42,7 +42,18 @@ function getRoute53() {
 
 function getDDB() {
   var config = c();
-  return new a.DynamoDB(config.awsCredentials);
+  let nodeGt10Config =  {
+    httpOptions: {
+      agent: new https.Agent({
+        ciphers: 'ALL',
+        secureProtocol: 'TLSv1_method'
+      })
+    }
+  };
+  Object.keys(config.awsCredentials).forEach((attr) => {
+    nodeGt10Config[attr] = config.awsCredentials[attr];
+  });
+  return new a.DynamoDB(nodeGt10Config);
 }
 
 function makePath() {
