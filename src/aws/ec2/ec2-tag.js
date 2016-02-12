@@ -6,7 +6,7 @@
  */
 
 module.exports = {
-  create,
+  create: Ec2Tag,
   tag
 };
 
@@ -22,22 +22,16 @@ function tag(aws, resources, tags) {
   });
 }
 
-class Ec2Tag {
-  /**
-   * @param {string} key
-   * @param {string} value
-   */
-  constructor(key, value) {
-    this.Key= key;
-    this.Value= value + '';
-  }
-}
-
 /**
  * @param {string} key
  * @param {string} value
  * @returns {Ec2Tag}
  */
-function create(key, value) {
+function Ec2Tag (key, value) {
+  if (this  instanceof Ec2Tag) {
+    this.Key = key + '';
+    this.Value = value + '';
+    return this;
+  }
   return new Ec2Tag(key, value);
 }
