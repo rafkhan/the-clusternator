@@ -23,6 +23,7 @@ function logError(e) {
 module.exports = {
   acl: require('./acl.spec'),
   cluster: require('./cluster.spec'),
+  ddb: require('./ddb.spec'),
   deployment: require('./deployment.spec'),
   ec2: require('./ec2.spec'),
   ecr: require('./ecr.spec'),
