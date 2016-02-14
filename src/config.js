@@ -122,7 +122,7 @@ function validateUserConfig(c) {
 
 function checkUser() {
   try {
-    var c = require(DOT_CLUSTERNATOR_CONFIG);
+    const c = require(DOT_CLUSTERNATOR_CONFIG);
     return validateUserConfig(c);
   } catch (err) {
     return null;
@@ -158,7 +158,7 @@ function checkConfig() {
  * @returns {{}}
  */
 function getConfig() {
-  var config = checkConfig();
+  const config = checkConfig();
 
   config.awsCredentials = checkAwsCreds();
   config.user = checkUser();
@@ -200,7 +200,7 @@ function writeUserConfig(options) {
  * @returns {Promise<Object>}
  */
 function interactiveUser() {
-  var user = getConfig().user;
+  let user = getConfig().user;
   if (!user) {
     user = { credentials: {} };
   }

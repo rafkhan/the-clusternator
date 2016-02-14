@@ -14,9 +14,9 @@ const R = require('ramda');
 
 const Config = require('../../config');
 const logger = require('../loggers').logger;
-var getCommands = require(`../../api/${API}/rest/rest-api`);
-var auth = require('../auth/authorities');
-var curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
+const getCommands = require(`../../api/${API}/rest/rest-api`);
+const auth = require('../auth/authorities');
+const curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
 
 module.exports = {
   init
@@ -29,7 +29,7 @@ module.exports = {
  * @returns {*}
  */
 function commandPrivFromNamespace(config, namespace, command) {
-  var cp = config.commandPrivileges;
+  let cp = config.commandPrivileges;
   if (!cp) {
     return null;
   }
@@ -62,7 +62,7 @@ function noAuthority(res) {
 }
 
 function authorizeCommand(config) {
-  var cmdP = curryPrivFromNamespace(config);
+  const cmdP = curryPrivFromNamespace(config);
 
   return (req, res, next) => {
     const ns = req.params.namespace;

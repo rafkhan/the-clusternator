@@ -9,7 +9,7 @@
 const path = require('path');
 const config = require('../config')();
 
-var cproc = require('./child-process');
+let cproc = require('./child-process');
 
 const COMMAND = path.join(__dirname, '..', '..', 'bin', 'slack-hook.sh');
 

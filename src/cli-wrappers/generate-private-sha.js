@@ -8,7 +8,7 @@
 
 const path = require('path');
 
-var cproc = require('./child-process');
+let cproc = require('./child-process');
 
 const COMMAND = path.join(
   __dirname, '..', '..', 'bin', 'generate-private-sha.sh');

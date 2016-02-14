@@ -15,13 +15,13 @@ const awsConstants = require('./aws-constants');
 
 function getSecurityGroupManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
-  var baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
+  const baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
     common.makeAWSVPCFilter(vpcId));
-  var describe = common.makeEc2DescribeFn(
+  const describe = common.makeEc2DescribeFn(
     ec2, 'describeSecurityGroups', 'SecurityGroups', baseFilters);
-  var describeProject = common.makeEc2DescribeProjectFn(describe);
-  var describePr = common.makeEc2DescribePrFn(describe);
-  var describeDeployment = common.makeEc2DescribeDeployment(describe);
+  const describeProject = common.makeEc2DescribeProjectFn(describe);
+  const describePr = common.makeEc2DescribePrFn(describe);
+  const describeDeployment = common.makeEc2DescribeDeployment(describe);
 
   function defaultInOutRules(groupId) {
     const inbound = skeletons.SG_DEFAULT_INGRESS;

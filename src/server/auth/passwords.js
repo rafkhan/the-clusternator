@@ -17,7 +17,7 @@ const Q = require('q');
  * @returns {Q.Promise}
  */
 function find(id) {
-  var d = Q.defer();
+  const d = Q.defer();
   if (passwords[id]) {
     d.resolve(passwords[id]);
   } else {
@@ -46,7 +46,7 @@ function createPassword(id, newPass) {
 }
 
 function changePassword_(id, shash) {
-  var d = Q.defer();
+  const d = Q.defer();
   passwords[id].saltedHash = shash;
   d.resolve();
   return d.promise;

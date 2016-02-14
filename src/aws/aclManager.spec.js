@@ -48,7 +48,7 @@ describe('aclManager', () => {
   });
 
   describe('test destroy\'s resolving case', () => {
-    var oldDesc;
+    let oldDesc;
     beforeEach(() => {
       oldDesc = common.makeEc2DescribeFn;
       common.makeEc2DescribeFn = () => {

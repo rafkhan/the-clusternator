@@ -26,7 +26,7 @@ function getVpcManager(ec2) {
     http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
   */
   function findProjectTag(projectId, list) {
-    var vpc = null;
+    let vpc = null;
     list.Vpcs.forEach(function(vDesc) {
       vDesc.Tags.forEach(function(tag) {
         if (tag.Key !== constants.PROJECT_TAG) {
@@ -47,9 +47,9 @@ function getVpcManager(ec2) {
     http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
   */
   function findMasterVPC(list) {
-    var vpc = null;
+    let vpc = null;
     list.Vpcs.forEach(function(vDesc) {
-      var foundTag = false;
+      let foundTag = false;
       vDesc.Tags.forEach(function(tag) {
         if (tag.Key === constants.PROJECT_TAG) {
           foundTag = true;
@@ -64,7 +64,7 @@ function getVpcManager(ec2) {
 
   function findProjectVPC(projectId) {
     return describe().then(function(list) {
-      var vpc = findProjectTag(projectId, list);
+      let vpc = findProjectTag(projectId, list);
       if (vpc) {
         return vpc;
       }

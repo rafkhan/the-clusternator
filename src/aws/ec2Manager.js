@@ -129,7 +129,7 @@ function makeSSHUserData(sshPath) {
  * @return {string}
  */
 function stringArrayToNewLineBase64(arr) {
-  var buf = new Buffer(arr.join('\n'));
+  const buf = new Buffer(arr.join('\n'));
   return buf.toString('base64');
 }
 
@@ -244,7 +244,7 @@ function getEC2Manager(ec2, vpcId) {
       throw 'No instance IDs';
     }
 
-    var params = {
+    const params = {
       InstanceIds: instanceIds
     };
 
@@ -253,7 +253,7 @@ function getEC2Manager(ec2, vpcId) {
         return [];
       }
 
-      var res = list.Reservations[0].Instances;
+      const res = list.Reservations[0].Instances;
       return res.map((reservation) => {
         return {
           InstanceId: reservation.instanceIds,
@@ -303,7 +303,7 @@ function getEC2Manager(ec2, vpcId) {
    @param {string} instanceId
    */
   function waitForReady(instanceId) {
-    var fn = makeReadyPredicate(instanceId);
+    const fn = makeReadyPredicate(instanceId);
 
     return util.waitFor(fn, awsConstants.AWS_EC2_POLL_INTERVAL,
       awsConstants.AWS_EC2_POLL_MAX);
@@ -436,7 +436,7 @@ function getEC2Manager(ec2, vpcId) {
    @param {string[]} instanceIds
    */
   function waitForTermination(instanceIds) {
-    var fn = makeTerminatedPredicate(instanceIds);
+    const fn = makeTerminatedPredicate(instanceIds);
 
     return util.waitFor(fn, awsConstants.AWS_EC2_POLL_INTERVAL,
       awsConstants.AWS_EC2_POLL_MAX);

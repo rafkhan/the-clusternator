@@ -5,11 +5,11 @@
 
 /*global require, module*/
 
-var authorities = Object.create(null);
-var config = require('../../config')();
-var Q = require('q');
-var DEFAULT_AUTHORITY = 2;
-var authorityTypes = config.privilegeGroups;
+const authorities = Object.create(null);
+const config = require('../../config')();
+const Q = require('q');
+const DEFAULT_AUTHORITY = 2;
+const authorityTypes = config.privilegeGroups;
 
 module.exports = {
   find: find,
@@ -44,7 +44,7 @@ function isSet(id) {
  * @return {Q.Promise<number>}
  */
 function find(id) {
-  var d = Q.defer();
+  const d = Q.defer();
   if (isSet(id)) {
     d.resolve(authorities[id]);
   } else {
@@ -70,7 +70,7 @@ function createAuthority(id, authority) {
 }
 
 function changeAuthority_(id, authority) {
-  var d = Q.defer();
+  const d = Q.defer();
   authorities[id] = validateAuthority(id, authority);
   d.resolve();
   return d.promise;

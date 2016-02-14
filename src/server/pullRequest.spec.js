@@ -1,11 +1,11 @@
 'use strict';
 
-var supertest = require('supertest');
-var express = require('express');
-var bodyParser = require('body-parser');
-var prHandler = require('./pullRequest.js');
+const supertest = require('supertest');
+const express = require('express');
+const bodyParser = require('body-parser');
+const prHandler = require('./pullRequest.js');
 
-var app = express();
+const app = express();
 app.use(bodyParser.json());
 app.post('/test', prHandler);
 

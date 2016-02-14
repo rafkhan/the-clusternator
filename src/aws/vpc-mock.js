@@ -1,8 +1,8 @@
 'use strict';
 
-var Q = require('q');
+const Q = require('q');
 
-var data = {
+const data = {
   defaultVPC: {
     CidrBlock: '192.168.0.0'
   }

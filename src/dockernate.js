@@ -65,7 +65,7 @@ function dockerBuild(repo, repoDesc, image, tag, middleware, dockerFile) {
   }
 
   function cleanGit() {
-    var cleanup = () => git.destroy(repoDesc);
+    const cleanup = () => git.destroy(repoDesc);
 
     util.info('Running Dockernator Middleware');
     return middleware(repoDesc)
@@ -120,7 +120,7 @@ function validateMiddleware(middleware) {
   /** DO NOT ARROW FUNCTION THINGS WITH arguments */
   function tryMiddleware() {
     try {
-      var prom = middleware.apply(null, arguments);
+      const prom = middleware.apply(null, arguments);
       return timeout(prom, DOCKER_BUILD_HOOK_TIMEOUT, 'Docker middleware');
     } catch (err) {
       return Q.reject(err);
@@ -135,7 +135,7 @@ function prepareProject(backend) {
     return Q.resolve();
   }
   util.info(`Preparing Project Backend: ${backend}, CWD: ${process.cwd()}`);
-  var d = Q.defer();
+  const d = Q.defer();
   npm.install()
     .then(() => {
       util.info(`Building Project From CWD: ${process.cwd()}`);

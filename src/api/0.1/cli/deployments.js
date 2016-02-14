@@ -58,8 +58,8 @@ function deploy(name, force, update) {
   return clusternatorJson
     .get()
     .then((cJson) => {
-      var dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
-      var pid = cJson.projectId;
+      const dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
+      const pid = cJson.projectId;
       return Q
         .all([
           git.shaHead(),
@@ -98,7 +98,7 @@ function update(name) {
   return clusternatorJson
     .get()
     .then((cJson) => {
-      var dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
+      const dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
       return fs
         .read(dPath, 'utf8')
         .fail(getAppDefNotFound(dPath))

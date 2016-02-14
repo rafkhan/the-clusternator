@@ -38,7 +38,7 @@ describe('route53Manager', () => {
 
     it('createResourceRecordSet should create a ResourceRecord from param ' +
       'three', () => {
-        var rrst = route53.helpers.createResourceRecordSet('name', 'A',
+        const rrst = route53.helpers.createResourceRecordSet('name', 'A',
           '1.2.3.4');
         expect(rrst.ResourceRecords[0].Value).to.equal('1.2.3.4');
       });
@@ -52,7 +52,7 @@ describe('route53Manager', () => {
 
     it('createResourceRecord should return an object like { Value: value }',
       () => {
-        var rr = route53.helpers.createResourceRecord('stuff');
+        const rr = route53.helpers.createResourceRecord('stuff');
         expect(rr.Value).to.equal('stuff');
       });
 
@@ -91,7 +91,7 @@ describe('route53Manager', () => {
       });
 
     it('findFirstTag should find the first matching tag in a "TagSet"', () => {
-      var id = route53.helpers.findFirstTag([{
+      const id = route53.helpers.findFirstTag([{
         Tags: []
       }, {
         ResourceId: 'test',

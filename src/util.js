@@ -11,7 +11,7 @@ const inquirer = require('inquirer');
 const Winston = require('winston');
 const constants = require('./constants');
 
-var winston;
+let winston;
 
 initWinston();
 
@@ -124,7 +124,7 @@ function quote(str) {
   @return {string} first two classes, like: '1.2'
 */
 function getCidrPrefixFromIPString(ip) {
-  var classes = ip.split('.');
+  const classes = ip.split('.');
   return classes[0] + '.' + classes[1];
 }
 
@@ -217,7 +217,7 @@ function clone(obj) {
  * @returns {Promise}
  */
 function inquirerPrompt(qs, onEachAnswer, onEachError, onComplete) {
-  var d = Q.defer();
+  const d = Q.defer();
   if (typeof onEachAnswer === 'function') {
     inquirer.prompt(qs, (answers) => {
       d.resolve(answers);
@@ -240,7 +240,7 @@ function cliLogger(yargs) {
   const LOG_MAX = 5;
 
 
-  var argv = yargs.count('verbose')
+  const argv = yargs.count('verbose')
     .alias('v', 'verbose')
     .describe('v', 'Verbosity, defaults to info, add more v\'s to increase')
     .boolean('quiet')

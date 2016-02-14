@@ -35,7 +35,7 @@ describe('subnetManager', () => {
   });
 
   describe('async describe with valid list', () => {
-    var oldDesc;
+    let oldDesc;
     beforeEach(() => {
       oldDesc = common.makeEc2DescribeFn;
       common.makeEc2DescribeFn = () => {
@@ -247,7 +247,7 @@ describe('subnetManager', () => {
 
   it('throwIfSubnetNotFound should return the SubnetDescription if it exists',
     () => {
-      var result = subnet.helpers.throwIfSubnetNotFound('test', [{
+      const result = subnet.helpers.throwIfSubnetNotFound('test', [{
         Tags: [{
           Key: constants.PROJECT_TAG,
           Value: 'test'

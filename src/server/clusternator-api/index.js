@@ -1,5 +1,5 @@
-var api1 = require('./api-0.1.js');
+'use strict';
 
 module.exports = {
-  init: api1.init
+  init: require('./api-0.1js')
 };

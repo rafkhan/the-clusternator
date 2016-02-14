@@ -12,14 +12,14 @@ const EXTENSION_TAR = '.tar';
 const EXTENSION_GZ = '.gz';
 const EXTENSION = EXTENSION_TAR + EXTENSION_GZ;
 
-var cproc = require('./child-process');
+let cproc = require('./child-process');
 
 /**
   @param {string} tarball name/path of the tarball to make
   @return {string} string with _one_ .tar.gz extension
 */
 function addExtension(tarball) {
-  var existing = tarball.indexOf(EXTENSION);
+  let existing = tarball.indexOf(EXTENSION);
   if (existing === tarball.length - EXTENSION.length) {
     return tarball;
   }

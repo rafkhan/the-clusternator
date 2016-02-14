@@ -58,7 +58,7 @@ function getRoute53(route53, zoneId) {
     @return {{ Comment: string }}
   */
   function createChangeBatch(comment) {
-    var changeBatch = util.clone(skeletons.CHANGE_BATCH);
+    const changeBatch = util.clone(skeletons.CHANGE_BATCH);
     if (comment) {
       changeBatch.Comment = comment;
     }
@@ -74,7 +74,7 @@ function getRoute53(route53, zoneId) {
       throw new TypeError('route53: createResourceRecord expecting value ' +
         'parameter');
     }
-    var resourceRecord = util.clone(skeletons.RESOURCE_RECORD);
+    const resourceRecord = util.clone(skeletons.RESOURCE_RECORD);
     resourceRecord.Value = value;
     return resourceRecord;
   }
@@ -84,7 +84,7 @@ function getRoute53(route53, zoneId) {
     @return {string} (from resourceRecrodSetTypes)
   */
   function validateResourceRecordSetType(type) {
-    var typeIndex = skeletons.RECORD_TYPES.indexOf(type);
+    let typeIndex = skeletons.RECORD_TYPES.indexOf(type);
     typeIndex = typeIndex === -1 ? 1 : typeIndex;
 
     return skeletons.RECORD_TYPES[typeIndex];
@@ -102,7 +102,7 @@ function getRoute53(route53, zoneId) {
       throw new TypeError('route53: createResourceRecordSet expecting ' +
         '"name" parameter');
     }
-    var resourceRecordSet = util.clone(skeletons.RESOURCE_RECORD_SET);
+    const resourceRecordSet = util.clone(skeletons.RESOURCE_RECORD_SET);
     resourceRecordSet.Name = name;
     resourceRecordSet.Type = type;
     resourceRecordSet.ResourceRecords.push(
@@ -166,7 +166,7 @@ function getRoute53(route53, zoneId) {
   */
   function createPRARecord(pid, pr, ip, config) {
     return findTld().then((tld) => {
-      var domainName = rid.generatePRSubdomain(pid, pr);
+      const domainName = rid.generatePRSubdomain(pid, pr);
       return route53
         .changeResourceRecordSets(
           createRecordParams(domainName, ip, tld, 'A', config))
@@ -183,7 +183,7 @@ function getRoute53(route53, zoneId) {
    */
   function createPRCNameRecord(pid, pr, url, config) {
     return findTld().then((tld) => {
-      var domainName = rid.generatePRSubdomain(pid, pr);
+      const domainName = rid.generatePRSubdomain(pid, pr);
       return route53
         .changeResourceRecordSets(
           createRecordParams(domainName, url, tld, 'CNAME', config))
@@ -213,7 +213,7 @@ function getRoute53(route53, zoneId) {
   function createDeploymentARecord(pid, deployment, ip, config) {
     return findTld()
       .then((tld) => {
-      var domainName = generateDeploymentDomain(pid, deployment);
+      const domainName = generateDeploymentDomain(pid, deployment);
       return route53
         .changeResourceRecordSets(
           createRecordParams(domainName, ip, tld, 'A', config))
@@ -231,7 +231,7 @@ function getRoute53(route53, zoneId) {
   function createDeploymentCNameRecord(pid, deployment, url, config) {
     return findTld()
       .then((tld) => {
-        var domainName = generateDeploymentDomain(pid, deployment);
+        const domainName = generateDeploymentDomain(pid, deployment);
         return route53
           .changeResourceRecordSets(
             createRecordParams(domainName, url, tld, 'CNAME', config))
@@ -317,7 +317,7 @@ function getRoute53(route53, zoneId) {
     @return {string}
   */
   function pluckId(resource) {
-    var splits = resource.Id.split('/');
+    const splits = resource.Id.split('/');
     return splits[splits.length - 1];
   }
 
@@ -327,7 +327,7 @@ function getRoute53(route53, zoneId) {
     @return {string}
   */
   function findFirstTag(tagSet) {
-    var id = null;
+    let id = null;
     tagSet.forEach((r) => {
       r.Tags.forEach((t) => {
         if (t.Key === constants.CLUSTERNATOR_TAG) {
@@ -360,7 +360,7 @@ function getRoute53(route53, zoneId) {
           throw new Error('Route53: No Hosted Zones Found');
         }
         return listTags(l).then((tagSet) => {
-        var id = findFirstTag(tagSet);
+        const  id = findFirstTag(tagSet);
         if (id) {
           return awsConstants.AWS_R53_ZONE_PREFIX + id;
         }

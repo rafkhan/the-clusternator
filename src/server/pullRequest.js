@@ -7,8 +7,8 @@
 
 const R = require('ramda');
 
-var serverUtil = require('./util');
-var log = require('./loggers').logger;
+const serverUtil = require('./util');
+const log = require('./loggers').logger;
 
 function writeSuccess(res, result) {
   log.info('PR close success:', result);
@@ -19,14 +19,13 @@ function writeFailure(res, err) {
   log.error(err.stack);
   res.status(500);
   res.send(err);
-  return;
 }
 
 // Extracts relevant data from github webhook body
 function getPRInfo(body) {
-  var prBody = body.pull_request;
-  var number = prBody.number;
-  var name = prBody.head.repo.name;
+  const prBody = body.pull_request;
+  const number = prBody.number;
+  const name = prBody.head.repo.name;
 
   return {
     number: number,
@@ -35,33 +34,32 @@ function getPRInfo(body) {
 }
 
 function onPrClose(pm, body) {
-  var pr = getPRInfo(body);
+  const pr = getPRInfo(body);
   return pm.destroyPR(pr.name, pr.number);
 }
 
 function pullRequestRouteHandler(pm, req, res) {
-  var error = R.curry(serverUtil.sendError)(res);
+  const error = R.curry(serverUtil.sendError)(res);
 
-  var body = req.body;
+  const body = req.body;
 
-  var onSuccess = R.curry(writeSuccess)(res);
-  var onFail   = R.curry(writeFailure)(res);
+  const onSuccess = R.curry(writeSuccess)(res);
+  const onFail   = R.curry(writeFailure)(res);
 
-  var ghEventType = req.header('X-Github-Event');
+  const ghEventType = req.header('X-Github-Event');
 
   if(ghEventType !== 'pull_request') {
     error(403, 'Pull requests only!');
     return;
   }
 
-  var ghAction = body.action;
+  const ghAction = body.action;
 
   if(ghAction === 'closed') {
     onPrClose(pm, body)
       .then(onSuccess, onFail);
   } else {
     error(403, 'We only want "closed" PR events right now.');
-    return;
   }
 }
 

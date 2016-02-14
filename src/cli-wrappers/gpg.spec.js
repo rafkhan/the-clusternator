@@ -45,7 +45,7 @@ describe('Test GPG CLI Wrapper', () => {
 
   describe('Test GPG CLI Passing (not stdout)', () => {
     beforeEach(() => {
-      var ms = mockSpawn();
+      const ms = mockSpawn();
       ms.setDefault(ms.simple(0, ''));
       cproc.__set__('spawn', ms);
     });

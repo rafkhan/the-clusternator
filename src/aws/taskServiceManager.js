@@ -16,14 +16,14 @@ const TaskDefinitionManager = require('./taskDefinitionManager');
 function getTaskServiceManager(ecs) {
   ecs = util.makePromiseApi(ecs);
 
-  var taskDefinitionManager = TaskDefinitionManager(ecs);
+  const taskDefinitionManager = TaskDefinitionManager(ecs);
 
   function listServices(clusterArn) {
     if (!clusterArn) {
       throw 'Requires cluster ARN';
     }
 
-    var params = {
+    const params = {
       cluster: clusterArn
     };
 
@@ -39,7 +39,7 @@ function getTaskServiceManager(ecs) {
       throw 'Requires service ARN';
     }
 
-    var params = {
+    let params = {
       cluster: clusterArn,
       service: serviceArn,
     };
@@ -58,7 +58,7 @@ function getTaskServiceManager(ecs) {
       throw 'Requires service ARN';
     }
 
-    var params = {
+    const params = {
       cluster: clusterArn,
       service: serviceArn
     };
@@ -79,7 +79,7 @@ function getTaskServiceManager(ecs) {
     }
 
     function stopAllServices(serviceArns) {
-      var stopPromises = R.map(stopService, serviceArns);
+      const stopPromises = R.map(stopService, serviceArns);
       return q.all(stopPromises);
     }
 
@@ -89,7 +89,7 @@ function getTaskServiceManager(ecs) {
     }
 
     function destroyAllServices(serviceArns) {
-      var destroyPromise = R.map(destroyService, serviceArns);
+      const destroyPromise = R.map(destroyService, serviceArns);
       return q.all(destroyPromise)
               .then(() => {
                 return serviceDrained(clusterArn, serviceArns);
@@ -107,7 +107,7 @@ function getTaskServiceManager(ecs) {
     if (!result.services || !result.services.length) {
       return -1;
     }
-    var isSteady = 1;
+    let isSteady = 1;
     result.services[0].events.forEach((event) => {
       util.debug(`Polling service for ready check: ${event.message}`);
       if (event.message.indexOf('steady state') === -1) {
@@ -119,13 +119,13 @@ function getTaskServiceManager(ecs) {
   }
 
   function serviceReady(arns) {
-    var d = q.defer();
+    const d = q.defer();
     ecs
       .describeServices({
         services: [ arns.service ],
         cluster: arns.cluster })
       .then((result) => {
-        var status = serviceStatus(result);
+        const status = serviceStatus(result);
         if (status < 0) {
           d.reject(new Error('Error polling new service: ' + arns));
           return;
@@ -148,18 +148,18 @@ function getTaskServiceManager(ecs) {
       return false;
     }
 
-    var service = result.services[0];
+    const service = result.services[0];
     return service.status === 'INACTIVE';
   }
 
   function serviceDrained(clusterArn, serviceArns) {
-    var d = q.defer();
+    const d = q.defer();
     ecs
       .describeServices({
         services: serviceArns,
         cluster: clusterArn })
       .then((result) => {
-        var isInactive = checkForInactiveService(result);
+        const isInactive = checkForInactiveService(result);
         if (isInactive) {
           util.info('Service has drained');
           d.resolve();
@@ -183,9 +183,9 @@ function getTaskServiceManager(ecs) {
 
     // TODO refactor this to be elsewhere
     function createServiceFromTaskAndStart(taskDef) {
-      var task = taskDef.taskDefinition;
+      const task = taskDef.taskDefinition;
 
-      var params = {
+      const params = {
         cluster: clusterArn,
         taskDefinition: task.taskDefinitionArn,
         desiredCount: 1, //TODO you should be able to change this
@@ -209,7 +209,7 @@ function getTaskServiceManager(ecs) {
         .then(createServiceFromTaskAndStart, q.reject);
     }
 
-    var taskDefPromises = R.map(createTaskAndService,
+    const taskDefPromises = R.map(createTaskAndService,
       appDef.tasks);
 
     return q.all(taskDefPromises);

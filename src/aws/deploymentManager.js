@@ -154,7 +154,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request}
    */
   function destroy(projectId, deployment) {
-    var clusterName = rid.generateRID({
+    const clusterName = rid.generateRID({
       pid: projectId,
       deployment
     });
@@ -179,7 +179,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   }
 
   function update(projectId, deployment, appdef) {
-    var clusterName = rid.generateRID({
+    const clusterName = rid.generateRID({
       pid: projectId,
       deployment
     });

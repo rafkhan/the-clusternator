@@ -21,7 +21,7 @@ const  crypto = require('crypto');
 const b64 = require('base64url');
 const Q = require('q');
 
-var cproc = require('./child-process');
+let cproc = require('./child-process');
 
 /**
   @param {string} passphrase - encryption passphrase
@@ -91,7 +91,7 @@ function decryptFile(passphrase, cipherFilePath, outputFilePath) {
  * @returns {Q.Promise<string>}
  */
 function generatePass() {
-  var d = Q.defer();
+  const d = Q.defer();
   crypto.randomBytes(50, (err, buff) => {
     if (err) {
       d.reject(err);

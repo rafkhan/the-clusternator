@@ -47,7 +47,7 @@ SgIpPermissions.prototype.validateProtocol = function(protocol) {
  * @throws {TypeError}
  */
 SgIpPermissions.prototype.detectIpRangeOrSg = function(ipRangeOrSg) {
-  var type = '';
+  let type = '';
   if (ipRangeOrSg.CidrIp) {
     type = 'ip';
   }
@@ -71,7 +71,7 @@ SgIpPermissions.prototype.reduceIpRangeOrSgs = function(prev, current) {
   if (!prev) {
     return this.detectIpRangeOrSg(current);
   }
-  var cType = this.detectIpRangeOrSg(current);
+  const cType = this.detectIpRangeOrSg(current);
   if (cType === prev) {
     return cType;
   }

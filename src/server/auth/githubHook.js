@@ -6,25 +6,25 @@
  * @module server/gitHubHook
  */
 
-var crypto = require('crypto');
+const crypto = require('crypto');
 
-var q = require('q');
-var typer = require('media-typer');
-var loggers = require('../loggers');
-var log = loggers.logger;
+const q = require('q');
+const typer = require('media-typer');
+const loggers = require('../loggers');
+const log = loggers.logger;
 
 function checkHmac(key, text, digest) {
-  var hmac = crypto.createHmac('sha1', key);
+  const hmac = crypto.createHmac('sha1', key);
   hmac.setEncoding('hex');
   hmac.write(text);
   hmac.end();
-  var hash = 'sha1=' + hmac.read();
+  const hash = 'sha1=' + hmac.read();
 
   if(hash === digest) {
     log.info('Github signature match.');
     return true;
   } else {
-    var msg = 'Invalid signature. ' +
+    const msg = 'Invalid signature. ' +
               'Got: ' + hash + ' ' +
               'Expected: ' + digest;
 
@@ -36,7 +36,7 @@ function checkHmac(key, text, digest) {
 
 function middlewareFactory(pm) {
   function middleWare(req, res, next) {
-    var signature = req.get('X-Hub-Signature');
+    const signature = req.get('X-Hub-Signature');
     if(!signature) {
       log.debug('Rejecting github request with no signature.');
       res.status(401);
@@ -45,9 +45,9 @@ function middlewareFactory(pm) {
     }
 
 
-    var text = req.rawBody;
-    var prBody = req.rawBody.pull_request;
-    var projectName = prBody.head.repo.name;
+    const text = req.rawBody;
+    const prBody = req.rawBody.pull_request;
+    const projectName = prBody.head.repo.name;
 
     /** @todo replace this with hash table implementation */
     return q.resolve();
@@ -57,7 +57,7 @@ function middlewareFactory(pm) {
     //        AttributeValueList: [{ S: projectName }]}})
     //  .then((result) => {
     //    if(result.Count > 0) {
-    //      var key = result.Items[0].GithubSecretToken.S;
+    //      const key = result.Items[0].GithubSecretToken.S;
     //      if(checkHmac(key, text, signature)) {
     //        next(req, res);
     //      } else {

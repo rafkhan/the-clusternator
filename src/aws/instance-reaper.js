@@ -9,7 +9,7 @@ const EC2_BILLING_PERIOD  = 10000 * 60 * 60;
 const config = require('../config')();
 const pm = require('./project-init')(config);
 
-var intervalID;
+let intervalID;
 
 function start() {
   if (!intervalID) {

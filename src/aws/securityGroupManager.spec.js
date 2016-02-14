@@ -48,7 +48,7 @@ describe('securityGroupManager', () => {
   });
 
   it('createPr should return a promise', () => {
-    var p = securityGroup.createPr('test-project', '1');
+    const p = securityGroup.createPr('test-project', '1');
     expect(typeof p.then).to.equal('function');
   });
 
@@ -65,7 +65,7 @@ describe('securityGroupManager', () => {
   });
 
   it('destroyPr should return a promise', () => {
-    var p = securityGroup.destroyPr('test-project', '1');
+    const p = securityGroup.destroyPr('test-project', '1');
     expect(typeof p.then).to.equal('function');
   });
 

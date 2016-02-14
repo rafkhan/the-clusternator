@@ -134,7 +134,7 @@ describe('clusternator.json handling', () => {
 
   it('deDupe should remove duplicates, and falseys from an array of strings',
     () => {
-      var tryMe = ['a', 'a', '', '', '', 'b', 'c','d','e','e','e'];
+      const tryMe = ['a', 'a', '', '', '', 'b', 'c','d','e','e','e'];
       expect(cn.helpers.deDupe(tryMe).toString())
         .to.equal(['a', 'b', 'c', 'd', 'e'].toString());
     });

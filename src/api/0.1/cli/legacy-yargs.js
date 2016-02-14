@@ -39,7 +39,7 @@ module.exports = (yargs) => {
   yargs.command('cluster:new',
     'Create a new cluster',
     function(y) {
-      var opts = {
+      const opts = {
         cluster: {
           alias: 'c',
           describe: 'Cluster name for your app',
@@ -75,7 +75,7 @@ module.exports = (yargs) => {
   yargs.command('cluster:update',
     'Update an existing cluster',
     function(y) {
-      var opts = {
+      const opts = {
         cluster: {
           alias: 'c',
           describe: 'Cluster name',
@@ -96,7 +96,7 @@ module.exports = (yargs) => {
   yargs.command('cluster:delete',
     'Delete an existing cluster',
     function(y) {
-      var opts = {
+      const opts = {
         cluster: {
           alias: 'c',
           describe: 'Cluster name',
@@ -112,8 +112,8 @@ module.exports = (yargs) => {
    * @todo yargify everything from here down.  Manual if/else *not* required
    */
   yargs.help('help');
-  var argv = yargs.argv;
-  var command = argv._[0];
+  const argv = yargs.argv;
+  const command = argv._[0];
 
   if (command === 'cluster:new') {
     cli.newApp(argv)();

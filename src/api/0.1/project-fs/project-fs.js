@@ -77,7 +77,7 @@ function installExecutable(destFilePath, fileContents, perms) {
  * @return {Q.Promise}
  */
 function loadCertificateFiles(privateKey, certificate, chain) {
-  var filePromises = [
+  const filePromises = [
     read(privateKey, UTF8),
     read(certificate, UTF8)
   ];
@@ -104,7 +104,7 @@ function loadCertificateFiles(privateKey, certificate, chain) {
 function findProjectRoot(cwd) {
   cwd = cwd || process.cwd();
 
-  var d = Q.defer();
+  const d = Q.defer();
 
   ls(cwd).then((files) => {
     const index = files.indexOf(VCS_DIR);

@@ -76,7 +76,7 @@ function initOptional(options, projectRoot) {
  * @returns {Q.Promise}
  */
 function initializeServeSh(root) {
-  var sPath = fs.path.join(root, SERVE_SH);
+  const sPath = fs.path.join(root, SERVE_SH);
   return fs.getSkeleton(SERVE_SH)
     .then((contents) => {
       return fs.write(sPath, contents);

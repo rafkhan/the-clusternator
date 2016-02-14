@@ -104,7 +104,7 @@ describe('common AWS functions', () => {
 
   it('makeEc2DescribeFn should return a function that plucks the expected ' +
     'result value from an ec2 describe call', (done) => {
-      var descFn = common.makeEc2DescribeFn({
+      const descFn = common.makeEc2DescribeFn({
         test: () => {
           return Q.resolve({
             demo: 'result!'

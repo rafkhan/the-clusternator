@@ -59,13 +59,13 @@ function getClusterManager(ecs) {
    * @param {string} clusterName
    */
   function describeCluster(clusterName) {
-    var params = {
+    const params = {
       clusters: [clusterName]
     };
     return ecs
       .describeClusters(params)
       .then(function(results) {
-        var result = R.filter(function(c) {
+        const result = R.filter(function(c) {
           return c.clusterName === clusterName;
         }, results.clusters);
 
@@ -187,7 +187,7 @@ function getClusterManager(ecs) {
    * @returns {ClusternatorServiceDescription[]}
    */
   function processServiceDescriptions(descriptions) {
-    var formatted = descriptions
+    const formatted = descriptions
       .map(processServiceDescription)
       .filter(identity);
 

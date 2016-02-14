@@ -13,7 +13,7 @@ const NOT_AUTHENTICATED = 401;
 const Q = require('q');
 const Config = require('../config');
 const constants = require('../constants');
-var request = require('request');
+let request = require('request');
 
 module.exports = {
   makePostRequest,

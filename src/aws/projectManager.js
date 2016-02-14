@@ -216,7 +216,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    * @returns {Q.Promise}
    */
   function writeGitHubKey(projectId, token) {
-    var item = {
+    const item = {
       ProjectName: { S: projectId },
       GithubSecretToken: { S: token }
     };

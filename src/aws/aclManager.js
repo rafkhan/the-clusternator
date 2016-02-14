@@ -11,7 +11,7 @@ const util = require('../util');
 const constants = require('../constants');
 const awsConstants = require('./aws-constants');
 
-var common = require('./common');
+let common = require('./common');
 
 /**
   @param {EC2} AWS Ec2 object
@@ -57,7 +57,7 @@ function getAclManager(ec2, vpcId) {
   function createAcl(pid, params) {
     return ec2.createNetworkAcl(params).
     then(function(result) {
-      var aclId = result.NetworkAcl.NetworkAclId;
+      const aclId = result.NetworkAcl.NetworkAclId;
       return Q.all([
         /** @todo UPGRADE to Promise ec2 */
         common.awsTagEc2(ec2, aclId, [{
@@ -83,7 +83,7 @@ function getAclManager(ec2, vpcId) {
     if (!pid) {
       throw new TypeError('Create ACL requires a ProjectId');
     }
-    var params = util.clone(skeletons.ACL);
+    const params = util.clone(skeletons.ACL);
     params.VpcId = vpcId;
 
     return describeProject(pid).

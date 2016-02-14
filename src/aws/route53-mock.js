@@ -1,7 +1,7 @@
 'use strict';
 
 
-var data = {
+const data = {
   hostedZone: {
     HostedZone: {
       Name: 'example.com.'

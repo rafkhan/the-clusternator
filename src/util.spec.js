@@ -35,7 +35,7 @@ describe('utility functions', () => {
   });
 
   it('errLog should return a broken promsie', (done) => {
-    var output = 'hahhahah';
+    const output = 'hahhahah';
     util.errLog(output).then(C.getFail(done), (err) => {
       C.check(done, () => {
         expect(err.message).to.equal(output);
@@ -71,7 +71,7 @@ describe('utility functions', () => {
 
     it('waitFor should reseolve if its predicate resolves, *and* max retries ' +
       ' is *not* exceeded', (done) => {
-        var count = 0;
+        let count = 0;
 
         function predicate() {
           count += 1;
@@ -90,7 +90,7 @@ describe('utility functions', () => {
   });
 
   describe('makePromiseApi tests', () => {
-    var api;
+    let api;
 
     // AWS's is a constructor so our mock should be too
     MockApi.prototype.oneParam = (param, callback) => {

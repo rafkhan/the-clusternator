@@ -159,7 +159,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request}
    */
   function destroy(projectId, pr) {
-    var clusterName = rid.generateRID({
+    const clusterName = rid.generateRID({
       pid: projectId,
       pr: pr
     });

@@ -20,7 +20,7 @@ const Q = require('q');
  * @returns {Q.Promise<string>}
  */
 function find(id) {
-  var d = Q.defer();
+  const d = Q.defer();
   if (tokens[id]) {
     d.resolve(tokens[id]);
   } else {
@@ -34,12 +34,12 @@ function find(id) {
  * @returns {Q.Promise.<string>}
  */
 function findByToken(token) {
-  var details = splitToken(token);
+  const details = splitToken(token);
   return find(details.id);
 }
 
 function saveUserTokens(id, userTokens) {
-  var d = Q.defer();
+  const d = Q.defer();
   tokens[id] = userTokens;
   d.resolve();
   return d.promise;
@@ -49,7 +49,7 @@ function saveUserTokens(id, userTokens) {
  * @returns {Q.Promise<string>}
  */
 function createToken_() {
-  var d = Q.defer();
+  const d = Q.defer();
   crypto.randomBytes(TOKEN_SIZE, (err, buff) => {
     if (err) {
       d.reject(err);
@@ -119,7 +119,7 @@ function verify(id, token) {
     return Q.allSettled(tokens.map((t) => {
       return hash.verify(t, token);
     })).then((results) => {
-      var found = null;
+      let found = null;
       results.forEach((r, i) => {
         if (r.state === 'fulfilled') {
           found = i;
@@ -134,7 +134,7 @@ function verify(id, token) {
 }
 
 function verifyByToken(token) {
-  var details = splitToken(token);
+  const details = splitToken(token);
   return verify(details.id, details.token);
 }
 
