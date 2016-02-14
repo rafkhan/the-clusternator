@@ -34,7 +34,7 @@ function checkHmac(key, text, digest) {
 }
 
 
-function middlewareFactory(ddbManager) {
+function middlewareFactory(pm) {
   function middleWare(req, res, next) {
     var signature = req.get('X-Hub-Signature');
     if(!signature) {
@@ -49,21 +49,23 @@ function middlewareFactory(ddbManager) {
     var prBody = req.rawBody.pull_request;
     var projectName = prBody.head.repo.name;
 
-    ddbManager.getItems(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE,
-        { ProjectName:
-          { ComparisonOperator: 'EQ',
-            AttributeValueList: [{ S: projectName }]}})
-      .then((result) => {
-        if(result.Count > 0) {
-          var key = result.Items[0].GithubSecretToken.S;
-          if(checkHmac(key, text, signature)) {
-            next(req, res);
-          } else {
-            res.status(401);
-            res.send('Invalid signature');
-          }
-        }
-      }, q.reject);
+    /** @todo replace this with hash table implementation */
+    return q.resolve();
+    //ddbManager.getItems(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE,
+    //    { ProjectName:
+    //      { ComparisonOperator: 'EQ',
+    //        AttributeValueList: [{ S: projectName }]}})
+    //  .then((result) => {
+    //    if(result.Count > 0) {
+    //      var key = result.Items[0].GithubSecretToken.S;
+    //      if(checkHmac(key, text, signature)) {
+    //        next(req, res);
+    //      } else {
+    //        res.status(401);
+    //        res.send('Invalid signature');
+    //      }
+    //    }
+    //  }, q.reject);
   }
 
   return middleWare;

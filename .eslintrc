@@ -10,6 +10,8 @@
 
   "rules": {
     "quotes": [1, "single"],
+    "semi": [2, "always"],
+    "max-len": [1, 80, 4],
     "no-underscore-dangle": 0,
     "no-multi-spaces": 0,
     "no-undef": 2,

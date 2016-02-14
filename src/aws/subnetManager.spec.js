@@ -43,7 +43,7 @@ describe('subnetManager', () => {
           return Q.resolve([{
             CidrBlock: '192.168.0.0'
           }]);
-        }
+        };
       };
       Subnet.__set__('common', common);
       subnet = Subnet(ec2Mock, 'vpc-id');
@@ -109,7 +109,7 @@ describe('subnetManager', () => {
 
   it('findHighestCidr should throw with an empty list', () => {
     expect(() => {
-      subnet.helpers.findHighestCidr([])
+      subnet.helpers.findHighestCidr([]);
     }).to.throw(Error);
   });
 
@@ -209,7 +209,7 @@ describe('subnetManager', () => {
         expect(result).to.equal('192.168');
       });
     }, C.getFail(done));
-  })
+  });
 
   it('concatSubnetComponents should join an string array with a "."', () => {
     expect(subnet.helpers.concatSubnetComponents(['a', 'b'])).to.equal('a.b');
@@ -226,32 +226,35 @@ describe('subnetManager', () => {
     }, C.getFail(done));
   });
 
-  it('throwIfPidFound should throw if project id is found in given list', () => {
-    expect(() => {
-      subnet.helpers.throwIfPidNotFound('test', [{
+  it('throwIfPidFound should throw if project id is found in given list',
+    () => {
+      expect(() => {
+        subnet.helpers.throwIfPidNotFound('test', [{
+          Tags: [{
+            Key: constants.PROJECT_TAG,
+            Value: 'test'
+          }]
+        }]);
+      }).to.throw(Error);
+    });
+
+  it('throwIfSubnetNotFound should throw if project id not found in given list',
+    () => {
+      expect(() => {
+        subnet.helpers.throwIfSubnetNotFound('test', []);
+      }).to.throw(Error);
+    });
+
+  it('throwIfSubnetNotFound should return the SubnetDescription if it exists',
+    () => {
+      var result = subnet.helpers.throwIfSubnetNotFound('test', [{
         Tags: [{
           Key: constants.PROJECT_TAG,
           Value: 'test'
         }]
       }]);
-    }).to.throw(Error);
-  });
-
-  it('throwIfSubnetNotFound should throw if project id not found in given list', () => {
-    expect(() => {
-      subnet.helpers.throwIfSubnetNotFound('test', []);
-    }).to.throw(Error);
-  });
-
-  it('throwIfSubnetNotFound should return the SubnetDescription if it exists', () => {
-    var result = subnet.helpers.throwIfSubnetNotFound('test', [{
-      Tags: [{
-        Key: constants.PROJECT_TAG,
-        Value: 'test'
-      }]
-    }]);
-    expect(result).to.be;
-  });
+      expect(result).to.be;
+    });
 
   it('findExistingPid, should resolve if project id not found', (done) => {
     subnet.helpers.findExistingPid().then(() => {
@@ -267,7 +270,7 @@ describe('subnetManager', () => {
 
         expect(err instanceof Error).to.be;
       });
-    })
+    });
   });
 
   it('filterIsDefault should return a list of NetworkAcl\'s tagged with ' +
@@ -278,7 +281,7 @@ describe('subnetManager', () => {
         }, {
           IsDefault: true
         }]
-      })[0].IsDefault).to.be
+      })[0].IsDefault).to.be.ok;
     });
 
   it('defaultAssoc should return a promise', (done) => {

@@ -153,7 +153,7 @@ function makeRequestObject(verb, endpoint, data,  useToken) {
 
   if (useToken) {
     if (!user.credentials.token) {
-      let e = new Error('No saved token')
+      let e = new Error('No saved token');
       e.code = NOT_AUTHENTICATED;
       return e;
     }

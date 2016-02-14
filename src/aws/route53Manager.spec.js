@@ -29,11 +29,12 @@ describe('route53Manager', () => {
       expect(route53.helpers.validateResourceRecordSetType()).to.equal('A');
     });
 
-    it('createResourceRecordSet should throw without first parameter (name)', () => {
-      expect(() => {
-        route53.helpers.createResourceRecordSet();
-      }).to.throw(Error);
-    });
+    it('createResourceRecordSet should throw without first parameter (name)',
+      () => {
+        expect(() => {
+          route53.helpers.createResourceRecordSet();
+        }).to.throw(Error);
+      });
 
     it('createResourceRecordSet should create a ResourceRecord from param ' +
       'three', () => {
@@ -42,16 +43,18 @@ describe('route53Manager', () => {
         expect(rrst.ResourceRecords[0].Value).to.equal('1.2.3.4');
       });
 
-    it('createResourceRecord should throw without first parameter (value)', () => {
-      expect(() => {
-        route53.helpers.createResourceRecord();
+    it('createResourceRecord should throw without first parameter (value)',
+      () => {
+        expect(() => {
+          route53.helpers.createResourceRecord();
+        });
       });
-    });
 
-    it('createResourceRecord should return an object like { Value: value }', () => {
-      var rr = route53.helpers.createResourceRecord('stuff');
-      expect(rr.Value).to.equal('stuff');
-    });
+    it('createResourceRecord should return an object like { Value: value }',
+      () => {
+        var rr = route53.helpers.createResourceRecord('stuff');
+        expect(rr.Value).to.equal('stuff');
+      });
 
     it('findTld should return the mock tld (example.com.)', (done) => {
       route53.helpers.findTld().then((tld) => {
@@ -85,7 +88,7 @@ describe('route53Manager', () => {
         expect(
           route53.helpers.createChangeBatch('stuff').Comment
         ).to.equal('stuff');
-      })
+      });
 
     it('findFirstTag should find the first matching tag in a "TagSet"', () => {
       var id = route53.helpers.findFirstTag([{

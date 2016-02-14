@@ -45,30 +45,32 @@ describe('common AWS functions', () => {
     }])).to.be.true;
   });
 
-  it('areTagsPidValid should return false if pid tags do not match given pid', () => {
-    expect(common.areTagsPidValid('test', [{
-      Key: 'red herring',
-      Value: 'not useful'
-    }])).to.be.false;
-  });
+  it('areTagsPidValid should return false if pid tags do not match given pid',
+    () => {
+      expect(common.areTagsPidValid('test', [{
+        Key: 'red herring',
+        Value: 'not useful'
+      }])).to.be.false;
+    });
 
-  it('areTagsPidPrValid should return true if pid/pr tags match given pid/pr', () => {
-    expect(common.areTagsPidPrValid('test', 'pr', [{
-      Key: 'red herring',
-      Value: 'not useful'
-    }, {
-      Key: constants.PROJECT_TAG,
-      Value: 'test'
-    }, {
-      Key: constants.PR_TAG,
-      Value: 'pr'
-    }])).to.be.true;
-  });
+  it('areTagsPidPrValid should return true if pid/pr tags match given pid/pr',
+    () => {
+      expect(common.areTagsPidPrValid('test', 'pr', [{
+        Key: 'red herring',
+        Value: 'not useful'
+      }, {
+        Key: constants.PROJECT_TAG,
+        Value: 'test'
+      }, {
+        Key: constants.PR_TAG,
+        Value: 'pr'
+      }])).to.be.true;
+    });
 
   it('areTagsPidPrValid should return false if pid/pr tags do not match ' +
     'given pid', () => {
-      expect(common.areTagsPidPrValid('test', 'pr', [{
-        Key: 'red herring',
+    expect(common.areTagsPidPrValid('test', 'pr', [{
+      Key: 'red herring',
         Value: 'not useful'
       }, {
         Key: constants.PR_TAG,

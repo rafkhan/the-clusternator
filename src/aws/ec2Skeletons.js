@@ -1,3 +1,6 @@
+const AWS_DEFAULT_EC2_AMI = 'ami-e7acf78d';
+const AWS_DEFAULT_EC2_TYPE = 't2.micro';
+
 /**
  * Prototypes for assembling AWS ec2 entities
  *
@@ -70,4 +73,32 @@ module.exports = Object.freeze({
       }]
     }]
   },
+  AWS_DEFAULT_EC2: {
+    ImageId: AWS_DEFAULT_EC2_AMI,
+    MaxCount: 1,
+    MinCount: 1,
+
+    DisableApiTermination: false,
+
+    IamInstanceProfile: {
+      Name: 'ecsInstanceRole'
+    },
+
+    EbsOptimized: false,
+
+    InstanceInitiatedShutdownBehavior: 'terminate',
+
+    InstanceType: AWS_DEFAULT_EC2_TYPE,
+
+    Monitoring: {
+      // @todo investigate cloud watch
+      Enabled: true /* required */
+    },
+
+    NetworkInterfaces: [ ],
+
+    Placement: {
+      Tenancy: 'default'
+    }
+  }
 });

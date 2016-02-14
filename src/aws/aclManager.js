@@ -9,6 +9,7 @@ const Q = require('q');
 const skeletons = require('./ec2Skeletons');
 const util = require('../util');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 
 var common = require('./common');
 
@@ -20,7 +21,7 @@ var common = require('./common');
 function getAclManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
-  var baseFilters = constants.AWS_FILTER_CTAG.concat(
+  var baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
     common.makeAWSVPCFilter(vpcId));
   var describe = common.makeEc2DescribeFn(
     ec2, 'describeNetworkAcls', 'NetworkAcls', baseFilters);

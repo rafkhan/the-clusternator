@@ -22,23 +22,25 @@ describe('Test GPG CLI Wrapper', () => {
     gpg.__set__('cproc', cProc);
   });
 
-  it('encrypt should reject if passphrase is shorter than thirty chars', (done) => {
-    gpg.encrypt('12345678901234567890123456789', 'some text').
-    then(C.getFail(done), (err) => {
-      C.check(done, () => {
-        expect(err instanceof Error).to.be.true;
+  it('encrypt should reject if passphrase is shorter than thirty chars',
+    (done) => {
+      gpg.encrypt('12345678901234567890123456789', 'some text').
+      then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.true;
+        });
       });
     });
-  });
 
-  it('encryptFile should reject if passphrase is shorter than thirty chars', (done) => {
-    gpg.encryptFile('12345678901234567890123456789', 'filePath').
-    then(C.getFail(done), (err) => {
-      C.check(done, () => {
-        expect(err instanceof Error).to.be.true;
+  it('encryptFile should reject if passphrase is shorter than thirty chars',
+    (done) => {
+      gpg.encryptFile('12345678901234567890123456789', 'filePath').
+      then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.true;
+        });
       });
     });
-  });
 
 
   describe('Test GPG CLI Passing (not stdout)', () => {

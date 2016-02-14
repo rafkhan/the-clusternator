@@ -25,8 +25,8 @@ describe('routeTableManager success cases', () => {
             Value: 'true'
           }]
         }]);
-      }
-    }
+      };
+    };
     RouteTable.__set__('common', common);
     routeTable = RouteTable(ec2Mock, 'vpc-id');
   });
@@ -45,13 +45,14 @@ describe('routeTableManager success cases', () => {
   });
 
 
-  it('findDefault should resolve if a clusternator tag is not found', (done) => {
-    routeTable.findDefault().then(function() {
-      C.check(done, () => {
-        expect(true).to.be;
-      });
-    }, C.getFail(done));
-  });
+  it('findDefault should resolve if a clusternator tag is not found',
+    (done) => {
+      routeTable.findDefault().then(function() {
+        C.check(done, () => {
+          expect(true).to.be;
+        });
+      }, C.getFail(done));
+    });
 });
 
 describe('routeTableManager fail cases', () => {
@@ -62,8 +63,8 @@ describe('routeTableManager fail cases', () => {
     common.makeEc2DescribeFn = () => {
       return () => {
         return Q.reject(new Error('test'));
-      }
-    }
+      };
+    };
     RouteTable.__set__('common', common);
     routeTable = RouteTable(ec2Mock, 'vpc-id');
   });
@@ -86,6 +87,6 @@ describe('routeTableManager fail cases', () => {
       C.check(done, () => {
         expect(err instanceof Error).to.be.true;
       });
-    })
+    });
   });
 });

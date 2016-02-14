@@ -19,14 +19,16 @@ const deploymentConfigAttributes = configAttributes.concat(
 const Q = require('q');
 const R = require('ramda');
 const common = require('./common');
+const ec2Skeletons = require('./ec2Skeletons');
 const util = require('../util');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 const fs = require('fs');
 const path = require('path');
 
 const ls = Q.nbind(fs.readdir, fs);
 const readFile = Q.nbind(fs.readFile, fs);
-const DEFAULT_INSTANCE_PARAMS = constants.AWS_DEFAULT_EC2;
+const DEFAULT_INSTANCE_PARAMS = ec2Skeletons.AWS_DEFAULT_EC2;
 
 
 /**
@@ -175,7 +177,7 @@ function getECSContainerInstanceUserData(clusterName, auth, sshDataOrPath) {
 function getEC2Manager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
-  var baseFilters = constants.AWS_FILTER_CTAG.concat(
+  var baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
     common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(
       ec2, 'describeInstances', 'Reservations', baseFilters),
@@ -301,8 +303,8 @@ function getEC2Manager(ec2, vpcId) {
   function waitForReady(instanceId) {
     var fn = makeReadyPredicate(instanceId);
 
-    return util.waitFor(fn, constants.AWS_EC2_POLL_INTERVAL,
-      constants.AWS_EC2_POLL_MAX);
+    return util.waitFor(fn, awsConstants.AWS_EC2_POLL_INTERVAL,
+      awsConstants.AWS_EC2_POLL_MAX);
   }
 
   /**
@@ -434,8 +436,8 @@ function getEC2Manager(ec2, vpcId) {
   function waitForTermination(instanceIds) {
     var fn = makeTerminatedPredicate(instanceIds);
 
-    return util.waitFor(fn, constants.AWS_EC2_POLL_INTERVAL,
-      constants.AWS_EC2_POLL_MAX);
+    return util.waitFor(fn, awsConstants.AWS_EC2_POLL_INTERVAL,
+      awsConstants.AWS_EC2_POLL_MAX);
   }
 
   /**

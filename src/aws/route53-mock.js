@@ -1,5 +1,5 @@
 'use strict';
-var Q = require('q');
+
 
 var data = {
   hostedZone: {
@@ -7,7 +7,7 @@ var data = {
       Name: 'example.com.'
     }
   }
-}
+};
 
 function getHostedZone(params, callback) {
   callback(null, data.hostedZone);

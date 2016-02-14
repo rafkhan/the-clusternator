@@ -107,7 +107,7 @@ function post(data, auth) {
       }
   };
 
-  console.log('Posting To:', CLUSTERNATOR)
+  console.log('Posting To:', CLUSTERNATOR);
   return new Promise((resolve, reject) => {
     // Set up the request
     const postReq = http.request(postOptions, (res) => {
@@ -116,7 +116,7 @@ function post(data, auth) {
         console.log('Response: ' + chunk);
         resolve();
       });
-      res.on('error', reject)
+      res.on('error', reject);
     });
 
     // post the data

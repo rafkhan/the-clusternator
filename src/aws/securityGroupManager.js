@@ -11,10 +11,11 @@ const skeletons = require('./ec2Skeletons');
 const util = require('../util');
 const rid = require('../resource-identifier');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 
 function getSecurityGroupManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
-  var baseFilters = constants.AWS_FILTER_CTAG.concat(
+  var baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
     common.makeAWSVPCFilter(vpcId));
   var describe = common.makeEc2DescribeFn(
     ec2, 'describeSecurityGroups', 'SecurityGroups', baseFilters);
@@ -136,7 +137,8 @@ function getSecurityGroupManager(ec2, vpcId) {
       .then((list) => {
         if (list.length) {
           // return the id
-          util.info('Security Group Found For ', pid, ' Deployment: ', deployment);
+          util.info('Security Group Found For ', pid, ' Deployment: ',
+            deployment);
           return list[0].GroupId;
         } else {
           // make a new one

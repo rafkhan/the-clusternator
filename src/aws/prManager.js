@@ -15,6 +15,7 @@ const Task = require('./taskServiceManager');
 const common = require('./common');
 const path = require('path');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 const util = require('../util');
 const elbFns = require('./elb/elb');
 const R = require('ramda');
@@ -53,7 +54,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   function createElb(creq) {
     return elb.createPr(creq.projectId, creq.pr, creq.subnetId,
-      creq.groupId, constants.AWS_SSL_ID);
+      creq.groupId, awsConstants.AWS_SSL_ID);
   }
 
   function setUrl(creq) {

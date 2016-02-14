@@ -117,7 +117,8 @@ describe('vpcManager', () => {
       });
 
     it('findProjectVPC should return a VPC without a project tag if the ' +
-      ' matching VPC cannot be found, and there is a clusternator tagged VPC', (done) => {
+      ' matching VPC cannot be found, and there is a clusternator tagged VPC',
+      (done) => {
         list = {
           Vpcs: [{
             Tags: [{

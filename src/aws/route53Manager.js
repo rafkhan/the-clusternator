@@ -10,6 +10,7 @@ const util = require('../util');
 const rid = require('../resource-identifier');
 const skeletons = require('./route53Skeletons');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 
 /**
   @param {Route53} route53 AWS Library
@@ -361,7 +362,7 @@ function getRoute53(route53, zoneId) {
         return listTags(l).then((tagSet) => {
         var id = findFirstTag(tagSet);
         if (id) {
-          return constants.AWS_R53_ZONE_PREFIX + id;
+          return awsConstants.AWS_R53_ZONE_PREFIX + id;
         }
         throw new Error('Route53: No Clusternator Resources Found');
       });

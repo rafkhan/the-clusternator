@@ -54,8 +54,8 @@ describe('aclManager', () => {
       common.makeEc2DescribeFn = () => {
         return () => {
           return Q.resolve([1, 2, 3]);
-        }
-      }
+        };
+      };
       Acl.__set__('common', common);
       // make sure to use a new, new Acl object
       acl = Acl(ec2Mock, 'vpc-id');
@@ -103,7 +103,7 @@ describe('aclManager', () => {
       ec2Mock.createNetworkAclEntry = (param, cb) => {
         callCount += 1;
         cb(null);
-      }
+      };
       acl = Acl(ec2Mock, 'vpc-id');
     });
 

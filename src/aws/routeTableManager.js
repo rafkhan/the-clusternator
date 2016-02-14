@@ -6,6 +6,7 @@
  */
 
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 const util = require('../util');
 var common = require('./common');
 
@@ -13,7 +14,7 @@ function getRouteTableManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
   var baseFilters =
-    constants.AWS_FILTER_CTAG.concat(common.makeAWSVPCFilter(vpcId)),
+    awsConstants.AWS_FILTER_CTAG.concat(common.makeAWSVPCFilter(vpcId)),
     describe = common.makeEc2DescribeFn(ec2, 'describeRouteTables',
       'RouteTables', baseFilters);
 

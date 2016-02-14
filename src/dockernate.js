@@ -140,7 +140,7 @@ function prepareProject(backend) {
       util.info(`Building Project From CWD: ${process.cwd()}`);
       return npm.build()
       .then(d.resolve, d.reject, d.notify);
-    }, d.reject, d.notify)
+    }, d.reject, d.notify);
   return d.promise;
 }
 

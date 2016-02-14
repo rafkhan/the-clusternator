@@ -92,13 +92,14 @@ describe('securityGroupManager', () => {
       ec2Mock.authorizeSecurityGroupEgress = oldOutFn;
     });
 
-    it('defaultInOutRules should add ingress, and egress ec2 functions', (done) => {
-      securityGroup.helpers.defaultInOutRules().then(() => {
-        C.check(done, () => {
-          expect(inCalls).to.equal(1);
-          expect(outCalls).to.equal(1);
-        });
-      }, C.getFail(done));
-    });
+    it('defaultInOutRules should add ingress, and egress ec2 functions',
+      (done) => {
+        securityGroup.helpers.defaultInOutRules().then(() => {
+          C.check(done, () => {
+            expect(inCalls).to.equal(1);
+            expect(outCalls).to.equal(1);
+          });
+        }, C.getFail(done));
+      });
   });
 });

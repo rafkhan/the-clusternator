@@ -71,7 +71,7 @@ function createAuthority(id, authority) {
 
 function changeAuthority_(id, authority) {
   var d = Q.defer();
-  authorities[id] = validateAuthority(id, authority)
+  authorities[id] = validateAuthority(id, authority);
   d.resolve();
   return d.promise;
 }

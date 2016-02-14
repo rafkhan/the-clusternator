@@ -114,7 +114,7 @@ function projectInit(defaults) {
   }
 
   if (!defaults.clusternatorDir) {
-    defaults.clusternatorDir = util.clone(skeleton.clusternatorDir)
+    defaults.clusternatorDir = util.clone(skeleton.clusternatorDir);
   }
 
   if (!defaults.private) {

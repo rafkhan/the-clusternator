@@ -32,8 +32,18 @@ module.exports = {
   winston,
   inquirerPrompt,
   cliLogger,
-  safeParse
+  safeParse,
+  isObject,
+  deepFreeze
 };
+
+/**
+ * @param {*} i
+ * @returns {boolean}
+ */
+function isObject(i) {
+  return i && (typeof i === 'object');
+}
 
 /**
  *  Starts up the winston logger for STDIO
@@ -244,6 +254,21 @@ function cliLogger(yargs) {
     let logLevel = INFO + argv.v > LOG_MAX ? LOG_MAX : INFO + argv.v;
     winston.transports.console.level = constants.LOG_LEVELS[logLevel];
   }
+}
+
+/**
+ * Makes an object and its parts immutable
+ * @param {Object} obj
+ * @returns {Object}
+ */
+function deepFreeze(obj) {
+  if (!obj || typeof obj !== 'object') {
+    return obj;
+  }
+  Object.keys(obj).forEach((prop) => obj[prop] = isObject(obj[prop]) ?
+    deepFreeze(obj[prop]) :
+    obj[prop]);
+  return Object.freeze(obj);
 }
 
 /**

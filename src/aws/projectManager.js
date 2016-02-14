@@ -15,7 +15,6 @@ const Cluster = require('./clusterManager');
 const Pr = require('./prManager');
 const Ec2 = require('./ec2Manager');
 const Deployment = require('./deploymentManager');
-const DynamoManager = require('./dynamoManager');
 const constants = require('../constants');
 const util = require('../util');
 const Q = require('q');
@@ -30,7 +29,6 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   const cluster = Cluster(ecs);
   const vpc = Vpc(ec2);
   const r53 = Route53(awsRoute53);
-  const ddbManager = DynamoManager(dynamoDB);
 
   const iam = R.mapObjIndexed(iamAwsPartial, iamWrap);
   const ecr = R.mapObjIndexed(ecrAwsPartial, ecrWrap);
@@ -160,10 +158,15 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
       R.map(R.compose(R.map(R.prop('Tags')),
                       R.prop('Instances'))));
 
-    const extractDeadPRs = R.filter(R.allPass([R.compose(R.gt(now), R.prop(constants.EXPIRES_TAG)),
-                                               R.prop(constants.PR_TAG)]));
+    const extractDeadPRs = R.filter(R.allPass([
+      R.compose(R.gt(now), R.prop(constants.EXPIRES_TAG)),
+      R.prop(constants.PR_TAG)]));
 
-    const mapDestroy = R.map(R.compose(R.apply(destroyPR), (v) => [v[constants.PROJECT_TAG], v[constants.PR_TAG]]));
+    const mapDestroy = R.map(R
+      .compose(R
+        .apply(destroyPR), (v) => [
+        v[constants.PROJECT_TAG],
+        v[constants.PR_TAG]]));
 
     return state()
       .then((s) => s.ec2Mgr.describe().then((d) => {
@@ -218,8 +221,9 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
       GithubSecretToken: { S: token }
     };
 
-    return ddbManager
-      .insertItem(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE, item);
+    //return ddbManager
+    //  .insertItem(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE, item);
+    return Q.resolve();
   }
 
   function listProjects() {
@@ -332,7 +336,6 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
     create,
     createDeployment,
     createPR,
-    ddbManager,
     describeProject,
     destroy,
     destroyDeployment,

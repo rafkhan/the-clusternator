@@ -32,7 +32,7 @@ describe('utility functions', () => {
 
   it('plog should return the first argument', () => {
     expect(util.plog(2)).to.equal(2);
-  })
+  });
 
   it('errLog should return a broken promsie', (done) => {
     var output = 'hahhahah';
@@ -115,14 +115,14 @@ describe('utility functions', () => {
       }, C.getFail(done));
     });
 
-    it('should turn twoParams into a promise, and resolve the expected param (2)',
-      (done) => {
-        api.twoParams(1, 2).then((result) => {
-          C.check(done, () => {
-            expect(result).to.equal(2);
-          });
-        }, C.getFail(done));
-      });
+    it('should turn twoParams into a promise, and resolve the expected param ' +
+      '(2)', (done) => {
+      api.twoParams(1, 2).then((result) => {
+        C.check(done, () => {
+          expect(result).to.equal(2);
+        });
+      }, C.getFail(done));
+    });
 
     it('should reject errorOut', (done) => {
       api.errorOut(1).then(C.getFail(done), (err) => {

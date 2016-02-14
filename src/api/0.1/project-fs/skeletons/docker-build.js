@@ -69,19 +69,6 @@ function readFile(path) {
   });
 }
 
-function writeCmd(data, tag, fullTag) {
-  const decoded = decodeToken(data);
-  const cmd = `#!/bin/bash
-docker login -u ${decoded.user} -p ${decoded.token} -e none ${data.proxyEndpoint}
-docker build -t ${tag} ./
-docker tag ${tag} ${fullTag}
-docker push ${fullTag}
-  `;
-  const file = path.join(__dirname, '..', 'docker-build.sh');
-  return writeFile(file, cmd)
-    .then(() => makeEx(file));
-}
-
 function writeFile(path, data) {
   return new Promise((resolve, reject) => {
     fs.writeFile(path, data, (err, data) => {

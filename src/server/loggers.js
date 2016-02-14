@@ -53,8 +53,10 @@ var logger = new (winston.Logger)({
       },
       formatter: function(options) {
         // Return string will be passed to logger.
-        return options.timestamp() +' '+ options.level.toLowerCase() + ': '+ (undefined !== options.message ? options.message : '') +
-          (options.meta && Object.keys(options.meta).length ? '\n\t'+ JSON.stringify(options.meta) : '' );
+        return options.timestamp() + ' ' + options.level.toLowerCase() + ': ' +
+          (undefined !== options.message ? options.message : '') +
+          (options.meta && Object.keys(options.meta).length ?
+          '\n\t'+ JSON.stringify(options.meta) : '' );
       }
     })
   ]

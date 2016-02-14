@@ -80,8 +80,8 @@ describe('Clusternator\'s project manager', () => {
 
   });
 
-  it('normalizeEndSlash should add a / to the end of a host if it is not present',
-    () => {
+  it('normalizeEndSlash should add a / to the end of a host if it is not ' +
+    'present', () => {
     expect(common.helpers.normalizeEndSlash('blah')).to.equal('blah/');
   });
 

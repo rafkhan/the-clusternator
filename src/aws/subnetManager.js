@@ -8,6 +8,7 @@
 const Q = require('q');
 const util = require('../util');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 
 var Vpc = require('./vpcManager');
 var common = require('./common');
@@ -20,7 +21,7 @@ function getSubnetManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
   var vpc = Vpc(ec2);
-  var baseFilters = constants.AWS_FILTER_CTAG.concat(
+  var baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
     common.makeAWSVPCFilter(vpcId));
   var describe = common.makeEc2DescribeFn(
     ec2, 'describeSubnets', 'Subnets', baseFilters);
@@ -157,7 +158,7 @@ function getSubnetManager(ec2, vpcId) {
   finds a subnet from a project
   @param {string} projectId
   @param {Object} list (see AWS docs)
-  http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeVpcs-property
+  http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
   */
   function findProjectTag(projectId, list) {
     var subnet = null;
@@ -336,7 +337,7 @@ function getSubnetManager(ec2, vpcId) {
         return {
           VpcId: vpcId,
           CidrBlock: cidr,
-          AvailabilityZone: az || constants.AWS_DEFAULT_AZ,
+          AvailabilityZone: az || awsConstants.AWS_DEFAULT_AZ,
           pid: pid
         };
       }).
