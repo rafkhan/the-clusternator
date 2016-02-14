@@ -8,31 +8,24 @@
 const constants = require('../../constants');
 
 module.exports = {
-  create,
+  create: Filter,
   createVpc,
   createTag,
   createTagKey,
   createClusternator
 };
 
-class Filter {
-  /**
-   * @param {string} name
-   * @param {string|string[]} values
-   */
-  constructor(name, values) {
-    this.Name = name;
-    this.Values = Array.isArray(values) ? values : [values];
-  }
-}
-
 /**
  * @param {string} name
  * @param {string|string[]} values
- * @returns {Filter}
+ * @constructor
  */
-function create(name, values) {
-  return new Filter(name, values);
+function Filter(name, values) {
+  if (!(this instanceof Filter)) {
+    return new Filter(name, values);
+  }
+  this.Name = name;
+  this.Values = Array.isArray(values) ? values : [values];
 }
 
 /**

@@ -9,13 +9,15 @@ module.exports = {
   create
 };
 
-class SgIpRange {
-  /**
-   * @param {string} cidrIp
-   */
-  constructor(cidrIp){
-    this.CidrIp = cidrIp;
+/**
+ * @param {string} cidrIp
+ * @constructor
+ */
+function SgIpRange(cidrIp) {
+  if (!(this instanceof SgIpRange)) {
+    return new SgIpRange(cidrIp);
   }
+  this.CidrIp = cidrIp;
 }
 
 /**
