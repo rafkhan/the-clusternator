@@ -266,7 +266,8 @@ describe('common AWS functions', () => {
   });
 
   it('getDeploymentFilter should return a function', () => {
-    expect(typeof common.getDeploymentFilter('hello', 'tpr') === 'function').to.be.ok;
+    expect(typeof common.getDeploymentFilter('hello', 'tpr') === 'function')
+      .to.be.ok;
   });
 
   it('getDeploymentFilter should return a function that returns false if the ' +
