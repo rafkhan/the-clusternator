@@ -147,8 +147,8 @@ function waitFor(asyncPredicateFunction, interval, max, label) {
   max = Math.abs(+max) || 0;
   interval = Math.abs(+interval) || WAIT_DEFAULT_INTERVAL;
 
-  var defer = Q.defer(),
-    count = 0;
+  const defer = Q.defer();
+  let count = 0;
 
   function poll() {
     asyncPredicateFunction()
@@ -183,8 +183,8 @@ function isFunction(fn) {
   @return {Object} a new object with promisified functions
 */
 function makePromiseApi(api) {
-  var promiseApi = {},
-    attr;
+  const promiseApi = {};
+  let attr;
   // wrap *all* the functions !!!
   for (attr in api)
     if (isFunction(api[attr])) {

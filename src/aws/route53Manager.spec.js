@@ -1,16 +1,16 @@
 'use strict';
 
-var rewire = require('rewire'),
-  mockR53 = require('./route53-mock'),
-  constants = require('../constants');
+const rewire = require('rewire');
+const mockR53 = require('./route53-mock');
+const constants = require('../constants');
 
-var Route53 = rewire('./route53Manager'),
-  C = require('../chai');
+const Route53 = rewire('./route53Manager');
+const C = require('../chai');
 
 /*global describe, it, expect, beforeEach */
 /*eslint no-unused-expressions: 0*/
 describe('route53Manager', () => {
-  var route53;
+  let route53;
 
   beforeEach(() => {
     route53 = Route53(mockR53, 'someZone');

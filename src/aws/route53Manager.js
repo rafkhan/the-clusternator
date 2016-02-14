@@ -42,8 +42,8 @@ function getRoute53(route53, zoneId) {
     @return {{ Action: string }}
   */
   function createChange(action) {
-    var actionIndex = skeletons.CHANGE_ACTIONS.indexOf(action),
-      change;
+    const actionIndex = skeletons.CHANGE_ACTIONS.indexOf(action);
+    let change;
     if (actionIndex === -1) {
       throw new TypeError('route53: invalid change action: ' + action +
         ' MUST be one of ' + skeletons.CHANGE_ACTIONS.join(', '));
@@ -121,9 +121,9 @@ function getRoute53(route53, zoneId) {
   */
   function changeRecordParams(verb, domainName, ip, tld, type, config) {
     config = config || {};
-    var changeBatch = createChangeBatch(),
-      change = createChange(verb),
-      params = {
+    const changeBatch = createChangeBatch();
+    const change = createChange(verb);
+    const params = {
         ChangeBatch: changeBatch,
         HostedZoneId: zoneId
       };

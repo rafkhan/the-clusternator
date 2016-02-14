@@ -19,8 +19,8 @@ const path = require('path');
 const mkdirp = Q.nfbind(require('mkdirp'));
 const rimraf = Q.nfbind(require('rimraf'));
 
-var cproc = require('./child-process');
-var util = require('../util');
+let cproc = require('./child-process');
+let util = require('../util');
 
 module.exports = {
   GITIGNORE,
@@ -72,8 +72,8 @@ function clone(repo) {
  * @returns {string}
  */
 function getShortRepoName(repo) {
-  var split = repo.split('/'),
-    lastString = split[split.length - 1];
+  const split = repo.split('/');
+  const lastString = split[split.length - 1];
 
   return lastString.slice(lastString.length - 4) === '.git' ?
       lastString.slice(0, lastString.length - 4) : lastString;
@@ -114,14 +114,14 @@ function checkoutIdentifierFromDir(identifier, dir, repoMasked) {
 function create(repo, identifier) {
   identifier = identifier || 'master';
   const repoId =
-      (+Date.now()).toString(16) + Math.floor(Math.random() * 100000),
-    namespacePath = path.normalize(TMP + '/' + repoId),
-    repoShort = getShortRepoName(repo),
-    repoDesc = {
-      id:  repoId,
-      path:  path.join(namespacePath, repoShort)
-    };
-  var repoMasked = repo.split('@').filter((i) => i);
+    (+Date.now()).toString(16) + Math.floor(Math.random() * 100000);
+  const namespacePath = path.normalize(TMP + '/' + repoId);
+  const repoShort = getShortRepoName(repo);
+  const repoDesc = {
+    id:  repoId,
+    path:  path.join(namespacePath, repoShort)
+  };
+  let repoMasked = repo.split('@').filter((i) => i);
   repoMasked = repoMasked[repoMasked.length - 1];
   util.verbose('Create/Checkout Git Repo', repoMasked);
 

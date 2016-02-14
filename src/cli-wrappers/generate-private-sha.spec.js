@@ -1,15 +1,15 @@
 'use strict';
 
-const rewire = require('rewire'),
-  Q = require('q');
+const rewire = require('rewire');
+const Q = require('q');
 
-var gps = rewire('./generate-private-sha'),
-  C = require('./../chai');
+const gps = rewire('./generate-private-sha');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('Test generate-private-sha CLI Wrapper', () => {
-  var cProc;
+  let cProc;
 
   beforeEach(() => {
     cProc = gps.__get__('cproc');

@@ -6,11 +6,11 @@
  * @module childProcess
  */
 
-const  R = require('ramda'),
-  Q = require('q');
+const R = require('ramda');
+const Q = require('q');
 
 /** this is not a constant for unit testing purposes */
-var spawn = require('child_process').spawn;
+let spawn = require('child_process').spawn;
 
 const util = require('../util');
 
@@ -83,11 +83,12 @@ function failError(command, args, code, stderr) {
  */
 function output(command, args, opts) {
   args = args || [];
-  const options = R.merge({}, opts),
-    d = Q.defer(),
-    child = spawn(command, args, options);
+  const options = R.merge({}, opts);
+  const d = Q.defer();
+  const child = spawn(command, args, options);
 
-  var stdout = '', stderr = '';
+  let stdout = '';
+  let stderr = '';
 
   child.stdout.setEncoding('utf8');
   child.stderr.setEncoding('utf8');
@@ -125,10 +126,10 @@ function output(command, args, opts) {
  */
 function quiet(command, args, opts) {
   args = args || [];
-  const options = R.merge({}, opts),
-    d = Q.defer(),
-    child = spawn(command, args, options);
-  var stderr = '';
+  const options = R.merge({}, opts);
+  const d = Q.defer();
+  const child = spawn(command, args, options);
+  let stderr = '';
 
   child.stderr.setEncoding('utf8');
 
@@ -164,9 +165,9 @@ function quiet(command, args, opts) {
  */
 function stream(command, args, opts) {
   args = args || [];
-  const options = R.merge({}, opts),
-    d = Q.defer(),
-    child = spawn(command, args, options);
+  const options = R.merge({}, opts);
+  const d = Q.defer();
+  const child = spawn(command, args, options);
 
   child.stdout.setEncoding('utf8');
   child.stderr.setEncoding('utf8');
@@ -204,9 +205,9 @@ function inherit(command, args, opts) {
   args = args || [];
   const options = R.merge({
       stdio: 'inherit'
-    }, opts),
-    d = Q.defer(),
-    child = spawn(command, args, options);
+    }, opts);
+  const d = Q.defer();
+  const child = spawn(command, args, options);
 
   child.on('close', (code) => {
     if (+code) {
@@ -231,12 +232,12 @@ function inherit(command, args, opts) {
 function stdin(stdin, command, args, opts) {
   stdin = stdin || '';
   args = args || [];
-  const options = R.merge({}, opts),
-    d = Q.defer(),
-    child = spawn(command, args, options);
+  const options = R.merge({}, opts);
+  const d = Q.defer();
+  const child = spawn(command, args, options);
 
-  var stderr = '',
-    stdout = '';
+  let stderr = '';
+  let stdout = '';
 
   child.stdout.on('data', (data) => {
     d.notify({ stdout: data });

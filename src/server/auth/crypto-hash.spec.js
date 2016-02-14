@@ -5,9 +5,9 @@
 describe('Crypto Hash wraps credential', function () {
   // for this.timeout to work this describe block CANNOT use an arrow
   this.timeout(10000);
-  var C = require('../../chai'),
-    hash = require('./crypto-hash'),
-    pass = 'test me I am secret';
+  const C = require('../../chai');
+  const hash = require('./crypto-hash');
+  const pass = 'test me I am secret';
 
   it('verify should fail if passwords mismatch', (done) => {
     hash.saltHash(pass).then((shash) => {

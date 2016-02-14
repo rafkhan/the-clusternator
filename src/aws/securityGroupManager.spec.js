@@ -1,17 +1,17 @@
 'use strict';
 
-var rewire = require('rewire'),
-  constants = require('../constants'),
-  ec2Mock = require('./ec2-mock');
+const rewire = require('rewire');
+const constants = require('../constants');
+const ec2Mock = require('./ec2-mock');
 
-var SecurityGroup = rewire('./securityGroupManager'),
-  C = require('../chai');
+const SecurityGroup = rewire('./securityGroupManager');
+const C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
 describe('securityGroupManager', () => {
-  var securityGroup;
+  let securityGroup;
 
   beforeEach(() => {
     securityGroup = SecurityGroup(ec2Mock, 'vpc-id');
@@ -70,9 +70,10 @@ describe('securityGroupManager', () => {
   });
 
   describe('tests that spy on ec2 api functions', () => {
-    var inCalls = 0,
-      outCalls = 0,
-      oldInFn, oldOutFn;
+    let inCalls = 0;
+    let outCalls = 0;
+    let oldInFn;
+    let oldOutFn;
     beforeEach(() => {
       oldInFn = ec2Mock.authorizeSecurityGroupIngress;
       oldOutFn = ec2Mock.authorizeSecurityGroupEgress;

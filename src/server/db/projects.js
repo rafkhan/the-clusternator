@@ -19,11 +19,11 @@ function getProjectsDB(config, pm) {
   const encrypt = R.partial(crypto.encrypt, config.dbKey);
   const decrypt = R.partial(crypto.decrypt, config.dbKey);
 
-  const db = Object.create(null),
-    init = populateFromAWS()
-      .fail((err) => {
-        util.error('Projects: Failed to populate existing resources', err);
-      });
+  const db = Object.create(null);
+  const init = populateFromAWS()
+    .fail((err) => {
+      util.error('Projects: Failed to populate existing resources', err);
+    });
 
   poll();
 

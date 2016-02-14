@@ -1,9 +1,9 @@
 'use strict';
 
-var rewire = require('rewire'),
-mockFs = require('mock-fs');
+const rewire = require('rewire');
+const mockFs = require('mock-fs');
 
-var config = rewire('./config');
+const config = rewire('./config');
 require('./chai');
 
 /*global describe, it, expect, beforeEach, afterEach */

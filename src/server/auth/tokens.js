@@ -9,11 +9,11 @@ const TOKEN_SIZE = 64;
 const MAX_TOKENS = 5;
 const DELIM = ':';
 
-var tokens = Object.create(null);
-var crypto = require('crypto');
-var hash = require('./crypto-hash');
-var b64 = require('base64url');
-var Q = require('q');
+const tokens = Object.create(null);
+const crypto = require('crypto');
+const hash = require('./crypto-hash');
+const b64 = require('base64url');
+const Q = require('q');
 
 /**
  * @param {string} token
@@ -91,8 +91,8 @@ function splitToken(token) {
 }
 
 function invalidateToken(token) {
-  var details = splitToken(token),
-    id = details.id;
+  const details = splitToken(token);
+  const id = details.id;
   token = details.token;
   return verify(id, token).then((index) => {
     if (index === null) {

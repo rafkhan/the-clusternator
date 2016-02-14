@@ -1,17 +1,18 @@
 'use strict';
 
-var rewire = require('rewire'),
-  C = require('../chai'),
-  mockRequest = require('./request-mock');
+const rewire = require('rewire');
+const C = require('../chai');
+const mockRequest = require('./request-mock');
 
-var Pm = rewire('./projectManager'),
-  common = rewire('./common');
+const Pm = rewire('./projectManager');
+const common = rewire('./common');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
 describe('Clusternator\'s project manager', () => {
-  var oldReq, pm;
+  let oldReq;
+  let pm;
 
   beforeEach(() => {
     oldReq = common.__get__('request');

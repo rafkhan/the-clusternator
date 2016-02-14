@@ -1,28 +1,28 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  constants = require('../constants'),
-  common = require('./common'),
-  VpcMock = require('./vpc-mock'),
-  ec2Mock = require('./ec2-mock');
+const rewire = require('rewire');
+const Q = require('q');
+const constants = require('../constants');
+const common = require('./common');
+const VpcMock = require('./vpc-mock');
+const ec2Mock = require('./ec2-mock');
 
-var Subnet = rewire('./subnetManager'),
-  C = require('../chai');
+const Subnet = rewire('./subnetManager');
+const C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
 describe('subnetManager', () => {
-  var subnet,
-    cidrList = [{
+  let subnet;
+  let cidrList = [{
       CidrBlock: '1.2.3.4'
     }, {
       CidrBlock: '1.2.200.4'
     }, {
       CidrBlock: '1.2.0.4'
-    }],
-    origVPC;
+    }];
+  let origVPC;
 
   beforeEach(() => {
     origVPC = Subnet.__get__('Vpc');

@@ -21,7 +21,7 @@ const Q = require('q');
 const R = require('ramda');
 const DEFAULT_REGION = 'us-east-1';
 
-var Vpc = require('./vpcManager');
+let Vpc = require('./vpcManager');
 
 function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
                            elb) {
@@ -259,13 +259,15 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   }
 
   function mapEc2ProjectDetails(instance) {
-    var result = {
+    const result = {
       type: 'type',
       identifier: '?',
       str: '',
       ip: '',
       state: ''
-    }, inst, tags;
+    };
+    let inst;
+    let tags;
 
     if (!instance.Instances.length) {
       return result;

@@ -1,11 +1,12 @@
 'use strict';
 
-var common = require('./common'),
-  Q = require('q'),
-  ec2 = require('./ec2-mock'),
-  util = require('../util'),
-  constants = require('../constants'),
-  C = require('../chai');
+const common = require('./common');
+const Q = require('q');
+const util = require('../util');
+const constants = require('../constants');
+const C = require('../chai');
+
+let ec2 = require('./ec2-mock');
 
 
 

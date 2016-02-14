@@ -1,19 +1,19 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  constants = require('../constants'),
-  common = require('./common'),
-  ec2Mock = require('./ec2-mock');
+const rewire = require('rewire');
+const Q = require('q');
+const constants = require('../constants');
+const common = require('./common');
+const ec2Mock = require('./ec2-mock');
 
-var Acl = rewire('./aclManager');
-var C = require('../chai');
+const Acl = rewire('./aclManager');
+const C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
 describe('aclManager', () => {
-  var acl;
+  let acl;
 
   beforeEach(() => {
     acl = Acl(ec2Mock, 'vpc-id');
@@ -96,7 +96,8 @@ describe('aclManager', () => {
   });
 
   describe('createNetworkAclEntry tests', () => {
-    var callCount, oldFn;
+    let callCount;
+    let oldFn;
     beforeEach(() => {
       oldFn = ec2Mock.createNetworkAclEntry;
       callCount = 0;

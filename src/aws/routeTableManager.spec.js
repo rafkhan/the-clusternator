@@ -1,19 +1,20 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  constants = require('../constants'),
-  common = require('./common'),
-  ec2Mock = require('./ec2-mock');
+const rewire = require('rewire');
+const Q = require('q');
+const constants = require('../constants');
+const common = require('./common');
+const ec2Mock = require('./ec2-mock');
 
-var RouteTable = rewire('./routeTableManager'),
-  C = require('../chai');
+const RouteTable = rewire('./routeTableManager');
+const C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions: 0*/
 describe('routeTableManager success cases', () => {
-  var routeTable, oldDesc;
+  let routeTable;
+  let oldDesc;
 
   beforeEach(() => {
     oldDesc = common.makeEc2DescribeFn;
@@ -56,7 +57,8 @@ describe('routeTableManager success cases', () => {
 });
 
 describe('routeTableManager fail cases', () => {
-  var routeTable, oldDesc;
+  let routeTable;
+  let oldDesc;
 
   beforeEach(() => {
     oldDesc = common.makeEc2DescribeFn;

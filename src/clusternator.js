@@ -128,8 +128,8 @@ function newApp(clusterName, appDef, ec2Config) {
 }
 
 function createAWSObjects() {
-  var config = require('./config'),
-  c = config();
+  const config = require('./config');
+  const c = config();
   return {
     route53: new AWS.Route53(c),
     ec2: new AWS.EC2(c),

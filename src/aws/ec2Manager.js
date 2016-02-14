@@ -90,9 +90,10 @@ function makeDockerAuth(auth) {
   }
   const cfgType = 'docker';
 
-  var authJson = {
+  const authJson = {
     'https://index.docker.io/v1/user': auth
-  }, authStr = JSON.stringify(authJson);
+  };
+  const authStr = JSON.stringify(authJson);
 
   return [
     makeDockerAuthType(cfgType),
@@ -140,9 +141,10 @@ function stringArrayToNewLineBase64(arr) {
  * @returns {Promise<string>}
  */
 function getECSContainerInstanceUserData(clusterName, auth, sshDataOrPath) {
-  var data = ['#!/bin/bash',
+  let  data = ['#!/bin/bash',
     'echo ECS_CLUSTER=' + clusterName + ' >> /etc/ecs/ecs.config;'
-  ], authData = [];
+  ];
+  let authData = [];
 
   if (auth) {
     if (auth.cfg) {
@@ -177,13 +179,13 @@ function getECSContainerInstanceUserData(clusterName, auth, sshDataOrPath) {
 function getEC2Manager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
-  var baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
-    common.makeAWSVPCFilter(vpcId)),
-    describe = common.makeEc2DescribeFn(
-      ec2, 'describeInstances', 'Reservations', baseFilters),
-    describeProject = common.makeEc2DescribeProjectFn(describe),
-    describePr = common.makeEc2DescribePrFn(describe),
-    describeDeployment = common.makeEc2DescribeDeployment(describe);
+  const baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
+    common.makeAWSVPCFilter(vpcId));
+  const describe = common.makeEc2DescribeFn(
+      ec2, 'describeInstances', 'Reservations', baseFilters);
+  const describeProject = common.makeEc2DescribeProjectFn(describe);
+  const describePr = common.makeEc2DescribePrFn(describe);
+  const describeDeployment = common.makeEc2DescribeDeployment(describe);
 
   /**
    * @param {string} instance
@@ -362,23 +364,23 @@ function getEC2Manager(ec2, vpcId) {
    */
   function createPr(config) {
     validateCreatePrConfig(config);
-    var clusterName = config.clusterName,
-      auth = config.auth,
-      apiConfig = config.apiConfig,
-      sshPath = config.sshPath;
+    const clusterName = config.clusterName;
+    const auth = config.auth;
+    const apiConfig = config.apiConfig;
+    const sshPath = config.sshPath;
 
     return getECSContainerInstanceUserData(clusterName, auth, sshPath).
     then((data) => {
       apiConfig.UserData = data;
 
-      var defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS),
-        params = R.merge(defaultConfig, apiConfig);
+      const defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS);
+      const params = R.merge(defaultConfig, apiConfig);
 
       params.NetworkInterfaces.push(getNICConfig(config.subnetId, config.sgId));
 
       return ec2.runInstances(params).then((results) => {
-        var tagPromises = [],
-          readyPromises = [];
+        let tagPromises = [];
+        let readyPromises = [];
         results.Instances.forEach(function(instance) {
           tagPromises.push(tagPrInstance(instance, config.pr, config.pid));
           readyPromises.push(waitForReady(instance.InstanceId));
@@ -398,10 +400,10 @@ function getEC2Manager(ec2, vpcId) {
    */
   function createDeployment(config) {
     validateCreateDeploymentConfig(config);
-    var clusterName = config.clusterName,
-      auth = config.auth,
-      apiConfig = config.apiConfig,
-      sshPath = config.sshPath;
+    const clusterName = config.clusterName;
+    const auth = config.auth;
+    const apiConfig = config.apiConfig;
+    const sshPath = config.sshPath;
 
       //apiConfig.InstanceType = 't2.small';
 
@@ -409,14 +411,14 @@ function getEC2Manager(ec2, vpcId) {
     then((data) => {
       apiConfig.UserData = data;
 
-      var defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS),
-        params = R.merge(defaultConfig, apiConfig);
+      const defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS);
+      const params = R.merge(defaultConfig, apiConfig);
 
       params.NetworkInterfaces.push(getNICConfig(config.subnetId, config.sgId));
 
       return ec2.runInstances(params).then((results) => {
-        var tagPromises = [],
-          readyPromises = [];
+        const tagPromises = [];
+        const readyPromises = [];
         results.Instances.forEach(function(instance) {
           tagPromises.push(tagDeploymentInstance(
             instance, config.deployment,config.pid

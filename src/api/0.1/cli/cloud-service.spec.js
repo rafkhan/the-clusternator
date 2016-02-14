@@ -9,7 +9,8 @@ const C = require('../../../chai');
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('CLI Cloud Services', () => {
-  let oldCn, services = [];
+  let oldCn;
+  let services = [];
   beforeEach(() => {
     oldCn = c.__get__('cn');
     c.__set__('cn', {

@@ -90,8 +90,8 @@ function getPrivateChecksumPaths() {
       clusternatorJson.get(),
       fs.findProjectRoot() ])
     .then((results) => {
-      const privatePath = results[0].private,
-        checksumPath = fs.path.join(results[1], results[0].clusternatorDir,
+      const privatePath = results[0].private;
+      const checksumPath = fs.path.join(results[1], results[0].clusternatorDir,
           PRIVATE_CHECKSUM);
       return {
         priv: privatePath,

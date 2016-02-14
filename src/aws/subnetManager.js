@@ -47,9 +47,9 @@ function getSubnetManager(ec2, vpcId) {
     }
     var highest = -1;
     list.forEach(function(r) {
-      var cidr = r.CidrBlock,
-        classes = cidr.split('.'),
-        c;
+      const cidr = r.CidrBlock;
+      const classes = cidr.split('.');
+      let c;
       classes.pop();
       c = +classes.pop();
       if (c > highest) {

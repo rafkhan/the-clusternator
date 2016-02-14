@@ -22,14 +22,14 @@ const R = require('ramda');
 const Config = require('../config');
 
 function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
-  var subnet = Subnet(ec2, vpcId);
-  var securityGroup = SG(ec2, vpcId);
-  var cluster = Cluster(ecs);
-  var route53 = Route53(r53, zoneId);
-  var ec2mgr = Ec2(ec2, vpcId);
-  var task = Task(ecs);
-  var config = require('../config')();
-  var elb = R.mapObjIndexed(elbAwsPartial, elbFns);
+  let subnet = Subnet(ec2, vpcId);
+  let securityGroup = SG(ec2, vpcId);
+  let cluster = Cluster(ecs);
+  let route53 = Route53(r53, zoneId);
+  let ec2mgr = Ec2(ec2, vpcId);
+  let task = Task(ecs);
+  let config = require('../config')();
+  let elb = R.mapObjIndexed(elbAwsPartial, elbFns);
 
   function elbAwsPartial(fn) {
     if (typeof fn !== 'function') {

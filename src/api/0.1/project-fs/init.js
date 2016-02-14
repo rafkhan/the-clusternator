@@ -23,10 +23,10 @@ module.exports = initProject;
  * @returns {Request|Promise.<T>|*}
  */
 function initProject(root, options, skipNetwork) {
-  var dDir = options.deploymentsDir,
-    cDir = options.clusternatorDir,
-    projectId = options.projectId,
-    dockerType = options.backend;
+  const dDir = options.deploymentsDir;
+  const cDir = options.clusternatorDir;
+  const projectId = options.projectId;
+  const dockerType = options.backend;
 
   return Q
     .all([

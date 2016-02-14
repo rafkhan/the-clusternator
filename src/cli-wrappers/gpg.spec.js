@@ -1,17 +1,17 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  mockSpawn = require('mock-spawn');
+const rewire = require('rewire');
+const Q = require('q');
+const mockSpawn = require('mock-spawn');
 
-var gpg = rewire('./gpg'),
-  cproc = rewire('./child-process'),
-  C = require('./../chai');
+const gpg = rewire('./gpg');
+const cproc = rewire('./child-process');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('Test GPG CLI Wrapper', () => {
-  var cProc;
+  let cProc;
 
   beforeEach(() => {
     cProc = gpg.__get__('cproc');

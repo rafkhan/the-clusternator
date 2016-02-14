@@ -24,8 +24,8 @@ function getSecurityGroupManager(ec2, vpcId) {
   var describeDeployment = common.makeEc2DescribeDeployment(describe);
 
   function defaultInOutRules(groupId) {
-    var inbound = skeletons.SG_DEFAULT_INGRESS,
-      outbound = skeletons.SG_DEFAULT_EGRESS;
+    const inbound = skeletons.SG_DEFAULT_INGRESS;
+    const outbound = skeletons.SG_DEFAULT_EGRESS;
 
     inbound.GroupId = groupId;
     outbound.GroupId = groupId;
@@ -58,11 +58,11 @@ function getSecurityGroupManager(ec2, vpcId) {
    * @returns {Q.Promise}
    */
   function createSecurityGroupPr(pid, pr) {
-    var id = rid.generateRID({
+    const id = rid.generateRID({
         pid: pid,
         pr: pr
-      }),
-      params = {
+      });
+    const params = {
         GroupName: id,
         Description: 'Created by clusternator for ' + pid + ', PR: ' + pr,
         VpcId: vpcId
@@ -94,11 +94,11 @@ function getSecurityGroupManager(ec2, vpcId) {
    * @returns {Q.Promise}
    */
   function createSecurityGroupDeployment(pid, deployment) {
-    var id = rid.generateRID({
+    const id = rid.generateRID({
         pid: pid,
         deployment: deployment
-      }),
-      params = {
+      });
+    const params = {
         GroupName: id,
         Description: 'Created by clusternator for ' + pid + ', Deplyoment: ' +
         deployment,

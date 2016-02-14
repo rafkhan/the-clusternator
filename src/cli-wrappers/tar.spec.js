@@ -1,10 +1,10 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q');
+const rewire = require('rewire');
+const Q = require('q');
 
-var tar = rewire('./tar'),
-  C = require('./../chai');
+const tar = rewire('./tar');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/

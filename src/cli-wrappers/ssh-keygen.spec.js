@@ -1,16 +1,17 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  mockFs = require('mock-fs');
+const rewire = require('rewire');
+const Q = require('q');
+const mockFs = require('mock-fs');
 
-var sshKeygen = rewire('./ssh-keygen'),
-  C = require('./../chai');
+const sshKeygen = rewire('./ssh-keygen');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('Test sshKeygen CLI Wrapper', () => {
-  var cProc, mpk;
+  let cProc;
+  let mpk;
 
   beforeEach(() => {
     cProc = sshKeygen.__get__('cproc');

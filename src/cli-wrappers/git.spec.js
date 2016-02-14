@@ -1,15 +1,17 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q');
+const rewire = require('rewire');
+const Q = require('q');
 
-var git = rewire('./git'),
-  C = require('./../chai');
+const git = rewire('./git');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('Test git CLI Wrapper', () => {
-  var projectRoot = '/', cProc, workDir;
+  let projectRoot = '/';
+  let cProc;
+  let workDir;
 
   beforeEach(() => {
     workDir = process.cwd();

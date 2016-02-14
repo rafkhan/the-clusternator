@@ -65,8 +65,9 @@ function authorizeCommand(config) {
   var cmdP = curryPrivFromNamespace(config);
 
   return (req, res, next) => {
-    var ns = req.params.namespace, cmd = req.params.command,
-      requiredAuth = cmdP(ns, cmd);
+    const ns = req.params.namespace;
+    const cmd = req.params.command;
+    const requiredAuth = cmdP(ns, cmd);
 
       logger.debug(`Attempting to authorize: ${req.user.id} For: ${ns}.${cmd}`);
 

@@ -150,8 +150,8 @@ function createUserEndpoint(req, res) {
 }
 
 function updateUserEndpoint_(req, res) {
-  var id = req.body.username,
-    authority = req.body.authority;
+  const id = req.body.username;
+  const authority = req.body.authority;
 
   find(id).then((found) => {
     return authorities.change(id, authority).then(() => {
@@ -172,8 +172,8 @@ function updateUserEndpoint_(req, res) {
 }
 
 function updateUserEndpoint(req, res) {
-  var id = req.body.username,
-    authority = req.body.authority;
+  const id = req.body.username;
+  const authority = req.body.authority;
 
   // admins can edit anyone
   if (req.user.authority === 0) {

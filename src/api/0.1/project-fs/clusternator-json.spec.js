@@ -1,17 +1,22 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  mockFs = require('mock-fs');
+const rewire = require('rewire');
+const Q = require('q');
+const mockFs = require('mock-fs');
 
-var cn = rewire('./clusternator-json'),
-  fs = rewire('./project-fs'),
-  C = require('../../../chai');
+const cn = rewire('./clusternator-json');
+const fs = rewire('./project-fs');
+const C = require('../../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('clusternator.json handling', () => {
-  var project, other, oldGit, oldInq, mockGitResponse, workDir;
+  let project;
+  let other;
+  let oldGit;
+  let oldInq;
+  let mockGitResponse;
+  let workDir;
 
   function mockGit() {
     if (mockGitResponse instanceof Error) {
@@ -222,7 +227,8 @@ describe('clusternator.json handling', () => {
 });
 
 describe('ignore file tests', () => {
-  var projectRoot = '/', oldFindRoot;
+  let projectRoot = '/';
+  let oldFindRoot;
 
   /*global describe, it, expect, beforeEach, afterEach */
   /*eslint no-unused-expressions:0*/

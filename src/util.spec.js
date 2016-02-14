@@ -1,7 +1,7 @@
 'use strict';
-var util = require('./util'),
-  Q = require('q'),
-  C = require('./chai');
+const util = require('./util');
+const Q = require('q');
+const C = require('./chai');
 
 
 
@@ -13,13 +13,13 @@ describe('utility functions', () => {
   });
 
   it('clone should return a copy of an object', () => {
-    var testObj = {
+    const testObj = {
         a: 5,
         b: {
           ba: 10
         }
-      },
-      copy = util.clone(testObj);
+      };
+    const copy = util.clone(testObj);
     expect(copy).to.not.equal(testObj);
     expect(copy.b).to.not.equal(testObj.b);
     expect(copy.b.ba).to.equal(testObj.b.ba);

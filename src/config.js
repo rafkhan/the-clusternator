@@ -13,8 +13,8 @@ const Q = require('q');
 const fs = require('fs');
 const path = require('path');
 
-var util = require('./util');
-var questions = require(
+const util = require('./util');
+const questions = require(
   `./api/${DEFAULT_VERSION}/project-fs/skeletons/create-interactive-questions`);
 
 
@@ -23,10 +23,10 @@ const DOT_CLUSTERNATOR_CONFIG =
 const  writeFile = Q.nbind(fs.writeFile, fs);
 const chmod = Q.nbind(fs.chmod, fs);
 
-var credFileName = 'credentials';
-var configFileName = 'config';
-var localPath = path.join(__dirname, '..', '.private');
-var globalPath = '/etc/clusternator/';
+const credFileName = 'credentials';
+const configFileName = 'config';
+const localPath = path.join(__dirname, '..', '.private');
+const globalPath = '/etc/clusternator/';
 
 getConfig.saveToken = saveToken;
 getConfig.interactiveUser = interactiveUser;
@@ -77,8 +77,8 @@ function getAwsCredsFromProc() {
 }
 
 function checkAwsCreds() {
-  var fullpath = path.join(localPath, credFileName + '.local.json'),
-    c = validateAwsCreds(loadJSON(fullpath));
+  let fullpath = path.join(localPath, credFileName + '.local.json');
+  let c = validateAwsCreds(loadJSON(fullpath));
   if (c) {
     return c;
   }
@@ -130,8 +130,8 @@ function checkUser() {
 }
 
 function checkConfig() {
-  var fullpath = path.join(localPath, configFileName + '.local.json'),
-    c = loadJSON(fullpath);
+  let fullpath = path.join(localPath, configFileName + '.local.json');
+  let c = loadJSON(fullpath);
   if (c) {
     return c;
   }

@@ -1,15 +1,15 @@
 'use strict';
 
-const rewire = require('rewire'),
-  Q = require('q');
+const rewire = require('rewire');
+const Q = require('q');
 
-var slack = rewire('./slack'),
-  C = require('./../chai');
+const slack = rewire('./slack');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('Test slack CLI Wrapper', () => {
-  var cProc;
+  let cProc;
 
   beforeEach(() => {
     cProc = slack.__get__('cproc');

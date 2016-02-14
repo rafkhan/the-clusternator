@@ -12,10 +12,10 @@ const path = require('path');
 const fs = require('fs');
 const Q = require('q');
 
-var cproc = require('./child-process');
+let cproc = require('./child-process');
 
-var readFile = Q.nbind(fs.readFile, fs),
-  writeFile = Q.nbind(fs.writeFile, fs);
+const readFile = Q.nbind(fs.readFile, fs);
+const writeFile = Q.nbind(fs.writeFile, fs);
 
 function movePublicKey(from, to) {
   return readFile(from).then((contents) => {

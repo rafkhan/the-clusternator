@@ -69,8 +69,8 @@ function areTagsPidValid(pid, collection) {
 @return {boolean}
 */
 function areTagsPidPrValid(pid, pr, collection) {
-  var isValidPid = false,
-    isValidPr = false;
+  let isValidPid = false;
+  let isValidPr = false;
 
   collection.forEach((tag) => {
     if (tag.Key === constants.PROJECT_TAG) {
@@ -314,8 +314,8 @@ function getDeregisterClusterFn(cluster, clusterName) {
  * @returns {*}
  */
 function filterValidArns(arn) {
-  var splits = arn.split('/'),
-    name = splits[splits.length - 1];
+  const splits = arn.split('/');
+  const name = splits[splits.length - 1];
   return rid.isRID(name);
 }
 

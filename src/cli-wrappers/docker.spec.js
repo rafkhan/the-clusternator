@@ -1,15 +1,15 @@
 'use strict';
 
-const rewire = require('rewire'),
-  Q = require('q');
+const rewire = require('rewire');
+const Q = require('q');
 
-var docker = rewire('./docker'),
-  C = require('./../chai');
+const docker = rewire('./docker');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('Test git CLI Wrapper', () => {
-  var cProc;
+  let cProc;
 
   beforeEach(() => {
     cProc = docker.__get__('cproc');

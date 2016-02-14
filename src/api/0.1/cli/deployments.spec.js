@@ -9,7 +9,9 @@ const C = require('../../../chai');
 /*global describe, it, expect, beforeEach, afterEach */
 /*eslint no-unused-expressions:0*/
 describe('CLI: deployments middleware', () => {
-  let oldCn, result = [], fns = ['deploy', 'update', 'stop'];
+  let oldCn;
+  let result = [];
+  let fns = ['deploy', 'update', 'stop'];
   beforeEach(() => {
     oldCn = d.__get__('cn');
     d.__set__('cn', {

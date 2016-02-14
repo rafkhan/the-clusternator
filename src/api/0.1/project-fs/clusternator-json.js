@@ -59,9 +59,9 @@ function fullPath(dirPath) {
  * @returns {string}
  */
 function parseGitUrl(url) {
-  var splits = url.split(URL_SEP).filter(identity),
-    result = splits[splits.length -1],
-    index = result.indexOf(GIT_EXTENSION);
+  const splits = url.split(URL_SEP).filter(identity);
+  const result = splits[splits.length -1];
+  const index = result.indexOf(GIT_EXTENSION);
 
   if (index === result.length - GIT_EXTENSION.length) {
     return result.slice(0, index);
@@ -141,8 +141,8 @@ function findProjectNames(projectRoot) {
 function validate(cJson) {
   const C = 'culsternator.json requires ';
 
-  var hasFailed = false,
-    results = {};
+  let hasFailed = false;
+  const results = {};
 
   if (!cJson.projectId) {
     hasFailed = true;
@@ -301,8 +301,8 @@ function answersToClusternatorJSON(answers) {
  * @return {Q.Promise}
  */
 function writeFromAnswers(answers) {
-  var json = answersToClusternatorJSON(answers),
-    dir = fullPath(answers.root);
+  const json = answersToClusternatorJSON(answers);
+  const dir = fullPath(answers.root);
   return fs.write(dir, json, UTF8)
     .then(() => answers);
 }
@@ -348,8 +348,8 @@ function readPrivate(passPhrase, root) {
   function readPrivateFromRoot(root) {
     return privateExists_(root)
       .then(() => {
-        var gpgPath = path.join(root, CLUSTERNATOR_PRIVATE),
-          tarPath = path.join(root, CLUSTERNATOR_TAR);
+        const gpgPath = path.join(root, CLUSTERNATOR_PRIVATE);
+        const tarPath = path.join(root, CLUSTERNATOR_TAR);
 
         return gpg
           .decryptFile(passPhrase, gpgPath, tarPath)
