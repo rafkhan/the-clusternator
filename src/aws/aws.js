@@ -17,7 +17,7 @@ module.exports = {
 /**
  * @param {Object} credentials
  * @param {string} vpcId
- * @construvtor
+ * @constructor
  */
 function AwsWrapper(credentials, vpcId) {
   if (!(this instanceof AwsWrapper)) {
