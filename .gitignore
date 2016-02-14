@@ -3,8 +3,10 @@ node_modules/
 .DS_Store
 npm-debug.log
 
-# exclude ~ temp files
+# exclude emacs temporary files
 *~
+\#*#
+.#*
 
 # exclude test coverage
 coverage
