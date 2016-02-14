@@ -7,7 +7,6 @@ const git = rewire('./git');
 const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test git CLI Wrapper', () => {
   let projectRoot = '/';
   let cProc;

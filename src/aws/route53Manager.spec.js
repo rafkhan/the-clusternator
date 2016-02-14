@@ -8,7 +8,6 @@ const Route53 = rewire('./route53Manager');
 const C = require('../chai');
 
 /*global describe, it, expect, beforeEach */
-/*eslint no-unused-expressions: 0*/
 describe('route53Manager', () => {
   let route53;
 

@@ -7,7 +7,6 @@ const l = rewire('./log-ssh');
 const C = require('../../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('CLI: log-ssh middleware', () => {
   let oldCn;
   let result = [];

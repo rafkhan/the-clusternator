@@ -7,6 +7,5 @@ const Cluster = rewire('./taskServiceManager');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('taskServiceManager', () => {
 });

@@ -12,7 +12,6 @@ app.post('/test', prHandler);
 // @todo in an ideal world, these will work
 //
 ///*global describe, it, expect, beforeEach */
-///*eslint no-unused-expressions: 0*/
 //describe('pull request close handler', () => {
 //  it('should forbid non-PR events', (done) => {
 //    supertest(app)

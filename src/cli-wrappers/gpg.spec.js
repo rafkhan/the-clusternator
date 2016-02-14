@@ -9,7 +9,6 @@ const cproc = rewire('./child-process');
 const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test GPG CLI Wrapper', () => {
   let cProc;
 

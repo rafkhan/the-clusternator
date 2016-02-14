@@ -10,7 +10,6 @@ const Ec2 = rewire('./ec2Manager');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('ec2Manager', () => {
   let ec2;
 

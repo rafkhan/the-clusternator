@@ -7,7 +7,6 @@ const npm = rewire('./npm');
 const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test npm CLI Wrapper', () => {
   let cProc;
 

@@ -1,7 +1,6 @@
 'use strict';
 
 /*global describe, it, expect */
-/*eslint no-unused-expressions:0*/
 describe('Passwords interface', function () {
   // for this.timeout to work this describe block CANNOT use an arrow
   this.timeout(10000);

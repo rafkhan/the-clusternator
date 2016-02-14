@@ -9,7 +9,6 @@ const common = rewire('./common');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('Clusternator\'s project manager', () => {
   let oldReq;
   let pm;

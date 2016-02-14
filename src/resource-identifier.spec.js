@@ -4,7 +4,6 @@ const resourceId = require('./resource-identifier');
 const cPrefix = 'clusternator-';
 
 /*global describe, it, expect */
-/*eslint no-unused-expressions: 0*/
 describe('parser', () => {
   it('should separate types and values in ID segment', () => {
     const rid = cPrefix + 'type-value';

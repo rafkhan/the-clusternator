@@ -1,7 +1,6 @@
 'use strict';
 
 /*global describe, it, expect, beforeEach */
-/*eslint no-unused-expressions:0*/
 describe('Users interface', function() {
   /** Make sure `this` is in traditional function, _not_ an arrow */
   this.timeout(10000);

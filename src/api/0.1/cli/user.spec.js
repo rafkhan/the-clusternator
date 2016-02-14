@@ -7,7 +7,6 @@ const u = rewire('./user');
 const C = require('../../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('CLI: user middleware', () => {
   let oldCn;
   let oldUtil;

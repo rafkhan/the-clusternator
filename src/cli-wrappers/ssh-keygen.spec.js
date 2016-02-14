@@ -8,7 +8,6 @@ const sshKeygen = rewire('./ssh-keygen');
 const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test sshKeygen CLI Wrapper', () => {
   let cProc;
   let mpk;

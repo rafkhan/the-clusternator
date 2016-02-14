@@ -7,7 +7,6 @@ const gps = rewire('./generate-private-sha');
 const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test generate-private-sha CLI Wrapper', () => {
   let cProc;
 

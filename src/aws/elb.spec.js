@@ -8,7 +8,6 @@ const elb = rewire('./elb/elb');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('elb functions', () => {
 
 });

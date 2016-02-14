@@ -311,7 +311,7 @@ function getDeregisterClusterFn(cluster, clusterName) {
 
 /**
  * @param {string} arn
- * @returns {*}
+ * @returns {boolean}
  */
 function filterValidArns(arn) {
   const splits = arn.split('/');
@@ -466,6 +466,7 @@ module.exports = {
   makeEc2DescribeProjectFn,
   makeEc2DescribePrFn,
   makeEc2DescribeDeployment,
+  findFromEc2Describe,
   findIdFromEc2Describe,
   findIpFromEc2Describe,
   getDeregisterClusterFn,

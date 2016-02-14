@@ -7,7 +7,6 @@ const c = rewire('./cloud-service');
 const C = require('../../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('CLI Cloud Services', () => {
   let oldCn;
   let services = [];

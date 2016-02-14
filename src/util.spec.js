@@ -6,7 +6,6 @@ const C = require('./chai');
 
 
 /*global describe, it, expect, beforeEach */
-/*eslint no-unused-expressions:0*/
 describe('utility functions', () => {
   it('should have a function that quotes a supplied argument', () => {
     expect(util.quote('booya')).equal('"booya"');

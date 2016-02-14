@@ -7,7 +7,6 @@ const logs = rewire('./logs');
 const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test logs CLI Wrapper', () => {
   let cProc;
 
