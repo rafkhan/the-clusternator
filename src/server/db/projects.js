@@ -4,7 +4,7 @@
  *
  * @module server/db/projects
  */
-
+const TABLE_NAME = 'projects';
 const POLL_INTERVAL = 30000;
 const ENCRYPTED_PROPS = Object.freeze(['sharedKey', 'gitHubKey']);
 
@@ -15,6 +15,13 @@ const util = require('../../util');
 const crypto = require('../auth/crypto-symmetric');
 
 
+/**
+ * Returns an interface to a projectDb
+ * @param {Object} config
+ * @param {Object} pm
+ * @returns {{find: find, create: create, getItem: getItem, setItem: setItem,
+ list: list, init: *}}
+ */
 function getProjectsDB(config, pm) {
   const encrypt = R.partial(crypto.encrypt, config.dbKey);
   const decrypt = R.partial(crypto.decrypt, config.dbKey);
