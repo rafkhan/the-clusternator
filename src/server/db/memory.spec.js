@@ -1,11 +1,22 @@
 'use strict';
 
 const rewire = require('rewire');
-const memory = rewire('./memory');
+const Memory = rewire('./memory');
 const C = require('../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 describe('Memory DB', () => {
+  let memory;
+
+  beforeEach(() => {
+    const dbs = Object.create(null);
+    memory = Memory.bindDb(dbs);
+  });
+
+  describe('bindDb should throw without an object', () => {
+    expect(() => Memory.bindDb()).to.throw(TypeError);
+  });
+
   describe('create function', () => {
     it('should return a function', () => {
       const create = memory.create('hello');
@@ -27,7 +38,9 @@ describe('Memory DB', () => {
     it('should create a given table even if it already exists', (done) => {
       const create = memory.create('test');
       create()
-        .then((r) => C.check(done, () => expect(r).to.be.ok), C.getFail(done));
+        .then(() => create()
+          .then((r) => C
+            .check(done, () => expect(r).to.be.ok), C.getFail(done)));
     });
   });
 
@@ -50,9 +63,12 @@ describe('Memory DB', () => {
     });
 
     it('should destroy a given table even if it does not exist', (done) => {
+      const create = memory.create('test');
       const destroy = memory.destroy('test');
-      destroy()
-        .then((r) => C.check(done, () => expect(r).to.be.ok), C.getFail(done));
+      create()
+        .then(() => destroy()
+          .then((r) => C
+            .check(done, () => expect(r).to.be.ok), C.getFail(done)));
     });
   });
 
@@ -92,6 +108,7 @@ describe('Memory DB', () => {
     it('should resolve if given a key', (done) => {
       const accessor = memory.accessor('test', '5');
       memory.create('test')()
+        .then(() => memory.accessor('test', '5', 'ooga')())
         .then(() => accessor()
           .then((r) => C
             .check(done, () => expect(r).to.be.ok), C.getFail(done)));

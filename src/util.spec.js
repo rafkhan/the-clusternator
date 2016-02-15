@@ -136,4 +136,20 @@ describe('utility functions', () => {
     }
   });
 
+  describe('partial function', () => {
+    it('should throw if not given a function', () => {
+      expect(() => util.partial()).to.throw(TypeError);
+    });
+
+    it('should partially apply single variables', () => {
+      const test = util.partial((a, b) => a + b, 5);
+      expect(test(5) === 10).to.be.ok;
+    });
+
+    it('should partially apply arrays of variables', () => {
+      const test = util.partial((a, b) => a + b, [5, 5]);
+      expect(test() === 10).to.be.ok;
+    });
+  });
+
 });

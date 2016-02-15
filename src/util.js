@@ -34,7 +34,8 @@ module.exports = {
   cliLogger,
   safeParse,
   isObject,
-  deepFreeze
+  deepFreeze,
+  partial
 };
 
 /**
@@ -281,5 +282,33 @@ function safeParse(string) {
   } catch (err) {
     return null;
   }
+}
+
+/**
+ * Partially applies a function using _references_
+ * @param {function(...)} fn
+ * @param {Array.<*>|*} args
+ * @returns {applyPartial}
+ */
+function partial(fn, args) {
+  if (typeof fn !== 'function') {
+    throw new TypeError('partial requires a function to partially apply');
+  }
+  if (!Array.isArray(args)) {
+    if (args === undefined) {
+      args = [];
+    } else {
+      args = [args];
+    }
+  }
+  /**
+   * @returns {*}
+   */
+  function applyPartial() {
+    const nextArgs = Array.prototype.slice.call(arguments, 0);
+    const allArgs = args.concat(nextArgs);
+    return fn.apply(null, allArgs);
+  }
+  return applyPartial;
 }
 

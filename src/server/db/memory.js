@@ -1,10 +1,10 @@
 'use strict';
 
 const Q = require('q');
-const R = require('ramda');
-const dbs = Object.create(null);
+const util = require('../../util');
 
-module.exports = {
+const EXPORTS = {
+  bindDb,
   accessor,
   create,
   destroy,
@@ -13,10 +13,35 @@ module.exports = {
   list
 };
 
+module.exports = EXPORTS;
+
 /**
+ * Binds all functions' first parameters to a given object
+ * @param {Object} dbs
+ * @returns {Object}
+ * @throws {TypeError}
+ */
+function bindDb(dbs) {
+  if (!dbs) {
+    throw new TypeError('bindDb requires a db object to bind to');
+  }
+  const API = Object.create(null);
+  Object.keys(EXPORTS).forEach((attr) => {
+    if (attr === 'bindDb') {
+      return;
+    }
+    if (typeof EXPORTS[attr] === 'function') {
+      API[attr] = util.partial(EXPORTS[attr], dbs);
+    }
+  });
+  return API;
+}
+
+/**
+ * @param {Object} dbs
  * @returns {promiseToList}
  */
-function list() {
+function list(dbs) {
   /**
    * @returns {Promise<Array<string>>}
    */
@@ -28,30 +53,33 @@ function list() {
 
 /**
  * Returns a function that will get/set on the table/id provided.
+ * @param {Object} dbs
  * @param {string} table
  * @param {string} id
  * @returns {function(string=)}
  */
-function key(table, id) {
-  return R.partial(accessor, [ table, id ]);
+function key(dbs, table, id) {
+  return util.partial(accessor, [ dbs, table, id ]);
 }
 
 /**
  * Returns a function that will get/set
+ * @param {Object} dbs
  * @param {string} table
  * @returns {function(string, string=)}
  */
-function hashTable(table) {
-  return R.partial(accessor, [ table ]);
+function hashTable(dbs, table) {
+  return util.partial(accessor, [ dbs, table ]);
 }
 
 /**
+ * @param {Object} dbs
  * @param {string} table
  * @param {string} key
  * @param {string=} value
  * @returns {promiseToAccessTable}
  */
-function accessor(table, key, value) {
+function accessor(dbs, table, key, value) {
   /**
    * @returns {Promise}
    */
@@ -72,10 +100,11 @@ function accessor(table, key, value) {
 }
 
 /**
+ * @param {Object} dbs
  * @param {string} table
  * @returns {promiseToCreate}
  */
-function create(table) {
+function create(dbs, table) {
   /**
    * @returns {Promise<string>}
    */
@@ -90,10 +119,11 @@ function create(table) {
 }
 
 /**
+ * @param {Object} dbs
  * @param {string} table
  * @returns {promiseToDestroy}
  */
-function destroy(table) {
+function destroy(dbs, table) {
   /**
    * @returns {Promise}
    */
