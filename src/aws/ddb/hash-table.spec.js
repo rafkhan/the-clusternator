@@ -270,4 +270,26 @@ describe('AWS: DDB: HashTable', () => {
       }, C.getFail(done));
     });
   });
+
+  describe('bindAws function', () => {
+    it('should return an object hash of functions', () => {
+      const bound = ht.bindAws({});
+      expect(bound).to.be.ok;
+      Object.keys(bound)
+        .forEach((prop) => expect(typeof bound[prop] === 'function')
+          .to.be.okay);
+    });
+  });
+
+  describe('key function', () => {
+    it('should return a function', () => {
+      expect(typeof ht.key(aws, 'test', '42') === 'function').to.be.ok;
+    });
+  });
+
+  describe('hashTable', () => {
+    it('should return a function', () => {
+      expect(typeof ht.hashTable(aws, 'test') === 'function').to.be.ok;
+    });
+  });
 });

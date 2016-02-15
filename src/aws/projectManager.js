@@ -7,6 +7,7 @@
 
 const Subnet = require('./subnetManager');
 const ecrWrap = require('./ecr/ecr');
+const hashTable = require('./ddb/hash-table');
 const iamWrap = require('./iam/iam');
 const Route = require('./routeTableManager');
 const Route53 = require('./route53Manager');
@@ -29,6 +30,8 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   const cluster = Cluster(ecs);
   const vpc = Vpc(ec2);
   const r53 = Route53(awsRoute53);
+
+  const ht = hashTable.bindAws({ ddb: dynamoDB });
 
   const iam = R.mapObjIndexed(iamAwsPartial, iamWrap);
   const ecr = R.mapObjIndexed(ecrAwsPartial, ecrWrap);
@@ -343,6 +346,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
     destroyDeployment,
     destroyExpiredPRs,
     destroyPR,
+    hashTable: ht,
     iam,
     listProjects,
     listSSHAbleInstances,
