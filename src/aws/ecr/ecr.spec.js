@@ -73,7 +73,8 @@ describe('AWS: ECR', () => {
     it('should resolve an array of strings', (done) => {
       ecr.list(aws)
         .then((r) => C
-          .check(done, () => expect(Array.isArray(r))).to.be.ok, C.getFail(done));
+          .check(done, () => expect(Array
+            .isArray(r))).to.be.ok, C.getFail(done));
     });
   });
 
