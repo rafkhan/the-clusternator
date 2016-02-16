@@ -67,8 +67,6 @@ function deploy(name, force, update) {
             .fail(getAppDefNotFound(dPath))])
         .then((results) => {
 
-          console.log(force, update);
-
           return deploymentExists(cJson.projectId, name).then((exists) => {
             if(exists) {
               if(force) {
