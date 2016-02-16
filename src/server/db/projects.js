@@ -148,16 +148,11 @@ function getProjectsDB(config, pm) {
       });
   }
 
-  function list() {
-    return Q.resolve(Object.keys(db));
-  }
-
   return {
     find,
     create,
     getItem,
     setItem,
-    list,
     init
   };
 }

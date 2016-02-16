@@ -192,20 +192,16 @@ function getServer() {
 }
 
 function startServer(config) {
-  return getServer(config)
-    .then((server) => {
-      if (NODE_ENV === DEBUG) {
-        server.listen(config.port);
-        log.info(
-          `Clusternator listening on port: ${config.port}`);
-      } else {
-        server.listen([config.port], [config.portSSL]);
-        log.info(
-          `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
-      }
-    }, (err) => {
-      log.error(err, err.stack);
-    });
+  const server = getServer(config);
+  if (NODE_ENV === DEBUG) {
+    server.listen(config.port);
+    log.info(
+      `Clusternator listening on port: ${config.port}`);
+  } else {
+    server.listen([config.port], [config.portSSL]);
+    log.info(
+      `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
+  }
 }
 
 function ping(req, res) {
