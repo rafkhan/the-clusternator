@@ -1,10 +1,12 @@
-var Q = require('q');
+'use strict';
 
-var data = {
+const Q = require('q');
+
+const data = {
   defaultVPC: {
     CidrBlock: '192.168.0.0'
   }
-}
+};
 
 function findProject() {
   return Q.resolve(data.defaultVPC);

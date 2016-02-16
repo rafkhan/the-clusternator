@@ -7,9 +7,9 @@ const a = rewire('./cli-authorities');
 const C = require('../../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('CLI Authorities Middleware', () => {
-  let oldCn, authorities = [];
+  let oldCn;
+  let authorities = [];
   beforeEach(() => {
     oldCn = a.__get__('cn');
     a.__set__('cn', {

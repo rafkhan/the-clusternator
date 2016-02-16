@@ -7,6 +7,7 @@
 
 const util = require('../util');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 
 function getVpcManager(ec2) {
   ec2 = util.makePromiseApi(ec2);
@@ -14,7 +15,7 @@ function getVpcManager(ec2) {
   function describe() {
     return ec2.describeVpcs({
       DryRun: false,
-      Filters: constants.AWS_FILTER_CTAG
+      Filters: awsConstants.AWS_FILTER_CTAG
     });
   }
 
@@ -22,10 +23,10 @@ function getVpcManager(ec2) {
     finds a vpc from a project
     @param {string} projectId
     @param {Object} list (see AWS docs)
-    http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeVpcs-property
+    http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
   */
   function findProjectTag(projectId, list) {
-    var vpc = null;
+    let vpc = null;
     list.Vpcs.forEach(function(vDesc) {
       vDesc.Tags.forEach(function(tag) {
         if (tag.Key !== constants.PROJECT_TAG) {
@@ -43,12 +44,12 @@ function getVpcManager(ec2) {
   /**
     finds the _last_ clusternator tagged VPC _without_ a clusternator proj tag
     @param {Object} list (see AWS docs)
-    http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeVpcs-property
+    http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
   */
   function findMasterVPC(list) {
-    var vpc = null;
+    let vpc = null;
     list.Vpcs.forEach(function(vDesc) {
-      var foundTag = false;
+      let foundTag = false;
       vDesc.Tags.forEach(function(tag) {
         if (tag.Key === constants.PROJECT_TAG) {
           foundTag = true;
@@ -63,7 +64,7 @@ function getVpcManager(ec2) {
 
   function findProjectVPC(projectId) {
     return describe().then(function(list) {
-      var vpc = findProjectTag(projectId, list);
+      let vpc = findProjectTag(projectId, list);
       if (vpc) {
         return vpc;
       }

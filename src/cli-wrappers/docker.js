@@ -14,7 +14,7 @@ const FLAG_RMI = 'rmi';
 const DEFAULT_DOCKERFILE = 'Dockerfile';
 const BUILD_CWD = './';
 
-var cproc = require('./child-process');
+let cproc = require('./child-process');
 
 module.exports = {
   build,

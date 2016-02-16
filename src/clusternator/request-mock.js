@@ -1,7 +1,8 @@
 'use strict';
 
 /** note, this is the most minimal stub/mock of request possible */
-var result = JSON.stringify({ payload: null }), response = {
+let result = JSON.stringify({ payload: null });
+let response = {
   statusCode: 200
 };
 

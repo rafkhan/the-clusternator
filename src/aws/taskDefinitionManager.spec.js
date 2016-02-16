@@ -1,12 +1,11 @@
 'use strict';
 
-var rewire = require('rewire'),
-  C = require('../chai');
+const rewire = require('rewire');
+const C = require('../chai');
 
-var Cluster = rewire('./taskDefinitionManager');
+const Cluster = rewire('./taskDefinitionManager');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('taskDefinitionManager', () => {
 });

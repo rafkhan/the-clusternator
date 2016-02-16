@@ -6,7 +6,7 @@
  */
 
 const Q = require('q');
-const policies = { ecr: require('./ecr-policies') }
+const policies = { ecr: require('./ecr-policies') };
 const constants = require('../../constants');
 const common = require('../common');
 const rid = require('../../resource-identifier');

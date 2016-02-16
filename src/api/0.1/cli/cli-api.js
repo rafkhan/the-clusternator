@@ -162,8 +162,8 @@ module.exports = (yargs) => {
     .command('describe-services', 'Describe project services', aws
       .describeServices)
     .command('build', 'Local Docker Build', (y) => {
-      var id = (+Date.now()).toString(16),
-        argv = demandPassphrase(y)
+      const id = (+Date.now()).toString(16);
+      const argv = demandPassphrase(y)
           .demand('i')
           .alias('i', 'image')
           .describe('i', 'Name of the docker image to create')

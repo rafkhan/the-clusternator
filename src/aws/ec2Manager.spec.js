@@ -1,18 +1,17 @@
 'use strict';
 
-var rewire = require('rewire'),
-  constants = require('../constants'),
-  ec2Mock = require('./ec2-mock'),
-  mockFs = require('mock-fs'),
-  C = require('../chai');
+const rewire = require('rewire');
+const constants = require('../constants');
+const ec2Mock = require('./ec2-mock');
+const mockFs = require('mock-fs');
+const C = require('../chai');
 
-var Ec2 = rewire('./ec2Manager');
+const Ec2 = rewire('./ec2Manager');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('ec2Manager', () => {
-  var ec2;
+  let ec2;
 
   beforeEach(() => {
     ec2 = Ec2(ec2Mock);
@@ -129,8 +128,8 @@ describe('ec2Manager', () => {
   });
 
   it('processSSHKeys should postfix SSH keys with a " OUTPUT_SSH ', () => {
-    var result = ec2.helpers.processSSHKeys(['test'])[1],
-      expected = '" ' + ec2.helpers.OUTPUT_SSH;
+    const result = ec2.helpers.processSSHKeys(['test'])[1];
+    const expected = '" ' + ec2.helpers.OUTPUT_SSH;
     expect(
       result.indexOf(expected)
     ).to.equal(result.length - expected.length);

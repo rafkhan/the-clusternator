@@ -1,15 +1,14 @@
 'use strict';
 
-const rewire = require('rewire'),
-  Q = require('q');
+const rewire = require('rewire');
+const Q = require('q');
 
-var ssh = rewire('./ssh'),
-  C = require('./../chai');
+const ssh = rewire('./ssh');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test ssh CLI Wrapper', () => {
-  var cProc;
+  let cProc;
 
   beforeEach(() => {
     cProc = ssh.__get__('cproc');

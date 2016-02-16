@@ -1,13 +1,13 @@
 'use strict';
-var Q = require('q');
 
-var data = {
+
+const data = {
   hostedZone: {
     HostedZone: {
       Name: 'example.com.'
     }
   }
-}
+};
 
 function getHostedZone(params, callback) {
   callback(null, data.hostedZone);

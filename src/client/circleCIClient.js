@@ -6,20 +6,20 @@
  * @todo determine if this can be deleted
  */
 
-var fs = require('fs');
-var q = require('q');
-var R = require('ramda');
-var request = require('superagent');
-var resourceId = require('../resource-identifier');
+const fs = require('fs');
+const q = require('q');
+const R = require('ramda');
+const request = require('superagent');
+const resourceId = require('../resource-identifier');
 
-var clusternateEndpoint = '/clusternate';
+const clusternateEndpoint = '/clusternate';
 
-var isCircleCI = process.env.CIRCLECI === 'true';
+const isCircleCI = process.env.CIRCLECI === 'true';
 
 
 function updateContainerDefs(tag, containerDef) {
-  var imgSrc = containerDef.image;
-  var newImg = imgSrc.replace(/\$TAG/g, tag);
+  const imgSrc = containerDef.image;
+  const newImg = imgSrc.replace(/\$TAG/g, tag);
 
   // create new object with correct $TAG
   return R.assoc('image', newImg, containerDef);
@@ -28,10 +28,10 @@ function updateContainerDefs(tag, containerDef) {
 
 // TODO move to different file
 function replaceTagInAppdef(appdef, tag) {
-  var imgUpdater = R.map(R.curry(updateContainerDefs)(tag));
+  const imgUpdater = R.map(R.curry(updateContainerDefs)(tag));
 
-  var updatedTasks = R.map((task) => {
-    var updatedContainerDefs = imgUpdater(task.containerDefinitions);
+  const updatedTasks = R.map((task) => {
+    const updatedContainerDefs = imgUpdater(task.containerDefinitions);
     // return new obj with updated task
     return R.assoc('containerDefinitions',
                    updatedContainerDefs,
@@ -53,24 +53,24 @@ function push(host, appdef, tag) {
 
 
   // Strip ending / from host string
-  var strippedHost = host.replace(/\/$/,'');
-  var apiEndpoint = strippedHost + clusternateEndpoint;
+  const strippedHost = host.replace(/\/$/,'');
+  const apiEndpoint = strippedHost + clusternateEndpoint;
 
-  var d = q.defer();
+  const d = q.defer();
 
-  var readFile = q.nfbind(fs.readFile);
+  const readFile = q.nfbind(fs.readFile);
   readFile(appdef, 'utf8')
     .then((appdefText) => {
-      var appdef = JSON.parse(appdefText);
-      var taggedAppdef = replaceTagInAppdef(appdef, tag);
-      var taggedAppdefText = JSON.stringify(taggedAppdef, null, 2);
+      const appdef = JSON.parse(appdefText);
+      const taggedAppdef = replaceTagInAppdef(appdef, tag);
+      const taggedAppdefText = JSON.stringify(taggedAppdef, null, 2);
 
       return {
         appdef: taggedAppdefText,
         tag: tag
       };
     }, (err) => {
-      var msg = 'Can not read appdef from ' + appdef;
+      const msg = 'Can not read appdef from ' + appdef;
       return msg;
     })
 
@@ -83,8 +83,8 @@ function push(host, appdef, tag) {
             // Clean up error response
             d.reject(err);
           } else {
-            var parsedRes = JSON.parse(res.text);
-            var data = {};
+            const parsedRes = JSON.parse(res.text);
+            const data = {};
             data.tag = parsedRes.tag;
             data.appdef = JSON.parse(parsedRes.appdef);
             d.resolve(data);
@@ -99,8 +99,8 @@ function push(host, appdef, tag) {
 }
 
 function generateTagFromEnv() {
-  var env = process.env;
-  var tagOpts = {};
+  const env = process.env;
+  const tagOpts = {};
 
   if(env.CIRCLE_PR_NUMBER) {
     tagOpts.pr = env.CIRCLE_PR_NUMBER;
@@ -110,10 +110,10 @@ function generateTagFromEnv() {
     tagOpts.pid = env.CIRCLE_PROJECT_REPONAME;
   }
 
-  var time = Date.now();
+  const time = Date.now();
   tagOpts.time = time;
 
-  var rid = resourceId.generateRID(tagOpts);
+  const rid = resourceId.generateRID(tagOpts);
 
   return {
     tag: rid,

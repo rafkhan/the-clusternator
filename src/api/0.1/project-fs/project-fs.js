@@ -77,7 +77,7 @@ function installExecutable(destFilePath, fileContents, perms) {
  * @return {Q.Promise}
  */
 function loadCertificateFiles(privateKey, certificate, chain) {
-  var filePromises = [
+  const filePromises = [
     read(privateKey, UTF8),
     read(certificate, UTF8)
   ];
@@ -104,12 +104,12 @@ function loadCertificateFiles(privateKey, certificate, chain) {
 function findProjectRoot(cwd) {
   cwd = cwd || process.cwd();
 
-  var d = Q.defer();
+  const d = Q.defer();
 
   ls(cwd).then((files) => {
-    var index = files.indexOf(VCS_DIR), parentPath;
+    const index = files.indexOf(VCS_DIR);
     if (index === -1) {
-      parentPath = parent(cwd);
+      const parentPath = parent(cwd);
       if (!parentPath) {
         d.reject(new Error('Clusternator: No Version Control Folder Found'));
         return;
@@ -129,8 +129,8 @@ function findProjectRoot(cwd) {
  * @returns {string}
  */
 function parent(somePath) {
-  var splits = somePath.split(path.sep).filter(identity),
-    root = somePath[0] === path.sep ? path.sep : '';
+  const splits = somePath.split(path.sep).filter(identity);
+  const root = somePath[0] === path.sep ? path.sep : '';
   if (splits.length === 1) {
     return null;
   }

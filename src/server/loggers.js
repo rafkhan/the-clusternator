@@ -5,9 +5,9 @@
  * @module server/loggers
  */
 
-var winston = require('winston');
-var expressWinston = require('express-winston');
-var logLevelsByLogger = {
+const winston = require('winston');
+const expressWinston = require('express-winston');
+const logLevelsByLogger = {
   request: 0,
   error: 0,
   logger: 0
@@ -22,7 +22,7 @@ switch (process.env.NODE_ENV) {
     break;
 }
 
-var requestLogger = expressWinston.logger({
+const requestLogger = expressWinston.logger({
   transports: [
     new winston.transports.Console({
       json: true,
@@ -35,7 +35,7 @@ var requestLogger = expressWinston.logger({
   colorStatus: true
 });
 
-var errorLogger = expressWinston.errorLogger({
+const errorLogger = expressWinston.errorLogger({
   transports: [
     new winston.transports.Console({
       json: true,
@@ -44,7 +44,7 @@ var errorLogger = expressWinston.errorLogger({
   ]
 });
 
-var logger = new (winston.Logger)({
+const logger = new (winston.Logger)({
   transports: [
     new (winston.transports.Console)({
       level: logLevelsByLogger.logger,
@@ -53,8 +53,10 @@ var logger = new (winston.Logger)({
       },
       formatter: function(options) {
         // Return string will be passed to logger.
-        return options.timestamp() +' '+ options.level.toLowerCase() + ': '+ (undefined !== options.message ? options.message : '') +
-          (options.meta && Object.keys(options.meta).length ? '\n\t'+ JSON.stringify(options.meta) : '' );
+        return options.timestamp() + ' ' + options.level.toLowerCase() + ': ' +
+          (undefined !== options.message ? options.message : '') +
+          (options.meta && Object.keys(options.meta).length ?
+          '\n\t'+ JSON.stringify(options.meta) : '' );
       }
     })
   ]

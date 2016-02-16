@@ -14,6 +14,7 @@ const Route53 = require('./route53Manager');
 const Task = require('./taskServiceManager');
 const common = require('./common');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 const path = require('path');
 const util = require('../util');
 const elbFns = require('./elb/elb');
@@ -50,7 +51,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   function createElb(creq) {
     return elb.createDeployment(creq.projectId, creq.deployment, creq.subnetId,
-      creq.groupId, constants.AWS_SSL_ID, creq.useInternalSSL);
+      creq.groupId, awsConstants.AWS_SSL_ID, creq.useInternalSSL);
   }
 
   function setUrl(creq) {
@@ -153,7 +154,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request}
    */
   function destroy(projectId, deployment) {
-    var clusterName = rid.generateRID({
+    const clusterName = rid.generateRID({
       pid: projectId,
       deployment
     });
@@ -178,7 +179,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   }
 
   function update(projectId, deployment, appdef) {
-    var clusterName = rid.generateRID({
+    const clusterName = rid.generateRID({
       pid: projectId,
       deployment
     });

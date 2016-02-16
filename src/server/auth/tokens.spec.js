@@ -1,12 +1,11 @@
 'use strict';
 
 /*global describe, it, expect */
-/*eslint no-unused-expressions:0*/
 describe('Tokens interface', function () {
   // for this.timeout to work this describe block CANNOT use an arrow
   this.timeout(10000);
-  var C = require('../../chai'),
-    tokens = require('./tokens');
+  const C = require('../../chai');
+  const tokens = require('./tokens');
 
   it('findById should resolve an array', (done) => {
     tokens.findById('some id').then((results) => {

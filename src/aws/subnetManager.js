@@ -8,9 +8,10 @@
 const Q = require('q');
 const util = require('../util');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 
-var Vpc = require('./vpcManager');
-var common = require('./common');
+let Vpc = require('./vpcManager');
+let common = require('./common');
 
 /**
   @param {EC2} AWS ec2 object
@@ -19,12 +20,12 @@ var common = require('./common');
 function getSubnetManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
-  var vpc = Vpc(ec2);
-  var baseFilters = constants.AWS_FILTER_CTAG.concat(
+  const vpc = Vpc(ec2);
+  const baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
     common.makeAWSVPCFilter(vpcId));
-  var describe = common.makeEc2DescribeFn(
+  const describe = common.makeEc2DescribeFn(
     ec2, 'describeSubnets', 'Subnets', baseFilters);
-  var describeProject = common.makeEc2DescribeProjectFn(describe);
+  const describeProject = common.makeEc2DescribeProjectFn(describe);
 
   /**
   @param {string} pid
@@ -44,11 +45,11 @@ function getSubnetManager(ec2, vpcId) {
     if (!list.length) {
       throw new Error('findHighestCidr given empty list');
     }
-    var highest = -1;
+    let highest = -1;
     list.forEach(function(r) {
-      var cidr = r.CidrBlock,
-        classes = cidr.split('.'),
-        c;
+      const cidr = r.CidrBlock;
+      const classes = cidr.split('.');
+      let c;
       classes.pop();
       c = +classes.pop();
       if (c > highest) {
@@ -63,7 +64,7 @@ function getSubnetManager(ec2, vpcId) {
     @return {string}
   **/
   function incrementHighestCidr(list) {
-    var highest = findHighestCidr(list);
+    let highest = findHighestCidr(list);
     highest += 1;
     return highest + '.0/24';
   }
@@ -100,7 +101,7 @@ function getSubnetManager(ec2, vpcId) {
     @return {Q.Promise}
   */
   function associateRoute(snDesc, routeId) {
-    var id = snDesc.Subnet.SubnetId;
+    const id = snDesc.Subnet.SubnetId;
     return ec2.associateRouteTable({
       RouteTableId: routeId,
       SubnetId: id
@@ -113,7 +114,7 @@ function getSubnetManager(ec2, vpcId) {
     @return {boolean}
   */
   function isPidInSubnetList(pid, list) {
-    var found = false;
+    let found = false;
     list.forEach(function(sn) {
       sn.Tags.forEach(function(tag) {
         if (tag.Key === constants.PROJECT_TAG) {
@@ -157,10 +158,10 @@ function getSubnetManager(ec2, vpcId) {
   finds a subnet from a project
   @param {string} projectId
   @param {Object} list (see AWS docs)
-  http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#describeVpcs-property
+  http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html
   */
   function findProjectTag(projectId, list) {
-    var subnet = null;
+    let subnet = null;
     list.forEach(function(sDesc) {
       sDesc.Tags.forEach(function(tag) {
         if (tag.Key !== constants.PROJECT_TAG) {
@@ -181,7 +182,7 @@ function getSubnetManager(ec2, vpcId) {
     @throws {Error}
   */
   function throwIfSubnetNotFound(projectId, list) {
-    var subnet = findProjectTag(projectId, list);
+    let subnet = findProjectTag(projectId, list);
     if (subnet) {
       return subnet;
     }
@@ -272,7 +273,7 @@ function getSubnetManager(ec2, vpcId) {
     @param {string} aclId
   */
   function associateAcl(snDesc, aclId) {
-    var snId = snDesc.Subnet.SubnetId;
+    const snId = snDesc.Subnet.SubnetId;
     return defaultAssocId(snId).then(function(assocId) {
       return ec2.replaceNetworkAclAssociation({
         AssociationId: assocId,
@@ -293,7 +294,7 @@ function getSubnetManager(ec2, vpcId) {
         common.throwInvalidPidTag(pid, 'looking', 'Subnet');
       }
 
-      var subnetId = list[0].SubnetId;
+      const subnetId = list[0].SubnetId;
 
       return ec2.deleteSubnet({
         SubnetId: subnetId
@@ -303,7 +304,7 @@ function getSubnetManager(ec2, vpcId) {
   }
 
   function createSubnet(params) {
-    var pid = params.pid;
+    const pid = params.pid;
     delete params.pid; // aws doesn't like extra params :/
     return ec2.createSubnet(params).then(function(results) {
       return common.awsTagEc2(ec2, results.Subnet.SubnetId, [{
@@ -336,7 +337,7 @@ function getSubnetManager(ec2, vpcId) {
         return {
           VpcId: vpcId,
           CidrBlock: cidr,
-          AvailabilityZone: az || constants.AWS_DEFAULT_AZ,
+          AvailabilityZone: az || awsConstants.AWS_DEFAULT_AZ,
           pid: pid
         };
       }).

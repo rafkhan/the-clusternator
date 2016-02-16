@@ -1,25 +1,24 @@
 'use strict';
-var util = require('./util'),
-  Q = require('q'),
-  C = require('./chai');
+const util = require('./util');
+const Q = require('q');
+const C = require('./chai');
 
 
 
 /*global describe, it, expect, beforeEach */
-/*eslint no-unused-expressions:0*/
 describe('utility functions', () => {
   it('should have a function that quotes a supplied argument', () => {
     expect(util.quote('booya')).equal('"booya"');
   });
 
   it('clone should return a copy of an object', () => {
-    var testObj = {
+    const testObj = {
         a: 5,
         b: {
           ba: 10
         }
-      },
-      copy = util.clone(testObj);
+      };
+    const copy = util.clone(testObj);
     expect(copy).to.not.equal(testObj);
     expect(copy.b).to.not.equal(testObj.b);
     expect(copy.b.ba).to.equal(testObj.b.ba);
@@ -32,10 +31,10 @@ describe('utility functions', () => {
 
   it('plog should return the first argument', () => {
     expect(util.plog(2)).to.equal(2);
-  })
+  });
 
   it('errLog should return a broken promsie', (done) => {
-    var output = 'hahhahah';
+    const output = 'hahhahah';
     util.errLog(output).then(C.getFail(done), (err) => {
       C.check(done, () => {
         expect(err.message).to.equal(output);
@@ -71,7 +70,7 @@ describe('utility functions', () => {
 
     it('waitFor should reseolve if its predicate resolves, *and* max retries ' +
       ' is *not* exceeded', (done) => {
-        var count = 0;
+        let count = 0;
 
         function predicate() {
           count += 1;
@@ -90,7 +89,7 @@ describe('utility functions', () => {
   });
 
   describe('makePromiseApi tests', () => {
-    var api;
+    let api;
 
     // AWS's is a constructor so our mock should be too
     MockApi.prototype.oneParam = (param, callback) => {
@@ -115,14 +114,14 @@ describe('utility functions', () => {
       }, C.getFail(done));
     });
 
-    it('should turn twoParams into a promise, and resolve the expected param (2)',
-      (done) => {
-        api.twoParams(1, 2).then((result) => {
-          C.check(done, () => {
-            expect(result).to.equal(2);
-          });
-        }, C.getFail(done));
-      });
+    it('should turn twoParams into a promise, and resolve the expected param ' +
+      '(2)', (done) => {
+      api.twoParams(1, 2).then((result) => {
+        C.check(done, () => {
+          expect(result).to.equal(2);
+        });
+      }, C.getFail(done));
+    });
 
     it('should reject errorOut', (done) => {
       api.errorOut(1).then(C.getFail(done), (err) => {
@@ -135,6 +134,22 @@ describe('utility functions', () => {
     function MockApi() {
 
     }
+  });
+
+  describe('partial function', () => {
+    it('should throw if not given a function', () => {
+      expect(() => util.partial()).to.throw(TypeError);
+    });
+
+    it('should partially apply single variables', () => {
+      const test = util.partial((a, b) => a + b, 5);
+      expect(test(5) === 10).to.be.ok;
+    });
+
+    it('should partially apply arrays of variables', () => {
+      const test = util.partial((a, b) => a + b, [5, 5]);
+      expect(test() === 10).to.be.ok;
+    });
   });
 
 });

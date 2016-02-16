@@ -115,7 +115,7 @@ function createServer(pm, config) {
 function bindRoutes(app, pm) {
   const curriedPushHandler = R.curry(pushHandler)(pm);
   const curriedPRHandler = R.curry(prHandler)(pm);
-  const ghMiddleware = githubAuthMiddleware(pm.ddbManager);
+  const ghMiddleware = githubAuthMiddleware(pm);
 
 
   app.set('views', path.join(__dirname, '..', 'views'));
@@ -173,42 +173,6 @@ function bindRoutes(app, pm) {
   app.use(loggers.error);
 }
 
-function createAndPollTable(ddbManager, tableName) {
-  log.info('Creating DynamoDB table: %s', tableName);
-  return ddbManager.createTable(tableName)
-    .then(() => {
-      log.info('Waiting for DynamoDB table: %s', tableName);
-
-      return waitFor(() => {
-        log.info('Polling...');
-        return ddbManager.checkActiveTable(tableName);
-      }, 500, 100, 'ddb table create ' + tableName);
-    }, q.reject);
-}
-
-function initializeDynamoTable(ddbManager, tableName) {
-  log.info('Looking for DynamoDB table: %s', tableName);
-
-  return ddbManager.checkTableExistence(tableName)
-    .then((exists) => {
-      if(exists) {
-        log.info('DynamoDB table %s was found',
-          tableName);
-
-        return q.resolve();
-      } else {
-        log.info('DynamoDB table %s was not found',
-          tableName);
-
-        return createAndPollTable(ddbManager, tableName);
-      }
-    }, q.reject)
-
-    .then(() => {
-      log.info('Table "' + tableName + '" is active');
-    }, q.reject);
-}
-
 function exposeUser(req, res, next) {
   if (!req.user) {
     res.locals.username = null;
@@ -223,29 +187,21 @@ function exposeUser(req, res, next) {
 function getServer() {
   const config = Config();
   const pm = getProjectManager(config);
-  const ddbManager = pm.ddbManager;
-  const initDynamoTable = R.curry(initializeDynamoTable)(ddbManager);
-  const githubAuthTokenTable = ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE;
 
-  return initDynamoTable(githubAuthTokenTable)
-    .then(() => createServer(pm, config));
+  return createServer(pm, config);
 }
 
 function startServer(config) {
-  return getServer(config)
-    .then((server) => {
-      if (NODE_ENV === DEBUG) {
-        server.listen(config.port);
-        log.info(
-          `Clusternator listening on port: ${config.port}`);
-      } else {
-        server.listen([config.port], [config.portSSL]);
-        log.info(
-          `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
-      }
-    }, (err) => {
-      log.error(err, err.stack);
-    });
+  const server = getServer(config);
+  if (NODE_ENV === DEBUG) {
+    server.listen(config.port);
+    log.info(
+      `Clusternator listening on port: ${config.port}`);
+  } else {
+    server.listen([config.port], [config.portSSL]);
+    log.info(
+      `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
+  }
 }
 
 function ping(req, res) {

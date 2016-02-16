@@ -137,7 +137,7 @@ function provisionProjectNetwork(projectId) {
  * @return {{ create: function(...), listSSHAbleInstances: function(...) }}
  */
 function getProjectAPI() {
-  var config = Config();
+  const config = Config();
 
   if (config.awsCredentials) {
     return awsProjectManager(config);
@@ -223,7 +223,7 @@ function startServer(config) {
  */
 function deploy_(pm, projectId, appDefStr, deployment) {
   util.info('Requirements met, creating deployment...');
-  var appDef = util.safeParse(appDefStr);
+  const appDef = util.safeParse(appDefStr);
   if (!appDef) {
     throw new Error('Deployment failed, error parsing appDef');
   }
@@ -248,7 +248,7 @@ function deploy_(pm, projectId, appDefStr, deployment) {
  */
 function update_(pm, projectId, appDefStr, deployment) {
   util.info('Updating deployment...');
-  var appDef = util.safeParse(appDefStr);
+  const appDef = util.safeParse(appDefStr);
   if (!appDef) {
     throw new Error('Deployment failed, error parsing appDef');
   }

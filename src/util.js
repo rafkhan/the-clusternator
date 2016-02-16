@@ -11,7 +11,7 @@ const inquirer = require('inquirer');
 const Winston = require('winston');
 const constants = require('./constants');
 
-var winston;
+let winston;
 
 initWinston();
 
@@ -32,8 +32,19 @@ module.exports = {
   winston,
   inquirerPrompt,
   cliLogger,
-  safeParse
+  safeParse,
+  isObject,
+  deepFreeze,
+  partial
 };
+
+/**
+ * @param {*} i
+ * @returns {boolean}
+ */
+function isObject(i) {
+  return i && (typeof i === 'object');
+}
 
 /**
  *  Starts up the winston logger for STDIO
@@ -114,7 +125,7 @@ function quote(str) {
   @return {string} first two classes, like: '1.2'
 */
 function getCidrPrefixFromIPString(ip) {
-  var classes = ip.split('.');
+  const classes = ip.split('.');
   return classes[0] + '.' + classes[1];
 }
 
@@ -137,8 +148,8 @@ function waitFor(asyncPredicateFunction, interval, max, label) {
   max = Math.abs(+max) || 0;
   interval = Math.abs(+interval) || WAIT_DEFAULT_INTERVAL;
 
-  var defer = Q.defer(),
-    count = 0;
+  const defer = Q.defer();
+  let count = 0;
 
   function poll() {
     asyncPredicateFunction()
@@ -173,8 +184,8 @@ function isFunction(fn) {
   @return {Object} a new object with promisified functions
 */
 function makePromiseApi(api) {
-  var promiseApi = {},
-    attr;
+  const promiseApi = {};
+  let attr;
   // wrap *all* the functions !!!
   for (attr in api)
     if (isFunction(api[attr])) {
@@ -207,7 +218,7 @@ function clone(obj) {
  * @returns {Promise}
  */
 function inquirerPrompt(qs, onEachAnswer, onEachError, onComplete) {
-  var d = Q.defer();
+  const d = Q.defer();
   if (typeof onEachAnswer === 'function') {
     inquirer.prompt(qs, (answers) => {
       d.resolve(answers);
@@ -230,7 +241,7 @@ function cliLogger(yargs) {
   const LOG_MAX = 5;
 
 
-  var argv = yargs.count('verbose')
+  const argv = yargs.count('verbose')
     .alias('v', 'verbose')
     .describe('v', 'Verbosity, defaults to info, add more v\'s to increase')
     .boolean('quiet')
@@ -247,6 +258,21 @@ function cliLogger(yargs) {
 }
 
 /**
+ * Makes an object and its parts immutable
+ * @param {Object} obj
+ * @returns {Object}
+ */
+function deepFreeze(obj) {
+  if (!obj || typeof obj !== 'object') {
+    return obj;
+  }
+  Object.keys(obj).forEach((prop) => obj[prop] = isObject(obj[prop]) ?
+    deepFreeze(obj[prop]) :
+    obj[prop]);
+  return Object.freeze(obj);
+}
+
+/**
  * @param {string} string
  * @returns {null|*}
  */
@@ -256,5 +282,33 @@ function safeParse(string) {
   } catch (err) {
     return null;
   }
+}
+
+/**
+ * Partially applies a function using _references_
+ * @param {function(...)} fn
+ * @param {Array.<*>|*} args
+ * @returns {applyPartial}
+ */
+function partial(fn, args) {
+  if (typeof fn !== 'function') {
+    throw new TypeError('partial requires a function to partially apply');
+  }
+  if (!Array.isArray(args)) {
+    if (args === undefined) {
+      args = [];
+    } else {
+      args = [args];
+    }
+  }
+  /**
+   * @returns {*}
+   */
+  function applyPartial() {
+    const nextArgs = Array.prototype.slice.call(arguments, 0);
+    const allArgs = args.concat(nextArgs);
+    return fn.apply(null, allArgs);
+  }
+  return applyPartial;
 }
 

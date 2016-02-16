@@ -7,7 +7,7 @@
 
 const path = require('path');
 
-var cproc = require('./child-process');
+let cproc = require('./child-process');
 
 const COMMAND_APP = path.join(
   __dirname, '..', '..', 'bin', 'log-app.sh');

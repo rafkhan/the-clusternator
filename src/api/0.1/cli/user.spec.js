@@ -7,9 +7,12 @@ const u = rewire('./user');
 const C = require('../../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('CLI: user middleware', () => {
-  let oldCn, oldUtil,  result = [], promptResult = {}, fns = [
+  let oldCn;
+  let oldUtil;
+  let result = [];
+  let promptResult = {};
+  let fns = [
     'createUser', 'login', 'changePassword', 'checkConfigured',
     'checkConfiguredAndLoggedIn'
   ];

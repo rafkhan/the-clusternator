@@ -1,17 +1,17 @@
 'use strict';
 
-var rewire = require('rewire'),
-  C = require('../chai'),
-  mockRequest = require('./request-mock');
+const rewire = require('rewire');
+const C = require('../chai');
+const mockRequest = require('./request-mock');
 
-var Pm = rewire('./projectManager'),
-  common = rewire('./common');
+const Pm = rewire('./projectManager');
+const common = rewire('./common');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('Clusternator\'s project manager', () => {
-  var oldReq, pm;
+  let oldReq;
+  let pm;
 
   beforeEach(() => {
     oldReq = common.__get__('request');
@@ -80,8 +80,8 @@ describe('Clusternator\'s project manager', () => {
 
   });
 
-  it('normalizeEndSlash should add a / to the end of a host if it is not present',
-    () => {
+  it('normalizeEndSlash should add a / to the end of a host if it is not ' +
+    'present', () => {
     expect(common.helpers.normalizeEndSlash('blah')).to.equal('blah/');
   });
 

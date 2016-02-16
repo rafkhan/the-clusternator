@@ -35,10 +35,10 @@ const fs = require('./project-fs');
 
 const cmn = require('../common');
 
-var git = Q.nfbind(require('parse-git-config'));
-var util = cmn.src('util');
-var gpg = cmn.src('cli-wrappers', 'gpg');
-var tar = cmn.src('cli-wrappers', 'tar');
+let git = Q.nfbind(require('parse-git-config'));
+const util = cmn.src('util');
+const gpg = cmn.src('cli-wrappers', 'gpg');
+const tar = cmn.src('cli-wrappers', 'tar');
 
 const GIT_CONFIG = VCS_DIR + path.sep + 'config';
 
@@ -59,9 +59,9 @@ function fullPath(dirPath) {
  * @returns {string}
  */
 function parseGitUrl(url) {
-  var splits = url.split(URL_SEP).filter(identity),
-    result = splits[splits.length -1],
-    index = result.indexOf(GIT_EXTENSION);
+  const splits = url.split(URL_SEP).filter(identity);
+  const result = splits[splits.length -1];
+  const index = result.indexOf(GIT_EXTENSION);
 
   if (index === result.length - GIT_EXTENSION.length) {
     return result.slice(0, index);
@@ -107,7 +107,7 @@ function findBowerName(projectRoot) {
  * @returns {Array}
  */
 function deDupe(strings) {
-  var newCollection = [];
+  const newCollection = [];
   strings.forEach((str) => {
     if (!str) {
       return;
@@ -124,7 +124,7 @@ function deDupe(strings) {
  * @returns {Q.Promise<string[]>}
  */
 function findProjectNames(projectRoot) {
-  var names = [
+  const names = [
     findBowerName(projectRoot),
     findPackageName(projectRoot)
   ];
@@ -141,8 +141,8 @@ function findProjectNames(projectRoot) {
 function validate(cJson) {
   const C = 'culsternator.json requires ';
 
-  var hasFailed = false,
-    results = {};
+  let hasFailed = false;
+  const results = {};
 
   if (!cJson.projectId) {
     hasFailed = true;
@@ -259,7 +259,7 @@ function skipIfExists(dir) {
  * @private
  */
 function privateExists_(root) {
-  var dir = path.join(root, CLUSTERNATOR_PRIVATE);
+  const dir = path.join(root, CLUSTERNATOR_PRIVATE);
   return fs.read(dir).then(() => {
     return dir;
   }, (err) => {
@@ -287,7 +287,7 @@ function privateExists() {
 function answersToClusternatorJSON(answers) {
   answers.private = answers.private || [];
 
-  var config = util.clone(SKELETON);
+  const config = util.clone(SKELETON);
 
   config.projectId = answers.projectId;
   config.private = answers.private;
@@ -301,14 +301,14 @@ function answersToClusternatorJSON(answers) {
  * @return {Q.Promise}
  */
 function writeFromAnswers(answers) {
-  var json = answersToClusternatorJSON(answers),
-    dir = fullPath(answers.root);
+  const json = answersToClusternatorJSON(answers);
+  const dir = fullPath(answers.root);
   return fs.write(dir, json, UTF8)
     .then(() => answers);
 }
 
 function getConfigFrom(root) {
-  var file = fullPath(root);
+  const file = fullPath(root);
   return fs.read(file, UTF8).then((file) => {
     return JSON.parse(file);
   });
@@ -348,8 +348,8 @@ function readPrivate(passPhrase, root) {
   function readPrivateFromRoot(root) {
     return privateExists_(root)
       .then(() => {
-        var gpgPath = path.join(root, CLUSTERNATOR_PRIVATE),
-          tarPath = path.join(root, CLUSTERNATOR_TAR);
+        const gpgPath = path.join(root, CLUSTERNATOR_PRIVATE);
+        const tarPath = path.join(root, CLUSTERNATOR_TAR);
 
         return gpg
           .decryptFile(passPhrase, gpgPath, tarPath)
@@ -372,7 +372,7 @@ function makePrivate(passPhrase, root) {
       }
 
       function makePrivateFromRoot(root) {
-        var tarFile = path.join(root, CLUSTERNATOR_TAR);
+        const tarFile = path.join(root, CLUSTERNATOR_TAR);
 
         return tar
           .ball(tarFile, config.private)
@@ -439,7 +439,7 @@ function readIgnoreFile(ignoreFileName, isFullPath) {
  * @returns {boolean}
  */
 function ignoreHasItem(toIgnore, ignores) {
-  var found = false;
+  let found = false;
   ignores.forEach((str) => {
     if (str.indexOf(toIgnore) === 0) {
       found = true;

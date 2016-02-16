@@ -7,12 +7,12 @@
 
 /*global require, module*/
 
-var users = Object.create(null);
-var passwords = require('./passwords');
-var tokens = require('./tokens');
-var authorities = require('./authorities');
-var config = require('../../config')();
-var Q = require('q');
+const users = Object.create(null);
+const passwords = require('./passwords');
+const tokens = require('./tokens');
+const authorities = require('./authorities');
+const config = require('../../config')();
+const Q = require('q');
 const MIN_PASS_LEN = config.minPasswordLength || 13;
 const PROJECT_USER_TAG = require('../../constants').PROJECT_USER_TAG;
 
@@ -47,7 +47,7 @@ function init() {
  * @returns {*}
  */
 function validateCreateUser(user) {
-  var d = Q.defer();
+  const d = Q.defer();
   if (!user || !user.id) {
     d.reject(new TypeError('createUser: Invalid User Id'));
     return d.promise;
@@ -150,15 +150,15 @@ function createUserEndpoint(req, res) {
 }
 
 function updateUserEndpoint_(req, res) {
-  var id = req.body.username,
-    authority = req.body.authority;
+  const id = req.body.username;
+  const authority = req.body.authority;
 
   find(id).then((found) => {
     return authorities.change(id, authority).then(() => {
       res.sendStatus(200);
     });
   }, () => {
-    var password = req.body.password;
+    const password = req.body.password;
     return createUser({
       id:id,
       password:password,
@@ -172,8 +172,8 @@ function updateUserEndpoint_(req, res) {
 }
 
 function updateUserEndpoint(req, res) {
-  var id = req.body.username,
-    authority = req.body.authority;
+  const id = req.body.username;
+  const authority = req.body.authority;
 
   // admins can edit anyone
   if (req.user.authority === 0) {
@@ -203,7 +203,7 @@ function getUser(req, res) {
 }
 
 function getAllUsers(req, res) {
-  var result;
+  let result;
   if (req.user.authority === 0) {
     result = Object.keys(users).map((key) => {
       return users[key];
@@ -234,7 +234,7 @@ function getAllUsers(req, res) {
 
 function getTokens(req, res) {
   tokens.findById(req.user.id).then((tokens) => {
-    var masked = tokens.map((t) => {
+    const masked = tokens.map((t) => {
       return JSON.parse(t).hash.slice(0, 6) + 'XXXXXXXXXXXXXXXXXX';
     });
     res.render('tokens', { tokens: masked });

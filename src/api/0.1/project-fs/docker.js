@@ -53,7 +53,8 @@ function dockerBuild(name, passphrase) {
     return fs
       .findProjectRoot()
       .then((root) => {
-        var output, outputError;
+        let output;
+        let outputError;
         process.chdir(root);
         util.info('Start Docker Build', name);
         return docker.build(name)

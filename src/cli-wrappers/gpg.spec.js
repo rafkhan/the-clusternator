@@ -1,17 +1,16 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  mockSpawn = require('mock-spawn');
+const rewire = require('rewire');
+const Q = require('q');
+const mockSpawn = require('mock-spawn');
 
-var gpg = rewire('./gpg'),
-  cproc = rewire('./child-process'),
-  C = require('./../chai');
+const gpg = rewire('./gpg');
+const cproc = rewire('./child-process');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test GPG CLI Wrapper', () => {
-  var cProc;
+  let cProc;
 
   beforeEach(() => {
     cProc = gpg.__get__('cproc');
@@ -22,28 +21,30 @@ describe('Test GPG CLI Wrapper', () => {
     gpg.__set__('cproc', cProc);
   });
 
-  it('encrypt should reject if passphrase is shorter than thirty chars', (done) => {
-    gpg.encrypt('12345678901234567890123456789', 'some text').
-    then(C.getFail(done), (err) => {
-      C.check(done, () => {
-        expect(err instanceof Error).to.be.true;
+  it('encrypt should reject if passphrase is shorter than thirty chars',
+    (done) => {
+      gpg.encrypt('12345678901234567890123456789', 'some text').
+      then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.true;
+        });
       });
     });
-  });
 
-  it('encryptFile should reject if passphrase is shorter than thirty chars', (done) => {
-    gpg.encryptFile('12345678901234567890123456789', 'filePath').
-    then(C.getFail(done), (err) => {
-      C.check(done, () => {
-        expect(err instanceof Error).to.be.true;
+  it('encryptFile should reject if passphrase is shorter than thirty chars',
+    (done) => {
+      gpg.encryptFile('12345678901234567890123456789', 'filePath').
+      then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.true;
+        });
       });
     });
-  });
 
 
   describe('Test GPG CLI Passing (not stdout)', () => {
     beforeEach(() => {
-      var ms = mockSpawn();
+      const ms = mockSpawn();
       ms.setDefault(ms.simple(0, ''));
       cproc.__set__('spawn', ms);
     });

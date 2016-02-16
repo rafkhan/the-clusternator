@@ -1,18 +1,17 @@
 'use strict';
 
-var supertest = require('supertest');
-var express = require('express');
-var bodyParser = require('body-parser');
-var prHandler = require('./pullRequest.js');
+const supertest = require('supertest');
+const express = require('express');
+const bodyParser = require('body-parser');
+const prHandler = require('./pullRequest.js');
 
-var app = express();
+const app = express();
 app.use(bodyParser.json());
 app.post('/test', prHandler);
 
 // @todo in an ideal world, these will work
 //
 ///*global describe, it, expect, beforeEach */
-///*eslint no-unused-expressions: 0*/
 //describe('pull request close handler', () => {
 //  it('should forbid non-PR events', (done) => {
 //    supertest(app)

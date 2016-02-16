@@ -1,14 +1,17 @@
 'use strict';
 
 /*global describe, it, expect, beforeEach */
-/*eslint no-unused-expressions:0*/
 describe('Users interface', function() {
   /** Make sure `this` is in traditional function, _not_ an arrow */
   this.timeout(10000);
 
-  var C = require('../../chai'),
-    users = require('./users'),
-    testUser1, testUser2, testUser3, testUser4, testUser5;
+  const C = require('../../chai');
+  const users = require('./users');
+  let testUser1;
+  let testUser2;
+  let testUser3;
+  let testUser4;
+  let testUser5;
 
   beforeEach(() => {
     testUser1 = {id: 'test', password: '123456789ABCD'};

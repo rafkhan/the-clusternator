@@ -1,19 +1,19 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  constants = require('../constants'),
-  common = require('./common'),
-  ec2Mock = require('./ec2-mock');
+const rewire = require('rewire');
+const Q = require('q');
+const constants = require('../constants');
+const common = require('./common');
+const ec2Mock = require('./ec2-mock');
 
-var RouteTable = rewire('./routeTableManager'),
-  C = require('../chai');
+const RouteTable = rewire('./routeTableManager');
+const C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('routeTableManager success cases', () => {
-  var routeTable, oldDesc;
+  let routeTable;
+  let oldDesc;
 
   beforeEach(() => {
     oldDesc = common.makeEc2DescribeFn;
@@ -25,8 +25,8 @@ describe('routeTableManager success cases', () => {
             Value: 'true'
           }]
         }]);
-      }
-    }
+      };
+    };
     RouteTable.__set__('common', common);
     routeTable = RouteTable(ec2Mock, 'vpc-id');
   });
@@ -45,25 +45,27 @@ describe('routeTableManager success cases', () => {
   });
 
 
-  it('findDefault should resolve if a clusternator tag is not found', (done) => {
-    routeTable.findDefault().then(function() {
-      C.check(done, () => {
-        expect(true).to.be;
-      });
-    }, C.getFail(done));
-  });
+  it('findDefault should resolve if a clusternator tag is not found',
+    (done) => {
+      routeTable.findDefault().then(function() {
+        C.check(done, () => {
+          expect(true).to.be;
+        });
+      }, C.getFail(done));
+    });
 });
 
 describe('routeTableManager fail cases', () => {
-  var routeTable, oldDesc;
+  let routeTable;
+  let oldDesc;
 
   beforeEach(() => {
     oldDesc = common.makeEc2DescribeFn;
     common.makeEc2DescribeFn = () => {
       return () => {
         return Q.reject(new Error('test'));
-      }
-    }
+      };
+    };
     RouteTable.__set__('common', common);
     routeTable = RouteTable(ec2Mock, 'vpc-id');
   });
@@ -86,6 +88,6 @@ describe('routeTableManager fail cases', () => {
       C.check(done, () => {
         expect(err instanceof Error).to.be.true;
       });
-    })
+    });
   });
 });

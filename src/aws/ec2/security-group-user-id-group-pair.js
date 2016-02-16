@@ -6,22 +6,14 @@
  */
 
 module.exports = {
-  create
+  create: SgUserIdGroupPair
 };
-
-class SgUserIdGroupPair {
-  /**
-   * @param {string} groupId
-   */
-  constructor(groupId){
-    this.GroupId = groupId;
-  }
-}
 
 /**
  * @param {string} groupId
- * @returns {SgUserIdGroupPair}
+ * @constructor
  */
-function create(groupId) {
-  return new SgUserIdGroupPair(groupId);
+function SgUserIdGroupPair(groupId) {
+  this.GroupId = groupId;
 }
+

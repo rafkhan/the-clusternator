@@ -19,14 +19,16 @@ module.exports = {
   destroy,
   destroyDeployment,
   destroyPr,
-  describe,
   describeDeployment,
   describePr,
   describeAll,
   configureHealthCheck,
   registerInstances,
   helpers: {
-    filterClusternatorTags
+    defaultListeners,
+    describeById,
+    elbDeploymentId,
+    elbPrId
   }
 };
 
@@ -117,6 +119,10 @@ function defaultListeners(certId, useInternalSSL) {
  */
 function createDeployment(aws, projectId, deployment, subnet, securityGroup,
                           certId, useInternalSSL) {
+  if (!projectId || !deployment) {
+    throw new TypeError('createDeployment requires a projectId and ' +
+      'deployment name');
+  }
   useInternalSSL = useInternalSSL ? true : false;
   const listeners = defaultListeners(certId, useInternalSSL);
   const tags = [
@@ -140,6 +146,9 @@ function createDeployment(aws, projectId, deployment, subnet, securityGroup,
  */
 function createPr(aws, projectId, pr, subnet, securityGroup, certId,
                   useInternalSSL) {
+  if (!projectId || !pr) {
+    throw new TypeError('createPr requires a projectId and pr number');
+  }
   useInternalSSL = useInternalSSL ? true : false;
   const listeners = defaultListeners(certId, useInternalSSL);
   const tags = [
@@ -182,6 +191,9 @@ function create(aws, listeners, subnets, securityGroups, loadBalancerId, tags) {
  * @returns {Q.Promise}
  */
 function destroyPr(aws, projectId, pr) {
+  if (!projectId || !pr) {
+    throw new TypeError('destroyPr requires a projectId and pr number');
+  }
   const id = elbPrId(projectId, pr);
   return destroy(aws, id);
 }
@@ -193,6 +205,9 @@ function destroyPr(aws, projectId, pr) {
  * @returns {Q.Promise}
  */
 function destroyDeployment(aws, projectId, deployment) {
+  if (!projectId || !deployment) {
+    throw new TypeError('destroyDeployment requires a projectId and pr number');
+  }
   const id = elbDeploymentId(projectId, deployment);
   return destroy(aws, id);
 }
@@ -204,43 +219,15 @@ function destroyDeployment(aws, projectId, deployment) {
  */
 function destroy(aws, loadBalancerId) {
   if (!loadBalancerId) {
-    throw new TypeError('destroyLoadBalancer requires a loadBalacnerId');
+    throw new TypeError('destroyLoadBalancer requires a loadBalancerId');
   }
   return aws.elb.deleteLoadBalancer({
     LoadBalancerName: loadBalancerId
   });
 }
 
-function filterClusternatorTags(loadBalancerDescriptions, tagDescs) {
-  const tagIds = tagDescs.map((tagDesc) => tagDesc.LoadBalancerName);
-  const tags = tagDescs.map((tagDesc) => tagDesc.Tags);
-  return loadBalancerDescriptions
-    .filter((desc) => {
-      const tagIndex = tagIds.indexOf(desc.LoadBalancerName);
-      if (tagIndex === -1) {
-        return false;
-      }
-      return tags.find((el) => el
-        .Name
-        .indexOf(constants.CLUSTERNATOR_TAG) === 0);
-    });
-}
-
-function mapLoadBalancerIds(loadBalancerDescription) {
-  return loadBalancerDescription.LoadBalancerName;
-}
-
 function describeAll(aws) {
   return aws.elb.describeLoadBalancers();
-}
-
-function describe(aws) {
-  return describeAll(aws)
-    .then((results) => describeTags(aws, results
-      .LoadBalancerDescriptions
-      .map(mapLoadBalancerIds))
-      .then((tags) => filterClusternatorTags(
-        results.LoadBalancerDescriptions, tags)));
 }
 
 function describeById(aws, id) {
@@ -259,25 +246,31 @@ function describeById(aws, id) {
     });
 }
 
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} deployment
+ */
 function describeDeployment(aws, projectId, deployment) {
+  if (!projectId || !deployment) {
+    throw new TypeError('describeDeployment requires a projectId and ' +
+      'deployment name');
+  }
   const id = elbDeploymentId(projectId, deployment);
-  return describeById(aws, id);
-}
-
-function describePr(aws, projectId, pr) {
-  const id = elbPrId(projectId, pr);
   return describeById(aws, id);
 }
 
 /**
  * @param {AwsWrapper} aws
- * @param {string[]} loadBalancerIds
- * @returns {Q.Promise}
+ * @param {string} projectId
+ * @param {string} pr
  */
-function describeTags(aws, loadBalancerIds) {
-  return aws.elb
-    .describeTags({ LoadBalancerNames: loadBalancerIds})
-    .then((results) => results.TagDescriptions);
+function describePr(aws, projectId, pr) {
+  if (!projectId || !pr) {
+    throw new TypeError('describePr requires a projectId and pr number');
+  }
+  const id = elbPrId(projectId, pr);
+  return describeById(aws, id);
 }
 
 /**

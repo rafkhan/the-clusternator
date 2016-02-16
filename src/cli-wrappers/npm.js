@@ -12,7 +12,7 @@ const FLAG_BUILD = 'build';
 
 const util = require('../util');
 
-var cproc = require('./child-process');
+let cproc = require('./child-process');
 
 /**
  * @returns {Q.Promise}

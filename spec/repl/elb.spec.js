@@ -9,6 +9,9 @@ var elb = require(setup.path('aws', 'elb', 'elb.js'));
 const partialedElb = R.mapObjIndexed(iamElbPartial, elb);
 
 function iamElbPartial(fn) {
+  if (typeof fn !== 'function'){
+    return;
+  }
   return R.partial(fn, { elb: util.makePromiseApi(setup.getElb()) });
 }
 

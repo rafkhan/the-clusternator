@@ -1,14 +1,14 @@
 'use strict';
 
 /*global describe, it, expect */
-/*eslint no-unused-expressions:0*/
 describe('Passwords interface', function () {
   // for this.timeout to work this describe block CANNOT use an arrow
   this.timeout(10000);
-  var C = require('../../chai'),
-    passwords = require('./passwords'),
-    testId = 'blah', testPass1 = 'secret',
-    testPass2 = 'secret1';
+  const C = require('../../chai');
+  const passwords = require('./passwords');
+  let testId = 'blah';
+  let testPass1 = 'secret';
+  let testPass2 = 'secret1';
 
   it('find should retrieved created passwords, that have a "saltedHash"',
     (done) => {

@@ -36,7 +36,7 @@ function writeDeployment(name, dDir, appDef) {
 function generateDeploymentFromName(name, ports) {
   util.info('Generating deployment: ',  name);
   return clusternatorJson.get().then((config) => {
-    var appDef = util.clone(appDefSkeleton);
+    let appDef = util.clone(appDefSkeleton);
     appDef.name = config.projectId;
     if (ports) {
       addPortsToAppDef(ports, appDef);
@@ -54,7 +54,7 @@ function generateDeploymentFromName(name, ports) {
  */
 function initializeDeployments(depDir, projectId, ports) {
   return fs.mkdirp(depDir).then(() => {
-    var prAppDef = util.clone(appDefSkeleton);
+    let prAppDef = util.clone(appDefSkeleton);
     prAppDef.name = projectId;
     addPortsToAppDef(ports, prAppDef);
     prAppDef = JSON.stringify(prAppDef, null, 2);

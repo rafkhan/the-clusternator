@@ -10,7 +10,8 @@ const R = require('ramda');
 const clusternatePrefixString = require('../../resource-identifier')
   .clusternatePrefixString;
 
-module.exports = {
+const EXPORTS = {
+  bindAws,
   accessor,
   create,
   destroy,
@@ -25,6 +26,25 @@ module.exports = {
     write
   }
 };
+
+module.exports = EXPORTS;
+
+/**
+ * @param {AwsWrapper} aws
+ * @returns {Object.<function(...)>}
+ */
+function bindAws(aws) {
+  const bound = {};
+  Object.keys(EXPORTS).map((attr) => {
+    if (attr === 'bindAws') {
+      return;
+    }
+    if (typeof EXPORTS[attr] === 'function') {
+      bound[attr] = R.partial(EXPORTS[attr], [aws]);
+    }
+  });
+  return bound;
+}
 
 /**
  * Returns a function that will get/set on the table/id provided.
@@ -175,25 +195,29 @@ function create(aws, table) {
     throw new TypeError('create requires a table name');
   }
   /**
-   * @returns {Promise}
+   * @returns {Promise<string>}
    */
   function promiseToCreate() {
-    return aws.ddb.createTable({
-      AttributeDefinitions: [{
-          AttributeName: 'id',
-          AttributeType: 'S'
-        }
-      ],
-      KeySchema: [{
-        AttributeName: 'id',
-        KeyType: 'HASH'
-      }],
-      ProvisionedThroughput: {
-        ReadCapacityUnits: READ_UNITS,
-        WriteCapacityUnits: WRITE_UNITS
-      },
-      TableName: clusternatePrefixString(table)
-    });
+    return checkIfTableExists(aws, table)()
+      .then((tableExists) => tableExists ?
+        'table exists' :
+        aws.ddb.createTable({
+          AttributeDefinitions: [{
+            AttributeName: 'id',
+            AttributeType: 'S'
+          }
+          ],
+          KeySchema: [{
+            AttributeName: 'id',
+            KeyType: 'HASH'
+          }],
+          ProvisionedThroughput: {
+            ReadCapacityUnits: READ_UNITS,
+            WriteCapacityUnits: WRITE_UNITS
+          },
+          TableName: clusternatePrefixString(table)
+        })
+      .then(() => 'table created'));
   }
   return promiseToCreate;
 }

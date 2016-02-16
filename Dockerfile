@@ -1,4 +1,4 @@
-FROM rafkhan/rangle-node:14.04-4.2.6
+FROM rafkhan/rangle-node:14.04-4.3.0
 
 # setup the application home
 RUN mkdir /home/app

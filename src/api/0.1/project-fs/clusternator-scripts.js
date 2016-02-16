@@ -34,9 +34,9 @@ module.exports = {
  */
 function initializeScripts(clustDir, tld) {
   return fs.mkdirp(clustDir).then(() => {
-    const decryptPath = fs.path.join(clustDir, DECRYPT_SH),
-      dockerBuildPath = fs.path.join(clustDir, DOCKER_BUILD_JS),
-      clusternatorPath = fs.path.join(clustDir, NOTIFY_JS);
+    const decryptPath = fs.path.join(clustDir, DECRYPT_SH);
+    const dockerBuildPath = fs.path.join(clustDir, DOCKER_BUILD_JS);
+    const clusternatorPath = fs.path.join(clustDir, NOTIFY_JS);
 
     return Q
       .all([
@@ -76,7 +76,7 @@ function initOptional(options, projectRoot) {
  * @returns {Q.Promise}
  */
 function initializeServeSh(root) {
-  var sPath = fs.path.join(root, SERVE_SH);
+  const sPath = fs.path.join(root, SERVE_SH);
   return fs.getSkeleton(SERVE_SH)
     .then((contents) => {
       return fs.write(sPath, contents);

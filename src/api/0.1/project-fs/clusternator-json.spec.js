@@ -1,17 +1,21 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  mockFs = require('mock-fs');
+const rewire = require('rewire');
+const Q = require('q');
+const mockFs = require('mock-fs');
 
-var cn = rewire('./clusternator-json'),
-  fs = rewire('./project-fs'),
-  C = require('../../../chai');
+const cn = rewire('./clusternator-json');
+const fs = rewire('./project-fs');
+const C = require('../../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('clusternator.json handling', () => {
-  var project, other, oldGit, oldInq, mockGitResponse, workDir;
+  let project;
+  let other;
+  let oldGit;
+  let oldInq;
+  let mockGitResponse;
+  let workDir;
 
   function mockGit() {
     if (mockGitResponse instanceof Error) {
@@ -68,23 +72,26 @@ describe('clusternator.json handling', () => {
     expect(fs.helpers.parent('/a/')).to.not.be;
   });
 
-  it('findProjectRoot should resolve the cwd if it has a .git folder in it', (done) => {
-    fs.findProjectRoot(project).then((root) => {
-      C.check(done, () => {
-        expect(root).to.equal(project);
-      });
-    }, C.getFail(done));
-  });
+  it('findProjectRoot should resolve the cwd if it has a .git folder in it',
+    (done) => {
+      fs.findProjectRoot(project).then((root) => {
+        C.check(done, () => {
+          expect(root).to.equal(project);
+        });
+      }, C.getFail(done));
+    });
 
-  it('findProjectRoot should resolve the project root from a sub directory', (done) => {
-    fs.findProjectRoot(project + '/src/components/').then((root) => {
-      C.check(done, () => {
-        expect(root).to.equal(project);
-      });
-    }, C.getFail(done));
-  });
+  it('findProjectRoot should resolve the project root from a sub directory',
+    (done) => {
+      fs.findProjectRoot(project + '/src/components/').then((root) => {
+        C.check(done, () => {
+          expect(root).to.equal(project);
+        });
+      }, C.getFail(done));
+    });
 
-  it('findProjectRoot should reject if it cannot find a .git folder in the parent directories ', (done) => {
+  it('findProjectRoot should reject if it cannot find a .git folder in the ' +
+    'parent directories ', (done) => {
     fs.findProjectRoot(other).then(C.getFail(done), (err) => {
       C.check(done, () => {
         expect(err instanceof Error).to.be.ok;
@@ -93,15 +100,16 @@ describe('clusternator.json handling', () => {
   });
 
   it('parseGitUrl should return the last part of the git url', () => {
-    expect(cn.helpers.parseGitUrl('https://github.com/rangle/the-clusternator')).to.equal(
-      'the-clusternator'
-    );
+    expect(cn.helpers.parseGitUrl(
+      'https://github.com/rangle/the-clusternator'))
+      .to.equal('the-clusternator');
   });
 
-  it('paseGitUrl should return the last part of the git url *without* the .git', () => {
-    expect(cn.helpers.parseGitUrl('https://github.com/rangle/the-clusternator.git')).to.equal(
-      'the-clusternator'
-    );
+  it('paseGitUrl should return the last part of the git url *without* the ' +
+    '.git', () => {
+    expect(cn.helpers.parseGitUrl(
+      'https://github.com/rangle/the-clusternator.git'))
+      .to.equal('the-clusternator');
   });
 
   it('findGitName should reject if given an unexpected object', (done) => {
@@ -114,7 +122,8 @@ describe('clusternator.json handling', () => {
   });
 
   it('findGitName should resolve if given an expected object', (done) => {
-    mockGitResponse = { 'remote "origin"': { url: 'ssh://path/to/project.git' }};
+    mockGitResponse = { 'remote "origin"': {
+      url: 'ssh://path/to/project.git' }};
     cn.helpers.findGitName('some/path').then((name) => {
       C.check(done, () => {
         expect(name).to.equal('project');
@@ -122,18 +131,22 @@ describe('clusternator.json handling', () => {
     }, C.getFail(done));
   });
 
-  it('deDupe should remove duplicates, and falseys from an array of strings', () => {
-    var tryMe = ['a', 'a', '', '', '', 'b', 'c','d','e','e','e'];
-    expect(cn.helpers.deDupe(tryMe).toString()).to.equal(['a', 'b', 'c', 'd', 'e'].toString());
-  });
+  it('deDupe should remove duplicates, and falseys from an array of strings',
+    () => {
+      const tryMe = ['a', 'a', '', '', '', 'b', 'c','d','e','e','e'];
+      expect(cn.helpers.deDupe(tryMe).toString())
+        .to.equal(['a', 'b', 'c', 'd', 'e'].toString());
+    });
 
-  it('findPackageName should return falsey if package.json cannot be parsed', () => {
-    expect(cn.helpers.findPackageName('a')).to.not.be.ok;
-  });
+  it('findPackageName should return falsey if package.json cannot be parsed',
+    () => {
+      expect(cn.helpers.findPackageName('a')).to.not.be.ok;
+    });
 
-  it('findBowerName should return falsey if bower.json cannot be parsed', () => {
-    expect(cn.helpers.findBowerName('a')).to.not.be.ok;
-  });
+  it('findBowerName should return falsey if bower.json cannot be parsed',
+    () => {
+      expect(cn.helpers.findBowerName('a')).to.not.be.ok;
+    });
 
   it('findProjectNames should resolve an array of strings', (done) => {
     cn.findProjectNames('some/path').then((results) => {
@@ -143,7 +156,8 @@ describe('clusternator.json handling', () => {
     }, C.getFail(done));
   });
 
-  it('findProjectNames should resolve an array of strings if gitName search fails', (done) => {
+  it('findProjectNames should resolve an array of strings if gitName search ' +
+    'fails', (done) => {
     mockGitResponse = new Error('git fail!');
     cn.findProjectNames('some/path').then((results) => {
       C.check(done, () => {
@@ -152,15 +166,18 @@ describe('clusternator.json handling', () => {
     }, C.getFail(done));
   });
 
-  it('validate should return an object with specifics about exactly what is invalid', () => {
+  it('validate should return an object with specifics about exactly what is ' +
+    'invalid', () => {
     expect(cn.validate({}).projectId).to.be.ok;
   });
 
-  it('validate should return an object *without* an "ok" boolean if the structure is not okay', () => {
+  it('validate should return an object *without* an "ok" boolean if the ' +
+    'structure is not okay', () => {
     expect(cn.validate({ appDefs: {} }).ok).to.not.be.ok;
   });
 
-  it('validate should return an object with an "ok" boolean if the structure is valid', () => {
+  it('validate should return an object with an "ok" boolean if the structure ' +
+    'is valid', () => {
     expect(cn.validate({
       projectId: 'test-project',
       appDefs: {
@@ -177,25 +194,29 @@ describe('clusternator.json handling', () => {
     }, C.getFail(done));
   });
 
-  it('answersToClusternatorJSON should return a string if given the correct arguments', () => {
-    expect(typeof cn.helpers.answersToClusternatorJSON({ projectId: 'test', appDefPr: 'hi'})).to.equal('string');
+  it('answersToClusternatorJSON should return a string if given the correct ' +
+    'arguments', () => {
+    expect(typeof cn.helpers.answersToClusternatorJSON(
+      { projectId: 'test', appDefPr: 'hi'})).to.equal('string');
   });
 
-  it('skipIfExists should resolve if a clusternator.json file does not exist', (done) => {
-    cn.skipIfExists('/some/fake/path').then(() => {
-      C.check(done, () => {
-        expect(true).to.be.ok;
-      });
-    }, C.getFail(done));
-  });
+  it('skipIfExists should resolve if a clusternator.json file does not exist',
+    (done) => {
+      cn.skipIfExists('/some/fake/path').then(() => {
+        C.check(done, () => {
+          expect(true).to.be.ok;
+        });
+      }, C.getFail(done));
+    });
 
-  it('skipIfExists should reject if a clusternator.json file exists', (done) => {
-    cn.skipIfExists(project).then(C.getFail(done), (err) => {
-      C.check(done, () => {
-        expect(err instanceof Error).to.be.ok;
+  it('skipIfExists should reject if a clusternator.json file exists',
+    (done) => {
+      cn.skipIfExists(project).then(C.getFail(done), (err) => {
+        C.check(done, () => {
+          expect(err instanceof Error).to.be.ok;
+        });
       });
     });
-  });
 
   it('writeFromAnswers should return a promise', () => {
     expect(typeof cn
@@ -205,7 +226,8 @@ describe('clusternator.json handling', () => {
 });
 
 describe('ignore file tests', () => {
-  var projectRoot = '/', oldFindRoot;
+  let projectRoot = '/';
+  let oldFindRoot;
 
   /*global describe, it, expect, beforeEach, afterEach */
   /*eslint no-unused-expressions:0*/
@@ -248,14 +270,15 @@ describe('ignore file tests', () => {
     }, C.getFail(done));
   });
 
-  it('readIgnoreFile should resolve even if there is not .gitignore', (done) => {
-    projectRoot = 'some/invalid/path';
-    cn.helpers.readIgnoreFile('.gitignore').then((result) => {
-      C.check(done, () => {
-        expect(Array.isArray(result)).to.be.ok;
-      });
-    }, C.getFail(done));
-  });
+  it('readIgnoreFile should resolve even if there is not .gitignore',
+    (done) => {
+      projectRoot = 'some/invalid/path';
+      cn.helpers.readIgnoreFile('.gitignore').then((result) => {
+        C.check(done, () => {
+          expect(Array.isArray(result)).to.be.ok;
+        });
+      }, C.getFail(done));
+    });
 
   // not playing nicely with new fs system
   //it('addToIgnore should add a *new* entry to the .gitignore file',

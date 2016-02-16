@@ -19,14 +19,16 @@ const deploymentConfigAttributes = configAttributes.concat(
 const Q = require('q');
 const R = require('ramda');
 const common = require('./common');
+const ec2Skeletons = require('./ec2Skeletons');
 const util = require('../util');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 const fs = require('fs');
 const path = require('path');
 
 const ls = Q.nbind(fs.readdir, fs);
 const readFile = Q.nbind(fs.readFile, fs);
-const DEFAULT_INSTANCE_PARAMS = constants.AWS_DEFAULT_EC2;
+const DEFAULT_INSTANCE_PARAMS = ec2Skeletons.AWS_DEFAULT_EC2;
 
 
 /**
@@ -88,9 +90,10 @@ function makeDockerAuth(auth) {
   }
   const cfgType = 'docker';
 
-  var authJson = {
+  const authJson = {
     'https://index.docker.io/v1/user': auth
-  }, authStr = JSON.stringify(authJson);
+  };
+  const authStr = JSON.stringify(authJson);
 
   return [
     makeDockerAuthType(cfgType),
@@ -126,7 +129,7 @@ function makeSSHUserData(sshPath) {
  * @return {string}
  */
 function stringArrayToNewLineBase64(arr) {
-  var buf = new Buffer(arr.join('\n'));
+  const buf = new Buffer(arr.join('\n'));
   return buf.toString('base64');
 }
 
@@ -138,9 +141,10 @@ function stringArrayToNewLineBase64(arr) {
  * @returns {Promise<string>}
  */
 function getECSContainerInstanceUserData(clusterName, auth, sshDataOrPath) {
-  var data = ['#!/bin/bash',
+  let  data = ['#!/bin/bash',
     'echo ECS_CLUSTER=' + clusterName + ' >> /etc/ecs/ecs.config;'
-  ], authData = [];
+  ];
+  let authData = [];
 
   if (auth) {
     if (auth.cfg) {
@@ -175,13 +179,13 @@ function getECSContainerInstanceUserData(clusterName, auth, sshDataOrPath) {
 function getEC2Manager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
-  var baseFilters = constants.AWS_FILTER_CTAG.concat(
-    common.makeAWSVPCFilter(vpcId)),
-    describe = common.makeEc2DescribeFn(
-      ec2, 'describeInstances', 'Reservations', baseFilters),
-    describeProject = common.makeEc2DescribeProjectFn(describe),
-    describePr = common.makeEc2DescribePrFn(describe),
-    describeDeployment = common.makeEc2DescribeDeployment(describe);
+  const baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
+    common.makeAWSVPCFilter(vpcId));
+  const describe = common.makeEc2DescribeFn(
+      ec2, 'describeInstances', 'Reservations', baseFilters);
+  const describeProject = common.makeEc2DescribeProjectFn(describe);
+  const describePr = common.makeEc2DescribePrFn(describe);
+  const describeDeployment = common.makeEc2DescribeDeployment(describe);
 
   /**
    * @param {string} instance
@@ -240,7 +244,7 @@ function getEC2Manager(ec2, vpcId) {
       throw 'No instance IDs';
     }
 
-    var params = {
+    const params = {
       InstanceIds: instanceIds
     };
 
@@ -249,7 +253,7 @@ function getEC2Manager(ec2, vpcId) {
         return [];
       }
 
-      var res = list.Reservations[0].Instances;
+      const res = list.Reservations[0].Instances;
       return res.map((reservation) => {
         return {
           InstanceId: reservation.instanceIds,
@@ -299,10 +303,10 @@ function getEC2Manager(ec2, vpcId) {
    @param {string} instanceId
    */
   function waitForReady(instanceId) {
-    var fn = makeReadyPredicate(instanceId);
+    const fn = makeReadyPredicate(instanceId);
 
-    return util.waitFor(fn, constants.AWS_EC2_POLL_INTERVAL,
-      constants.AWS_EC2_POLL_MAX);
+    return util.waitFor(fn, awsConstants.AWS_EC2_POLL_INTERVAL,
+      awsConstants.AWS_EC2_POLL_MAX);
   }
 
   /**
@@ -360,23 +364,23 @@ function getEC2Manager(ec2, vpcId) {
    */
   function createPr(config) {
     validateCreatePrConfig(config);
-    var clusterName = config.clusterName,
-      auth = config.auth,
-      apiConfig = config.apiConfig,
-      sshPath = config.sshPath;
+    const clusterName = config.clusterName;
+    const auth = config.auth;
+    const apiConfig = config.apiConfig;
+    const sshPath = config.sshPath;
 
     return getECSContainerInstanceUserData(clusterName, auth, sshPath).
     then((data) => {
       apiConfig.UserData = data;
 
-      var defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS),
-        params = R.merge(defaultConfig, apiConfig);
+      const defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS);
+      const params = R.merge(defaultConfig, apiConfig);
 
       params.NetworkInterfaces.push(getNICConfig(config.subnetId, config.sgId));
 
       return ec2.runInstances(params).then((results) => {
-        var tagPromises = [],
-          readyPromises = [];
+        let tagPromises = [];
+        let readyPromises = [];
         results.Instances.forEach(function(instance) {
           tagPromises.push(tagPrInstance(instance, config.pr, config.pid));
           readyPromises.push(waitForReady(instance.InstanceId));
@@ -396,10 +400,10 @@ function getEC2Manager(ec2, vpcId) {
    */
   function createDeployment(config) {
     validateCreateDeploymentConfig(config);
-    var clusterName = config.clusterName,
-      auth = config.auth,
-      apiConfig = config.apiConfig,
-      sshPath = config.sshPath;
+    const clusterName = config.clusterName;
+    const auth = config.auth;
+    const apiConfig = config.apiConfig;
+    const sshPath = config.sshPath;
 
       //apiConfig.InstanceType = 't2.small';
 
@@ -407,14 +411,14 @@ function getEC2Manager(ec2, vpcId) {
     then((data) => {
       apiConfig.UserData = data;
 
-      var defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS),
-        params = R.merge(defaultConfig, apiConfig);
+      const defaultConfig = util.clone(DEFAULT_INSTANCE_PARAMS);
+      const params = R.merge(defaultConfig, apiConfig);
 
       params.NetworkInterfaces.push(getNICConfig(config.subnetId, config.sgId));
 
       return ec2.runInstances(params).then((results) => {
-        var tagPromises = [],
-          readyPromises = [];
+        const tagPromises = [];
+        const readyPromises = [];
         results.Instances.forEach(function(instance) {
           tagPromises.push(tagDeploymentInstance(
             instance, config.deployment,config.pid
@@ -432,10 +436,10 @@ function getEC2Manager(ec2, vpcId) {
    @param {string[]} instanceIds
    */
   function waitForTermination(instanceIds) {
-    var fn = makeTerminatedPredicate(instanceIds);
+    const fn = makeTerminatedPredicate(instanceIds);
 
-    return util.waitFor(fn, constants.AWS_EC2_POLL_INTERVAL,
-      constants.AWS_EC2_POLL_MAX);
+    return util.waitFor(fn, awsConstants.AWS_EC2_POLL_INTERVAL,
+      awsConstants.AWS_EC2_POLL_MAX);
   }
 
   /**

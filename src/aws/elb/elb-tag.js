@@ -6,25 +6,18 @@
  */
 
 module.exports = {
-  create
+  create: ElbTag
 };
-
-class ElbTag {
-  /**
-   * @param {string} key
-   * @param {string} value
-   */
-  constructor(key, value) {
-    this.Key = key;
-    this.Value = value + '';
-  }
-}
 
 /**
  * @param {string} key
  * @param {string} value
- * @returns {ElbTag}
+ * @constructor
  */
-function create(key, value) {
-  return new ElbTag(key, value);
+function ElbTag(key, value) {
+  if (!(this instanceof ElbTag)) {
+    return new ElbTag(key, value);
+  }
+  this.Key = key;
+  this.Value = value + '';
 }

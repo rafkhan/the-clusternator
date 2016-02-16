@@ -7,21 +7,21 @@
 
 const R = require('ramda');
 
-var serverUtil = require('./util');
-var resourceId = require('../resource-identifier');
-var log = require('./loggers').logger;
-var util = require('../util');
+const serverUtil = require('./util');
+const resourceId = require('../resource-identifier');
+const log = require('./loggers').logger;
+const util = require('../util');
 
-var missingPropertyStatus = 400;
+const missingPropertyStatus = 400;
 
 function pushHandler(pm, req, res) {
-  var error = R.curry(serverUtil.sendError)(res);
+  const error = R.curry(serverUtil.sendError)(res);
 
-  var body = req.body;
+  const body = req.body;
 
   // essential
-  var appdef = body.appdef;
-  var tag = body.tag;
+  const appdef = body.appdef;
+  const tag = body.tag;
 
 
   if(!tag) {
@@ -38,8 +38,8 @@ function pushHandler(pm, req, res) {
 
   // TODO swap out image tag name in appdef object? Either here or in client.
 
-  var parsedAppdef = JSON.parse(appdef);
-  var parsedTag = resourceId.parseRID(tag);
+  const parsedAppdef = JSON.parse(appdef);
+  const parsedTag = resourceId.parseRID(tag);
 
   if(!parsedTag) {
     error(missingPropertyStatus,
@@ -76,7 +76,7 @@ function pushHandler(pm, req, res) {
             log.error(err.stack);
           });
 
-  var resp = JSON.stringify({
+  const resp = JSON.stringify({
     appdef: appdef,
     tag: tag
   }, null, 2);

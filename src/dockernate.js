@@ -10,10 +10,10 @@
 const DOCKER_BUILD_HOOK_TIMEOUT = 120000;
 
 const  Q = require('q');
-var git = require('./cli-wrappers/git');
-var npm = require('./cli-wrappers/npm');
-var docker = require('./cli-wrappers/docker');
-var util = require('./util');
+const git = require('./cli-wrappers/git');
+const npm = require('./cli-wrappers/npm');
+const docker = require('./cli-wrappers/docker');
+const util = require('./util');
 
 function pfail(msg, id) {
   return (err) => {
@@ -26,8 +26,8 @@ function pfail(msg, id) {
 }
 
 function dockerBuild(repo, repoDesc, image, tag, middleware, dockerFile) {
-  var repoMasked = repo.split('@').filter((i) => i),
-    d = Q.defer();
+  const d = Q.defer();
+  let repoMasked = repo.split('@').filter((i) => i);
   repoMasked = repoMasked[repoMasked.length - 1];
 
   // start off the dockerBuild function
@@ -65,7 +65,7 @@ function dockerBuild(repo, repoDesc, image, tag, middleware, dockerFile) {
   }
 
   function cleanGit() {
-    var cleanup = () => git.destroy(repoDesc);
+    const cleanup = () => git.destroy(repoDesc);
 
     util.info('Running Dockernator Middleware');
     return middleware(repoDesc)
@@ -91,7 +91,8 @@ function dockerBuild(repo, repoDesc, image, tag, middleware, dockerFile) {
  */
 function timeout(promise, delay, label) {
   label = label || '';
-  var d = Q.defer(), to;
+  const d = Q.defer();
+  let to;
 
   to = setTimeout(() => {
     d.reject(new Error(
@@ -119,7 +120,7 @@ function validateMiddleware(middleware) {
   /** DO NOT ARROW FUNCTION THINGS WITH arguments */
   function tryMiddleware() {
     try {
-      var prom = middleware.apply(null, arguments);
+      const prom = middleware.apply(null, arguments);
       return timeout(prom, DOCKER_BUILD_HOOK_TIMEOUT, 'Docker middleware');
     } catch (err) {
       return Q.reject(err);
@@ -134,13 +135,13 @@ function prepareProject(backend) {
     return Q.resolve();
   }
   util.info(`Preparing Project Backend: ${backend}, CWD: ${process.cwd()}`);
-  var d = Q.defer();
+  const d = Q.defer();
   npm.install()
     .then(() => {
       util.info(`Building Project From CWD: ${process.cwd()}`);
       return npm.build()
       .then(d.resolve, d.reject, d.notify);
-    }, d.reject, d.notify)
+    }, d.reject, d.notify);
   return d.promise;
 }
 
@@ -158,8 +159,8 @@ function create(backend, repo, image, tag, middleware, dockerFile) {
     return Q.reject(
       new TypeError('Dockernator create requires repo, image'));
   }
-  var repoMasked = repo.split('@').filter((i) => i),
-    d = Q.defer();
+  const d = Q.defer();
+  let repoMasked = repo.split('@').filter((i) => i);
   repoMasked = repoMasked[repoMasked.length - 1];
   middleware = validateMiddleware(middleware);
   util.info('Creating new Docker build', repoMasked, image, tag);

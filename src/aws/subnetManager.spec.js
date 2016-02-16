@@ -1,28 +1,27 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  constants = require('../constants'),
-  common = require('./common'),
-  VpcMock = require('./vpc-mock'),
-  ec2Mock = require('./ec2-mock');
+const rewire = require('rewire');
+const Q = require('q');
+const constants = require('../constants');
+const common = require('./common');
+const VpcMock = require('./vpc-mock');
+const ec2Mock = require('./ec2-mock');
 
-var Subnet = rewire('./subnetManager'),
-  C = require('../chai');
+const Subnet = rewire('./subnetManager');
+const C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('subnetManager', () => {
-  var subnet,
-    cidrList = [{
+  let subnet;
+  let cidrList = [{
       CidrBlock: '1.2.3.4'
     }, {
       CidrBlock: '1.2.200.4'
     }, {
       CidrBlock: '1.2.0.4'
-    }],
-    origVPC;
+    }];
+  let origVPC;
 
   beforeEach(() => {
     origVPC = Subnet.__get__('Vpc');
@@ -35,7 +34,7 @@ describe('subnetManager', () => {
   });
 
   describe('async describe with valid list', () => {
-    var oldDesc;
+    let oldDesc;
     beforeEach(() => {
       oldDesc = common.makeEc2DescribeFn;
       common.makeEc2DescribeFn = () => {
@@ -43,7 +42,7 @@ describe('subnetManager', () => {
           return Q.resolve([{
             CidrBlock: '192.168.0.0'
           }]);
-        }
+        };
       };
       Subnet.__set__('common', common);
       subnet = Subnet(ec2Mock, 'vpc-id');
@@ -109,7 +108,7 @@ describe('subnetManager', () => {
 
   it('findHighestCidr should throw with an empty list', () => {
     expect(() => {
-      subnet.helpers.findHighestCidr([])
+      subnet.helpers.findHighestCidr([]);
     }).to.throw(Error);
   });
 
@@ -209,7 +208,7 @@ describe('subnetManager', () => {
         expect(result).to.equal('192.168');
       });
     }, C.getFail(done));
-  })
+  });
 
   it('concatSubnetComponents should join an string array with a "."', () => {
     expect(subnet.helpers.concatSubnetComponents(['a', 'b'])).to.equal('a.b');
@@ -226,32 +225,35 @@ describe('subnetManager', () => {
     }, C.getFail(done));
   });
 
-  it('throwIfPidFound should throw if project id is found in given list', () => {
-    expect(() => {
-      subnet.helpers.throwIfPidNotFound('test', [{
+  it('throwIfPidFound should throw if project id is found in given list',
+    () => {
+      expect(() => {
+        subnet.helpers.throwIfPidNotFound('test', [{
+          Tags: [{
+            Key: constants.PROJECT_TAG,
+            Value: 'test'
+          }]
+        }]);
+      }).to.throw(Error);
+    });
+
+  it('throwIfSubnetNotFound should throw if project id not found in given list',
+    () => {
+      expect(() => {
+        subnet.helpers.throwIfSubnetNotFound('test', []);
+      }).to.throw(Error);
+    });
+
+  it('throwIfSubnetNotFound should return the SubnetDescription if it exists',
+    () => {
+      const result = subnet.helpers.throwIfSubnetNotFound('test', [{
         Tags: [{
           Key: constants.PROJECT_TAG,
           Value: 'test'
         }]
       }]);
-    }).to.throw(Error);
-  });
-
-  it('throwIfSubnetNotFound should throw if project id not found in given list', () => {
-    expect(() => {
-      subnet.helpers.throwIfSubnetNotFound('test', []);
-    }).to.throw(Error);
-  });
-
-  it('throwIfSubnetNotFound should return the SubnetDescription if it exists', () => {
-    var result = subnet.helpers.throwIfSubnetNotFound('test', [{
-      Tags: [{
-        Key: constants.PROJECT_TAG,
-        Value: 'test'
-      }]
-    }]);
-    expect(result).to.be;
-  });
+      expect(result).to.be;
+    });
 
   it('findExistingPid, should resolve if project id not found', (done) => {
     subnet.helpers.findExistingPid().then(() => {
@@ -267,7 +269,7 @@ describe('subnetManager', () => {
 
         expect(err instanceof Error).to.be;
       });
-    })
+    });
   });
 
   it('filterIsDefault should return a list of NetworkAcl\'s tagged with ' +
@@ -278,7 +280,7 @@ describe('subnetManager', () => {
         }, {
           IsDefault: true
         }]
-      })[0].IsDefault).to.be
+      })[0].IsDefault).to.be.ok;
     });
 
   it('defaultAssoc should return a promise', (done) => {

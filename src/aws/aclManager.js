@@ -9,8 +9,9 @@ const Q = require('q');
 const skeletons = require('./ec2Skeletons');
 const util = require('../util');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 
-var common = require('./common');
+let common = require('./common');
 
 /**
   @param {EC2} AWS Ec2 object
@@ -20,9 +21,9 @@ var common = require('./common');
 function getAclManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
-  var baseFilters = constants.AWS_FILTER_CTAG.concat(
+  const baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
     common.makeAWSVPCFilter(vpcId));
-  var describe = common.makeEc2DescribeFn(
+  const describe = common.makeEc2DescribeFn(
     ec2, 'describeNetworkAcls', 'NetworkAcls', baseFilters);
 
   /**
@@ -40,8 +41,8 @@ function getAclManager(ec2, vpcId) {
     @return {Q.Promise}
   */
   function defaultInOutRules(aclId) {
-    var inbound = skeletons.ACL_DEFAULT_INGRESS,
-      outbound = skeletons.ACL_DEFAULT_EGRESS;
+    const inbound = skeletons.ACL_DEFAULT_INGRESS;
+    const outbound = skeletons.ACL_DEFAULT_EGRESS;
 
     inbound.NetworkAclId = aclId;
     outbound.NetworkAclId = aclId;
@@ -56,7 +57,7 @@ function getAclManager(ec2, vpcId) {
   function createAcl(pid, params) {
     return ec2.createNetworkAcl(params).
     then(function(result) {
-      var aclId = result.NetworkAcl.NetworkAclId;
+      const aclId = result.NetworkAcl.NetworkAclId;
       return Q.all([
         /** @todo UPGRADE to Promise ec2 */
         common.awsTagEc2(ec2, aclId, [{
@@ -82,7 +83,7 @@ function getAclManager(ec2, vpcId) {
     if (!pid) {
       throw new TypeError('Create ACL requires a ProjectId');
     }
-    var params = util.clone(skeletons.ACL);
+    const params = util.clone(skeletons.ACL);
     params.VpcId = vpcId;
 
     return describeProject(pid).

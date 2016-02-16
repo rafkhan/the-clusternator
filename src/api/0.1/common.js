@@ -23,6 +23,6 @@ module.exports = {
  * @example src('server', 'main'); // require('../../server/main');
  */
 function src() {
-  var args = Array.prototype.slice.call(arguments, 0);
+  const args = Array.prototype.slice.call(arguments, 0);
   return require(path.join.apply(path, srcCat(args)));
 }

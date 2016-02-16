@@ -1,8 +1,8 @@
 'use strict';
 
-var Q = require('q');
+const Q = require('q');
 
-var descriptions = {
+const descriptions = {
   vpcs: [],
   subnets: [],
   routeTables: [],

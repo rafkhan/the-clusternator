@@ -16,27 +16,27 @@ const constants = require('../../../constants');
 
 function newApp(argv) {
   return () => {
-    var clusterName = argv.cluster;
-    var appDefPath = argv.app;
+    const clusterName = argv.cluster;
+    const appDefPath = argv.app;
 
-    var EC2APIConfig = {
+    const EC2APIConfig = {
       ClientToken: (new Date()).valueOf().toString()
     };
 
-    var keyPairName = argv.keypair;
+    const keyPairName = argv.keypair;
     if (!keyPairName) {
       util.info('Consider adding a --keypair');
     } else {
       EC2APIConfig.KeyName = keyPairName;
     }
 
-    var subnetId = argv['subnet-id'];
-    var securityGroup = argv['security-group'];
+    const subnetId = argv['subnet-id'];
+    const securityGroup = argv['security-group'];
     if ((subnetId && !securityGroup) || (!subnetId && securityGroup)) {
       util.info('You must include both a subnet ID and a security group ID');
 
     } else if (subnetId && securityGroup) {
-      var networkInterfaces = [{
+      const networkInterfaces = [{
         DeviceIndex: 0,
         //NetworkInterfaceId: NETWORK_INTERFACE_ID,
         AssociatePublicIpAddress: true,
@@ -50,11 +50,11 @@ function newApp(argv) {
 
 
     // Pass in all auth data, will prioritize dockerCfg
-    var dockerAuth;
-    var dockerCfg = argv['docker-cfg'];
-    var dockerEmail = argv['docker-email'];
-    var dockerPassword = argv['docker-password'];
-    var dockerUsername = argv['docker-username'];
+    let dockerAuth;
+    const dockerCfg = argv['docker-cfg'];
+    const dockerEmail = argv['docker-email'];
+    const dockerPassword = argv['docker-password'];
+    const dockerUsername = argv['docker-username'];
 
     if (dockerCfg || dockerEmail || dockerPassword || dockerUsername) {
       dockerAuth = {
@@ -66,13 +66,13 @@ function newApp(argv) {
     }
 
 
-    var ec2Config = {
+    const ec2Config = {
       auth: dockerAuth,
       clusterName: clusterName,
       apiConfig: EC2APIConfig
     };
 
-    var app = JSON.parse(fs.readFileSync(appDefPath, UTF8));
+    const app = JSON.parse(fs.readFileSync(appDefPath, UTF8));
 
     return clusternator.newApp(clusterName, app, ec2Config)
       .then(function(data) {
@@ -86,10 +86,10 @@ function newApp(argv) {
 function updateApp(argv) {
 
   return function() {
-    var clusterName = argv.cluster;
-    var appDefPath = argv.app;
+    const clusterName = argv.cluster;
+    const appDefPath = argv.app;
 
-    var app = JSON.parse(fs.readFileSync(appDefPath, UTF8));
+    const app = JSON.parse(fs.readFileSync(appDefPath, UTF8));
 
     return clusternator.updateApp(clusterName, app);
   };
@@ -98,7 +98,7 @@ function updateApp(argv) {
 
 function destroyApp(argv) {
   return function() {
-    var clusterName = argv.cluster;
+    const clusterName = argv.cluster;
     return clusternator.destroyApp(clusterName);
   };
 }
@@ -106,12 +106,12 @@ function destroyApp(argv) {
 function createAppDefinition() {
 
   return function() {
-    var defaultAppPath = path.resolve(__dirname,
+    const defaultAppPath = path.resolve(__dirname,
       '../examples/DEFAULT.json');
-    var defaultApp = JSON.parse(
+    const defaultApp = JSON.parse(
       fs.readFileSync(defaultAppPath, UTF8));
 
-    var prettyString = JSON.stringify(defaultApp, null, 2);
+    const prettyString = JSON.stringify(defaultApp, null, 2);
     util.info(prettyString);
   };
 }

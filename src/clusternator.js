@@ -9,20 +9,20 @@ const q = require('q');
 const R = require('ramda');
 const AWS = require('aws-sdk');
 
-var util = require('./util');
-var EC2Manager = require('./aws/ec2Manager');
-var ClusterManager = require('./aws/clusterManager');
-var TaskServiceManager = require('./aws/taskServiceManager');
+const util = require('./util');
+const EC2Manager = require('./aws/ec2Manager');
+const ClusterManager = require('./aws/clusterManager');
+const TaskServiceManager = require('./aws/taskServiceManager');
 
-var AWS_REGION = 'us-east-1';
+const AWS_REGION = 'us-east-1';
 AWS.config.region = AWS_REGION;
 
-var ec2 = new AWS.EC2();
-var ec2Manager = EC2Manager(ec2);
+const ec2 = new AWS.EC2();
+const ec2Manager = EC2Manager(ec2);
 
-var ecs = new AWS.ECS();
-var clusterManager = ClusterManager(ecs);
-var taskServiceManager = TaskServiceManager(ecs);
+const ecs = new AWS.ECS();
+const clusterManager = ClusterManager(ecs);
+const taskServiceManager = TaskServiceManager(ecs);
 
 
 /**
@@ -49,15 +49,15 @@ function updateApp(clusterName, appDef) {
 
   .then(taskServiceManager.destroy, q.reject)
     .then((args) => {
-      var serviceNames = R.map(R.prop('serviceName'), args);
+      const serviceNames = R.map(R.prop('serviceName'), args);
       util.info('Deleted services', serviceNames);
       return args;
     }, q.reject)
 
   .then(loadNewApp, q.reject)
     .then((services) => {
-      var f = R.compose(R.prop('serviceName'), R.prop('service'));
-      var serviceNames = R.map(f, services);
+      const f = R.compose(R.prop('serviceName'), R.prop('service'));
+      const serviceNames = R.map(f, services);
       util.info('Initialized services', serviceNames);
       return services;
     }, q.reject);
@@ -82,7 +82,7 @@ function destroyApp(clusterName) {
 
   .then(taskServiceManager.destroy, q.reject)
     .then((args) => {
-      var serviceNames = R.map(R.prop('serviceName'), args);
+      const serviceNames = R.map(R.prop('serviceName'), args);
       util.info('Deleted services', serviceNames);
       return args;
     }, q.reject);
@@ -111,7 +111,7 @@ function newApp(clusterName, appDef, ec2Config) {
     throw 'Requires ec2Config';
   }
 
-  var clusterParams = {
+  const clusterParams = {
     pr: 'test',
     pid: 'ha'
   };
@@ -128,8 +128,8 @@ function newApp(clusterName, appDef, ec2Config) {
 }
 
 function createAWSObjects() {
-  var config = require('./config'),
-  c = config();
+  const config = require('./config');
+  const c = config();
   return {
     route53: new AWS.Route53(c),
     ec2: new AWS.EC2(c),
@@ -139,7 +139,7 @@ function createAWSObjects() {
 
 
 function describe(pr, type) {
-  var a = createAWSObjects();
+  const a = createAWSObjects();
 }
 
 module.exports = {

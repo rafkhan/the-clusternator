@@ -9,14 +9,18 @@
   },
 
   "rules": {
-    "quotes": [1, "single"],
-    "no-underscore-dangle": 0,
+    "comma-dangle": 0,
+    "max-len": [1, 80, 4],
+    "no-func-assign": 2,
     "no-multi-spaces": 0,
     "no-undef": 2,
+    "no-underscore-dangle": 0,
     "no-unreachable": 2,
-    "no-func-assign": 2,
-    "comma-dangle": 0,
+    "no-var": 2,
     "new-cap": 0,
+    "one-var": [2, "never"],
+    "quotes": [1, "single"],
+    "semi": [2, "always"],
     "valid-typeof": 2
   }
 }

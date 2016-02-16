@@ -1,15 +1,14 @@
 'use strict';
 
-var rewire = require('rewire'),
-  mockSpawn = require('mock-spawn');
+const rewire = require('rewire');
+const mockSpawn = require('mock-spawn');
 
-var child = rewire('./child-process'),
-  C = require('./../chai');
+const child = rewire('./child-process');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test git CLI Wrapper', () => {
-  var projectRoot = '/';
+  let projectRoot = '/';
 
   beforeEach(() => {
     projectRoot = '/';
@@ -60,8 +59,8 @@ describe('Test git CLI Wrapper', () => {
   describe('cases with exit code', () => {
 
     beforeEach(() => {
-      var ms = mockSpawn(),
-        runner = ms.simple(1, '');
+      const ms = mockSpawn();
+      const runner = ms.simple(1, '');
 
       runner.stderr = 'test error';
       ms.setDefault(runner);

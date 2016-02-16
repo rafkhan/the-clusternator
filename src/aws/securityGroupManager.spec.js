@@ -1,17 +1,16 @@
 'use strict';
 
-var rewire = require('rewire'),
-  constants = require('../constants'),
-  ec2Mock = require('./ec2-mock');
+const rewire = require('rewire');
+const constants = require('../constants');
+const ec2Mock = require('./ec2-mock');
 
-var SecurityGroup = rewire('./securityGroupManager'),
-  C = require('../chai');
+const SecurityGroup = rewire('./securityGroupManager');
+const C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('securityGroupManager', () => {
-  var securityGroup;
+  let securityGroup;
 
   beforeEach(() => {
     securityGroup = SecurityGroup(ec2Mock, 'vpc-id');
@@ -48,7 +47,7 @@ describe('securityGroupManager', () => {
   });
 
   it('createPr should return a promise', () => {
-    var p = securityGroup.createPr('test-project', '1');
+    const p = securityGroup.createPr('test-project', '1');
     expect(typeof p.then).to.equal('function');
   });
 
@@ -65,14 +64,15 @@ describe('securityGroupManager', () => {
   });
 
   it('destroyPr should return a promise', () => {
-    var p = securityGroup.destroyPr('test-project', '1');
+    const p = securityGroup.destroyPr('test-project', '1');
     expect(typeof p.then).to.equal('function');
   });
 
   describe('tests that spy on ec2 api functions', () => {
-    var inCalls = 0,
-      outCalls = 0,
-      oldInFn, oldOutFn;
+    let inCalls = 0;
+    let outCalls = 0;
+    let oldInFn;
+    let oldOutFn;
     beforeEach(() => {
       oldInFn = ec2Mock.authorizeSecurityGroupIngress;
       oldOutFn = ec2Mock.authorizeSecurityGroupEgress;
@@ -92,13 +92,14 @@ describe('securityGroupManager', () => {
       ec2Mock.authorizeSecurityGroupEgress = oldOutFn;
     });
 
-    it('defaultInOutRules should add ingress, and egress ec2 functions', (done) => {
-      securityGroup.helpers.defaultInOutRules().then(() => {
-        C.check(done, () => {
-          expect(inCalls).to.equal(1);
-          expect(outCalls).to.equal(1);
-        });
-      }, C.getFail(done));
-    });
+    it('defaultInOutRules should add ingress, and egress ec2 functions',
+      (done) => {
+        securityGroup.helpers.defaultInOutRules().then(() => {
+          C.check(done, () => {
+            expect(inCalls).to.equal(1);
+            expect(outCalls).to.equal(1);
+          });
+        }, C.getFail(done));
+      });
   });
 });

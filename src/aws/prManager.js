@@ -15,20 +15,21 @@ const Task = require('./taskServiceManager');
 const common = require('./common');
 const path = require('path');
 const constants = require('../constants');
+const awsConstants = require('./aws-constants');
 const util = require('../util');
 const elbFns = require('./elb/elb');
 const R = require('ramda');
 const Config = require('../config');
 
 function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
-  var subnet = Subnet(ec2, vpcId);
-  var securityGroup = SG(ec2, vpcId);
-  var cluster = Cluster(ecs);
-  var route53 = Route53(r53, zoneId);
-  var ec2mgr = Ec2(ec2, vpcId);
-  var task = Task(ecs);
-  var config = require('../config')();
-  var elb = R.mapObjIndexed(elbAwsPartial, elbFns);
+  let subnet = Subnet(ec2, vpcId);
+  let securityGroup = SG(ec2, vpcId);
+  let cluster = Cluster(ecs);
+  let route53 = Route53(r53, zoneId);
+  let ec2mgr = Ec2(ec2, vpcId);
+  let task = Task(ecs);
+  let config = require('../config')();
+  let elb = R.mapObjIndexed(elbAwsPartial, elbFns);
 
   function elbAwsPartial(fn) {
     if (typeof fn !== 'function') {
@@ -53,7 +54,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   function createElb(creq) {
     return elb.createPr(creq.projectId, creq.pr, creq.subnetId,
-      creq.groupId, constants.AWS_SSL_ID);
+      creq.groupId, awsConstants.AWS_SSL_ID);
   }
 
   function setUrl(creq) {
@@ -158,7 +159,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request}
    */
   function destroy(projectId, pr) {
-    var clusterName = rid.generateRID({
+    const clusterName = rid.generateRID({
       pid: projectId,
       pr: pr
     });

@@ -50,7 +50,7 @@ function throwInvalidPidTag(pid, id, label) {
 @param {Tag[]} collection
 */
 function areTagsPidValid(pid, collection) {
-  var isValid = false;
+  let isValid = false;
   collection.forEach((tag) => {
     if (tag.Key !== constants.PROJECT_TAG) {
       return;
@@ -69,8 +69,8 @@ function areTagsPidValid(pid, collection) {
 @return {boolean}
 */
 function areTagsPidPrValid(pid, pr, collection) {
-  var isValidPid = false,
-    isValidPr = false;
+  let isValidPid = false;
+  let isValidPr = false;
 
   collection.forEach((tag) => {
     if (tag.Key === constants.PROJECT_TAG) {
@@ -259,7 +259,7 @@ function findFromEc2Describe(attr, results) {
   if (!results[0]) {
     throw new Error('createPR: unexpected EC2 create results');
   }
-  var result = '';
+  let result = '';
   results[0].Instances.forEach((inst) => {
     result = inst[attr];
   });
@@ -311,11 +311,11 @@ function getDeregisterClusterFn(cluster, clusterName) {
 
 /**
  * @param {string} arn
- * @returns {*}
+ * @returns {boolean}
  */
 function filterValidArns(arn) {
-  var splits = arn.split('/'),
-    name = splits[splits.length - 1];
+  const splits = arn.split('/');
+  const name = splits[splits.length - 1];
   return rid.isRID(name);
 }
 
@@ -325,7 +325,7 @@ function filterValidArns(arn) {
  * @private
  */
 function getArnParts_(arn) {
-  var arnParts = arn
+  const arnParts = arn
     .split('/')
     .filter((i) => i);
 
@@ -338,7 +338,7 @@ function getArnParts_(arn) {
  */
 function getProjectIdFilter(projectId) {
   return (arn) => {
-    var parts = getArnParts_(arn);
+    const parts = getArnParts_(arn);
     if (parts.pid === projectId) {
       return true;
     }
@@ -353,7 +353,7 @@ function getProjectIdFilter(projectId) {
  */
 function getPrFilter(projectId, pr) {
   return (arn) => {
-    var parts = getArnParts_(arn);
+    const parts = getArnParts_(arn);
     if (parts.pid === projectId && parts.pr === pr) {
       return true;
     }
@@ -386,7 +386,7 @@ function setSubnet(subnet, creq) {
  */
 function getDeploymentFilter(projectId, deployment) {
   return (arn) => {
-    var parts = getArnParts_(arn);
+    const parts = getArnParts_(arn);
     if (parts.pid === projectId && parts.deployment === deployment) {
       return true;
     }
@@ -443,7 +443,7 @@ function registerEc2ToElb(elb, creq) {
  * @returns {string}
  */
 function qualifyUrl(config, url) {
-  var tld = config.tld || '.example.com';
+  let tld = config.tld || '.example.com';
   if (tld[0] !== '.') {
     tld = `.${tld}`;
   }
@@ -466,6 +466,7 @@ module.exports = {
   makeEc2DescribeProjectFn,
   makeEc2DescribePrFn,
   makeEc2DescribeDeployment,
+  findFromEc2Describe,
   findIdFromEc2Describe,
   findIpFromEc2Describe,
   getDeregisterClusterFn,

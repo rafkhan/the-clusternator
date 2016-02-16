@@ -1,17 +1,16 @@
 'use strict';
 
-var rewire = require('rewire'),
-  constants = require('../constants'),
-  ec2Mock = require('./ec2-mock');
+const rewire = require('rewire');
+const constants = require('../constants');
+const ec2Mock = require('./ec2-mock');
 
-var Vpc = rewire('./vpcManager'),
-  C = require('../chai');
+const Vpc = rewire('./vpcManager');
+const C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('vpcManager', () => {
-  var vpc;
+  let vpc;
 
   beforeEach(() => {
     vpc = Vpc(ec2Mock);
@@ -84,7 +83,8 @@ describe('vpcManager', () => {
     });
 
   describe('test findProjectVPC', () => {
-    var oldDescVpcs, list;
+    let oldDescVpcs;
+    let list;
 
     beforeEach(() => {
       oldDescVpcs = ec2Mock.describeVpcs;
@@ -117,7 +117,8 @@ describe('vpcManager', () => {
       });
 
     it('findProjectVPC should return a VPC without a project tag if the ' +
-      ' matching VPC cannot be found, and there is a clusternator tagged VPC', (done) => {
+      ' matching VPC cannot be found, and there is a clusternator tagged VPC',
+      (done) => {
         list = {
           Vpcs: [{
             Tags: [{

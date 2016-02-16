@@ -7,9 +7,10 @@ const p = rewire('./project');
 const C = require('../../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('CLI: project init middleware', () => {
-  let oldCn, result = [], fns = ['init'];
+  let oldCn;
+  let result = [];
+  let fns = ['init'];
   beforeEach(() => {
     oldCn = p.__get__('cn');
     p.__set__('cn', {

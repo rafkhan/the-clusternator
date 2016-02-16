@@ -63,12 +63,8 @@ function destroy(aws, name) {
  * @param {AwsWrapper} aws
  * @param {string} name
  * @returns {Q.Promise<Object>}
- * @throws {TypeError}
  */
 function describeName(aws, name) {
-  if (!name) {
-    throw new TypeError('ECR: describing named repositories requires a name');
-  }
   return describe(aws, name)
     .then((desc) => desc[0] || null);
 

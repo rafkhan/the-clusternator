@@ -7,8 +7,8 @@
 const Q = require('q');
 const R = require('ramda');
 
-const cn = require('../js/js-api');
-const fs = require('../project-fs/projectFs');
+let cn = require('../js/js-api');
+const fs = require('../project-fs/project-fs');
 
 const cmn = require('../common');
 
@@ -25,8 +25,8 @@ module.exports = {
   stop
 };
 
-var getTagsFromInstances = R.map((inst) => {
-  var tagObj = R.reduce((memo, t) => {
+const getTagsFromInstances = R.map((inst) => {
+  const tagObj = R.reduce((memo, t) => {
     memo[t.Key] = t.Value;
     return memo;
   }, {}, inst.Tags);
@@ -39,12 +39,12 @@ function deploymentExists(projectId, name) {
 
   return cn.listDeployments(projectId)
           .then((deployments) => {
-            var getInstances = R.compose(R.flatten, R.map((d) => {
+            const getInstances = R.compose(R.flatten, R.map((d) => {
               return getTagsFromInstances(d.Instances);
             }));
 
-            var insts = getInstances(deployments);
-            var deployments = R.map(R.prop(constants.DEPLOYMENT_TAG), insts);
+            const insts = getInstances(deployments);
+            deployments = R.map(R.prop(constants.DEPLOYMENT_TAG), insts);
 
             return R.contains(name, deployments);
           });
@@ -58,8 +58,8 @@ function deploy(name, force, update) {
   return clusternatorJson
     .get()
     .then((cJson) => {
-      var dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
-      var pid = cJson.projectId;
+      const dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
+      const pid = cJson.projectId;
       return Q
         .all([
           git.shaHead(),
@@ -76,7 +76,7 @@ function deploy(name, force, update) {
                 });
               } else if(update) {
                 // Update in place
-                return cn.update(name, pid, results)
+                return cn.update(name, pid, results);
               } else {
                 // Notify user that it already exists 
                 return console.log('already exists.');
@@ -85,7 +85,7 @@ function deploy(name, force, update) {
               // Just launch it
               return cn.deploy(name, pid, results[1], results[0]);
             }
-          })
+          });
         });
     });
 }
@@ -98,7 +98,7 @@ function update(name) {
   return clusternatorJson
     .get()
     .then((cJson) => {
-      var dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
+      const dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
       return fs
         .read(dPath, 'utf8')
         .fail(getAppDefNotFound(dPath))

@@ -1,19 +1,18 @@
 'use strict';
 
-var rewire = require('rewire'),
-  Q = require('q'),
-  constants = require('../constants'),
-  common = require('./common'),
-  ec2Mock = require('./ec2-mock');
+const rewire = require('rewire');
+const Q = require('q');
+const constants = require('../constants');
+const common = require('./common');
+const ec2Mock = require('./ec2-mock');
 
-var Acl = rewire('./aclManager');
-var C = require('../chai');
+const Acl = rewire('./aclManager');
+const C = require('../chai');
 
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions: 0*/
 describe('aclManager', () => {
-  var acl;
+  let acl;
 
   beforeEach(() => {
     acl = Acl(ec2Mock, 'vpc-id');
@@ -48,14 +47,14 @@ describe('aclManager', () => {
   });
 
   describe('test destroy\'s resolving case', () => {
-    var oldDesc;
+    let oldDesc;
     beforeEach(() => {
       oldDesc = common.makeEc2DescribeFn;
       common.makeEc2DescribeFn = () => {
         return () => {
           return Q.resolve([1, 2, 3]);
-        }
-      }
+        };
+      };
       Acl.__set__('common', common);
       // make sure to use a new, new Acl object
       acl = Acl(ec2Mock, 'vpc-id');
@@ -96,14 +95,15 @@ describe('aclManager', () => {
   });
 
   describe('createNetworkAclEntry tests', () => {
-    var callCount, oldFn;
+    let callCount;
+    let oldFn;
     beforeEach(() => {
       oldFn = ec2Mock.createNetworkAclEntry;
       callCount = 0;
       ec2Mock.createNetworkAclEntry = (param, cb) => {
         callCount += 1;
         cb(null);
-      }
+      };
       acl = Acl(ec2Mock, 'vpc-id');
     });
 

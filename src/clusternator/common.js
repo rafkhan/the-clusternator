@@ -13,7 +13,7 @@ const NOT_AUTHENTICATED = 401;
 const Q = require('q');
 const Config = require('../config');
 const constants = require('../constants');
-var request = require('request');
+let request = require('request');
 
 module.exports = {
   makePostRequest,
@@ -153,7 +153,7 @@ function makeRequestObject(verb, endpoint, data,  useToken) {
 
   if (useToken) {
     if (!user.credentials.token) {
-      let e = new Error('No saved token')
+      let e = new Error('No saved token');
       e.code = NOT_AUTHENTICATED;
       return e;
     }

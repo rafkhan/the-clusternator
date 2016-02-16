@@ -7,9 +7,10 @@ const p = rewire('./project-db');
 const C = require('../../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('CLI Cloud Services', () => {
-  let oldCn, projects = [], fns = [
+  let oldCn;
+  let projects = [];
+  let fns = [
     'createData', 'resetAuth', 'resetShared', 'resetGitHub', 'getShared',
     'getGitHub'
   ];

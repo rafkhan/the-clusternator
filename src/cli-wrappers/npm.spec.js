@@ -1,15 +1,14 @@
 'use strict';
 
-const rewire = require('rewire'),
-  Q = require('q');
+const rewire = require('rewire');
+const Q = require('q');
 
-var npm = rewire('./npm'),
-  C = require('./../chai');
+const npm = rewire('./npm');
+const C = require('./../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-/*eslint no-unused-expressions:0*/
 describe('Test npm CLI Wrapper', () => {
-  var cProc;
+  let cProc;
 
   beforeEach(() => {
     cProc = npm.__get__('cproc');
