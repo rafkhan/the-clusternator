@@ -177,13 +177,23 @@ module.exports = (yargs) => {
           util.error('Error building local Docker image: ', err);
         }).done();
     })
+
     .command('deploy', 'Makes a deployment', (y) => {
       y.demand('d').
       alias('d', 'deployment-name').
       describe('d', 'Requires a deployment name');
 
-      deployments.deploy(y.argv.d).done();
+      y.count('force')
+       .alias('f', 'force')
+       .describe('f', 'Forces teardown if deployment exists.');
+
+      y.count('update')
+       .alias('u', 'update')
+       .describe('u', 'Forces teardown if deployment exists.');
+
+      deployments.deploy(y.argv.d, y.argv.f, y.argv.u).done();
     })
+
     .command('stop', 'Stops a deployment, and cleans up', (y) => {
       y.demand('d').
       alias('d', 'deployment-name').
