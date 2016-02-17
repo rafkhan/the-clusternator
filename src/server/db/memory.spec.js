@@ -139,4 +139,47 @@ describe('Memory DB', () => {
       expect(typeof memory.hashTable('test') === 'function').to.be.ok;
     });
   });
+
+  describe('remove function', () => {
+    it('should throw without a key', () => {
+      expect(() => memory.remove('some table')).to.throw(TypeError);
+    });
+
+    it('should return a function', () => {
+      expect(typeof memory.remove('table', 'key') === 'function').to.be.ok;
+    });
+
+    it('should return a promise', () => {
+      const remove = memory.remove('table', 'key');
+      const p = remove();
+      expect(typeof p.then === 'function').to.be.ok;
+    });
+
+    it('should resolve a string', (done) => {
+      const remove = memory.remove('test', '5');
+      memory.create('test')()
+        .then(() => memory.accessor('test', '5', 'ooga')())
+        .then(() => remove()
+          .then((r) => C
+            .check(done, () => expect(typeof r === 'string').to.be.ok),
+            C.getFail(done)));
+    });
+
+    it('should resolve a string if item does not exist', (done) => {
+      const remove = memory.remove('test', '5');
+      memory.create('test')()
+        .then(() => remove()
+          .then((r) => C
+            .check(done, () => expect(typeof r === 'string').to.be.ok),
+            C.getFail(done)));
+    });
+
+    it('should resolve a string if table does not exist', (done) => {
+      const remove = memory.remove('test', '5');
+      remove()
+        .then((r) => C
+          .check(done, () => expect(typeof r === 'string').to.be.ok),
+          C.getFail(done));
+    });
+  });
 });

@@ -10,7 +10,8 @@ const EXPORTS = {
   destroy,
   hashTable,
   key,
-  list
+  list,
+  remove
 };
 
 module.exports = EXPORTS;
@@ -135,4 +136,32 @@ function destroy(dbs, table) {
     return Q.resolve('table destroyed');
   }
   return promiseToDestroy;
+}
+
+/**
+ * Removes a key from a table
+ * @param {Object} dbs
+ * @param {string} table
+ * @param {string} key
+ * @returns {promiseToRemove}
+ * @throws {TypeError}
+ */
+function remove(dbs, table, key) {
+  if (!key) {
+    throw new TypeError('remove requires a key');
+  }
+  /**
+   * @returns {Promise<string>}
+   */
+  function promiseToRemove() {
+    if (!dbs[table]) {
+      return Q.resolve('table does not even exist');
+    }
+    if (dbs[table][key] === undefined) {
+      return Q.resolve('key does not exist');
+    }
+    delete dbs[table][key];
+    return Q.resolve('key deleted');
+  }
+  return promiseToRemove;
 }

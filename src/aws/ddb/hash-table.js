@@ -18,6 +18,7 @@ const EXPORTS = {
   hashTable,
   key,
   list: listAllTables,
+  remove,
   helpers: {
     checkIfTableExists,
     checkAndWrite,
@@ -308,4 +309,31 @@ function destroy(aws, table) {
     }).then(null, () => {});
   }
   return promiseToDestroy;
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} table
+ * @param {string} key
+ * @returns {promiseToRemove}
+ * @throws {TypeError}
+ */
+function remove(aws, table, key) {
+  if (!table || !key) {
+    throw new TypeError('removey requires a table and key');
+  }
+  /**
+   * @returns {Promise}
+   */
+  function promiseToRemove() {
+    return aws.ddb.deleteItem({
+      Key: {
+        id: {
+          S: key
+        }
+      },
+      TableName: clusternatePrefixString(table)
+    }).then(null, () => {});
+  }
+  return promiseToRemove;
 }
