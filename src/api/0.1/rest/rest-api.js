@@ -107,7 +107,7 @@ function createIfNotFound(s, projectId, repoName) {
         .then((results) => {
           details.gitHubKey = results[1].gitHubKey;
           details.sharedKey = results[2].sharedKey;
-          return s.db.setItem(projectId, details)
+          return s.db(projectId, details)()
             .then(() => results);
         }));
 }
@@ -127,7 +127,7 @@ function resetData(details, repoName) {
 }
 
 /**
- * @param {{ db: { setItem: function(): Promise }}} s
+ * @param {{ db: { setItem: function() }}} s
  * @param {{ gitHubKey: string, sharedKey: string }} row
  * @param {string} projectId
  * @param {string} repoName
@@ -138,7 +138,7 @@ function resetIfFound(s, row, projectId, repoName) {
     .then((result) => {
       row.gitHubKey = result[1].gitHubKey;
       row.sharedKey = result[2].sharedKey;
-      return s.db.setItem(projectId, row)
+      return s.db(projectId, row)()
         .then(() => result);
     });
 }
@@ -213,7 +213,7 @@ function getKey(body, attr) {
   }
   return state()
     .then((s) => s
-      .db.getItem(body.projectId)
+      .db(body.projectId)()
       .then((details) => {
         return { data: details[attr] };
       }));
@@ -244,10 +244,10 @@ function resetKey(body, attr) {
   }
   return state()
     .then((s) => s
-      .db.getItem(body.projectId)
+      .db(body.projectId)()
       .then((details) => newKey(details, attr))
       .then((details) => s
-        .db.setItem(body.projectId, details)
+        .db(body.projectId, details)()
         .then(() => {
           return { data: details[attr] };
         })));

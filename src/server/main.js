@@ -5,6 +5,7 @@
  * @module server
  */
 
+const PROJECTS_TABLE = 'projects';
 const LOGIN_PATH = '/login';
 const PRODUCTION = 'production';
 const DEBUG = 'debug';
@@ -16,13 +17,12 @@ const os = require('os');
 const path = require('path');
 const express = require('express');
 const Config = require('../config');
-const waitFor = require('../util').waitFor;
 const loggers = require('./loggers');
-const Projects = require('./db/projects');
+const projectDb = require('./db/projects');
 const log = loggers.logger;
 const prHandler = require('./pullRequest');
 const getProjectManager = require('../aws/project-init');
-const instanceReaper = require('../aws/instance-reaper');
+const daemons = require('./daemons');
 const pushHandler = require('./push');
 const authentication = require('./auth/authentication');
 const githubAuthMiddleware = require('./auth/githubHook');
@@ -95,8 +95,15 @@ function createServer(pm, config) {
   hostInfo();
   const app = express();
   const leApp = startSSL(app, config);
-  app.locals.projectDb = Projects(config, pm);
-  instanceReaper.start();
+  app.locals.projectDb = projectDb
+    .createAccessor(pm.hashTable
+      .hashTable(PROJECTS_TABLE), config.dbKey);
+
+  const stopInstanceReaper = daemons.instances(pm);
+  const stopProjectsWatch = daemons.projects(
+    pm, require('./db/memory')
+      .bindDb({ projects: {}}).hashTable('projects'), config.defaultRepo);
+    //pm, app.locals.projectDb, config.defaultRepo);
 
   initExpress(app);
   /**
