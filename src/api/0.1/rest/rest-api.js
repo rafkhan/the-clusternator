@@ -153,7 +153,7 @@ function findOrCreate(s, projectId, repoName) {
   return s
     .db.find(projectId)
     .then((row) => resetIfFound(s, row, projectId, repoName),
-      createIfNotFound(s, projectId, repoName));
+      () => createIfNotFound(s, projectId, repoName));
 }
 
 /**
@@ -170,7 +170,6 @@ function createData(body) {
   return state()
     .then((s) => findOrCreate(s, body.projectId, body.repoName)
       .then((results) => {
-        console.log('not here');
         return {
           authToken: results[0],
           gitHubKey: results[1].gitHubKey,
@@ -314,9 +313,7 @@ function prCreate(body) {
       const projectId = body.repo;
       const sshData = body.sshKeys;
 
-      console.log('DEBUG');
-      console.log(JSON.stringify(body,  null, 2));
-      console.log('DEBUG');
+      util.debug(JSON.stringify(body,  null, 2));
 
       return s.db.find(projectId).then((project) => s
         .pm.createPR(projectId, pr + '', appDef, sshData)
