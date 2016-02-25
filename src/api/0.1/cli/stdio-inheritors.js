@@ -66,6 +66,7 @@ function remoteFn(logFn) {
 
 function sshShell() {
   return remoteFn(ssh.shell)
+    .fail(logFail)
     .done();
 }
 
