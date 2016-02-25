@@ -22,19 +22,20 @@
     "!win32"
   ],
   "scripts": {
-    "prepublish": "npm run doc-publish; npm run build",
-    "start": "node ./server-init.js",
-    "staging": "NODE_ENV=staging; node ./server-init.js",
-    "dev": "NODE_ENV=debug; concurrent \"nodemon ./server-init.js\" \"npm run watch\"",
-    "watch": "gulp watch",
-    "test": "gulp test-unit",
     "build": "gulp transpile",
+    "dev": "NODE_ENV=debug; concurrent \"nodemon ./server-init.js\" \"npm run watch\"",
     "doc": "npm run doc-api; jekyll build -s ./docs -d ./docs/_site",
+    "doc-api": "jsdoc -c ./js-doc.json",
     "doc-dev": "concurrent \"npm run doc-dev-serve\" \"npm run watch\"",
     "doc-dev-serve": "jekyll serve -s ./docs -d ./docs/_site --drafts",
     "doc-publish": "./bin/publish-docs.sh",
-    "doc-api": "jsdoc -c ./js-doc.json",
-    "graph": "echo 'Requires GraphViz (If it is not already installed)'; madge --exclude \"node_modules|bin-src|lib|path|spec|coverage|tmp|examples\"  --image coverage/clusternator-graph.png ./"
+    "graph": "echo 'Requires GraphViz (If it is not already installed)'; madge --exclude \"node_modules|bin-src|lib|path|spec|coverage|tmp|examples\"  --image coverage/clusternator-graph.png ./",
+    "lint": "gulp lint",
+    "prepublish": "npm run doc-publish; npm run build",
+    "staging": "NODE_ENV=staging; node ./server-init.js",
+    "start": "node ./server-init.js",
+    "test": "gulp test-unit",
+    "watch": "gulp watch"
   },
   "homepage": "http://the-clusternator.rangle.io",
   "repository": {
