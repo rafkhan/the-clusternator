@@ -4,7 +4,6 @@
  and {@link module:api/'0.1'/clusternator}
  * @module api/'0.1'/cli/cloudService
  */
-const Q = require('q');
 const R = require('ramda');
 
 let cn = require('../js/js-api');
@@ -60,11 +59,9 @@ function deploy(name, force, update) {
     .then((cJson) => {
       const dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
       const pid = cJson.projectId;
-      return Q
-        .all([
-          git.shaHead(),
-          fs.read(dPath, 'utf8')
-            .fail(getAppDefNotFound(dPath))])
+      return fs
+        .read(dPath, 'utf8')
+        .fail(getAppDefNotFound(dPath))
         .then((results) => {
 
           return deploymentExists(cJson.projectId, name).then((exists) => {
