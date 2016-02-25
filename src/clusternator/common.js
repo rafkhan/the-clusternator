@@ -63,6 +63,7 @@ function warnNoEncryption(uri) {
   if (uri.indexOf('https://') === 0) {
     return;
   }
+  /*eslint no-console: 0*/
   console.log(' ');
   console.log('** WARNING ** Not Using SSL!');
   console.log(' ');
