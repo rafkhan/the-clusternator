@@ -37,6 +37,14 @@ const ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 const bodyParser = require('body-parser-rawbody');
 let lex;
 
+/**
+ * @deprecated
+ * @todo * remove this and the folder setup (circle files, scripts folder, etc)
+ * for it, when it's out of beta tooling will be different anyway
+ * @param app
+ * @param config
+ * @returns {*}
+ */
 function startSSL(app, config) {
   if (NODE_ENV === PRODUCTION) {
     log.info('Clusternator SSL set for production');
@@ -91,32 +99,35 @@ function initExpress(app, db) {
   app.use(loggers.request);
 }
 
+function createDatabases(pm, config) {
+
+}
+
+
 function createServer(pm, config) {
   hostInfo();
   const app = express();
-  const leApp = startSSL(app, config);
-  app.locals.projectDb = projectDb
-    .createAccessor(pm.hashTable
-      .hashTable(PROJECTS_TABLE), config.dbKey);
 
-  const stopInstanceReaper = daemons.instances(pm);
-  const stopProjectsWatch = daemons.projects(
-    pm, require('./db/memory')
-      .bindDb({ projects: {}}).hashTable('projects'), config.defaultRepo);
-    //pm, app.locals.projectDb, config.defaultRepo);
+  return pm.hashTable.create(PROJECTS_TABLE)()
+    .then(() => {
+      app.locals.projectDb = projectDb
+        .createAccessor(pm.hashTable
+          .hashTable(PROJECTS_TABLE), config.dbKey);
 
-  initExpress(app);
-  /**
-   * @todo the clusternator package could work  with a "mount", or another
-   * mechanism that is better encapsulated
-   */
-  clusternatorApi.init(app);
-  bindRoutes(app, pm);
+      const stopInstanceReaper = daemons.instances(pm);
+      const stopProjectsWatch =
+        daemons.projects(pm, app.locals.projectDb, config.defaultRepo);
 
-  if (NODE_ENV === DEBUG) {
-    return app;
-  }
-  return leApp;
+      initExpress(app);
+      /**
+       * @todo the clusternator package could work  with a "mount", or another
+       * mechanism that is better encapsulated
+       */
+      clusternatorApi.init(app);
+      bindRoutes(app, pm);
+
+      return app;
+    });
 }
 
 function bindRoutes(app, pm) {
@@ -199,16 +210,18 @@ function getServer() {
 }
 
 function startServer(config) {
-  const server = getServer(config);
-  if (NODE_ENV === DEBUG) {
-    server.listen(config.port);
-    log.info(
-      `Clusternator listening on port: ${config.port}`);
-  } else {
-    server.listen([config.port], [config.portSSL]);
-    log.info(
-      `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
-  }
+  return getServer(config)
+    .then((server) => {
+      if (NODE_ENV === DEBUG) {
+        server.listen(config.port);
+        log.info(
+          `Clusternator listening on port: ${config.port}`);
+      } else {
+        server.listen([config.port], [config.portSSL]);
+        log.info(
+          `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
+      }
+    }).fail((err) => util.error(`Could not start server ${err.message}`));
 }
 
 function ping(req, res) {

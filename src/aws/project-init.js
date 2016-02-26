@@ -6,6 +6,7 @@
  */
 
 const awsProjectManager = require('./projectManager');
+const makePromiseApi = require('../util').makePromiseApi;
 
 /**
  * @returns {Q.Promise}
@@ -17,7 +18,7 @@ function initAwsProject(config) {
   const ecr = new a.ECR(config.awsCredentials);
   const ecs = new a.ECS(config.awsCredentials);
   const r53 = new a.Route53(config.awsCredentials);
-  const ddb = new a.DynamoDB(config.awsCredentials);
+  const ddb = makePromiseApi(new a.DynamoDB(config.awsCredentials));
   const iam = new a.IAM(config.awsCredentials);
 
   return awsProjectManager(ec2, ecs, r53, ddb, iam, ecr, elb);

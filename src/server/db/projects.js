@@ -6,9 +6,8 @@
  */
 const ENCRYPTED_PROPS = Object.freeze(['sharedKey', 'gitHubKey']);
 
-const R = require('ramda');
-const Q = require('q');
 
+const R = require('ramda');
 const util = require('../../util');
 const crypto = require('../auth/crypto-symmetric');
 
@@ -24,8 +23,8 @@ module.exports.createMapEncrypt = createMapEncrypt;
  * @returns {accessor}
  */
 function createAccessor(hashTable, encryptionKey) {
-  const encrypt = R.partial(crypto.encrypt, encryptionKey);
-  const decrypt = R.partial(crypto.decrypt, encryptionKey);
+  const encrypt = util.partial(crypto.encrypt, encryptionKey);
+  const decrypt = util.partial(crypto.decrypt, encryptionKey);
 
   /**
    * @param {string|{ id: string, repo: string}} key or optionally an object
