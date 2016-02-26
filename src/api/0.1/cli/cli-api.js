@@ -39,8 +39,7 @@ module.exports = (yargs) => {
 
   yargs.usage('Usage: $0 <command> [opts]');
 
-
-  yargs
+  const argv = yargs
     .completion('completion', 'Generate bash completions')
     .command('bootstrap', 'Bootstraps an AWS environment so that projects ' +
       'can be launched into it', () => util.info('Bootstrap environment'))
@@ -291,7 +290,10 @@ module.exports = (yargs) => {
     .version(() => {
       const pkg = getPackage();
       return `Package: ${pkg.version} API: ${API}`;
-    });
+    })
+    .help('h')
+    .alias('h', 'help')
+    .argv;
 };
 
 function demandPassphrase(y){
