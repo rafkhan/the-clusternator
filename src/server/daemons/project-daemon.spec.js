@@ -55,7 +55,7 @@ describe('Projects DB', () => {
       it('should call populateFromAws', (done) => {
         const stop = pd(pm, hashTable, repo,  10);
         setTimeout(() => C
-          .check(done, () => expect(callCount === 1).to.be.ok && stop()), 15);
+          .check(done, () => expect(callCount === 1).to.be.ok && stop()), 11);
       });
 
       it('\s stop function should stop execution', (done) => {
