@@ -9,7 +9,6 @@ const UTF8 = 'utf8';
 const fs = require('fs');
 const path = require('path');
 const util = require('../../../util');
-const circleCIClient = require('../../../client/circleCIClient');
 const clusternator = require('../../../clusternator');
 const constants = require('../../../constants');
 
