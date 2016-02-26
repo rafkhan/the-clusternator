@@ -7,7 +7,6 @@
 
 const PROJECTS_TABLE = 'projects';
 const LOGIN_PATH = '/login';
-const PRODUCTION = 'production';
 const DEBUG = 'debug';
 const NODE_ENV = process.env.NODE_ENV;
 
@@ -35,46 +34,6 @@ const compression = require('compression');
 const ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 
 const bodyParser = require('body-parser-rawbody');
-let lex;
-
-/**
- * @deprecated
- * @todo * remove this and the folder setup (circle files, scripts folder, etc)
- * for it, when it's out of beta tooling will be different anyway
- * @param app
- * @param config
- * @returns {*}
- */
-function startSSL(app, config) {
-  if (NODE_ENV === PRODUCTION) {
-    log.info('Clusternator SSL set for production');
-    lex = require('letsencrypt-express');
-  } else if (NODE_ENV === DEBUG) {
-    log.info('Clusternator SSL disabled for debug/dev');
-    return null;
-  } else {
-    log.info('Clusternator SSL set for testing');
-    lex = require('letsencrypt-express').testing();
-  }
-
-  /** @todo fetch .private from clusternator.json this might not be valid */
-  const configDir = path.join(__dirname, '..', '..', '.private');
-
-  return lex.create({
-    configDir,
-    onRequest: app,
-        approveRegistration: (hostname, cb) => {
-          if (!config.hasReadLetsEncryptTOS) {
-            return;
-          }
-          cb(null, {
-            domains: [hostname],
-            email: config.adminEmail,
-            agreeTos: true
-          });
-        }
-    });
-}
 
 function hostInfo() {
   log.info(`Initializing Clusternator Server on ${os.hostname()}`);
@@ -99,8 +58,10 @@ function initExpress(app, db) {
   app.use(loggers.request);
 }
 
-function createDatabases(pm, config) {
-
+function createDatabases(app, pm, config) {
+  app.locals.projectDb = projectDb
+    .createAccessor(pm.hashTable
+      .hashTable(PROJECTS_TABLE), config.dbKey);
 }
 
 
@@ -109,11 +70,8 @@ function createServer(pm, config) {
   const app = express();
 
   return pm.hashTable.create(PROJECTS_TABLE)()
+    .then(() => createDatabases(app, pm, config))
     .then(() => {
-      app.locals.projectDb = projectDb
-        .createAccessor(pm.hashTable
-          .hashTable(PROJECTS_TABLE), config.dbKey);
-
       const stopInstanceReaper = daemons.instances(pm);
       const stopProjectsWatch =
         daemons.projects(pm, app.locals.projectDb, config.defaultRepo);
