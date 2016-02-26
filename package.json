@@ -119,7 +119,7 @@
         80,
         4
       ],
-      "no-c onsole": 2,
+      "no-console": 2,
       "no-func-assign": 2,
       "no-multi-spaces": 0,
       "no-undef": 2,

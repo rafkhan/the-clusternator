@@ -13,7 +13,6 @@ const cmn = require('../common');
 
 const constants = cmn.src('constants');
 const util = cmn.src('util');
-const dockernate = cmn.src('dockernate');
 
 const users = cmn.src('server','auth','users');
 const passwords = cmn.src('server','auth','passwords');
