@@ -19,22 +19,31 @@ let intervalId = null;
 
 module.exports = watchForExisting;
 
+watchForExisting.getDefaultRepo = getDefaultRepo;
+watchForExisting.checkPrefix = checkPrefix;
+watchForExisting.createEntry = createEntry;
+watchForExisting.populateFromAws = populateFromAws;
+watchForExisting.mapAwsPopulationPromise = mapAwsPopulationPromise;
+
 /**
  * Watches for existing databases returns
  * Returns a function that will cancel the watch
  * @param {ProjectManager} pm
  * @param {function(string, *=)} db
  * @param {{ token: string, protocol: string, prefix: string }} defaultRepo
+ * @param {number=} interval optional interval to override default
  * @returns {stop}
  */
-function watchForExisting(pm, db, defaultRepo) {
+function watchForExisting(pm, db, defaultRepo, interval) {
   if (intervalId) {
     return stop;
   }
   info('Starting to watch for Clusternator tagged AWS resources');
 
+  interval = interval || POLL_INTERVAL;
+
   intervalId =
-    setInterval(() => populateFromAWS(pm, db, defaultRepo), POLL_INTERVAL);
+    setInterval(() => populateFromAws(pm, db, defaultRepo), interval);
 
   /**
    * stops the watch
@@ -73,7 +82,7 @@ function createEntry(db, name, defaultRepo) {
 
 /**
  * @param {function(...)} db
- * @param {string} defaultRepo
+ * @param {{ token: string, protocol: string, prefix: string }} defaultRepo
  * @returns {function(string):Promise}
  */
 function mapAwsPopulationPromise(db, defaultRepo) {
@@ -103,7 +112,7 @@ function mapAwsPopulationPromise(db, defaultRepo) {
  * @param {{ token: string, protocol: string, prefix: string }} defaultRepo
  * @returns {Promise.<T>}
  */
-function populateFromAWS(pm, db, defaultRepo) {
+function populateFromAws(pm, db, defaultRepo) {
   info('Checking AWS');
   return pm
     .listProjects()
