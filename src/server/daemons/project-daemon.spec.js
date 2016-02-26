@@ -16,7 +16,7 @@ describe('Projects DB', () => {
 
   beforeEach(() => {
     db = {};
-    hashTable = memory.bindDb(db).hashTable('t');
+    hashTable = memory.bindDb(db).hashTable('projects');
     pm = {
       listProjects: () => Q.resolve(list)
     };
@@ -36,6 +36,12 @@ describe('Projects DB', () => {
       expect(typeof fn === 'function').to.be.ok;
       expect(t1.toString() === fn.toString()).to.be.ok;
       fn();
+    });
+
+    it('\'s returned function should be callable multiple times', () => {
+      const fn = pd(pm, hashTable);
+      expect(typeof fn() === 'undefined').to.be.ok;
+      expect(typeof fn() === 'undefined').to.be.ok;
     });
 
     describe('async test', () => {
@@ -118,6 +124,28 @@ describe('Projects DB', () => {
       const p = pd.populateFromAws(pm, hashTable, repo);
       expect(typeof p.then === 'function').to.be.ok;
     });
+
+    describe('async tests', () => {
+      let oldMap;
+      let newMapPromise;
+      beforeEach(() => {
+        oldMap = pd.__get__('mapAwsPopulationPromise');
+        newMapPromise = () => {};
+        pd.__set__('mapAwsPopulationPromise', () => newMapPromise());
+      });
+
+      afterEach(() => {
+        pd.__set__('mapAwsPopulationPromise', oldMap);
+      });
+
+      it('should resolve on failure', (done) => {
+        newMapPromise = () => { throw new Error('test'); };
+        pd.populateFromAws(pm, hashTable, repo)
+          .then(() => C
+            .check(done, (r) => expect(r === undefined).to.be.ok),
+            C.getFail(done));
+      });
+    });
   });
 
   describe('mapAwsPopulationPromise function', () => {
@@ -129,6 +157,43 @@ describe('Projects DB', () => {
     it('should return a function that returns a promise', () => {
       const p = pd.mapAwsPopulationPromise(hashTable, repo)();
       expect(typeof p.then === 'function').to.be.ok;
+    });
+    
+    it('\'s promise should resolve if there is a db entry', (done) => {
+      db.projects = {};
+      db.projects.pat = {};
+      pd.mapAwsPopulationPromise(hashTable, repo)('pat')
+        .then(() => C
+          .check(done, (r) => expect(r === undefined).to.be.ok),
+          C.getFail(done));
+    });
+
+
+    describe('async tests', () => {
+      let oldCreate;
+      let createCount = 0;
+      let newCreate;
+
+      beforeEach(() => {
+        let create = () => () => newCreate();
+        newCreate = () => { createCount += 1; return Q.resolve(); };
+        oldCreate = pd.__get__('createEntry');
+        pd.__set__('createEntry', () => create());
+      });
+
+      afterEach(() => {
+        pd.__set__('createEntry', oldCreate);
+      });
+
+      it('\'s promise should reject and call create, then resolve if there ' +
+        'is no db entry', (done) => {
+        db.projects = {};
+        db.projects.pat = null;
+        pd.mapAwsPopulationPromise(hashTable, repo)('pat')
+          .then(() => C
+            .check(done, (r) => expect(createCount === 1).to.be.ok),
+            C.getFail(done));
+      });
     });
   });
 });
