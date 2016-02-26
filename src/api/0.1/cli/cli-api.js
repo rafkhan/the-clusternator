@@ -30,8 +30,6 @@ const dockerFs = require('../project-fs/docker');
 const deploymentsFs = require('../project-fs/deployments');
 const gitHooks = require('../project-fs/git-hooks');
 
-const legacy = require('./legacy-yargs');
-
 const getPackage = () => require('../../../../package.json');
 
 
@@ -294,8 +292,6 @@ module.exports = (yargs) => {
       const pkg = getPackage();
       return `Package: ${pkg.version} API: ${API}`;
     });
-
-  legacy(yargs);
 };
 
 function demandPassphrase(y){
