@@ -1,8 +1,8 @@
 'use strict';
 /**
- * Interface to the projects database
+ * Interface to the passwords database
  *
- * @module server/db/projects
+ * @module server/db/passwords
  */
 const ENCRYPTED_PROPS = Object.freeze(['sharedKey', 'gitHubKey']);
 
@@ -23,26 +23,21 @@ function createAccessor(hashTable, encryptionKey) {
 }
 
 /**
- * @param {{ id: string, repo: string }} record
- * @returns {{id: string, repo: string, name: (string), sharedKey: (string),
- gitHubKey: (string), channel: string}}
+ * @param {{ id: string, saltedHash: string }} record
+ * @returns {{id: string, saltedHash: string}}
  * @throws {TypeError}
  */
 function pruneRecord(record) {
-  const invalid = 'projects need at least an id, and repo';
+  const invalid = 'passwords have an id and saltedHash';
   if (!record) {
     throw new TypeError(invalid);
   }
-  if (!record.id || !record.repo) {
+  if (!record.id || !record.saltedHash) {
     throw new TypeError(invalid);
   }
   return {
     id: record.id,
-    repo: record.repo,
-    name: record.name || '',
-    sharedKey: record.sharedKey || '',
-    gitHubKey: record.gitHubKey || '',
-    channel: record.channel || record.id
+    saltedHash: record.saltedHash
   };
 }
 

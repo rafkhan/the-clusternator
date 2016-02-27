@@ -2,11 +2,11 @@
 
 const rewire = require('rewire');
 const memory = require('./memory');
-const projectDb = rewire('./projects');
+const pwDb = rewire('./passwords-db');
 const C = require('../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
-describe('Projects DB', () => {
+describe('Passwords DB', () => {
   let db;
   let hashTable;
 
@@ -18,25 +18,26 @@ describe('Projects DB', () => {
   describe('createAccessor', () => {
     it('should return a function', () => {
       expect(
-        typeof projectDb.createAccessor(hashTable, 'secret') === 'function')
+        typeof pwDb.createAccessor(hashTable, 'secret') === 'function')
         .to.be.ok;
     });
   });
 
   describe('pruneRecord function', () => {
     it('should throw if not given a record', () => {
-      expect(() => projectDb.pruneRecord()).to.throw(Error);
+      expect(() => pwDb.pruneRecord()).to.throw(Error);
     });
     it('should throw if not given a record.id', () => {
-      expect(() => projectDb.pruneRecord({ repo: 't' })).to.throw(Error);
+      expect(() => pwDb.pruneRecord({ saltedHash: 't' })).to.throw(Error);
     });
-
-    it('should throw if not given a record.repo', () => {
-      expect(() => projectDb.pruneRecord({ id: 't' })).to.throw(Error);
+    it('should throw if not given a record.saltedHash', () => {
+      expect(() => pwDb.pruneRecord({ id: 't' }))
+        .to.throw(Error);
     });
 
     it('should return an object', () => {
-      expect(projectDb.pruneRecord({ id: 't', repo: 't' }).id === 't').to.be.ok;
+      expect(pwDb
+          .pruneRecord({ id: 't', saltedHash: 't' }).id === 't').to.be.ok;
     });
   });
 
