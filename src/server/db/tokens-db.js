@@ -23,8 +23,8 @@ function createAccessor(hashTable, encryptionKey) {
 }
 
 /**
- * @param {{ id: string, saltedHash: string }} record
- * @returns {{id: string, saltedHash: string}}
+ * @param {{ id: string, saltedHashes: Array.<string> }} record
+ * @returns {{id: string, saltedHashes: Array.<string> }}
  * @throws {TypeError}
  */
 function pruneRecord(record) {
@@ -32,12 +32,13 @@ function pruneRecord(record) {
   if (!record) {
     throw new TypeError(invalid);
   }
-  if (!record.id || !record.saltedHash) {
+  if (!record.id || !record.saltedHashes ||
+    !Array.isArray(record.saltedHashes)) {
     throw new TypeError(invalid);
   }
   return {
     id: record.id,
-    saltedHash: record.saltedHash
+    saltedHashes: record.saltedHashes
   };
 }
 

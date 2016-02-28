@@ -1,19 +1,12 @@
 'use strict';
 
 const rewire = require('rewire');
-const memory = require('./memory');
 const pwDb = rewire('./passwords-db');
 const C = require('../../chai');
 
 /*global describe, it, expect, beforeEach, afterEach */
 describe('Passwords DB', () => {
-  let db;
   let hashTable;
-
-  beforeEach(() => {
-    db = {};
-    hashTable = memory.bindDb(db).hashTable('t');
-  });
 
   describe('createAccessor', () => {
     it('should return a function', () => {

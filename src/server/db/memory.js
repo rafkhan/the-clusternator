@@ -92,6 +92,9 @@ function accessor(dbs, table, key, value) {
       return Q.reject(new Error(`accessor: requires a key value`));
     }
     if (key && value === undefined) {
+      if (dbs[table][key] === undefined) {
+        return Q.reject(new Error('key not found'));
+      }
       return Q.resolve(dbs[table][key]);
     }
     dbs[table][key] = value;

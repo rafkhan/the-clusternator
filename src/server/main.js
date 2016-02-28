@@ -5,7 +5,12 @@
  * @module server
  */
 
-const PROJECTS_TABLE = 'projects';
+const TABLES = Object.freeze({
+  authorities: 'authorities',
+  passwords: 'passwords',
+  projects: 'projects',
+  tokens: 'tokens'
+});
 const LOGIN_PATH = '/login';
 const DEBUG = 'debug';
 const NODE_ENV = process.env.NODE_ENV;
@@ -17,7 +22,7 @@ const path = require('path');
 const express = require('express');
 const Config = require('../config');
 const loggers = require('./loggers');
-const projectDb = require('./db/projects');
+const dbs = require('./db');
 const log = loggers.logger;
 const prHandler = require('./pullRequest');
 const getProjectManager = require('../aws/project-init');
@@ -42,12 +47,12 @@ function hostInfo() {
     `Cores: ${os.cpus().length}`);
 }
 
-function initExpress(app, db) {
+function initExpress(app) {
   /**
    *  @todo the authentication package could work with a "mount", or another
    *  mechanism that is better encapsulated
    */
-  authentication.init(app, db);
+  authentication.init(app);
 
   app.use(compression());
   app.use(express['static'](
@@ -58,10 +63,23 @@ function initExpress(app, db) {
   app.use(loggers.request);
 }
 
-function createDatabases(app, pm, config) {
-  app.locals.projectDb = projectDb
-    .createAccessor(pm.hashTable
-      .hashTable(PROJECTS_TABLE), config.dbKey);
+function createDbAccessors(pm, config) {
+  return {
+    authorities: dbs.authorities
+      .createAccessor(pm.hashTable.hashTable(TABLES.authorities), config.dbKey),
+    passwords: dbs.passwords
+      .createAccessor(pm.hashTable.hashTable(TABLES.passwords), config.dbKey),
+    projects: dbs.projects
+      .createAccessor(pm.hashTable.hashTable(TABLES.projects), config.dbKey),
+    tokens: dbs.tokens
+      .createAccessor(pm.hashTable.hashTable(TABLES.tokens), config.dbKey)
+  };
+}
+
+function createDbs(config, pm) {
+  /** @todo implement config name override for tables */
+  return Promise.all(Object.keys(TABLES)
+    .map((key) => pm.hashTable.create(TABLES[key])()));
 }
 
 
@@ -69,19 +87,21 @@ function createServer(pm, config) {
   hostInfo();
   const app = express();
 
-  return pm.hashTable.create(PROJECTS_TABLE)()
-    .then(() => createDatabases(app, pm, config))
-    .then(() => {
+  return createDbs(config, pm)
+    .then(() => createDbAccessors(pm, config))
+    .then((dbs) => users.init(dbs)
+      .then(() => dbs))
+    .then((dbs) => {
       const stopInstanceReaper = daemons.instances(pm);
       const stopProjectsWatch =
-        daemons.projects(pm, app.locals.projectDb, config.defaultRepo);
+        daemons.projects(pm, dbs.projects, config.defaultRepo);
 
       initExpress(app);
       /**
        * @todo the clusternator package could work  with a "mount", or another
        * mechanism that is better encapsulated
        */
-      clusternatorApi.init(app);
+      clusternatorApi.init(app, dbs.projects);
       bindRoutes(app, pm);
 
       return app;
@@ -107,12 +127,6 @@ function bindRoutes(app, pm) {
     ]
   );
   app.post(`/${API}/login`, authentication.endpoints.login);
-
-  app.get('/users/:id/tokens', [
-    ensureAuth(LOGIN_PATH),
-    exposeUser,
-    users.endpoints.getTokens
-  ]);
 
   app.post('/users/:id/tokens', [
     ensureAuth(LOGIN_PATH),
@@ -170,16 +184,10 @@ function getServer() {
 function startServer(config) {
   return getServer(config)
     .then((server) => {
-      if (NODE_ENV === DEBUG) {
-        server.listen(config.port);
-        log.info(
-          `Clusternator listening on port: ${config.port}`);
-      } else {
-        server.listen([config.port], [config.portSSL]);
-        log.info(
-          `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
-      }
-    }).fail((err) => util.error(`Could not start server ${err.message}`));
+      server.listen(config.port);
+      log.info(
+        `Clusternator listening on port: ${config.port}`);
+    }).catch((err) => util.error(`Could not start server ${err.message}`));
 }
 
 function ping(req, res) {

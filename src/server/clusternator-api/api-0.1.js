@@ -109,11 +109,11 @@ function executeCommand(commands) {
   };
 }
 
-function init(app) {
+function init(app, projectDb) {
   const config = Config();
   logger.debug(`API ${API} Initializing`);
 
-  const commands = getCommands(config, app.locals.projectDb);
+  const commands = getCommands(config, projectDb);
   logger.debug(`API ${API} Got CommandObjects`);
 
   app.post(`/${API}/:namespace/:command`, [

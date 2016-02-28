@@ -1,14 +1,34 @@
 'use strict';
 
-/*global describe, it, expect */
+const C = require('../../chai');
+const rewire = require('rewire');
+const tokens = rewire('./tokens');
+const memory = require('../db/memory');
+const testCrypto = require('./mock-crypto-hash');
+const tokensDb = require('../db/tokens-db');
+
+/*global describe, it, expect, beforeEach, afterEach */
 describe('Tokens interface', function () {
   // for this.timeout to work this describe block CANNOT use an arrow
   this.timeout(10000);
-  const C = require('../../chai');
-  const tokens = require('./tokens');
+  let db_ = {};
+  let db;
+  let oldCrypto;
+
+  beforeEach(() => {
+    db_ = { t: {}};
+    const dbInt = memory.hashTable(db_, 't');
+    db = tokensDb.createAccessor(dbInt, 'secret');
+    oldCrypto = tokens.__get__('cryptoHash');
+    tokens.__set__('cryptoHash', testCrypto);
+  });
+  afterEach(() => {
+    tokens.__set__('cryptoHash', oldCrypto);
+  });
 
   it('findById should resolve an array', (done) => {
-    tokens.findById('some id').then((results) => {
+    db_.t['some id'] = JSON.stringify({ id: 'some id', saltedHashes: [] });
+    tokens.findById(db, 'some id').then((results) => {
       C.check(done, () => {
         expect(Array.isArray(results)).to.be.ok;
       });
@@ -16,7 +36,7 @@ describe('Tokens interface', function () {
   });
 
   it('create should resolve a new token', (done) => {
-    tokens.create('some id').then((token) => {
+    tokens.create(db, 'some id').then((token) => {
       C.check(done, () => {
         expect(typeof token === 'string').to.be.ok;
       });
@@ -24,7 +44,7 @@ describe('Tokens interface', function () {
   });
 
   it('created tokens should be prefixed with a user id and a colon', (done) => {
-    tokens.create('some id').then((token) => {
+    tokens.create(db, 'some id').then((token) => {
       C.check(done, () => {
         expect(token.indexOf('some id:')).to.equal(0);
       });
@@ -32,19 +52,20 @@ describe('Tokens interface', function () {
   });
 
   it('created tokens should be validatable', (done) => {
-    tokens.create('some id').then((token) => {
-      return tokens.verify(token).then((index) => {
-        C.check(done, () => {
-          expect(typeof index === 'number').to.be.ok;
+    tokens.create(db, 'some id').then((token) => {
+        return tokens.verify(db, token).then((r) => {
+          C.check(done, () => {
+            expect(r.index).to.equal(0);
+          });
         });
-      });
-    }, C.getFail(done));
+      })
+      .fail(C.getFail(done));
   });
 
   it('created tokens should be invalidatable', (done) => {
-    tokens.create('some id').then((token) => {
-      return tokens.invalidate(token).then(() => {
-        return tokens.verify(token).then(C.getFail(done), (err) => {
+    tokens.create(db, 'some id').then((token) => {
+      return tokens.invalidate(db, token).then(() => {
+        return tokens.verify(db, token).then(C.getFail(done), (err) => {
           C.check(done, () => {
             expect(err instanceof Error).to.be.ok;
           });

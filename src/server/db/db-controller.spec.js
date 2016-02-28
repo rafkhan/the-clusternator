@@ -13,7 +13,7 @@ describe('DB Controller', () => {
 
   beforeEach(() => {
     db = {};
-    hashTable = memory.bindDb(db).hashTable('t');
+    hashTable = memory.hashTable(db, 't');
   });
 
   describe('createMapEncrypt', () => {

@@ -7,16 +7,17 @@
 
 /*global require, module*/
 
-const users = Object.create(null);
-const passwords = require('./passwords');
-const tokens = require('./tokens');
-const authorities = require('./authorities');
+let passwords = require('./passwords');
+let tokens = require('./tokens');
+let authorities = require('./authorities');
 const config = require('../../config')();
 const Q = require('q');
 const MIN_PASS_LEN = config.minPasswordLength || 13;
 const PROJECT_USER_TAG = require('../../constants').PROJECT_USER_TAG;
+let DBS = null; // @todo this global solution is supposed to be interim
 
 module.exports = {
+  init,
   find: find,
   create: createUser,
   endpoints: {
@@ -24,45 +25,50 @@ module.exports = {
     create: createUserEndpoint,
     password: changePassword,
     get: getUser,
-    getAll: getAllUsers,
-    getTokens: getTokens,
     createToken: createToken
   }
 };
 
-init();
-
-function init() {
-  if (Object.keys(users).length === 0) {
-    createUser({
+/**
+ * @param {{ passwords: function(string|*, *=), authorities(string|*, *=) }} dbs
+ * @returns {Promise}
+ */
+function init(dbs) {
+  DBS = dbs;
+  return passwords.find(DBS.passwords, 'root')
+    .fail(() => createUser({
       id: 'root',
       authority: 0,
       password: config.setupRootPass
-    });
-  }
+    }));
 }
 
 /**
  * @param {{ id: string, password: string }} user
- * @returns {*}
+ * @returns {Promise}
  */
 function validateCreateUser(user) {
-  const d = Q.defer();
+  if (!DBS) {
+    return Q.reject(new Error('not initialized'));
+  }
   if (!user || !user.id) {
-    d.reject(new TypeError('createUser: Invalid User Id'));
-    return d.promise;
+    return Q.reject(new TypeError('createUser: Invalid User Id'));
   }
   if (!user.password) {
-    d.reject(new TypeError('createUser: Invalid User Password'));
-    return d.promise;
+    return Q.reject(new TypeError('createUser: Invalid User Password'));
   }
-  if (users[user.id]) {
-    d.reject(new Error('createUser: User Exists'));
-    return d.promise;
+  if (user.password.length < MIN_PASS_LEN) {
+    return Q.reject(new Error(
+      `password too short.  Must be at least ${MIN_PASS_LEN}`));
   }
-  user.id = user.id + '';
-  user.password = user.password + '';
-  return null;
+  if (user.id.indexOf(PROJECT_USER_TAG) === 0) {
+    return Q.reject(
+      new Error(`User Names cannot begin with ${PROJECT_USER_TAG}`));
+  }
+  return passwords.find(DBS.passwords, user.id)
+    .then(() => {
+      throw new Error('createUser: User Exists');
+    }, Q.resolve);
 }
 
 /**
@@ -70,37 +76,24 @@ function validateCreateUser(user) {
  * @returns {Q.Promise}
  */
 function createUser(user) {
-  const promise = validateCreateUser(user);
-  if (promise) {
-    return promise;
+  if (!DBS) {
+    return Q.reject(new Error('not initialized'));
   }
-
-  let d = Q.defer();
-
-  if (user.password.length < MIN_PASS_LEN) {
-    d.reject(new Error(
-      `password too short.  Must be at least ${MIN_PASS_LEN}`));
-    return d.promise;
-  }
-  if (user.id.indexOf(PROJECT_USER_TAG) === 0) {
-    d.reject(new Error(`User Names cannot begin with ${PROJECT_USER_TAG}`));
-    return d.promise;
-  }
-
-  Q.all([
-    passwords.create(user.id, user.password),
-    authorities.create(user.id, user.authority)
-  ]).then((results) => {
-    // kill off the password attribute
-    delete user.password;
-    // create a _new_ user object
-    users[user.id] = {
-      id: user.id,
-      authority: results[1].authority
-    };
-    d.resolve(users[user.id]);
-  });
-  return d.promise;
+  return validateCreateUser(user)
+    .then(() => {
+      return Q.all([
+        passwords.create(DBS.passwords, user.id, user.password),
+        authorities.create(DBS.authorities, user.id, user.authority)
+      ]).then((results) => {
+        // kill off the password attribute
+        delete user.password;
+        // create a _new_ user object
+        return {
+          id: user.id,
+          authority: results[1].authority
+        };
+      });
+    });
 }
 
 /**
@@ -108,15 +101,16 @@ function createUser(user) {
  * @returns {Q.Promise}
  */
 function find(id) {
+  if (!DBS) {
+    return Q.reject(new Error('not initialized'));
+  }
   return authorities
-    .find(id)
+    .find(DBS.authorities, id)
     .then((auth) => {
-      if (users[id]) {
-        users[id].authority = auth.authority;
-        return users[id];
-      } else {
-        throw new Error('findUser: user not found');
-      }
+      return {
+        id: id,
+        authority: auth.authority
+      };
     });
 }
 
@@ -152,9 +146,12 @@ function createUserEndpoint(req, res) {
 function updateUserEndpoint_(req, res) {
   const id = req.body.username;
   const authority = req.body.authority;
+  if (!DBS) {
+    return Q.reject(new Error('not initialized'));
+  }
 
   find(id).then((found) => {
-    return authorities.change(id, authority).then(() => {
+    return authorities.change(DBS.authorities, id, authority).then(() => {
       res.sendStatus(200);
     });
   }, () => {
@@ -199,47 +196,6 @@ function getUser(req, res) {
       res.json(user);
       return;
     }
-  });
-}
-
-function getAllUsers(req, res) {
-  let result;
-  if (req.user.authority === 0) {
-    result = Object.keys(users).map((key) => {
-      return users[key];
-    });
-  }
-  if (req.user.authority === 1) {
-    result = Object.keys(users).map((key) => {
-      if (users[key].authority <= 1) {
-        return users[key];
-      }
-      return null;
-    }).filter((val) => {
-      return val;
-    });
-  }
-  if (req.user.authority === 2) {
-    result = Object.keys(users).map((key) => {
-      if (users[key].authority === 2) {
-        return users[key];
-      }
-      return null;
-    }).filter((val) => {
-      return val;
-    });
-  }
-  res.json(result);
-}
-
-function getTokens(req, res) {
-  tokens.findById(req.user.id).then((tokens) => {
-    const masked = tokens.map((t) => {
-      return JSON.parse(t).hash.slice(0, 6) + 'XXXXXXXXXXXXXXXXXX';
-    });
-    res.render('tokens', { tokens: masked });
-  }, (err) => {
-    res.status(500).json({ error: err.message });
   });
 }
 
