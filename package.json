@@ -1,6 +1,6 @@
 {
   "name": "clusternator",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Program to deploy docker containers on cloud service platforms with minimal user input, and/or configuration",
   "main": "index.js",
   "preferGlobal": true,
@@ -22,19 +22,20 @@
     "!win32"
   ],
   "scripts": {
-    "prepublish": "npm run doc-publish; npm run build",
-    "start": "node ./server-init.js",
-    "staging": "NODE_ENV=staging; node ./server-init.js",
-    "dev": "NODE_ENV=debug; concurrent \"nodemon ./server-init.js\" \"npm run watch\"",
-    "watch": "gulp watch",
-    "test": "gulp test-unit",
     "build": "gulp transpile",
+    "dev": "NODE_ENV=debug; concurrent \"nodemon ./server-init.js\" \"npm run watch\"",
     "doc": "npm run doc-api; jekyll build -s ./docs -d ./docs/_site",
+    "doc-api": "jsdoc -c ./js-doc.json",
     "doc-dev": "concurrent \"npm run doc-dev-serve\" \"npm run watch\"",
     "doc-dev-serve": "jekyll serve -s ./docs -d ./docs/_site --drafts",
     "doc-publish": "./bin/publish-docs.sh",
-    "doc-api": "jsdoc -c ./js-doc.json",
-    "graph": "echo 'Requires GraphViz (If it is not already installed)'; madge --exclude \"node_modules|bin-src|lib|path|spec|coverage|tmp|examples\"  --image coverage/clusternator-graph.png ./"
+    "graph": "echo 'Requires GraphViz (If it is not already installed)'; madge --exclude \"node_modules|bin-src|lib|path|spec|coverage|tmp|examples\"  --image coverage/clusternator-graph.png ./",
+    "lint": "gulp lint",
+    "prepublish": "npm run doc-publish; npm run build",
+    "staging": "NODE_ENV=staging; node ./server-init.js",
+    "start": "node ./server-init.js",
+    "test": "gulp test-unit",
+    "watch": "gulp watch"
   },
   "homepage": "http://the-clusternator.rangle.io",
   "repository": {
@@ -57,11 +58,13 @@
     "express-winston": "^0.4.1",
     "gulp-util": "^3.0.7",
     "inquirer": "^0.11.0",
+    "install": "^0.5.1",
     "kbpgp": "^2.0.48",
     "letsencrypt-express": "^1.0.3",
     "localhost.daplie.com-certificates": "^1.1.2",
     "media-typer": "^0.3.0",
     "mkdirp": "^0.5.1",
+    "npm": "^3.7.5",
     "parse-git-config": "^0.3.1",
     "passport": "^0.3.2",
     "passport-http-header-token": "^1.0.0",
@@ -76,7 +79,7 @@
     "superagent": "^1.4.0",
     "winston": "^1.1.2",
     "yamljs": "^0.2.4",
-    "yargs": "^3.29.0"
+    "yargs": "^4.2.0"
   },
   "bin": {
     "clusternator": "./bin/clusternator.sh"
@@ -100,5 +103,43 @@
     "nodemon": "^1.8.1",
     "rewire": "^2.3.4",
     "supertest": "^1.1.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "ecmaFeatures": {
+      "generators": true
+    },
+    "rules": {
+      "comma-dangle": 0,
+      "max-len": [
+        1,
+        80,
+        4
+      ],
+      "no-console": 2,
+      "no-func-assign": 2,
+      "no-multi-spaces": 0,
+      "no-undef": 2,
+      "no-underscore-dangle": 0,
+      "no-unreachable": 2,
+      "no-var": 2,
+      "new-cap": 0,
+      "one-var": [
+        2,
+        "never"
+      ],
+      "quotes": [
+        1,
+        "single"
+      ],
+      "semi": [
+        2,
+        "always"
+      ],
+      "valid-typeof": 2
+    }
   }
 }

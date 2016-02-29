@@ -167,6 +167,7 @@ function listDeployments(projectId) {
  * @param {string} name
  * @param {string} projectId
  * @param {Object} deploymentDesc
+ * @return {Promise}
  */
 function deploy(name, projectId, deploymentDesc) {
   const pm = getProjectAPI();

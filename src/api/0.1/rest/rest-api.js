@@ -6,18 +6,14 @@
  */
 
 const inspect = require('util').inspect;
-const path = require('path');
 const Q = require('q');
 const cn = require('../js/js-api');
 const cmn = require('../common');
 
 const constants = cmn.src('constants');
 const util = cmn.src('util');
-const dockernate = cmn.src('dockernate');
 
 const users = cmn.src('server','auth','users');
-const passwords = cmn.src('server','auth','passwords');
-const tokens = cmn.src('server','auth','tokens');
 
 const gpg = cmn.src('cli-wrappers', 'gpg');
 const slack = cmn.src('cli-wrappers','slack');
@@ -96,20 +92,38 @@ function listAuthorities() {
     .then((s) => s.config.commandPrivileges);
 }
 
+function newProjectUser(id){
+  const password = Math.random() + (+Date.now()).toString(16);
+  return users.create({
+    id: constants.PROJECT_USER_TAG + id,
+    password: password,
+    authority: 0
+  });
+}
+
+function newProjectToken(id) {
+  if (id.indexOf(constants.PROJECT_USER_TAG === 0)) {
+    return newToken(id);
+  }
+  return newToken(constants.PROJECT_USER_TAG + id);
+}
+
 function createIfNotFound(s, projectId, repoName) {
-  return s
-      .db.create({ id: projectId, repo: repoName })
-      .then((details) => Q
-        .all([
-          newToken(details.id),
-          newKey(details, 'gitHubKey'),
-          newKey(details, 'sharedKey') ])
-        .then((results) => {
-          details.gitHubKey = results[1].gitHubKey;
-          details.sharedKey = results[2].sharedKey;
-          return s.db.setItem(projectId, details)
-            .then(() => results);
-        }));
+  const details = {
+    id: projectId,
+    repo: repoName
+  };
+  return  Q.all([
+      newProjectToken(projectId),
+      newKey(details, 'gitHubKey'),
+      newKey(details, 'sharedKey'),
+      newProjectUser(details.id) ])
+    .then((results) => {
+      details.gitHubKey = results[1].gitHubKey;
+      details.sharedKey = results[2].sharedKey;
+      return s.db(projectId, details)()
+        .then(() => results);
+    });
 }
 
 /**
@@ -121,13 +135,13 @@ function resetData(details, repoName) {
   details.repo = repoName || details.repo || details.id;
   return Q
     .all([
-      newToken(details.id),
+      newProjectToken(details.id),
       newKey(details, 'gitHubKey'),
       newKey(details, 'sharedKey') ]);
 }
 
 /**
- * @param {{ db: { setItem: function(): Promise }}} s
+ * @param {{ db: { setItem: function() }}} s
  * @param {{ gitHubKey: string, sharedKey: string }} row
  * @param {string} projectId
  * @param {string} repoName
@@ -138,7 +152,7 @@ function resetIfFound(s, row, projectId, repoName) {
     .then((result) => {
       row.gitHubKey = result[1].gitHubKey;
       row.sharedKey = result[2].sharedKey;
-      return s.db.setItem(projectId, row)
+      return s.db(projectId, row)()
         .then(() => result);
     });
 }
@@ -151,9 +165,9 @@ function resetIfFound(s, row, projectId, repoName) {
  */
 function findOrCreate(s, projectId, repoName) {
   return s
-    .db.find(projectId)
+    .db(projectId)()
     .then((row) => resetIfFound(s, row, projectId, repoName),
-      createIfNotFound(s, projectId, repoName));
+      () => createIfNotFound(s, projectId, repoName));
 }
 
 /**
@@ -167,10 +181,10 @@ function createData(body) {
   body.projectId += '';
   body.repoName = body.repoName + '' || body.projectId;
 
+  util.info(`creating project data for ${body.projectId}`);
   return state()
     .then((s) => findOrCreate(s, body.projectId, body.repoName)
       .then((results) => {
-        console.log('not here');
         return {
           authToken: results[0],
           gitHubKey: results[1].gitHubKey,
@@ -184,8 +198,8 @@ function createData(body) {
  * @returns {Q.Promise<string>}
  */
 function newToken(projectId) {
-  return tokens.clear(makeTokenName(projectId))
-    .then(() => tokens.create(makeTokenName(projectId)));
+  return users.tokens.clear(makeTokenName(projectId))
+    .then(() => users.tokens.create(makeTokenName(projectId)));
 }
 
 /**
@@ -213,7 +227,7 @@ function getKey(body, attr) {
   }
   return state()
     .then((s) => s
-      .db.getItem(body.projectId)
+      .db(body.projectId)()
       .then((details) => {
         return { data: details[attr] };
       }));
@@ -244,10 +258,10 @@ function resetKey(body, attr) {
   }
   return state()
     .then((s) => s
-      .db.getItem(body.projectId)
+      .db(body.projectId)()
       .then((details) => newKey(details, attr))
       .then((details) => s
-        .db.setItem(body.projectId, details)
+        .db(body.projectId, details)()
         .then(() => {
           return { data: details[attr] };
         })));
@@ -314,11 +328,9 @@ function prCreate(body) {
       const projectId = body.repo;
       const sshData = body.sshKeys;
 
-      console.log('DEBUG');
-      console.log(JSON.stringify(body,  null, 2));
-      console.log('DEBUG');
+      util.debug(JSON.stringify(body,  null, 2));
 
-      return s.db.find(projectId).then((project) => s
+      return s.db(projectId)().then((project) => s
         .pm.createPR(projectId, pr + '', appDef, sshData)
         .then((url) => {
           return slack.message(`Create: ${projectId}, PR ${pr} ` +
@@ -341,7 +353,7 @@ function prCreate(body) {
 function prDestroy(body) {
   return state()
     .then((s) => s
-      .db.find(body.id)
+      .db(body.id)()
       .then((project) => s
         .pm.destroyPR(project.id, sanitizePr(body.pr))));
 }
@@ -382,7 +394,7 @@ function changePass(body) {
     return Q.reject(new Error('Create user requires a password'));
   }
 
-  return passwords.change(body.username, body.password, body.passwordNew);
+  return users.password(body.username, body.password, body.passwordNew);
 }
 
 /**
@@ -395,18 +407,14 @@ function createUser(body) {
   if (!body.password) {
     return Q.reject(new Error('Create user requires a password'));
   }
-  body.authority = +body.authority || DEFAULT_AUTHORITY;
+
+  body.authority = +body.authority >= 0 ? +body.authority : DEFAULT_AUTHORITY;
   return users.create({
     id: body.username,
     password: body.password,
     authority: body.authority
   });
 }
-
-/**
- * @param {{ config: Object, db: Object, pm: Object }} state
- * @returns {Q.Promise<{ config: Object, db: Object, pm: Object }>}
- */
 
 /**
  * @param {{ config: Object, db: Object, pm: Object }} state

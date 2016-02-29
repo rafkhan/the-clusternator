@@ -9,40 +9,45 @@ const TOKEN_SIZE = 64;
 const MAX_TOKENS = 5;
 const DELIM = ':';
 
-const tokens = Object.create(null);
+let cryptoHash = require('./crypto-hash');
 const crypto = require('crypto');
-const hash = require('./crypto-hash');
 const b64 = require('base64url');
+const findBase = require('./auth-common').find;
+const find = (db, id) => findBase(db, id).then((r) => r.saltedHashes);
 const Q = require('q');
 
-/**
- * @param {string} token
- * @returns {Q.Promise<string>}
- */
-function find(id) {
-  const d = Q.defer();
-  if (tokens[id]) {
-    d.resolve(tokens[id]);
-  } else {
-    d.resolve([]);
-  }
-  return d.promise;
-}
+module.exports = {
+  findById: find,
+  find: findByToken,
+  create: createToken,
+  clear: clearTokens,
+  invalidate: invalidateToken,
+  verify: verifyByToken,
+  userFromToken: userFromToken
+};
 
 /**
+ * @param {function(string|*, *=)} db
  * @param {string} token
- * @returns {Q.Promise.<string>}
+ * @returns {Promise.<Array.<string>>}
  */
-function findByToken(token) {
+function findByToken(db, token) {
   const details = splitToken(token);
-  return find(details.id);
+  return find(db, details.id);
 }
 
-function saveUserTokens(id, userTokens) {
-  const d = Q.defer();
-  tokens[id] = userTokens;
-  d.resolve();
-  return d.promise;
+
+/**
+ * @param {function(string|*, *=)} db
+ * @param {string} id
+ * @param {Array.<string>} saltedHashes
+ * @returns {Promise}
+ */
+function saveUserTokens(db, id, saltedHashes) {
+  return db({
+    id,
+    saltedHashes
+  })();
 }
 
 /**
@@ -61,22 +66,36 @@ function createToken_() {
 }
 
 /**
+ * @param {function(string|*, *=)} db
  * @param {string} id
- * @returns {Q.Promise<string>}
+ * @param {Array.<string>} saltedHashes
+ * @returns {Promise<string>}
  */
-function createToken(id) {
-  return find(id).then((foundTokens) => {
-    if (foundTokens.length > MAX_TOKENS) {
-      throw new Error(`User has maximum tokens (${MAX_TOKENS})`);
-    }
-    return createToken_()
-      .then((newToken) => hash
-        .saltHash(newToken).then((shash) => {
-          foundTokens.push(shash);
-          return saveUserTokens(id, foundTokens);
-        })
-        .then(() => id + DELIM + newToken));
-  });
+function createSaltAndSave(db, id, saltedHashes) {
+  /*eslint no-console: 0*/
+  return createToken_()
+    .then((newToken) => cryptoHash
+      .saltHash(newToken)
+      .then((shash) => {
+        saltedHashes.push(shash);
+        return saveUserTokens(db, id, saltedHashes);
+      })
+      .then(() => id + DELIM + newToken));
+}
+
+/**
+ * @param {function(string|*, *=)} db
+ * @param {string} id
+ * @returns {Q.Promise<Array.<string>>}
+ */
+function createToken(db, id) {
+  return find(db, id)
+    .then((foundTokens) => {
+      if (foundTokens.length > MAX_TOKENS) {
+        throw new Error(`User has maximum tokens (${MAX_TOKENS})`);
+      }
+      return createSaltAndSave(db, id, foundTokens);
+    }, () => createSaltAndSave(db, id, []));
 }
 
 function splitToken(token) {
@@ -90,70 +109,76 @@ function splitToken(token) {
   };
 }
 
-function invalidateToken(token) {
+/**
+ * @param {function(string|*, *=)} db
+ * @param {string} token
+ * @returns {Promise.<T>|Request|*}
+ */
+function invalidateToken(db, token) {
   const details = splitToken(token);
   const id = details.id;
   token = details.token;
-  return verify(id, token).then((index) => {
-    if (index === null) {
-      return;
-    }
-    return find(id).then((tokens) => {
-      return saveUserTokens(id, tokens.filter((t, i) => {
-        if (i === index) {
-          return false;
-        }
-        return true;
-      }));
-    });
-  });
+  return verify(db, id, token)
+    .then((verified) => saveUserTokens(db, id, verified.saltedHashes
+      .filter((t, i) => i !== verified.index )));
 }
 
 /**
+ * @param {function(string|*, *=)} db
  * @param {string} id
  * @param {string} token
- * @returns {Q.Promise<number>}
+ * @returns {Promise<{ index: number, saltedHashes: Array.<string>}>}
  */
-function verify(id, token) {
-  return find(id).then((tokens) => {
-    return Q.allSettled(tokens.map((t) => {
-      return hash.verify(t, token);
-    })).then((results) => {
-      let found = null;
-      results.forEach((r, i) => {
-        if (r.state === 'fulfilled') {
-          found = i;
+function verify(db, id, token) {
+  return find(db, id)
+    .then((saltedHashes) => Q
+      .allSettled(saltedHashes.map((t) => cryptoHash.verify(t, token)))
+      .then((results) => {
+        let index = -1;
+        results.forEach((r, i) => {
+          if (r.state === 'fulfilled') {
+            index = i;
+          }
+        });
+        if (index === -1) {
+          throw new Error('token not found');
         }
-      });
-      if (found === null) {
-        throw new Error('token not found');
-      }
-      return found;
-    });
-  });
+        return {
+          index,
+          saltedHashes
+        };
+      })
+    );
 }
 
-function verifyByToken(token) {
+/**
+ * @param {function(string|*, *=)} db
+ * @param {string} token
+ * @returns {Promise.<{found: number, saltedHashes: Array.<string>}>}
+ */
+function verifyByToken(db, token) {
   const details = splitToken(token);
-  return verify(details.id, details.token);
+  return verify(db, details.id, details.token);
 }
 
+/**
+ * @param {string} token
+ * @returns {string}
+ */
 function userFromToken(token) {
   return splitToken(token).id;
 }
 
-function clearTokens(userId) {
-  tokens[userId] = [];
-  return Q.resolve();
+/**
+ * @param {function(string|*, *=)} db
+ * @param {string} userId
+ * @returns {Promise}
+ */
+function clearTokens(db, userId) {
+  return db({
+    id: userId,
+    saltedHashes: []
+  })();
 }
 
-module.exports = {
-  findById: find,
-  find: findByToken,
-  create: createToken,
-  clear: clearTokens,
-  invalidate: invalidateToken,
-  verify: verifyByToken,
-  userFromToken: userFromToken
-};
 

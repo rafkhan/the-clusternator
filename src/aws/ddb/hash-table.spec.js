@@ -12,6 +12,7 @@ function initData() {
   aws.ddb = {
     listTables: () => Q.resolve({ TableNames: new Array(50) }),
     deleteTable: () => Q.resolve(),
+    deleteItem: () => Q.resolve(),
     createTable: () => Q.resolve(),
     getItem: () => Q.resolve(),
     putItem: () => Q.resolve()
@@ -189,6 +190,17 @@ describe('AWS: DDB: HashTable', () => {
           expect(true).to.be.ok;
         }), C.getFail(done));
     });
+
+    it('should resolve even if it already exists', (done) => {
+      aws.ddb.listTables = () => Q.resolve({
+        TableNames: ['clusternator-test']
+      });
+      const createFunction = ht.create(aws, 'test');
+      createFunction()
+        .then(() => C.check(done, () => {
+          expect(true).to.be.ok;
+        }), C.getFail(done));
+    });
   });
 
   describe('destroy function', () => {
@@ -221,6 +233,46 @@ describe('AWS: DDB: HashTable', () => {
       };
       const destroyFunction = ht.destroy(aws, 'test table');
       destroyFunction()
+        .then(() => C.check(done, () => {
+          expect(true).to.be.ok;
+        }), C.getFail(done));
+    });
+  });
+
+  describe('remove function', () => {
+    it('should return a function', () => {
+      const removeFunction = ht.remove(aws, 'test', 'key');
+      expect(typeof removeFunction === 'function').to.be.ok;
+    });
+
+    it('should throw without a key argument', () => {
+      expect(() => ht.remove(aws, 'table')).to.throw(TypeError);
+    });
+
+    it('should throw without a table argument', () => {
+      expect(() => ht.remove(aws)).to.throw(TypeError);
+    });
+
+    it('should return a promise-returning function', () => {
+      const removeFunction = ht.remove(aws, 'test', 'key');
+      const removePromise = removeFunction();
+      expect(typeof removePromise.then === 'function').to.be.ok;
+    });
+
+    it('should resolve', (done) => {
+      const removeFunction = ht.remove(aws, 'test', 'key');
+      removeFunction()
+        .then(() => C.check(done, () => {
+          expect(true).to.be.ok;
+        }), C.getFail(done));
+    });
+
+    it('should resolve pass or fail', (done) => {
+      aws.ddb = {
+        deleteItem: () => Q.reject(new Error('test')),
+      };
+      const removeFunction = ht.remove(aws, 'test table', 'key');
+      removeFunction()
         .then(() => C.check(done, () => {
           expect(true).to.be.ok;
         }), C.getFail(done));

@@ -4,7 +4,6 @@
  and {@link module:api/'0.1'/clusternator}
  * @module api/'0.1'/cli/cloudService
  */
-const Q = require('q');
 const R = require('ramda');
 
 let cn = require('../js/js-api');
@@ -60,11 +59,9 @@ function deploy(name, force, update) {
     .then((cJson) => {
       const dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
       const pid = cJson.projectId;
-      return Q
-        .all([
-          git.shaHead(),
-          fs.read(dPath, 'utf8')
-            .fail(getAppDefNotFound(dPath))])
+      return fs
+        .read(dPath, 'utf8')
+        .fail(getAppDefNotFound(dPath))
         .then((results) => {
 
           return deploymentExists(cJson.projectId, name).then((exists) => {
@@ -72,7 +69,7 @@ function deploy(name, force, update) {
               if(force) {
                 // Kill deployment, rebuild
                 return cn.stop(name, pid).then(() => {
-                  return cn.deploy(name, pid, results[1], results[0]);
+                  return cn.deploy(name, pid, results);
                 });
               } else if(update) {
                 // Update in place
@@ -83,7 +80,8 @@ function deploy(name, force, update) {
               }
             } else {
               // Just launch it
-              return cn.deploy(name, pid, results[1], results[0]);
+              util.info(`Launching New ${name} Deployment`);
+              return cn.deploy(name, pid, results);
             }
           });
         });

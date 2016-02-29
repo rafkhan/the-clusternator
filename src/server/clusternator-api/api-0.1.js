@@ -15,7 +15,7 @@ const R = require('ramda');
 const Config = require('../../config');
 const logger = require('../loggers').logger;
 const getCommands = require(`../../api/${API}/rest/rest-api`);
-const auth = require('../auth/authorities');
+const users = require('../auth/users');
 const curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
 
 module.exports = {
@@ -49,8 +49,15 @@ function commandPrivFromNamespace(config, namespace, command) {
  * @returns {Function}
  */
 function getPFail(res) {
+  if (process.env.NODE_ENV === 'production') {
+    return (err) => {
+      res.status(500).json({ error: err.message });
+    };
+  }
   return (err) => {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({
+      debugMode: true,
+      error: err.message + 'stack: ' + err.stack });
   };
 }
 
@@ -71,7 +78,7 @@ function authorizeCommand(config) {
 
       logger.debug(`Attempting to authorize: ${req.user.id} For: ${ns}.${cmd}`);
 
-      auth.find(req.user.id).then((userAuth) => {
+      users.find(req.user.id).then((userAuth) => {
         if (+userAuth.authority <= +requiredAuth) {
           logger.info(`Authorized: ${req.user.id} On: ${ns}.${cmd}`);
           next();
@@ -109,11 +116,11 @@ function executeCommand(commands) {
   };
 }
 
-function init(app) {
+function init(app, projectDb) {
   const config = Config();
   logger.debug(`API ${API} Initializing`);
 
-  const commands = getCommands(config, app.locals.projectDb);
+  const commands = getCommands(config, projectDb);
   logger.debug(`API ${API} Got CommandObjects`);
 
   app.post(`/${API}/:namespace/:command`, [

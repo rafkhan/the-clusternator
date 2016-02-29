@@ -119,7 +119,13 @@ gulp.task('test-unit', ['lint', 'pre-test-unit'], function testUnit() {
           dir: 'coverage/json'
         }
       }
-    }));
+    }))
+    .pipe(istanbul.enforceThresholds({ thresholds: {
+      global: {
+        statements: 70,
+        branches: 45
+      }
+    } }));
 });
 
 /**

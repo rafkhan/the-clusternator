@@ -5,7 +5,7 @@ const READ_UNITS = 10;
 const MAX_LISTED_RESULTS = 100;
 
 const Q = require('q');
-const R = require('ramda');
+const util = require('../../util');
 
 const clusternatePrefixString = require('../../resource-identifier')
   .clusternatePrefixString;
@@ -18,6 +18,7 @@ const EXPORTS = {
   hashTable,
   key,
   list: listAllTables,
+  remove,
   helpers: {
     checkIfTableExists,
     checkAndWrite,
@@ -40,7 +41,7 @@ function bindAws(aws) {
       return;
     }
     if (typeof EXPORTS[attr] === 'function') {
-      bound[attr] = R.partial(EXPORTS[attr], [aws]);
+      bound[attr] = util.partial(EXPORTS[attr], [aws]);
     }
   });
   return bound;
@@ -54,7 +55,7 @@ function bindAws(aws) {
  * @returns {function(string=)}
  */
 function key(aws, table, id) {
-  return R.partial(accessor, [ aws, table, id ]);
+  return util.partial(accessor, [ aws, table, id ]);
 }
 
 /**
@@ -64,7 +65,7 @@ function key(aws, table, id) {
  * @returns {function(string, string=)}
  */
 function hashTable(aws, table) {
-  return R.partial(accessor, [ aws, table ]);
+  return util.partial(accessor, [ aws, table ]);
 }
 
 /**
@@ -73,6 +74,7 @@ function hashTable(aws, table) {
  * @param {string} key
  * @param {*} value
  * @returns {Function}
+ * @throws {TypeError}
  */
 function accessor(aws, table, key, value) {
 
@@ -83,7 +85,8 @@ function accessor(aws, table, key, value) {
     key += '';
     return checkAndWrite(aws, table, key, value);
   } else {
-    throw new TypeError('shit\'s crazy');
+    throw new TypeError(`hashTable ${table}: accessor given invalid key ` +
+      `(${key}:<${typeof key}>)`);
   }
 }
 
@@ -284,7 +287,13 @@ function read(aws, table, key) {
     return aws.ddb.getItem({
       TableName: clusternatePrefixString(table),
       Key: makeReadKey(key)
-    }).then((result) => result.Item.value.S);
+    }).then((result) => {
+      if (!result.Item) {
+        throw new Error(`expected Item in result set for ${table}.${key}: ` +
+          Object.keys(result) + ': ' + typeof result);
+      }
+      return result.Item.value.S;
+    });
   }
   return promiseToGetItem;
 }
@@ -308,4 +317,31 @@ function destroy(aws, table) {
     }).then(null, () => {});
   }
   return promiseToDestroy;
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} table
+ * @param {string} key
+ * @returns {promiseToRemove}
+ * @throws {TypeError}
+ */
+function remove(aws, table, key) {
+  if (!table || !key) {
+    throw new TypeError('removey requires a table and key');
+  }
+  /**
+   * @returns {Promise}
+   */
+  function promiseToRemove() {
+    return aws.ddb.deleteItem({
+      Key: {
+        id: {
+          S: key
+        }
+      },
+      TableName: clusternatePrefixString(table)
+    }).then(null, () => {});
+  }
+  return promiseToRemove;
 }

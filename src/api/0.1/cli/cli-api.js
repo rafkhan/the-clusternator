@@ -30,8 +30,6 @@ const dockerFs = require('../project-fs/docker');
 const deploymentsFs = require('../project-fs/deployments');
 const gitHooks = require('../project-fs/git-hooks');
 
-const legacy = require('./legacy-yargs');
-
 const getPackage = () => require('../../../../package.json');
 
 
@@ -41,8 +39,7 @@ module.exports = (yargs) => {
 
   yargs.usage('Usage: $0 <command> [opts]');
 
-
-  yargs
+  const argv = yargs
     .completion('completion', 'Generate bash completions')
     .command('bootstrap', 'Bootstraps an AWS environment so that projects ' +
       'can be launched into it', () => util.info('Bootstrap environment'))
@@ -60,7 +57,7 @@ module.exports = (yargs) => {
     .command('project', 'Project management commands (try ' +
       'clusternator project --help)',
       (y) => {
-        y.usage('Usage: $0 project <command> [opts]')
+        const argv = y.usage('Usage: $0 project <command> [opts]')
           .command('create-data', 'create project db entry',
             () => projectDb.createData().done())
           .command('git-hub-key', 'Display GitHub key ' +
@@ -76,7 +73,8 @@ module.exports = (yargs) => {
           .command('reset-shared-key', 'Reset shared key',
             () => projectDb.resetShared().done())
           .help('h')
-          .alias('h', 'help');
+          .alias('h', 'help')
+          .argv;
       })
     .command('config', 'Configure the local clusternator user',
       () => Config.interactiveUser().done())
@@ -293,9 +291,10 @@ module.exports = (yargs) => {
     .version(() => {
       const pkg = getPackage();
       return `Package: ${pkg.version} API: ${API}`;
-    });
-
-  legacy(yargs);
+    })
+    .help('h')
+    .alias('h', 'help')
+    .argv;
 };
 
 function demandPassphrase(y){

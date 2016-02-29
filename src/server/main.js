@@ -5,27 +5,31 @@
  * @module server
  */
 
+const TABLES = Object.freeze({
+  authorities: 'authorities',
+  passwords: 'passwords',
+  projects: 'projects',
+  tokens: 'tokens'
+});
 const LOGIN_PATH = '/login';
-const PRODUCTION = 'production';
 const DEBUG = 'debug';
 const NODE_ENV = process.env.NODE_ENV;
 
 const R = require('ramda');
-const q = require('q');
+const Q = require('q');
 const os = require('os');
 const path = require('path');
 const express = require('express');
 const Config = require('../config');
-const waitFor = require('../util').waitFor;
 const loggers = require('./loggers');
-const Projects = require('./db/projects');
+const dbs = require('./db');
 const log = loggers.logger;
 const prHandler = require('./pullRequest');
 const getProjectManager = require('../aws/project-init');
-const instanceReaper = require('../aws/instance-reaper');
+const daemons = require('./daemons');
 const pushHandler = require('./push');
 const authentication = require('./auth/authentication');
-const githubAuthMiddleware = require('./auth/githubHook');
+const githubAuthMiddleware = require('./auth/github-hook');
 const users = require('./auth/users');
 const util = require('../util');
 const clusternatorApi = require('./clusternator-api');
@@ -35,38 +39,6 @@ const compression = require('compression');
 const ensureAuth = require('connect-ensure-login').ensureLoggedIn;
 
 const bodyParser = require('body-parser-rawbody');
-let lex;
-
-function startSSL(app, config) {
-  if (NODE_ENV === PRODUCTION) {
-    log.info('Clusternator SSL set for production');
-    lex = require('letsencrypt-express');
-  } else if (NODE_ENV === DEBUG) {
-    log.info('Clusternator SSL disabled for debug/dev');
-    return null;
-  } else {
-    log.info('Clusternator SSL set for testing');
-    lex = require('letsencrypt-express').testing();
-  }
-
-  /** @todo fetch .private from clusternator.json this might not be valid */
-  const configDir = path.join(__dirname, '..', '..', '.private');
-
-  return lex.create({
-    configDir,
-    onRequest: app,
-        approveRegistration: (hostname, cb) => {
-          if (!config.hasReadLetsEncryptTOS) {
-            return;
-          }
-          cb(null, {
-            domains: [hostname],
-            email: config.adminEmail,
-            agreeTos: true
-          });
-        }
-    });
-}
 
 function hostInfo() {
   log.info(`Initializing Clusternator Server on ${os.hostname()}`);
@@ -75,12 +47,12 @@ function hostInfo() {
     `Cores: ${os.cpus().length}`);
 }
 
-function initExpress(app, db) {
+function initExpress(app) {
   /**
    *  @todo the authentication package could work with a "mount", or another
    *  mechanism that is better encapsulated
    */
-  authentication.init(app, db);
+  authentication.init(app);
 
   app.use(compression());
   app.use(express['static'](
@@ -91,25 +63,49 @@ function initExpress(app, db) {
   app.use(loggers.request);
 }
 
+function createDbAccessors(pm, config) {
+  return {
+    authorities: dbs.authorities
+      .createAccessor(pm.hashTable.hashTable(TABLES.authorities), config.dbKey),
+    passwords: dbs.passwords
+      .createAccessor(pm.hashTable.hashTable(TABLES.passwords), config.dbKey),
+    projects: dbs.projects
+      .createAccessor(pm.hashTable.hashTable(TABLES.projects), config.dbKey),
+    tokens: dbs.tokens
+      .createAccessor(pm.hashTable.hashTable(TABLES.tokens), config.dbKey)
+  };
+}
+
+function createDbs(config, pm) {
+  /** @todo implement config name override for tables */
+  return Promise.all(Object.keys(TABLES)
+    .map((key) => pm.hashTable.create(TABLES[key])()));
+}
+
+
 function createServer(pm, config) {
   hostInfo();
   const app = express();
-  const leApp = startSSL(app, config);
-  app.locals.projectDb = Projects(config, pm);
-  instanceReaper.start();
 
-  initExpress(app);
-  /**
-   * @todo the clusternator package could work  with a "mount", or another
-   * mechanism that is better encapsulated
-   */
-  clusternatorApi.init(app);
-  bindRoutes(app, pm);
+  return createDbs(config, pm)
+    .then(() => createDbAccessors(pm, config))
+    .then((dbs) => users.init(dbs)
+      .then(() => dbs))
+    .then((dbs) => {
+      const stopInstanceReaper = daemons.instances(pm);
+      const stopProjectsWatch =
+        daemons.projects(pm, dbs.projects, config.defaultRepo);
 
-  if (NODE_ENV === DEBUG) {
-    return app;
-  }
-  return leApp;
+      initExpress(app);
+      /**
+       * @todo the clusternator package could work  with a "mount", or another
+       * mechanism that is better encapsulated
+       */
+      clusternatorApi.init(app, dbs.projects);
+      bindRoutes(app, pm);
+
+      return app;
+    });
 }
 
 function bindRoutes(app, pm) {
@@ -131,12 +127,6 @@ function bindRoutes(app, pm) {
     ]
   );
   app.post(`/${API}/login`, authentication.endpoints.login);
-
-  app.get('/users/:id/tokens', [
-    ensureAuth(LOGIN_PATH),
-    exposeUser,
-    users.endpoints.getTokens
-  ]);
 
   app.post('/users/:id/tokens', [
     ensureAuth(LOGIN_PATH),
@@ -182,9 +172,13 @@ function exposeUser(req, res, next) {
 }
 
 /**
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function getServer() {
+  if (NODE_ENV !== 'production') {
+    util.info('Enabling Long Stack Support (NOT PRODUCTION)');
+    Q.longStackSupport = true;
+  }
   const config = Config();
   const pm = getProjectManager(config);
 
@@ -192,16 +186,12 @@ function getServer() {
 }
 
 function startServer(config) {
-  const server = getServer(config);
-  if (NODE_ENV === DEBUG) {
-    server.listen(config.port);
-    log.info(
-      `Clusternator listening on port: ${config.port}`);
-  } else {
-    server.listen([config.port], [config.portSSL]);
-    log.info(
-      `Clusternator listening on ports: ${config.port}, ${config.portSSL}`);
-  }
+  return getServer(config)
+    .then((server) => {
+      server.listen(config.port);
+      log.info(
+        `Clusternator listening on port: ${config.port}`);
+    }).catch((err) => util.error(`Could not start server ${err.message}`));
 }
 
 function ping(req, res) {
