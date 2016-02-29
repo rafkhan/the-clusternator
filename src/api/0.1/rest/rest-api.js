@@ -405,7 +405,8 @@ function createUser(body) {
   if (!body.password) {
     return Q.reject(new Error('Create user requires a password'));
   }
-  body.authority = +body.authority || DEFAULT_AUTHORITY;
+
+  body.authority = +body.authority >= 0 ? +body.authority : DEFAULT_AUTHORITY;
   return users.create({
     id: body.username,
     password: body.password,
