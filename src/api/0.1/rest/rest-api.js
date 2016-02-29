@@ -109,20 +109,21 @@ function newProjectToken(id) {
 }
 
 function createIfNotFound(s, projectId, repoName) {
-  return s
-      .db({ id: projectId, repo: repoName })()
-      .then((details) => Q
-        .all([
-          newProjectToken(details.id),
-          newKey(details, 'gitHubKey'),
-          newKey(details, 'sharedKey'),
-          newProjectUser(details.id) ])
-        .then((results) => {
-          details.gitHubKey = results[1].gitHubKey;
-          details.sharedKey = results[2].sharedKey;
-          return s.db(projectId, details)()
-            .then(() => results);
-        }));
+  const details = {
+    id: projectId,
+    repo: repoName
+  };
+  return  Q.all([
+      newProjectToken(projectId),
+      newKey(details, 'gitHubKey'),
+      newKey(details, 'sharedKey'),
+      newProjectUser(details.id) ])
+    .then((results) => {
+      details.gitHubKey = results[1].gitHubKey;
+      details.sharedKey = results[2].sharedKey;
+      return s.db(projectId, details)()
+        .then(() => results);
+    });
 }
 
 /**
@@ -180,6 +181,7 @@ function createData(body) {
   body.projectId += '';
   body.repoName = body.repoName + '' || body.projectId;
 
+  util.info(`creating project data for ${body.projectId}`);
   return state()
     .then((s) => findOrCreate(s, body.projectId, body.repoName)
       .then((results) => {

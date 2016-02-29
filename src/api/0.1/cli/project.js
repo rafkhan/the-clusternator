@@ -80,6 +80,7 @@ function addPrivateToDockerIgnore(privatePath) {
 }
 
 function initProjectDb(answers) {
+  util.info('proceeding with', answers.projectId);
   return cn
     .createProjectData(answers.projectId)
     .then((results) => Q.all([

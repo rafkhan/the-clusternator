@@ -55,7 +55,9 @@ function getPFail(res) {
     };
   }
   return (err) => {
-    res.status(500).json({ error: err.message  }); //+ 'stack: ' + err.stack });
+    res.status(500).json({
+      debugMode: true,
+      error: err.message + 'stack: ' + err.stack });
   };
 }
 
