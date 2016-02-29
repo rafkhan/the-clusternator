@@ -103,7 +103,7 @@ function newProjectUser(id){
 
 function newProjectToken(id) {
   if (id.indexOf(constants.PROJECT_USER_TAG === 0)) {
-    return id;
+    return newToken(id);
   }
   return newToken(constants.PROJECT_USER_TAG + id);
 }
