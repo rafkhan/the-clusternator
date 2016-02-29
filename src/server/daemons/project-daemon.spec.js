@@ -38,7 +38,7 @@ describe('Projects DB', () => {
       fn();
     });
 
-    it('\'s returned function should be callable multiple times', () => {
+    it('s returned function should be callable multiple times', () => {
       const fn = pd(pm, hashTable);
       expect(typeof fn() === 'undefined').to.be.ok;
       expect(typeof fn() === 'undefined').to.be.ok;
@@ -159,7 +159,7 @@ describe('Projects DB', () => {
       expect(typeof p.then === 'function').to.be.ok;
     });
     
-    it('\'s promise should resolve if there is a db entry', (done) => {
+    it('s promise should resolve if there is a db entry', (done) => {
       db.projects = {};
       db.projects.pat = {};
       pd.mapAwsPopulationPromise(hashTable, repo)('pat')
@@ -185,7 +185,7 @@ describe('Projects DB', () => {
         pd.__set__('createEntry', oldCreate);
       });
 
-      it('\'s promise should reject and call create, then resolve if there ' +
+      it('s promise should reject and call create, then resolve if there ' +
         'is no db entry', (done) => {
         db.projects = {};
         db.projects.pat = null;
