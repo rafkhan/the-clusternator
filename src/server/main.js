@@ -16,7 +16,7 @@ const DEBUG = 'debug';
 const NODE_ENV = process.env.NODE_ENV;
 
 const R = require('ramda');
-const q = require('q');
+const Q = require('q');
 const os = require('os');
 const path = require('path');
 const express = require('express');
@@ -172,9 +172,13 @@ function exposeUser(req, res, next) {
 }
 
 /**
- * @returns {Q.Promise}
+ * @returns {Promise}
  */
 function getServer() {
+  if (NODE_ENV !== 'production') {
+    util.info('Enabling Long Stack Support (NOT PRODUCTION)');
+    Q.longStackSupport = true;
+  }
   const config = Config();
   const pm = getProjectManager(config);
 

@@ -10,10 +10,12 @@ const DAEMON = 'AWS Project Daemon';
 
 const Q = require('q');
 const util = require('../../util');
+const constants = require('../../constants');
 const POLL_INTERVAL = 30000;
 
 const info = util.partial(util.info, DAEMON);
 const debug = util.partial(util.debug, DAEMON);
+const users = require('../auth/users');
 
 let intervalId = null;
 
@@ -59,6 +61,15 @@ function watchForExisting(pm, db, defaultRepo, interval) {
   return stop;
 }
 
+function newProjectUser(id){
+  const password = Math.random() + (+Date.now()).toString(16);
+  return users.create({
+    id: constants.PROJECT_USER_TAG + id,
+    password: password,
+    authority: 0
+  });
+}
+
 /**
  * @param {function(...)} db
  * @param {string} name
@@ -96,6 +107,7 @@ function mapAwsPopulationPromise(db, defaultRepo) {
         debug(`found database entry for ${name}`);
       })
       .fail(() => createEntry(db, name, defaultRepo)()
+        .then(() => newProjectUser(name))
         .then(() => info(`Found Resources For Project: ${name} but no ` +
           `database entry.  Added new db entry for ${name}`))
         .fail((err) => info(`Found Resources For Project: ${name} but no ` +

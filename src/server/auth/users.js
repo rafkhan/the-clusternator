@@ -13,7 +13,6 @@ let authorities = require('./authorities');
 const config = require('../../config')();
 const Q = require('q');
 const MIN_PASS_LEN = config.minPasswordLength || 13;
-const PROJECT_USER_TAG = require('../../constants').PROJECT_USER_TAG;
 let DBS = null; // @todo this global solution is supposed to be interim
 
 let wrappedTokens = {
@@ -26,9 +25,11 @@ let wrappedTokens = {
 
 module.exports = {
   init,
-  find: find,
+  find,
+  findProject,
+  changePassword: changePasswordForward,
   create: createUser,
-  verifyPassword: verifyPassword,
+  verifyPassword,
   tokens: wrappedTokens,
   endpoints: {
     update: updateUserEndpoint,
@@ -53,6 +54,31 @@ function init(dbs) {
       password: config.setupRootPass
     }));
 }
+
+/**
+ * @param {string} id
+ * @param {string} password
+ * @param {string} shash
+ * @returns {Promise}
+ */
+function changePasswordForward(id, password, shash) {
+  if (!DBS) {
+    return Q.reject(new Error('not initialized'));
+  }
+  return passwords.change(DBS.passwords, id, password, shash);
+}
+
+/**
+ * @param {string} id
+ * @returns {Promise}
+ */
+function findProject(id)  {
+  if (!DBS) {
+    return Q.reject(new Error('not initialized'));
+  }
+  return DBS.projects(id)();
+}
+
 
 /**
  * @param {string} id
@@ -83,10 +109,6 @@ function validateCreateUser(user) {
   if (user.password.length < MIN_PASS_LEN) {
     return Q.reject(new Error(
       `password too short.  Must be at least ${MIN_PASS_LEN}`));
-  }
-  if (user.id.indexOf(PROJECT_USER_TAG) === 0) {
-    return Q.reject(
-      new Error(`User Names cannot begin with ${PROJECT_USER_TAG}`));
   }
   return passwords.find(DBS.passwords, user.id)
     .then(() => {

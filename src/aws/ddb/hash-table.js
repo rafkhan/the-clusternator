@@ -287,7 +287,13 @@ function read(aws, table, key) {
     return aws.ddb.getItem({
       TableName: clusternatePrefixString(table),
       Key: makeReadKey(key)
-    }).then((result) => result.Item.value.S);
+    }).then((result) => {
+      if (!result.Item) {
+        throw new Error(`expected Item in result set for ${table}.${key}: ` +
+          Object.keys(result) + ': ' + typeof result);
+      }
+      return result.Item.value.S;
+    });
   }
   return promiseToGetItem;
 }

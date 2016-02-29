@@ -34,14 +34,6 @@ function authToken(token, done) {
   tokens.verify(token).then(() => {
     logger.info('authToken: verified');
     const user = tokens.userFromToken(token);
-    if (user.indexOf(constants.PROJECT_USER_TAG) === 0) {
-      logger.info('authToken: project token');
-      /** @todo this is going to break */
-      return app.locals.projectDb
-        .find(user.slice(constants.PROJECT_USER_TAG.length))
-        .then(() => done(null,
-          { id: constants.PROJECT_USER_TAG, authority: 0 }));
-    }
     logger.info('authToken: user token');
     return users.find(user).then((user) => {
       logger.verbose('authToken: user found');

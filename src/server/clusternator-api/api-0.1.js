@@ -49,8 +49,13 @@ function commandPrivFromNamespace(config, namespace, command) {
  * @returns {Function}
  */
 function getPFail(res) {
+  if (process.env.NODE_ENV === 'production') {
+    return (err) => {
+      res.status(500).json({ error: err.message });
+    };
+  }
   return (err) => {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message  }); //+ 'stack: ' + err.stack });
   };
 }
 

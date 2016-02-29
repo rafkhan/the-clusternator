@@ -6,7 +6,6 @@
  */
 
 const inspect = require('util').inspect;
-const path = require('path');
 const Q = require('q');
 const cn = require('../js/js-api');
 const cmn = require('../common');
@@ -15,8 +14,6 @@ const constants = cmn.src('constants');
 const util = cmn.src('util');
 
 const users = cmn.src('server','auth','users');
-const passwords = cmn.src('server','auth','passwords');
-const tokens = cmn.src('server','auth','tokens');
 
 const gpg = cmn.src('cli-wrappers', 'gpg');
 const slack = cmn.src('cli-wrappers','slack');
@@ -95,14 +92,31 @@ function listAuthorities() {
     .then((s) => s.config.commandPrivileges);
 }
 
+function newProjectUser(id){
+  const password = Math.random() + (+Date.now()).toString(16);
+  return users.create({
+    id: constants.PROJECT_USER_TAG + id,
+    password: password,
+    authority: 0
+  });
+}
+
+function newProjectToken(id) {
+  if (id.indexOf(constants.PROJECT_USER_TAG === 0)) {
+    return id;
+  }
+  return newToken(constants.PROJECT_USER_TAG + id);
+}
+
 function createIfNotFound(s, projectId, repoName) {
   return s
-      .db.create({ id: projectId, repo: repoName })
+      .db({ id: projectId, repo: repoName })()
       .then((details) => Q
         .all([
-          newToken(details.id),
+          newProjectToken(details.id),
           newKey(details, 'gitHubKey'),
-          newKey(details, 'sharedKey') ])
+          newKey(details, 'sharedKey'),
+          newProjectUser(details.id) ])
         .then((results) => {
           details.gitHubKey = results[1].gitHubKey;
           details.sharedKey = results[2].sharedKey;
@@ -120,7 +134,7 @@ function resetData(details, repoName) {
   details.repo = repoName || details.repo || details.id;
   return Q
     .all([
-      newToken(details.id),
+      newProjectToken(details.id),
       newKey(details, 'gitHubKey'),
       newKey(details, 'sharedKey') ]);
 }
@@ -150,7 +164,7 @@ function resetIfFound(s, row, projectId, repoName) {
  */
 function findOrCreate(s, projectId, repoName) {
   return s
-    .db.find(projectId)
+    .db(projectId)()
     .then((row) => resetIfFound(s, row, projectId, repoName),
       () => createIfNotFound(s, projectId, repoName));
 }
@@ -182,8 +196,8 @@ function createData(body) {
  * @returns {Q.Promise<string>}
  */
 function newToken(projectId) {
-  return tokens.clear(makeTokenName(projectId))
-    .then(() => tokens.create(makeTokenName(projectId)));
+  return users.tokens.clear(makeTokenName(projectId))
+    .then(() => users.tokens.create(makeTokenName(projectId)));
 }
 
 /**
@@ -314,7 +328,7 @@ function prCreate(body) {
 
       util.debug(JSON.stringify(body,  null, 2));
 
-      return s.db.find(projectId).then((project) => s
+      return s.db(projectId)().then((project) => s
         .pm.createPR(projectId, pr + '', appDef, sshData)
         .then((url) => {
           return slack.message(`Create: ${projectId}, PR ${pr} ` +
@@ -337,7 +351,7 @@ function prCreate(body) {
 function prDestroy(body) {
   return state()
     .then((s) => s
-      .db.find(body.id)
+      .db(body.id)()
       .then((project) => s
         .pm.destroyPR(project.id, sanitizePr(body.pr))));
 }
@@ -378,7 +392,7 @@ function changePass(body) {
     return Q.reject(new Error('Create user requires a password'));
   }
 
-  return passwords.change(body.username, body.password, body.passwordNew);
+  return users.password(body.username, body.password, body.passwordNew);
 }
 
 /**
@@ -398,11 +412,6 @@ function createUser(body) {
     authority: body.authority
   });
 }
-
-/**
- * @param {{ config: Object, db: Object, pm: Object }} state
- * @returns {Q.Promise<{ config: Object, db: Object, pm: Object }>}
- */
 
 /**
  * @param {{ config: Object, db: Object, pm: Object }} state

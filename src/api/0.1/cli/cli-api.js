@@ -57,7 +57,7 @@ module.exports = (yargs) => {
     .command('project', 'Project management commands (try ' +
       'clusternator project --help)',
       (y) => {
-        y.usage('Usage: $0 project <command> [opts]')
+        const argv = y.usage('Usage: $0 project <command> [opts]')
           .command('create-data', 'create project db entry',
             () => projectDb.createData().done())
           .command('git-hub-key', 'Display GitHub key ' +
@@ -73,7 +73,8 @@ module.exports = (yargs) => {
           .command('reset-shared-key', 'Reset shared key',
             () => projectDb.resetShared().done())
           .help('h')
-          .alias('h', 'help');
+          .alias('h', 'help')
+          .argv;
       })
     .command('config', 'Configure the local clusternator user',
       () => Config.interactiveUser().done())
