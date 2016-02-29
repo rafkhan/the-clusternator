@@ -69,7 +69,7 @@ function deploy(name, force, update) {
               if(force) {
                 // Kill deployment, rebuild
                 return cn.stop(name, pid).then(() => {
-                  return cn.deploy(name, pid, results[1], results[0]);
+                  return cn.deploy(name, pid, results);
                 });
               } else if(update) {
                 // Update in place
@@ -80,7 +80,8 @@ function deploy(name, force, update) {
               }
             } else {
               // Just launch it
-              return cn.deploy(name, pid, results[1], results[0]);
+              util.info(`Launching New ${name} Deployment`);
+              return cn.deploy(name, pid, results);
             }
           });
         });
