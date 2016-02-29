@@ -1,6 +1,6 @@
 'use strict';
 
-const Q = require('Q');
+const Q = require('q');
 const rewire = require('rewire');
 const memory = require('../db/memory');
 const pd = rewire('./project-daemon');

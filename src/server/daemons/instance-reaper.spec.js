@@ -1,6 +1,6 @@
 'use strict';
 
-const Q = require('Q');
+const Q = require('q');
 const rewire = require('rewire');
 const reaper = rewire('./instance-reaper');
 const C = require('../../chai');
