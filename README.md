@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/rangle/the-clusternator.png?label=ready&title=Ready)](https://waffle.io/rangle/the-clusternator)
 # THE CLUSTERNATOR
 
 _Status_: alpha
