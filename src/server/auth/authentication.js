@@ -14,8 +14,7 @@ const logger = require('../loggers').logger;
 const constants = require('../../constants');
 
 let users = require('./users');
-let passwords = require('./passwords');
-let tokens = require('./tokens');
+const tokens = users.tokens;
 
 let config = Config();
 let app = null;
@@ -37,6 +36,7 @@ function authToken(token, done) {
     const user = tokens.userFromToken(token);
     if (user.indexOf(constants.PROJECT_USER_TAG) === 0) {
       logger.info('authToken: project token');
+      /** @todo this is going to break */
       return app.locals.projectDb
         .find(user.slice(constants.PROJECT_USER_TAG.length))
         .then(() => done(null,
@@ -51,8 +51,8 @@ function authToken(token, done) {
 }
 
 function authLocal(user, pass, done) {
-  return passwords
-    .verify(user, pass)
+  return users
+    .verifyPassword(user, pass)
     .then(() => {
       logger.info(`authLocal: ${user} password verified`);
       return users

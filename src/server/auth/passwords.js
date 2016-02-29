@@ -74,6 +74,6 @@ function changePassword(db, id, oldPass, newPass) {
  */
 function verify(db, id, password) {
   return find(db, id)
-    .then((row) => cryptoHash.verifyHash(row.saltedHash, password));
+    .then((row) => cryptoHash.verify(row.saltedHash, password));
 }
 

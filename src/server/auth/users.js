@@ -16,10 +16,20 @@ const MIN_PASS_LEN = config.minPasswordLength || 13;
 const PROJECT_USER_TAG = require('../../constants').PROJECT_USER_TAG;
 let DBS = null; // @todo this global solution is supposed to be interim
 
+let wrappedTokens = {
+  find: (t) => tokens.find(DBS.tokens, t),
+  create: (i) => tokens.create(DBS.tokens, i),
+  clear: (i) => tokens.clear(DBS.tokens, i),
+  verify: (t) => tokens.verify(DBS.tokens, t),
+  userFromToken: tokens.userFromToken
+};
+
 module.exports = {
   init,
   find: find,
   create: createUser,
+  verifyPassword: verifyPassword,
+  tokens: wrappedTokens,
   endpoints: {
     update: updateUserEndpoint,
     create: createUserEndpoint,
@@ -28,6 +38,7 @@ module.exports = {
     createToken: createToken
   }
 };
+
 
 /**
  * @param {{ passwords: function(string|*, *=), authorities(string|*, *=) }} dbs
@@ -41,6 +52,18 @@ function init(dbs) {
       authority: 0,
       password: config.setupRootPass
     }));
+}
+
+/**
+ * @param {string} id
+ * @param {string} password
+ * @returns {Promise}
+ */
+function verifyPassword(id, password) {
+  if (!DBS) {
+    return Q.reject(new Error('not initialized'));
+  }
+  return passwords.verify(DBS.passwords, id, password);
 }
 
 /**

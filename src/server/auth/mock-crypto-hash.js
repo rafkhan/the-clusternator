@@ -5,7 +5,7 @@ const tag = 'MOCK-SALT-HASH-';
 
 module.exports = {
   saltHash,
-  verifyHash
+  verify
 };
 
 /**
@@ -16,7 +16,7 @@ function saltHash(input) {
   return Q.resolve(tag + input + tag);
 }
 
-function verifyHash(storage, input) {
+function verify(storage, input) {
   const converted = storage.slice(tag.length, storage.length - tag.length);
   if (converted === input) {
     return Q.resolve(true);

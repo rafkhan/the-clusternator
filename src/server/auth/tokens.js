@@ -132,7 +132,7 @@ function invalidateToken(db, token) {
 function verify(db, id, token) {
   return find(db, id)
     .then((saltedHashes) => Q
-      .allSettled(saltedHashes.map((t) => cryptoHash.verifyHash(t, token)))
+      .allSettled(saltedHashes.map((t) => cryptoHash.verify(t, token)))
       .then((results) => {
         let index = -1;
         results.forEach((r, i) => {

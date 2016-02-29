@@ -15,7 +15,7 @@ const R = require('ramda');
 const Config = require('../../config');
 const logger = require('../loggers').logger;
 const getCommands = require(`../../api/${API}/rest/rest-api`);
-const auth = require('../auth/authorities');
+const users = require('../auth/users');
 const curryPrivFromNamespace = R.curry(commandPrivFromNamespace);
 
 module.exports = {
@@ -71,7 +71,7 @@ function authorizeCommand(config) {
 
       logger.debug(`Attempting to authorize: ${req.user.id} For: ${ns}.${cmd}`);
 
-      auth.find(req.user.id).then((userAuth) => {
+      users.find(req.user.id).then((userAuth) => {
         if (+userAuth.authority <= +requiredAuth) {
           logger.info(`Authorized: ${req.user.id} On: ${ns}.${cmd}`);
           next();
