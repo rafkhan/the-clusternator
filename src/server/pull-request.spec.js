@@ -3,7 +3,7 @@
 const supertest = require('supertest');
 const express = require('express');
 const bodyParser = require('body-parser');
-const prHandler = require('./pullRequest.js');
+const prHandler = require('./pull-request.js');
 
 const app = express();
 app.use(bodyParser.json());
