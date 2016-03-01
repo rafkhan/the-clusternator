@@ -102,16 +102,16 @@ function createServer(pm, config) {
        * mechanism that is better encapsulated
        */
       clusternatorApi.init(app, dbs.projects);
-      bindRoutes(app, pm);
+      bindRoutes(app, pm, dbs);
 
       return app;
     });
 }
 
-function bindRoutes(app, pm) {
+function bindRoutes(app, pm, dbs) {
   const curriedPushHandler = R.curry(pushHandler)(pm);
   const curriedPRHandler = R.curry(prHandler)(pm);
-  const ghMiddleware = githubAuthMiddleware(pm);
+  const ghMiddleware = githubAuthMiddleware(dbs.projects);
 
 
   app.set('views', path.join(__dirname, '..', 'views'));
