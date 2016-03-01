@@ -1,1 +1,9 @@
-./git-post-commit
+#!/bin/sh
+
+# Fail on all errors
+set -e
+
+# Locate *this* file
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+clusternator read-private -p $CLUSTERNATOR_PASS
