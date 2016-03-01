@@ -2,17 +2,20 @@
 /**
  * Not sure if this is still active?
  *
- * @deprecated
  * @module server/gitHubHook
  */
 
 const crypto = require('crypto');
 
-const q = require('q');
-const typer = require('media-typer');
 const loggers = require('../loggers');
 const log = loggers.logger;
 
+/**
+ * @param {string} key
+ * @param {string} text
+ * @param {string} digest
+ * @returns {boolean}
+ */
 function checkHmac(key, text, digest) {
   const hmac = crypto.createHmac('sha1', key);
   hmac.setEncoding('hex');
@@ -21,54 +24,41 @@ function checkHmac(key, text, digest) {
   const hash = 'sha1=' + hmac.read();
 
   if(hash === digest) {
-    log.info('Github signature match.');
+    log.info('GitHub signature match.');
     return true;
   } else {
-    const msg = 'Invalid signature. ' +
-              'Got: ' + hash + ' ' +
-              'Expected: ' + digest;
-
-    log.error(msg);
+    log.error(`Invalid signature. Got: ${hash} Expected: ${digest}`);
     return false;
   }
 }
 
 
-function middlewareFactory(pm) {
+/**
+ * @param {function(string|*, *=)} projectDb
+ * @returns {middleWare}
+ */
+function middlewareFactory(projectDb) {
   function middleWare(req, res, next) {
     const signature = req.get('X-Hub-Signature');
     if(!signature) {
       log.debug('Rejecting github request with no signature.');
-      res.status(401);
-      res.send('No signature');
+      res.status(401).json({ error: 'no signature' });
       return;
     }
 
-
     const text = req.rawBody;
-    const prBody = req.rawBody.pull_request;
+    const prBody = req.body.pull_request;
     const projectName = prBody.head.repo.name;
 
-    /** @todo replace this with hash table implementation */
-    return q.resolve();
-    //ddbManager.getItems(ddbManager.tableNames.GITHUB_AUTH_TOKEN_TABLE,
-    //    { ProjectName:
-    //      { ComparisonOperator: 'EQ',
-    //        AttributeValueList: [{ S: projectName }]}})
-    //  .then((result) => {
-    //    if(result.Count > 0) {
-    //      const key = result.Items[0].GithubSecretToken.S;
-    //      if(checkHmac(key, text, signature)) {
-    //        next(req, res);
-    //      } else {
-    //        res.status(401);
-    //        res.send('Invalid signature');
-    //      }
-    //    }
-    //  }, q.reject);
+    return projectDb(projectName)()
+      .then((data) => checkHmac(data.gitHubKey, text, signature) ?
+        next(req, res) : res.status(401).json({ error: 'no signature' }))
+      .fail((err) => res.status(500)
+        .json({ error: 'database error finding project signature' }));
   }
 
   return middleWare;
 }
 
+middlewareFactory.checkHmac = checkHmac;
 module.exports = middlewareFactory;

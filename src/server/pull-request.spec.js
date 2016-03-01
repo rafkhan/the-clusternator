@@ -9,7 +9,6 @@ const app = express();
 app.use(bodyParser.json());
 app.post('/test', prHandler);
 
-// @todo in an ideal world, these will work
 //
 ///*global describe, it, expect, beforeEach */
 //describe('pull request close handler', () => {
