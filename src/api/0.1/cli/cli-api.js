@@ -149,7 +149,7 @@ module.exports = (yargs) => {
       return cn.startServer(config);
     })
     .command('list-authorities', 'List your Clusternator server\'s authorities',
-      authorities.list)
+      callCommandFn(authorities.list))
 
     .command('list-projects', 'List projects with clusternator resources',
       (y) => aws
@@ -157,8 +157,8 @@ module.exports = (yargs) => {
         .then((projectNames) => projectNames
           .forEach(console.log))
         .done())
-    .command('describe-services', 'Describe project services', aws
-      .describeServices)
+    .command('describe-services', 'Describe project services', callCommandFn(aws
+      .describeServices))
     .command('build', 'Local Docker Build', (y) => {
       const id = (+Date.now()).toString(16);
       const argv = demandPassphrase(y)
@@ -232,10 +232,10 @@ module.exports = (yargs) => {
         .info('Error generating passphrase: ' + err.message)))
 
     .command('git-hook-install', 'Install auto-encrypt/decrypt git hooks',
-      gitHooks.install)
+      callCommandFn(gitHooks.install))
 
     .command('git-hook-remove', 'Remove auto-encrypt/decrypt git hooks',
-      gitHooks.remove)
+      callCommandFn(gitHooks.remove))
 
     .command('make-private', 'Encrypts private assets (defined in ' +
       'clusternator.json)', (y) => {
@@ -277,17 +277,17 @@ module.exports = (yargs) => {
       .then(console.log))
 
     .command('private-checksum', 'Calculates the hash of .private, and ' +
-      'writes it to .clusternator/.private-checksum', privateFs.checksum)
+      'writes it to .clusternator/.private-checksum',
+      callCommandFn(privateFs.checksum))
     .command('private-diff', 'Exits 0 if there is no difference between ' +
       '.clusternator/.private-checksum and a fresh checksum Exits 1 on ' +
       'mismatch, and exits 2 if private-checksum is not found',
-      privateFs.diff)
-
+      callCommandFn(privateFs.diff))
     .command('log', 'Application logs from a user selected server',
-      stdioI.logApp)
+      callCommandFn(stdioI.logApp))
     .command('log-ecs', 'ECS logs from a user selected server',
-      stdioI.logEcs)
-    .command('ssh', 'SSH to a selected server', stdioI.sshShell)
+      callCommandFn(stdioI.logEcs))
+    .command('ssh', 'SSH to a selected server', callCommandFn(stdioI.sshShell))
     .version(() => {
       const pkg = getPackage();
       return `Package: ${pkg.version} API: ${API}`;
@@ -303,3 +303,9 @@ function demandPassphrase(y){
   describe('p', 'Requires a passphrase to encrypt private directory');
 }
 
+function callCommandFn(fn) {
+  return (y) => {
+    const argv = y.help('h').alias('h', 'help').argv;
+    fn();
+  };
+}
