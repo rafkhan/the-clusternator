@@ -1,7 +1,6 @@
 'use strict';
 
 // We need this to build our post string
-const querystring = require('querystring');
 const path = require('path');
 const http = require('https');
 
@@ -26,7 +25,7 @@ function main(projectId, key, image, sshKeys) {
   const repo = projectId;
 
   // Build the post string from an object
-  const data = querystring.stringify({
+  const data = JSON.stringify({
     pr,
     build,
     repo,
@@ -96,15 +95,15 @@ function post(data, auth) {
 
   // An object of options to indicate where to post to
   const postOptions = {
-      host: CLUSTERNATOR,
-      port: PORT,
-      path: PATH,
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Content-Length': Buffer.byteLength(data),
-          'Authorization': 'Token ' + auth
-      }
+    host: CLUSTERNATOR,
+    port: PORT,
+    path: PATH,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(data),
+      'Authorization': 'Token ' + auth
+    }
   };
 
   console.log('Posting To:', CLUSTERNATOR);
