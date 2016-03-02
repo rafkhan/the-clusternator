@@ -9,7 +9,7 @@ const log = require('./loggers').logger;
 
 function sendError(res, status, message) {
   log.error(status, message);
-  res.status(status).send({error: message});
+  res.status(status).json({error: message});
 }
 
 module.exports = {

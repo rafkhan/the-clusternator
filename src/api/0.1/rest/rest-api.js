@@ -322,27 +322,34 @@ function pmDestroyDeployment(body) {
 function prCreate(body) {
   return state()
     .then((s) => {
+      const d = Q.defer(); // For early async resolution (see below)
       const pr = sanitizePr(body.pr);
       const build = sanitizePr(body.build);
       const appDef = JSON.parse(body.appDef);
       const projectId = body.repo;
       const sshData = body.sshKeys;
 
-      util.debug(JSON.stringify(body,  null, 2));
-
-      return s.db(projectId)().then((project) => s
-        .pm.createPR(projectId, pr + '', appDef, sshData)
-        .then((url) => {
-          return slack.message(`Create: ${projectId}, PR ${pr} ` +
-            `successful.  Application will be available at ` +
-            `<https://${url}>`,
-            project.channel);
-        })
-        .fail((err) => {
-          slack.message(`Create: ${projectId}, PR ${pr} ` +
-            `failed: ${err.message}`, project.channel);
-          throw err;
-        }));
+      s.db(projectId)()
+        .then((project) => {
+          // This is an endpoint and it cannot wait 7 minutes for resolution
+          // This at least checks the db to see if it is valid then resolves
+          // before the long call
+          d.resolve();
+          return s
+            .pm.createPR(projectId, pr + '', appDef, sshData)
+            .then((url) => {
+              return slack.message(`Create: ${projectId}, PR ${pr} ` +
+                `successful.  Application will be available at ` +
+                `<https://${url}>`,
+                project.channel);
+            })
+            .fail((err) => {
+              slack.message(`Create: ${projectId}, PR ${pr} ` +
+                `failed: ${err.message}`, project.channel);
+              throw err;
+            });
+        }).fail(d.reject);
+      return d.promise;
     });
 }
 

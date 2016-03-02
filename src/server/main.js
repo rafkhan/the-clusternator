@@ -12,7 +12,6 @@ const TABLES = Object.freeze({
   tokens: 'tokens'
 });
 const LOGIN_PATH = '/login';
-const DEBUG = 'debug';
 const NODE_ENV = process.env.NODE_ENV;
 
 const R = require('ramda');
@@ -24,12 +23,11 @@ const Config = require('../config');
 const loggers = require('./loggers');
 const dbs = require('./db');
 const log = loggers.logger;
-const prHandler = require('./pullRequest');
+const ghHandler = require('./git-hub-handler');
 const getProjectManager = require('../aws/project-init');
 const daemons = require('./daemons');
-const pushHandler = require('./push');
 const authentication = require('./auth/authentication');
-const githubAuthMiddleware = require('./auth/github-hook');
+const githubAuthMiddleware = require('./auth/git-hub-hook');
 const users = require('./auth/users');
 const util = require('../util');
 const clusternatorApi = require('./clusternator-api');
@@ -101,17 +99,16 @@ function createServer(pm, config) {
        * @todo the clusternator package could work  with a "mount", or another
        * mechanism that is better encapsulated
        */
+      bindRoutes(app, pm, dbs);
       clusternatorApi.init(app, dbs.projects);
-      bindRoutes(app, pm);
 
       return app;
     });
 }
 
-function bindRoutes(app, pm) {
-  const curriedPushHandler = R.curry(pushHandler)(pm);
-  const curriedPRHandler = R.curry(prHandler)(pm);
-  const ghMiddleware = githubAuthMiddleware(pm);
+function bindRoutes(app, pm, dbs) {
+  const curriedGHHandler = R.curry(ghHandler)(pm);
+  const ghMiddleware = githubAuthMiddleware(dbs.projects);
 
 
   app.set('views', path.join(__dirname, '..', 'views'));
@@ -128,6 +125,7 @@ function bindRoutes(app, pm) {
   );
   app.post(`/${API}/login`, authentication.endpoints.login);
 
+  /** @todo determine why /users is not under ${API} */
   app.post('/users/:id/tokens', [
     ensureAuth(LOGIN_PATH),
     exposeUser,
@@ -149,16 +147,11 @@ function bindRoutes(app, pm) {
   ]);
 
   app.get('/ping', ping);
-  app.post('/clusternate',
-    [
-      //ensureAuth(LOGIN_PATH),
-      curriedPushHandler
-    ]); // CI post-build hook
 
-  app.post('/github/pr', [
+  app.post(`/${API}/github`, [
     ghMiddleware,
-    curriedPRHandler
-  ]);     // github close PR hook
+    curriedGHHandler
+  ]);
 
   app.use(loggers.error);
 }
