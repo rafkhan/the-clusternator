@@ -119,8 +119,9 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    */
   function findOrCreateProject(projectId) {
     return state()
-      .then((s) => create(projectId)
-        .then((sDesc) => sDesc, () => s.subnet.findProject()));
+      .then((s) => s.subnet.findProject(projectId)
+        .fail(() => create(projectId)
+          .then((sDesc) => sDesc)));
   }
 
   /**
@@ -132,7 +133,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    */
   function createPR(projectId, pr, appDef, sshData) {
     return state().then((s) => findOrCreateProject(projectId)
-      .then((snDesc) => {
+      .then(() => {
         return s.pullRequest
           .create(projectId, pr, appDef, sshData);
       }));
