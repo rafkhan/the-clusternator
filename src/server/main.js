@@ -12,7 +12,6 @@ const TABLES = Object.freeze({
   tokens: 'tokens'
 });
 const LOGIN_PATH = '/login';
-const DEBUG = 'debug';
 const NODE_ENV = process.env.NODE_ENV;
 
 const R = require('ramda');
@@ -24,11 +23,11 @@ const Config = require('../config');
 const loggers = require('./loggers');
 const dbs = require('./db');
 const log = loggers.logger;
-const prHandler = require('./pull-request');
+const ghHandler = require('./git-hub-handler');
 const getProjectManager = require('../aws/project-init');
 const daemons = require('./daemons');
 const authentication = require('./auth/authentication');
-const githubAuthMiddleware = require('./auth/github-hook');
+const githubAuthMiddleware = require('./auth/git-hub-hook');
 const users = require('./auth/users');
 const util = require('../util');
 const clusternatorApi = require('./clusternator-api');
@@ -108,7 +107,7 @@ function createServer(pm, config) {
 }
 
 function bindRoutes(app, pm, dbs) {
-  const curriedPRHandler = R.curry(prHandler)(pm);
+  const curriedGHHandler = R.curry(ghHandler)(pm);
   const ghMiddleware = githubAuthMiddleware(dbs.projects);
 
 
@@ -149,10 +148,10 @@ function bindRoutes(app, pm, dbs) {
 
   app.get('/ping', ping);
 
-  app.post(`/${API}/github/pr`, [
+  app.post(`/${API}/github`, [
     ghMiddleware,
-    curriedPRHandler
-  ]);     // github close PR hook
+    curriedGHHandler
+  ]);
 
   app.use(loggers.error);
 }

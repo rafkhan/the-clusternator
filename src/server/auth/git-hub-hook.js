@@ -50,15 +50,15 @@ function middlewareFactory(projectDb) {
   function middleWare(req, res, next) {
     const signature = req.get('X-Hub-Signature');
     if(!signature) {
-      log.debug('Rejecting github request with no signature.');
+      log.debug('Rejecting GitHub request with no signature.');
       res.status(401).json({ error: 'no signature' });
       return;
     }
 
     const text = req.rawBody;
-    const projectName = req.body.repository.name + '';
+    res.locals.projectName = req.body.repository.name + '';
 
-    return projectDb(projectName)()
+    return projectDb(res.locals.projectName)()
       .then((data) => checkHmac(data.gitHubKey, text, signature) ?
         next() : res.status(401).json({ error: 'no signature' }))
       .fail((err) => res.status(404)

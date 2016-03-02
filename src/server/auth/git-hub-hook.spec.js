@@ -3,7 +3,7 @@
 const Q = require('q');
 const C = require('../../chai');
 const rewire = require('rewire');
-const gh = rewire('./github-hook');
+const gh = rewire('./git-hub-hook');
 const crypto = require('crypto');
 
 function hmac(key, text) {
@@ -48,15 +48,16 @@ describe('Passwords interface', function () {
     beforeEach(() => {
       getData = hmac('signed', 'text');
       req = {
-        get: () => getData,
-        rawBody: 'text',
         body: {
           repository: {
             name: 'test project'
           }
-        }
+        },
+        get: () => getData,
+        rawBody: 'text'
       };
       res = {
+        locals: {},
         status: () =>  {
           return {
             json: (d) => jsonData = d

@@ -140,14 +140,14 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   }
 
   /**
-   * @param {string} pid
+   * @param {string} projectId
    * @param {string} pr
    * @returns {Q.Promise}
    */
-  function destroyPR(pid, pr) {
+  function destroyPR(projectId, pr) {
     return state()
       .then((s) => s
-      .pullRequest.destroy(pid, pr));
+      .pullRequest.destroy(projectId, pr + ''));
   }
 
   /**
