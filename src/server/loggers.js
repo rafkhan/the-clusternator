@@ -12,6 +12,7 @@ const logLevelsByLogger = {
   error: 0,
   logger: 0
 };
+const humanTimestamp = () => (new Date()).toISOString();
 
 switch (process.env.NODE_ENV) {
   case 'debug':
@@ -25,6 +26,7 @@ switch (process.env.NODE_ENV) {
 const requestLogger = expressWinston.logger({
   transports: [
     new winston.transports.Console({
+      timestamp: humanTimestamp,
       json: true,
       colorize: true
     })
@@ -48,20 +50,21 @@ const logger = new (winston.Logger)({
   transports: [
     new (winston.transports.Console)({
       level: logLevelsByLogger.logger,
-      timestamp: function() {
-        return Date.now();
-      },
-      formatter: function(options) {
-        // Return string will be passed to logger.
-        return options.timestamp() + ' ' + options.level.toLowerCase() + ': ' +
-          (undefined !== options.message ? options.message : '') +
-          (options.meta && Object.keys(options.meta).length ?
+      timestamp: humanTimestamp,
+      formatter: (options) => {
+        const prefix =
+          options.timestamp() + ' ' + options.level.toLowerCase() + ': ';
+
+        const optionalMessage = options.message ? options.message : '';
+
+        const meta = (options.meta && Object.keys(options.meta).length ?
           '\n\t'+ JSON.stringify(options.meta) : '' );
+
+        return prefix + optionalMessage + meta;
       }
     })
   ]
 });
-
 
 
 module.exports = {

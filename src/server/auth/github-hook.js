@@ -7,8 +7,21 @@
 
 const crypto = require('crypto');
 
-const loggers = require('../loggers');
-const log = loggers.logger;
+const util = require('../../util');
+const log = require('../loggers').logger;
+
+/**
+ * @param {string} key
+ * @param {string} text
+ * @returns {string}
+ */
+function createHmac(key, text) {
+  const hmac = crypto.createHmac('sha1', key);
+  hmac.setEncoding('hex');
+  hmac.write(text);
+  hmac.end();
+  return 'sha1=' + hmac.read();
+}
 
 /**
  * @param {string} key
@@ -17,11 +30,8 @@ const log = loggers.logger;
  * @returns {boolean}
  */
 function checkHmac(key, text, digest) {
-  const hmac = crypto.createHmac('sha1', key);
-  hmac.setEncoding('hex');
-  hmac.write(text);
-  hmac.end();
-  const hash = 'sha1=' + hmac.read();
+  log.info('WE GET HERE WE GET HERE');
+  const hash = createHmac(key, text);
 
   if(hash === digest) {
     log.info('GitHub signature match.');
@@ -61,4 +71,5 @@ function middlewareFactory(projectDb) {
 }
 
 middlewareFactory.checkHmac = checkHmac;
+middlewareFactory.createHmac = createHmac;
 module.exports = middlewareFactory;

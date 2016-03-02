@@ -7,6 +7,7 @@
 
 const R = require('ramda');
 
+const util = require('../util');
 const serverUtil = require('./util');
 const log = require('./loggers').logger;
 
@@ -49,7 +50,7 @@ function pullRequestRouteHandler(pm, req, res) {
   const ghEventType = req.header('X-Github-Event');
 
   if(ghEventType !== 'pull_request') {
-    error(403, 'Pull requests only!');
+    error(405, 'Pull requests only!');
     return;
   }
 

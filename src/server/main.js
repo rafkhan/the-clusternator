@@ -27,7 +27,6 @@ const log = loggers.logger;
 const prHandler = require('./pull-request');
 const getProjectManager = require('../aws/project-init');
 const daemons = require('./daemons');
-const pushHandler = require('./push');
 const authentication = require('./auth/authentication');
 const githubAuthMiddleware = require('./auth/github-hook');
 const users = require('./auth/users');
@@ -101,15 +100,14 @@ function createServer(pm, config) {
        * @todo the clusternator package could work  with a "mount", or another
        * mechanism that is better encapsulated
        */
-      clusternatorApi.init(app, dbs.projects);
       bindRoutes(app, pm, dbs);
+      clusternatorApi.init(app, dbs.projects);
 
       return app;
     });
 }
 
 function bindRoutes(app, pm, dbs) {
-  const curriedPushHandler = R.curry(pushHandler)(pm);
   const curriedPRHandler = R.curry(prHandler)(pm);
   const ghMiddleware = githubAuthMiddleware(dbs.projects);
 
@@ -128,6 +126,7 @@ function bindRoutes(app, pm, dbs) {
   );
   app.post(`/${API}/login`, authentication.endpoints.login);
 
+  /** @todo determine why /users is not under ${API} */
   app.post('/users/:id/tokens', [
     ensureAuth(LOGIN_PATH),
     exposeUser,
@@ -149,13 +148,8 @@ function bindRoutes(app, pm, dbs) {
   ]);
 
   app.get('/ping', ping);
-  app.post('/clusternate',
-    [
-      //ensureAuth(LOGIN_PATH),
-      curriedPushHandler
-    ]); // CI post-build hook
 
-  app.post('/github/pr', [
+  app.post(`/${API}/github/pr`, [
     ghMiddleware,
     curriedPRHandler
   ]);     // github close PR hook
