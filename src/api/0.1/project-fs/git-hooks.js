@@ -7,6 +7,7 @@
 
 const NEWLINE = '\n';
 const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
+const SHEBANG = '#!/usr/bin/env bash' + NEWLINE;
 const HOOK_FILES = ['post-commit', 'pre-commit', 'post-merge'];
 const SHELL_DIR = 'DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"';
 
@@ -141,7 +142,7 @@ function installHookText(hookText, hook) {
     return pruneHookText(hookText, hook) + NEWLINE + NEWLINE +
       invokeHookName(hook) + NEWLINE;
   }
-  return invokeHookName(hook) + NEWLINE;
+  return SHEBANG + invokeHookName(hook) + NEWLINE;
 }
 
 /**
