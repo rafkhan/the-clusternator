@@ -30,7 +30,6 @@ function createHmac(key, text) {
  * @returns {boolean}
  */
 function checkHmac(key, text, digest) {
-  log.info('WE GET HERE WE GET HERE');
   const hash = createHmac(key, text);
 
   if(hash === digest) {
@@ -57,13 +56,12 @@ function middlewareFactory(projectDb) {
     }
 
     const text = req.rawBody;
-    const prBody = req.body.pull_request;
-    const projectName = prBody.head.repo.name;
+    const projectName = req.body.repository.name + '';
 
     return projectDb(projectName)()
       .then((data) => checkHmac(data.gitHubKey, text, signature) ?
-        next(req, res) : res.status(401).json({ error: 'no signature' }))
-      .fail((err) => res.status(500)
+        next() : res.status(401).json({ error: 'no signature' }))
+      .fail((err) => res.status(404)
         .json({ error: 'database error finding project signature' }));
   }
 

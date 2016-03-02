@@ -51,12 +51,8 @@ describe('Passwords interface', function () {
         get: () => getData,
         rawBody: 'text',
         body: {
-          pull_request: {
-            head: {
-              repo: {
-                name: 'test project'
-              }
-            }
+          repository: {
+            name: 'test project'
           }
         }
       };

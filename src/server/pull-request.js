@@ -54,6 +54,7 @@ function pullRequestRouteHandler(pm, req, res) {
     return;
   }
 
+  util.info('Action: ', body.action);
   const ghAction = body.action;
 
   if(ghAction === 'closed') {
