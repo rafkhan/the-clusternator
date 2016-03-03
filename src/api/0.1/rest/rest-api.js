@@ -304,11 +304,36 @@ function gitHubKey(body) {
  * @returns {Q.Promise}
  */
 function pmCreateDeployment(body) {
-  return Q.resolve();
-  /** @todo sanitiize body, and run this function */
-  //return state()
-  //  .then((s) => s
-  //    .pm.createDeployment());
+  return state()
+    .then((s) => {
+      const d = Q.defer(); // For early async resolution (see below)
+      const deployment = body.deployment + '';
+      const appDef = JSON.parse(body.appDef);
+      const projectId = body.repo;
+      const sshData = body.sshKeys;
+
+      s.db(projectId)()
+        .then((project) => {
+          // This is an endpoint and it cannot wait 7 minutes for resolution
+          // This at least checks the db to see if it is valid then resolves
+          // before the long call
+          d.resolve();
+          return s
+            .pm.createDeployment(projectId, deployment + '', appDef, sshData,
+              true)
+            .then((url) => slack
+              .message(`Create: ${projectId} deployment ${deployment} ` +
+                `successful.  Application will be available at ` +
+                `<https://${url}>`,
+                project.channel))
+            .fail((err) => {
+              slack.message(`Create: ${projectId} deployment ${deployment} ` +
+                `failed: ${err.message}`, project.channel);
+              throw err;
+            });
+        }).fail(d.reject);
+      return d.promise;
+    });
 }
 
 function pmDestroyDeployment(body) {
@@ -337,12 +362,10 @@ function prCreate(body) {
           d.resolve();
           return s
             .pm.createPR(projectId, pr + '', appDef, sshData)
-            .then((url) => {
-              return slack.message(`Create: ${projectId}, PR ${pr} ` +
-                `successful.  Application will be available at ` +
-                `<https://${url}>`,
-                project.channel);
-            })
+            .then((url) => slack
+              .message(`Create: ${projectId}, PR ${pr} Build #` +
+                `${build} successful.  Application will be available at ` +
+                `<https://${url}>`, project.channel))
             .fail((err) => {
               slack.message(`Create: ${projectId}, PR ${pr} ` +
                 `failed: ${err.message}`, project.channel);

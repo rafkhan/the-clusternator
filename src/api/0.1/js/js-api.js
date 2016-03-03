@@ -29,6 +29,7 @@ module.exports = {
   listAuthorities,
   listSSHAbleInstances,
   listDeployments,
+  deploymentExists,
   deploy,
   stop,
   update,
@@ -164,14 +165,25 @@ function listDeployments(projectId) {
 }
 
 /**
+ * @param {string} projectId
+ * @returns {Promise}
+ */
+function deploymentExists(projectId) {
+  return getProjectAPI()
+    .deploymentExists(projectId);
+}
+
+/**
  * @param {string} name
  * @param {string} projectId
  * @param {Object} deploymentDesc
+ * @param {*=} sshData
+ * @param {boolean=} force
  * @return {Promise}
  */
-function deploy(name, projectId, deploymentDesc) {
+function deploy(name, projectId, deploymentDesc, sshData, force) {
   const pm = getProjectAPI();
-  return deploy_(pm, projectId, deploymentDesc, name)
+  return deploy_(pm, projectId, deploymentDesc, name, sshData, force)
     .fail((err) => {
       util.info('Clusternator: Error creating deployment: ' + err.message);
       util.info(err.stack);
@@ -219,21 +231,23 @@ function startServer(config) {
  * @param {string} projectId
  * @param {string} appDefStr
  * @param {string} deployment
+ * @param {*=} sshData
+ * @param {boolean=} force
  * @returns {Promise}
  * @private
  */
-function deploy_(pm, projectId, appDefStr, deployment) {
+function deploy_(pm, projectId, appDefStr, deployment, sshData, force) {
   util.info('Requirements met, creating deployment...');
   const appDef = util.safeParse(appDefStr);
   if (!appDef) {
     throw new Error('Deployment failed, error parsing appDef');
   }
-  const config = Config();
   return pm.createDeployment(
     projectId,
     deployment,
     appDef,
-    config.useInternalSSL || false
+    sshData,
+    force
   ).then((result) => {
     util.info('Deployment will be available at ', result);
   });

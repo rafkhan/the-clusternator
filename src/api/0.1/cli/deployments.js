@@ -24,31 +24,6 @@ module.exports = {
   stop
 };
 
-const getTagsFromInstances = R.map((inst) => {
-  const tagObj = R.reduce((memo, t) => {
-    memo[t.Key] = t.Value;
-    return memo;
-  }, {}, inst.Tags);
-
-  return tagObj;
-});
-
-// Move to deployment manager?
-function deploymentExists(projectId, name) {
-
-  return cn.listDeployments(projectId)
-          .then((deployments) => {
-            const getInstances = R.compose(R.flatten, R.map((d) => {
-              return getTagsFromInstances(d.Instances);
-            }));
-
-            const insts = getInstances(deployments);
-            deployments = R.map(R.prop(constants.DEPLOYMENT_TAG), insts);
-
-            return R.contains(name, deployments);
-          });
-}
-
 /**
  * @param {string} name
  * @returns {Q.Promise}
@@ -62,29 +37,7 @@ function deploy(name, force, update) {
       return fs
         .read(dPath, 'utf8')
         .fail(getAppDefNotFound(dPath))
-        .then((results) => {
-
-          return deploymentExists(cJson.projectId, name).then((exists) => {
-            if(exists) {
-              if(force) {
-                // Kill deployment, rebuild
-                return cn.stop(name, pid).then(() => {
-                  return cn.deploy(name, pid, results);
-                });
-              } else if(update) {
-                // Update in place
-                return cn.update(name, pid, results);
-              } else {
-                // Notify user that it already exists 
-                return console.log('already exists.');
-              }
-            } else {
-              // Just launch it
-              util.info(`Launching New ${name} Deployment`);
-              return cn.deploy(name, pid, results);
-            }
-          });
-        });
+        .then((results) => cn.deploy(name, pid, results, null, force));
     });
 }
 

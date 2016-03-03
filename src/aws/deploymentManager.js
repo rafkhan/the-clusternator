@@ -39,14 +39,15 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   function createEc2(creq) {
     return ec2mgr.createDeployment({
-        clusterName: creq.name,
-        pid: creq.projectId,
-        deployment: creq.deployment,
-        sgId: creq.groupId,
-        subnetId: creq.subnetId,
-        sshPath: path.join('.private', constants.SSH_PUBLIC_PATH),
-        apiConfig: {}
-      });
+      clusterName: creq.name,
+      pid: creq.projectId,
+      deployment: creq.deployment,
+      sgId: creq.groupId,
+      subnetId: creq.subnetId,
+      sshPath: creq.sshData || path.join('.private',
+        constants.SSH_PUBLIC_PATH),
+      apiConfig: {}
+    });
   }
 
   function createElb(creq) {
@@ -82,15 +83,15 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @param {string} projectId
    * @param {string} deployment
    * @param {Object} appDef
-   * @param {boolean=} useInternalSSL
+   * @param {*=} sshData
    * @returns {Request|Promise.<T>|*}
    */
-  function create(projectId, deployment, appDef, useInternalSSL) {
+  function create(projectId, deployment, appDef, sshData) {
     const creq = {
       projectId,
       deployment,
       appDef,
-      useInternalSSL,
+      sshData,
       name: rid.generateRID({ pid: projectId, deployment })
     };
 

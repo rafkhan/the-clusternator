@@ -22,6 +22,12 @@ const Q = require('q');
 const R = require('ramda');
 const DEFAULT_REGION = 'us-east-1';
 
+const getTagsFromInstances = R.map((inst) => R
+  .reduce((memo, t) => {
+    memo[t.Key] = t.Value;
+    return memo;
+  }, {}, inst.Tags));
+
 let Vpc = require('./vpcManager');
 
 function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
@@ -185,13 +191,25 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    * @param {string} projectId
    * @param {string} dep
    * @param {Object} appDef
+   * @param {Object=} sshData
+   * @param {boolean=} force if false (default) will fail if deployment exists
    * @returns {Q.Promise}
    */
-  function createDeployment(projectId, dep, appDef) {
+  function createDeployment(projectId, dep, appDef, sshData, force) {
     return state()
       .then((s) => findOrCreateProject(projectId)
-      .then((snDesc) => s
-        .deployment.create(projectId, dep, appDef )));
+        .then(() => deploymentExists(projectId, dep)
+          .then((exists) => {
+            if (!exists) {
+              return;
+            }
+            if (force) {
+              return destroyDeployment(projectId, dep);
+            }
+            throw new Error(`Deployment ${dep} exists`);
+          }))
+        .then(() => s
+          .deployment.create(projectId, dep, appDef, sshData )));
   }
 
   /**
@@ -246,6 +264,27 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
             return identity;
           })));
   }
+
+  /**
+   * @param {string} projectId
+   * @param {string} name
+   * @returns {Promise<boolean>}
+   */
+  function deploymentExists(projectId, name) {
+
+    return listDeployments(projectId)
+      .then((deployments) => {
+        const getInstances = R.compose(R.flatten, R.map((d) => {
+          return getTagsFromInstances(d.Instances);
+        }));
+
+        const insts = getInstances(deployments);
+        deployments = R.map(R.prop(constants.DEPLOYMENT_TAG), insts);
+
+        return R.contains(name, deployments);
+      });
+  }
+
 
   /**
    * @param {string} projectId
@@ -342,6 +381,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
     create,
     createDeployment,
     createPR,
+    deploymentExists,
     describeProject,
     destroy,
     destroyDeployment,

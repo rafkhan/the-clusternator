@@ -7,6 +7,7 @@
  */
 
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
+const OWNER = /\$OWNER/g;
 const UTF8 = 'utf8';
 const CIRCLEFILE = 'circle.yml';
 
@@ -53,23 +54,27 @@ function loadExistingCircleCIFile(root) {
 }
 
 /**
+ * @param {string} clustDir
+ * @param {string} owner
  * @return {Q.Promise<string>}
  */
-function getCircleSkeleton(clustDir) {
+function getCircleSkeleton(clustDir, owner) {
   return loadCircleCIFile(fs.path.join(fs.getSkeletonPath(), CIRCLEFILE),
     (f) => f
-      .replace(CLUSTERNATOR_DIR, clustDir));
+      .replace(CLUSTERNATOR_DIR, clustDir)
+      .replace(OWNER, owner));
 }
 
 /**
  * @param {string} root
  * @param {string} clustDir
+ * @param {string} owner
  * @returns {Q.Promise<string>}
  */
-function initializeCircleCIFile(root, clustDir) {
+function initializeCircleCIFile(root, clustDir, owner) {
   return Q
     .all([
-      getCircleSkeleton(clustDir),
+      getCircleSkeleton(clustDir, owner),
       loadExistingCircleCIFile(root) ])
     .then((results) => YAML
       .stringify(merge(results[0], results[1]), 5));
@@ -78,9 +83,10 @@ function initializeCircleCIFile(root, clustDir) {
 /**
  * @param {string} root
  * @param {string} clustDir
+ * @param {string} owner
  * @returns {Q.Promise}
  */
-function init(root, clustDir) {
-  return initializeCircleCIFile(root, clustDir)
+function init(root, clustDir, owner) {
+  return initializeCircleCIFile(root, clustDir, owner)
     .then((text) => fs.write(fs.path.join(root, CIRCLEFILE), text));
 }

@@ -10,13 +10,13 @@ dependencies:
   post:
     - ./$CLUSTERNATOR_DIR/decrypt.sh
 
-test:
-  post:
-    - node ./$CLUSTERNATOR_DIR/docker-build.js
-
 deployment:
-  master:
-    branch: master
-    owner: rangle # MASTER REPOSITORY OWNER GOES HERE
+  pr:
+    branch: /^(?!master$).*/
     commands:
-      - clusternator update -d master
+      - 'node ./.clusternator/docker-build.js pr'
+  deploy:
+    branch: master
+    owner: $OWNER
+    commands:
+      - 'node ./.clusternator/docker-build.js deploy master'
