@@ -26,6 +26,7 @@ function main(projectId, key, image, sshKeys, path, deployment) {
   // Build the post string from an object
   const data = JSON.stringify({
     pr,
+    deployment,
     build,
     repo,
     image,
@@ -79,14 +80,33 @@ function requireAppDef(deployment) {
  */
 function getAppDef(key, host, repo, pr, image, deployment) {
   const appDef = requireAppDef(deployment);
+  console.log('Loading Application Definition');
   appDef.tasks[0].containerDefinitions[0].environment.push({
     name: 'PASSPHRASE',
     value: key
   });
-  appDef.tasks[0].containerDefinitions[0].environment.push({
-    name: 'HOST',
-    value: `${repo}-pr-${pr}.${host}`
-  });
+  if (deployment === 'pr') {
+    const hostname = `${repo}-pr-${pr}.${host}`;
+    appDef.tasks[0].containerDefinitions[0].hostname = hostname;
+    appDef.tasks[0].containerDefinitions[0].environment.push({
+      name: 'HOST',
+      value: hostname
+    });
+  } else if (deployment === 'master') {
+    const hostname = `${repo}.${host}`;
+    appDef.tasks[0].containerDefinitions[0].hostname = hostname;
+    appDef.tasks[0].containerDefinitions[0].environment.push({
+      name: 'HOST',
+      value: hostname
+    });
+  } else {
+    const hostname = `${repo}-${deployment}.${host}`;
+    appDef.tasks[0].containerDefinitions[0].hostname = hostname;
+    appDef.tasks[0].containerDefinitions[0].environment.push({
+      name: 'HOST',
+      value: hostname
+    });
+  }
   appDef.tasks[0].containerDefinitions[0].image = image;
   return JSON.stringify(appDef);
 }

@@ -18,7 +18,7 @@ let DEPLOYMENT;
 
 if (process.argv[2].trim() === 'deploy') {
   PATH = '/0.1/deployment/create';
-  if (process.argv[3].trim()) {
+  if (process.argv[3] && process.argv[3].trim()) {
     DEPLOYMENT = process.argv[3].trim();
   } else {
     DEPLOYMENT = 'master';

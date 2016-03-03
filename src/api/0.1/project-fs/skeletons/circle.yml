@@ -19,4 +19,4 @@ deployment:
     branch: master
     owner: $OWNER
     commands:
-      - 'node ./.clusternator/docker-build.js deploy'
+      - 'node ./.clusternator/docker-build.js deploy master'
