@@ -319,3 +319,7 @@ function certList() {
     .listServerCertificates();
 }
 
+function initEc2InstanceRole() {
+  getProjectAPI()
+    .iam;
+}

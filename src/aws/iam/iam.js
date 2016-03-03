@@ -6,6 +6,7 @@
  */
 
 const Q = require('q');
+const R = require('ramda');
 const policies = { ecr: require('./ecr-policies') };
 const constants = require('../../constants');
 const common = require('../common');
@@ -26,6 +27,7 @@ module.exports = {
   createEcrPolicies,
   createEcrUserPolicy,
   createEcrGeneralPolicy,
+  createInstanceRole,
   ecrGeneralPolicyArn,
   ecrUserPolicyArn,
   destroyPolicy,
@@ -43,6 +45,70 @@ module.exports = {
   destroyAccessKeys,
   describeAccessKey
 };
+
+function createInstanceRole(aws, name, roleDoc, policyDoc) {
+
+  if(typeof name !== 'string') {
+    return Q.reject(new Error('createInstanceRole requires a name'));
+  }
+
+  if(typeof roleDoc !== 'object') {
+    return Q.reject(new Error('createInstanceRole requires a name'));
+  }
+
+  if(typeof policyDoc !== 'object') {
+    return Q.reject(new Error('createInstanceRole requires a name'));
+  }
+
+  const roleName = name + '-role';
+  const policyName = name + '-policy';
+  const role = JSON.stringify(roleDoc);
+  const policy = JSON.stringify(policyDoc);
+
+  return aws.iam.listRoles()
+          .then((roleList) => {
+            if(hasRole(roleName, roleList)) {
+              return Q.resolve(name);
+            } else {
+              return createRolePolicies(aws, name, roleName, role,
+                                        policyName, policy);
+            }
+          });
+}
+
+function hasRole(roleName, roleList) {
+  return R.any((role) => {
+    return role.RoleName === roleName;
+  })(roleList);
+}
+
+function createRolePolicies(aws, name, roleName, role, policyName, policy) {
+  const roleParams = {
+    AssumeRolePolicyDocument: role,
+    RoleName: roleName
+  };
+
+  const rolePolicyParams = {
+    PolicyDocument: policy,
+    PolicyName: policyName,
+    RoleName: roleName
+  };
+
+  const instanceProfileParams = {
+    InstanceProfileName: name
+  };
+
+  const addRoleToInstanceProfileParams = {
+    InstanceProfileName: name,
+    RoleName: roleName
+  };
+
+  return aws.iam.createRole(roleParams)
+          .then(() => aws.iam.putRolePolicy(rolePolicyParams))
+          .then(() => aws.iam.createInstanceProfile(instanceProfileParams))
+          .then(() => aws.iam.addRoleToInstanceProfile(
+                addRoleToInstanceProfileParams));
+}
 
 function describeAccessKey(aws, name) {
   return describeAccessKeys(aws, name)

@@ -117,6 +117,7 @@ function logInitComplete(dbResults) {
   logLoop('-');
 }
 
+
 /**
  * @param {boolean=} doOffline
  * @returns {Q.Promise}
