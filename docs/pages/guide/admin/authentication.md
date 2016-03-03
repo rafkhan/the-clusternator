@@ -16,18 +16,18 @@ user) to acquire bearer tokens.
 
 In real world practice, Clusternator users would
 
-```bash
+{% highlight bash %}
 clusternator login
-```
+{% endhighlight %}
 
 Upon success, The Clusternator would locally save a bearer token.  Then use it
 to execute subsequent commands.
 
 Users can change their password with:
 
-```bash
+{% highlight bash %}
 clusternator passwd
-```
+{% endhighlight %}
 
 ## Extensions
 

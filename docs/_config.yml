@@ -8,7 +8,7 @@
 # Site settings
 title: The Clusternator Documentation
 description: > # this means to ignore newlines until "baseurl:"
-  The Clustenator is a container deployment tool designed to help front end web
+  The Clusternator is a container deployment tool designed to help front end web
   developers manage deployments in their continuous integration flow. The
   Clusternator currently works with Docker, and Amazon's AWS cloud service.
 baseurl: "" # the subpath of your site, e.g. /blog
