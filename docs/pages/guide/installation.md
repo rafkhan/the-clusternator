@@ -13,9 +13,10 @@ otherwise noted.
 
 Make sure your system has the third party requirements, then from a shell run:
 
-```bash
+{% highlight bash %}
 npm install -g clusternator
-```
+{% endhighlight %}
+
 
 ## Installation (Server)
 
@@ -26,9 +27,9 @@ a clusternator CLI client to deploy a clusternator server to a cloud service.
 
 Having a locally installed copy of Docker is required for this.
 
-```bash
+{% highlight bash %}
 clusternator bootstrap
-```
+{% endhighlight %}
 
 There will be a series of prompts.  Once this is done other clients will be
 able to start using your clusternator server.
