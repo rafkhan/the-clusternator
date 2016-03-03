@@ -13,6 +13,22 @@ const AWS = require('aws-sdk');
 const spawn = require('child_process').spawn;
 const notify = require('./notify');
 
+let PATH;
+let DEPLOYMENT;
+
+if (process.argv[2].trim() === 'deploy') {
+  PATH = '/0.1/deployment/create';
+  if (process.argv[3].trim()) {
+    DEPLOYMENT = process.argv[3].trim();
+  } else {
+    DEPLOYMENT = 'master';
+  }
+} else {
+  PATH = '/0.1/pr/create';
+  DEPLOYMENT = 'pr';
+}
+
+
 main();
 
 function main() {
@@ -35,7 +51,8 @@ function main() {
           .then(decrypt)
           .then(() => loadUserPublicKeys(path.join(privatePath, SSH_PUBLIC)))
           .then((keys) => notify(
-            config.projectId, clusternatorToken, fullImageName, keys)));
+            config.projectId, clusternatorToken, fullImageName, keys, PATH,
+            DEPLOYMENT)));
     })
     .then(() => process.exit(0))
     .catch((err) => {
@@ -112,8 +129,11 @@ function loadUserPublicKeys(keyPath) {
 function buildImageName(projectId) {
   const PR = process.env.CIRCLE_PR_NUMBER || 0;
   const BUILD = process.env.CIRCLE_BUILD_NUM || 0;
-  const IMAGE=`${CLUSTERNATOR_PREFIX}${projectId}:pr-${PR}-${BUILD}`;
-  return IMAGE;
+  if (DEPLOYMENT === 'pr') {
+    return `${CLUSTERNATOR_PREFIX}${projectId}:pr-${PR}-${BUILD}`;
+  }
+  return `${CLUSTERNATOR_PREFIX}${projectId}:deploy-${BUILD}`;
+
 }
 
 /**

@@ -54,7 +54,8 @@ function initializeScripts(clustDir, tld) {
 
 /**
  * @param {{ deploymentsDir: string, clusternatorDir: string,
- projectId: string, backend: string, tld: string, circleCi: boolean }} options
+ projectId: string, backend: string, tld: string, circleCi: boolean,
+ gitHubOwner: string }} options
  * @param {string} projectRoot
  * @returns {Request|Promise.<T>|*}
  */
@@ -62,7 +63,8 @@ function initOptional(options, projectRoot) {
   let promises = [];
 
   if (options.circleCI) {
-    promises.push(circle.init(projectRoot, options.clusternatorDir));
+    promises.push(circle.init(projectRoot, options.clusternatorDir,
+      options.gitHubOwner));
   }
   if (options.backend === 'node') {
     promises.push(initializeServeSh(

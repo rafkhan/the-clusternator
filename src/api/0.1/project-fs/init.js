@@ -18,7 +18,8 @@ module.exports = initProject;
 /**
  * @param {string} root
  * @param {{ deploymentsDir: string, clusternatorDir: string,
- projectId: string, backend: string, tld: string, circleCi: boolean }} options
+ projectId: string, backend: string, tld: string, circleCi: boolean,
+ gitHubOwner: string }} options
  * @param skipNetwork
  * @returns {Request|Promise.<T>|*}
  */

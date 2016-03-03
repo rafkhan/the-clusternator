@@ -139,6 +139,12 @@ function projectInit(defaults) {
     },
     {
       type: 'input',
+      name: 'gitHubOwner',
+      message: 'GitHub username of "master"/main/central repo',
+      validate: truthy
+    },
+    {
+      type: 'input',
       name: 'clusternatorDir',
       message: 'Where should clusternator keep its files?',
       default: defaults.clusternatorDir,
