@@ -146,8 +146,16 @@ function describeDeployment(aws, projectId, deployment) {
  * @param {Object} el
  * @returns {string}
  */
-function mapDescribeToGroupIds(el) {
+function mapDescription(el) {
   return el.GroupId;
+}
+
+/**
+ * @param {Array} descriptions
+ * @returns {Array}
+ */
+function mapDescribeToGroupIds(descriptions) {
+  return descriptions.map(mapDescription);
 }
 
 /**

@@ -6,24 +6,21 @@
  */
 
 module.exports = {
-  create
+  create: SgIpRange,
+  SgIpRange
 };
 
 /**
  * @param {string} cidrIp
  * @constructor
+ * @throws {TypeError}
  */
 function SgIpRange(cidrIp) {
+  if (!cidrIp) {
+    throw new TypeError('SgIpRange requires a cidrIp');
+  }
   if (!(this instanceof SgIpRange)) {
     return new SgIpRange(cidrIp);
   }
   this.CidrIp = cidrIp;
-}
-
-/**
- * @param {string} cidrIp
- * @returns {SgIpRange}
- */
-function create(cidrIp) {
-  return new SgIpRange(cidrIp);
 }
