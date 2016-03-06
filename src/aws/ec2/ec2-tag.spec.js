@@ -49,4 +49,29 @@ describe('AWS: EC2: Tag', () => {
           .check(done, () => expect(r).to.equal(true)), C.getFail(done));
     });
   });
+
+
+  describe('createClusternator function', () => {
+    it('should return an Ec2Tag', () => {
+      expect(ec2.createClusternator() instanceof ec2.Ec2Tag).to.be.ok;
+    });
+  });
+
+  describe('createDeployment function', () => {
+    it('should return an Ec2Tag', () => {
+      expect(ec2.createDeployment('master') instanceof ec2.Ec2Tag).to.be.ok;
+    });
+  });
+
+  describe('createProject function', () => {
+    it('should return an Ec2Tag', () => {
+      expect(ec2.createProject('test') instanceof ec2.Ec2Tag).to.be.ok;
+    });
+  });
+
+  describe('createPr function', () => {
+    it('should return an Ec2Tag', () => {
+      expect(ec2.createPr('46') instanceof ec2.Ec2Tag).to.be.ok;
+    });
+  });
 });

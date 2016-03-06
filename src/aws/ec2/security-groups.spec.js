@@ -13,7 +13,8 @@ function initData() {
   aws.ec2 = {
     authorizeSecurityGroupIngress: () => Q.resolve(true),
     authorizeSecurityGroupEgress: () => Q.resolve(true),
-    createSecurityGroup: () => Q.resolve({ GroupId: 'groupId' }),
+    createSecurityGroup: () => Q.resolve({ GroupId: 'groupId-sg' }),
+    createTags: () => Q.resolve(true),
     deleteSecurityGroup: () => Q.resolve(true),
     describeSecurityGroups: () => Q.resolve({
       SecurityGroups: [{ GroupId: 'groupId' }]
@@ -59,9 +60,75 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
     });
   });
 
+  describe('createPr function', () => {
+    it('should resolve existing security groups first', (done) => {
+      sg.createPr(aws, 'project', '23')
+        .then((r) => C
+          .check(done, () => expect(r).to.equal('groupId')), C.getFail(done));
+    });
+
+    it('should create new groups if they don\'t exist', (done) => {
+      aws.ec2.describeSecurityGroups = () => Q.resolve({ SecurityGroups: [] });
+      sg.createPr(aws, 'project', '23')
+        .then((r) => C
+          .check(done, () => expect(r).to.equal('groupId-sg')),
+          C.getFail(done));
+    });
+  });
+
+  describe('createDeployment function', () => {
+    it('should resolve existing security groups first', (done) => {
+      sg.createDeployment(aws, 'project', 'betta')
+        .then((r) => C
+          .check(done, () => expect(r).to.equal('groupId')), C.getFail(done));
+    });
+
+    it('should create new groups if they don\'t exist', (done) => {
+      aws.ec2.describeSecurityGroups = () => Q.resolve({ SecurityGroups: [] });
+      sg.createDeployment(aws, 'project', 'beta')
+        .then((r) => C
+          .check(done, () => expect(r).to.equal('groupId-sg')),
+          C.getFail(done));
+    });
+  });
+
   describe('destroy function', () => {
     it('should call ec2.deleteSecurityGroup', (done) => {
       sg.destroy(aws, 'group')
+        .then((r) => C
+          .check(done, () => expect(r).to.be.ok), C.getFail(done));
+    });
+  });
+
+  describe('destroyPr function', () => {
+    it('should call ec2.deleteSecurityGroup if the deployment exists',
+      (done) => {
+        sg.destroyPr(aws, 'projectId', 'pr')
+          .then((r) => C
+            .check(done, () => expect(r).to.be.ok), C.getFail(done));
+      });
+
+    it('should not call ec2.deleteSecurityGroup if the deployment is already ' +
+      'deleted', (done) => {
+        aws.ec2.describeSecurityGroups = () => Q.resolve({ SecurityGroups: []});
+        sg.destroyPr(aws, 'projectId', 'pr')
+          .then((r) => C
+            .check(done, () => expect(r).to.be.ok), C.getFail(done));
+      });
+  });
+
+  describe('destroyDeployment function', () => {
+    it('should call ec2.deleteSecurityGroup if the deployment exists',
+      (done) => {
+        sg.destroyDeployment(aws, 'projectId', 'master')
+          .then((r) => C
+            .check(done, () => expect(r).to.be.ok), C.getFail(done));
+      });
+
+    it('should not call ec2.deleteSecurityGroup if the deployment is already ' +
+      'deleted', (done) => {
+      aws.ec2.describeSecurityGroups = () => Q.resolve({ SecurityGroups: []});
+      sg.destroyDeployment(aws, 'projectId', 'beta')
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -133,6 +200,29 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
         .then((r) => C
           .check(done, () => expect(typeof r[0]).to.equal('string')),
           C.getFail(done));
+    });
+  });
+
+  describe('getDeploymentTags function', () => {
+    it('returns an array of Ec2Tags', () => {
+      const tags = sg.helpers.getDeploymentTags('my-project', 'master');
+      expect(Array.isArray(tags)).to.be.ok;
+    });
+  });
+
+  describe('getPrTags function', () => {
+    it('returns an array of Ec2Tags', () => {
+      const tags = sg.helpers.getPrTags('my-project', '23');
+      expect(Array.isArray(tags)).to.be.ok;
+    });
+  });
+
+  describe('bindAws function', () => {
+    it('should return a copy of the api bound with an aws object', (done) => {
+      const s = sg.bindAws(aws);
+      s.list()
+        .then((r) => C
+          .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
 });

@@ -5,8 +5,14 @@
  * @module aws/ec2/tag
  */
 
+const constants = require('../../constants');
+
 module.exports = {
   create: Ec2Tag,
+  createClusternator,
+  createProject,
+  createDeployment,
+  createPr,
   Ec2Tag,
   tag
 };
@@ -47,4 +53,35 @@ function Ec2Tag (key, value) {
     return this;
   }
   return new Ec2Tag(key, value);
+}
+
+/**
+ * @returns {Ec2Tag}
+ */
+function createClusternator() {
+  return Ec2Tag(constants.CLUSTERNATOR_TAG, 'true');
+}
+
+/**
+ * @param {string} projectId
+ * @returns {Ec2Tag}
+ */
+function createProject(projectId) {
+  return Ec2Tag(constants.PROJECT_TAG, projectId);
+}
+
+/**
+ * @param {string} prNum
+ * @returns {Ec2Tag}
+ */
+function createPr(prNum) {
+  return Ec2Tag(constants.PR_TAG, prNum);
+}
+
+/**
+ * @param {string} deployment
+ * @returns {Ec2Tag}
+ */
+function createDeployment(deployment) {
+  return Ec2Tag(constants.DEPLOYMENT_TAG, deployment);
 }
