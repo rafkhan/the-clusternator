@@ -6,7 +6,7 @@
  */
 const Q = require('q');
 const Subnet = require('./subnetManager');
-const SG = require('./securityGroupManager');
+const SG = require('./ec2/security-groups');
 const Ec2 = require('./ec2Manager');
 const rid = require('./../resource-identifier');
 const Cluster = require('./clusterManager');
@@ -23,7 +23,7 @@ const Config = require('../config');
 
 function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   const subnet = Subnet(ec2, vpcId);
-  const securityGroup = SG(ec2, vpcId);
+  const securityGroup = SG.bindAws({ ec2: util.makePromiseApi(ec2), vpcId });
   const cluster = Cluster(ecs);
   const route53 = Route53(r53, zoneId);
   const ec2mgr = Ec2(ec2, vpcId);
