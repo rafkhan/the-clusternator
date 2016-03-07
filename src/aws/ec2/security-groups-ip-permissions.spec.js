@@ -15,13 +15,14 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
   beforeEach(initData);
 
   describe('validateProtocol function', () => {
+    it('should throw if given an invalid protocol', () => {
+      expect(() => sg.SgIpPermissions.validateProtocol('archie'))
+        .to.throw(TypeError);
+    });
     it('should return true if given a valid protocol', () => {
-      expect(sg.SgIpPermissions.validateProtocol('tcp')).to.equal(true);
+      expect(sg.SgIpPermissions.validateProtocol('tcp')).to.be.ok;
     });
 
-    it('should return false if given a invalid protocol', () => {
-      expect(sg.SgIpPermissions.validateProtocol('archie')).to.equal(false);
-    });
   });
 
   describe('validatePort function', () => {

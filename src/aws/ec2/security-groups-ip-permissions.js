@@ -10,7 +10,7 @@ module.exports = {
   SgIpPermissions
 };
 
-const validProtocols = Object.freeze([-1, '-1', 'tcp', 'udp', 'icmp']);
+const validProtocols = Object.freeze(['-1', 'tcp', 'udp', 'icmp']);
 
 /**
  * @param {string} protocol
@@ -36,9 +36,14 @@ function SgIpPermissions(protocol, fromPort, toPort, ipRangesOrSgs) {
 /**
  * @param {string|number} protocol
  * @returns {boolean}
+ * @throws {TypeError}
  */
 SgIpPermissions.validateProtocol = function validateProtocol(protocol) {
-  return validProtocols.indexOf(protocol) !== -1;
+  const index = validProtocols.indexOf(protocol + '');
+  if (index === -1) {
+    throw new TypeError('invalid protocol: ' + protocol);
+  }
+  return validProtocols[index];
 };
 
 /**

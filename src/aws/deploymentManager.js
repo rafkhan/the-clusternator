@@ -67,7 +67,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   /**
    * @param {Object} creq
-   * @returns {Q.Promise<{{ groupId: string }}>}
+   * @returns {Promise<{ groupId: string }>}
    */
   function setGroupId(creq) {
     return securityGroup
