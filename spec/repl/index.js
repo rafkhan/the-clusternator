@@ -32,7 +32,7 @@ module.exports = {
   project: require('./project.spec'),
   r53: require('./route53.spec'),
   routes: require('./routes.spec'),
-  securityGroups: require('./securityGroup.spec'),
+  securityGroups: require('./security-groups.spec.js'),
   service: require('./service.spec'),
   setup: require('./setup'),
   subnet: require('./subnet.spec'),

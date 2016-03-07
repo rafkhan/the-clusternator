@@ -6,7 +6,7 @@
  */
 const Q = require('q');
 const Subnet = require('./subnetManager');
-const SG = require('./securityGroupManager');
+const SG = require('./ec2/security-groups');
 const Ec2 = require('./ec2Manager');
 const rid = require('./../resource-identifier');
 const Cluster = require('./clusterManager');
@@ -23,7 +23,7 @@ const Config = require('../config');
 
 function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   let subnet = Subnet(ec2, vpcId);
-  let securityGroup = SG(ec2, vpcId);
+  let securityGroup = SG.bindAws({ ec2: util.makePromiseApi(ec2), vpcId });
   let cluster = Cluster(ecs);
   let route53 = Route53(r53, zoneId);
   let ec2mgr = Ec2(ec2, vpcId);
@@ -68,7 +68,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   /**
    * @param {Object} creq
-   * @returns {Q.Promise<{{ groupId: string }}>}
+   * @returns {Promise<{ groupId: string }>}
    */
   function setGroupId(creq) {
     return securityGroup

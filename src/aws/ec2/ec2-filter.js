@@ -12,19 +12,27 @@ module.exports = {
   createVpc,
   createTag,
   createTagKey,
-  createClusternator
+  createClusternator,
+  Filter
 };
 
 /**
  * @param {string} name
  * @param {string|string[]} values
  * @constructor
+ * @throws {TypeError}
  */
 function Filter(name, values) {
   if (!(this instanceof Filter)) {
     return new Filter(name, values);
   }
-  this.Name = name;
+  if (!name) {
+    throw new TypeError('filter requires a name');
+  }
+  if (values === undefined) {
+    throw new TypeError('filter requires value(s)');
+  }
+  this.Name = name + '';
   this.Values = Array.isArray(values) ? values : [values];
 }
 

@@ -138,7 +138,15 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    * @returns {Q.Promise}
    */
   function createPR(projectId, pr, appDef, sshData) {
-    return state().then((s) => findOrCreateProject(projectId)
+    return state()
+      .then((s) => findOrCreateProject(projectId)
+        .then(() => prExists(projectId, pr)
+          .then((exists) => {
+            if (!exists) {
+              return;
+            }
+            return destroyPR(projectId, pr);
+          }))
       .then(() => {
         return s.pullRequest
           .create(projectId, pr, appDef, sshData);
@@ -263,6 +271,26 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
             }, null) ).filter((identity) => {
             return identity;
           })));
+  }
+
+  /**
+   * @param {string} projectId
+   * @param {string} pr
+   * @returns {Promise<boolean>}
+   */
+  function prExists(projectId, pr) {
+
+    return listDeployments(projectId)
+      .then((prs) => {
+        const getInstances = R.compose(R.flatten, R.map((d) => {
+          return getTagsFromInstances(d.Instances);
+        }));
+
+        const insts = getInstances(prs);
+        prs = R.map(R.prop(constants.PR_TAG), insts);
+
+        return R.contains(pr, prs);
+      });
   }
 
   /**

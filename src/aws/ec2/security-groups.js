@@ -6,22 +6,52 @@
  */
 
 const filter = require('./ec2-filter');
+const tag = require('./ec2-tag');
 const constants = require('../../constants');
+const rid = require('../../resource-identifier');
+const util = require('../../util');
+
+const ipPerms = require('./security-groups-ip-permissions');
+const ipRange = require('./security-group-ip-range');
 
 module.exports = {
+  bindAws,
   create,
-  destroy,
+  createDeployment,
+  createPr,
   describe,
-  describeProject,
-  describePr,
   describeDeployment,
+  describePr,
+  describeProject,
+  destroy,
+  destroyDeployment,
+  destroyPr,
   list,
-  listProject,
-  listPr,
   listDeployment,
+  listPr,
+  listProject,
   authorizeEgress,
-  authorizeIngress
+  authorizeIngress,
+  helpers: {
+    getDeploymentTags,
+    getPrTags
+  }
 };
+
+/**
+ * @param {AwsWrapper} aws
+ * @returns {Object} this API bound to
+ */
+function bindAws(aws) {
+  const securityGroups = {};
+  Object.keys(module.exports).forEach((fnName) => {
+    if (typeof module.exports[fnName] === 'function') {
+      securityGroups[fnName] = util.partial(module.exports[fnName], [ aws ]);
+    }
+  });
+  return securityGroups;
+}
+
 
 /**
  * @param {AwsWrapper} aws
@@ -74,16 +104,114 @@ function create(aws, name, description) {
 }
 
 /**
+ * @param {string} projectId
+ * @param {string} pr
+ * @returns {Array.<Ec2Tag>}
+ */
+function getPrTags(projectId, pr) {
+  return [
+    tag.createClusternator(),
+    tag.createProject(projectId),
+    tag.createPr(pr)
+  ];
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} pr
+ * @returns {Q.Promise<string>}
+ */
+function createPr(aws, projectId, pr) {
+  const id = rid.generateRID({
+    pid: projectId,
+    pr: pr
+  });
+
+  return listPr(aws, projectId, pr)
+    .then((r) => r.length ? r[0] : create(
+      aws, id, `Created by The Clusternator For ${projectId} PR #${pr}`)
+      .then((id) => tag
+        .tag(aws, [id], getPrTags(projectId, pr))
+        .then(authorizeIngress(aws, id, [
+          ipPerms.create(-1, 1, 65534, [ipRange.create('0.0.0.0/0')])
+        ]))
+        .then(() => id)));
+}
+
+/**
+ * @param {string} projectId
+ * @param {string} deployment
+ * @returns {Array.<Ec2Tag>}
+ */
+function getDeploymentTags(projectId, deployment) {
+  return [
+    tag.createClusternator(),
+    tag.createProject(projectId),
+    tag.createDeployment(deployment)
+  ];
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} deployment
+ * @returns {Q.Promise<string>}
+ */
+function createDeployment(aws, projectId, deployment) {
+  const id = rid.generateRID({
+    pid: projectId,
+    deployment: deployment
+  });
+  return listDeployment(aws, projectId, deployment)
+    .then((r) => r.length ? r[0] : create(
+      aws, id, `Created by The Clusternator For ${projectId} deployment ` +
+      deployment)
+      .then((id) => tag
+        .tag(aws, [id], getDeploymentTags(projectId, deployment))
+        .then(authorizeIngress(aws, id, [
+          ipPerms.create(-1, 1, 65534, [ipRange.create('0.0.0.0/0')])
+        ]))
+        .then(() => id)));
+}
+
+/**
  * @param {AwsWrapper} aws
  * @param {string} groupId
- * @returns {Q.Promise}
+ * @returns {Promise.<string>}
  */
 function destroy(aws, groupId) {
   return aws.ec2.deleteSecurityGroup({
     GroupId: groupId
-  });
+  }).then(() => 'deleted');
 }
 
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} deployment
+ * @returns {Promise.<string>}
+ */
+function destroyDeployment(aws, projectId, deployment) {
+  return listDeployment(aws, projectId, deployment)
+    .then((r) => r.length ? destroy(aws, r[0]) : 'already deleted');
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} pr
+ * @returns {Promise.<string>}
+ */
+function destroyPr(aws, projectId, pr) {
+  return listPr(aws, projectId, pr)
+    .then((r) => r.length ? destroy(aws, r[0]) : 'already deleted');
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @returns {Promise}
+ */
 function describe(aws) {
   return aws.ec2.describeSecurityGroups({
     Filters: [
@@ -146,8 +274,16 @@ function describeDeployment(aws, projectId, deployment) {
  * @param {Object} el
  * @returns {string}
  */
-function mapDescribeToGroupIds(el) {
+function mapDescription(el) {
   return el.GroupId;
+}
+
+/**
+ * @param {Array} descriptions
+ * @returns {Array}
+ */
+function mapDescribeToGroupIds(descriptions) {
+  return descriptions.map(mapDescription);
 }
 
 /**

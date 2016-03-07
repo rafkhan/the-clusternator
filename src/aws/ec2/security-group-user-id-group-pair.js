@@ -6,14 +6,22 @@
  */
 
 module.exports = {
-  create: SgUserIdGroupPair
+  create: SgUserIdGroupPair,
+  SgUserIdGroupPair
 };
 
 /**
  * @param {string} groupId
  * @constructor
+ * @throws {TypeError}
  */
 function SgUserIdGroupPair(groupId) {
+  if (!groupId) {
+    throw new TypeError('SgUserIdGroupPar requires a groupId');
+  }
+  if (!(this instanceof SgUserIdGroupPair)) {
+    return new SgUserIdGroupPair(groupId);
+  }
   this.GroupId = groupId;
 }
 
