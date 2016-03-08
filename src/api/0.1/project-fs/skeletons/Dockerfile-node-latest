@@ -9,7 +9,7 @@ useradd -u 431 -r -g swuser -d /home/swuser -s /sbin/nologin \
 chown -R swuser:swuser /home/swuser
 
 # install tools
-RUN sudo apt-get update && sudo apt-get install -y git build-essential
+RUN sudo apt-get update && sudo apt-get install -y git
 
 # setup the application
 RUN mkdir /home/app
@@ -22,7 +22,7 @@ RUN cd /home/app/; npm set progress=false; npm install
 
 
 ## Expose the ports
-EXPOSE 3000
+EXPOSE $EXTERNAL_PORT
 
 USER swuser
 CMD ["/home/app/$CLUSTERNATOR_DIR/serve.sh"]
