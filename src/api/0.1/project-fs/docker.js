@@ -9,6 +9,7 @@ const DOCKERFILE = 'Dockerfile';
 const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-latest';
 const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
+const EXTERNAL_PORT = /\$EXTERNAL_PORT/g;
 
 const fs = require('./project-fs');
 const privateFs = require('./private');
@@ -28,9 +29,10 @@ module.exports = {
  *
  * @param {string} clustDir
  * @param {string} dockerType
+ * @param {number=} port
  * @returns {Q.Promise}
  */
-function initializeDockerFile(clustDir, dockerType) {
+function initializeDockerFile(clustDir, dockerType, port) {
   /** @todo do not overwrite existing Dockerfile */
   const template = dockerType === 'static' ?
     DOCKERFILE_STATIC_LATEST : DOCKERFILE_NODE_LATEST;
@@ -38,6 +40,9 @@ function initializeDockerFile(clustDir, dockerType) {
     .findProjectRoot()
     .then((root) => fs.getSkeleton(template)
       .then((contents) => {
+        if (port) {
+          contents = contents.replace(EXTERNAL_PORT, port);
+        }
         contents = contents.replace(CLUSTERNATOR_DIR, clustDir);
         return fs.write(fs.path.join(root, DOCKERFILE), contents);
       }) );

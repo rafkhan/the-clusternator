@@ -34,7 +34,7 @@ function initProject(root, options, skipNetwork) {
       deploymentsFs.init(dDir, projectId, options.ports),
       scriptsFs.init(cDir, options.tld),
       scriptsFs.initOptional(options, root),
-      dockerFs.init(cDir, dockerType)])
+      dockerFs.init(cDir, dockerType, options.ports[0].portInternal)])
     .then(() => {
       if (skipNetwork) {
         util.info('Network Resources *NOT* Checked');
