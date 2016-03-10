@@ -80,4 +80,11 @@ describe('AWS: EC2: Filter', () => {
         expect(f.Values[0]).to.be.ok;
       });
   });
+
+  describe('createSgName function', () => {
+    it('should return a filter with a key value of "group-name"', () => {
+      const f = ec2.createSgName('fred');
+      expect(f.Name).to.equal('group-name');
+    });
+  });
 });

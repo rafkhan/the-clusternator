@@ -117,16 +117,25 @@ function getPrTags(projectId, pr) {
 }
 
 /**
+ * @param {string} projectId
+ * @param {string} pr
+ * @return {string}
+ */
+function createPrName(projectId, pr) {
+  return rid.generateRID({
+    pid: projectId,
+    pr: pr
+  });
+}
+
+/**
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} pr
  * @returns {Q.Promise<string>}
  */
 function createPr(aws, projectId, pr) {
-  const id = rid.generateRID({
-    pid: projectId,
-    pr: pr
-  });
+  const id = createPrName(projectId, pr);
 
   return listPr(aws, projectId, pr)
     .then((r) => r.length ? r[0] : create(
@@ -153,16 +162,25 @@ function getDeploymentTags(projectId, deployment) {
 }
 
 /**
+ * @param {string} projectId
+ * @param {string} deployment
+ * @returns {string}
+ */
+function createDeploymentName(projectId, deployment) {
+  return rid.generateRID({
+    pid: projectId,
+    deployment: deployment
+  });
+}
+
+/**
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} deployment
  * @returns {Q.Promise<string>}
  */
 function createDeployment(aws, projectId, deployment) {
-  const id = rid.generateRID({
-    pid: projectId,
-    deployment: deployment
-  });
+  const id = createDeploymentName(projectId, deployment);
   return listDeployment(aws, projectId, deployment)
     .then((r) => r.length ? r[0] : create(
       aws, id, `Created by The Clusternator For ${projectId} deployment ` +
@@ -245,10 +263,7 @@ function describeProject(aws, projectId) {
 function describePr(aws, projectId, pr) {
   return aws.ec2.describeSecurityGroups({
     Filters: [
-      filter.createVpc(aws.vpcId),
-      filter.createClusternator(),
-      filter.createTag(constants.PROJECT_TAG, projectId),
-      filter.createTag(constants.PR_TAG, pr + '')
+      filter.createSgName(createPrName(projectId, pr))
     ]
   });
 }
@@ -262,10 +277,7 @@ function describePr(aws, projectId, pr) {
 function describeDeployment(aws, projectId, deployment) {
   return aws.ec2.describeSecurityGroups({
     Filters: [
-      filter.createVpc(aws.vpcId),
-      filter.createClusternator(),
-      filter.createTag(constants.PROJECT_TAG, projectId),
-      filter.createTag(constants.DEPLOYMENT_TAG, deployment)
+      filter.createSgName(createDeploymentName(projectId, deployment))
     ]
   });
 }

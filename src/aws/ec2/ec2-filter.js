@@ -9,10 +9,11 @@ const constants = require('../../constants');
 
 module.exports = {
   create: Filter,
-  createVpc,
+  createClusternator,
+  createSgName,
   createTag,
   createTagKey,
-  createClusternator,
+  createVpc,
   Filter
 };
 
@@ -67,4 +68,12 @@ function createTagKey(values) {
  */
 function createClusternator() {
   return createTagKey(constants.CLUSTERNATOR_TAG);
+}
+
+/**
+ * @param {string} name
+ * @returns {Filter}
+ */
+function createSgName(name) {
+  return new Filter('group-name', [name]);
 }
