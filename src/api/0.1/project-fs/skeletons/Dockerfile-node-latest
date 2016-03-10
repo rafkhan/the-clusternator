@@ -1,4 +1,4 @@
-FROM rafkhan/rangle-node:14.04-4.3.2
+FROM rafkhan/rangle-node:14.04-4.4.0
 
 # setup user
 USER root
