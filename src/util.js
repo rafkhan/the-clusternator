@@ -23,6 +23,7 @@ module.exports = {
   getCidrPrefixFromIPString,
   waitFor,
   makePromiseApi,
+  makeRetryPromise,
   clone,
   info,
   debug,
@@ -310,5 +311,60 @@ function partial(fn, args) {
     return fn.apply(null, allArgs);
   }
   return applyPartial;
+}
+
+/**
+ * @param {Error} err
+ * @param {string} prefix
+ * @returns {Error}
+ */
+function prefixError(err, prefix) {
+  err.message = prefix + err.message;
+  return err;
+}
+
+/**
+ * @param {function():Promise} promiseReturningFunction
+ * @param {number} retryCount times to retry
+ * @param {number=} delay ms to delay retry
+ * @param {number=} multiplier each failure will multiply the delay by this
+ * @param {function(Error):boolean=} failOn if true fails instead of retrying
+ * @param {string=} label
+ * @return {Promise}
+ */
+function makeRetryPromise(promiseReturningFunction, retryCount, delay,
+                          multiplier, failOn, label) {
+  // Validate parameters
+  retryCount = +retryCount >= 1 ? +retryCount : 1;
+  delay = +delay >= 0 ? +delay : 0;
+  multiplier = +multiplier >= 1 ? +multiplier : 1;
+  label = label ? label + ' ' : '';
+  failOn = typeof failOn === 'function' ? failOn : () => false;
+
+  // Call the function
+  return promiseReturningFunction()
+    .fail((err) => {
+      // Fail if it's failing for an expected reason
+      if (failOn(err)) {
+        prefixError(err, label);
+        throw err;
+      }
+
+      // if there is a retry value retry
+      if (retryCount > 1) {
+        let d = Q.defer();
+
+        // delay retries
+        setTimeout(() => makeRetryPromise(
+          promiseReturningFunction, retryCount - 1, delay * multiplier,
+          multiplier, failOn, label)
+          .then(d.resolve, d.reject), delay);
+        return d.promise;
+      }
+
+      // out of retries, throw
+      prefixError(err, label);
+      throw err;
+    });
 }
 
