@@ -72,7 +72,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    */
   function setGroupId(creq) {
     return securityGroup
-      .createPr(creq.projectId, creq.pr)
+      .createPr(creq.projectId, creq.pr)()
       .then((groupId) => {
         creq.groupId = groupId;
         return creq;
@@ -177,7 +177,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
         .destroy(clusterName)
         .fail(() => undefined))
       .then(() => securityGroup
-        .destroyPr(projectId, pr));
+        .destroyPr(projectId, pr)());
   }
 
   return {

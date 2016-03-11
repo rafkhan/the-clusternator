@@ -71,7 +71,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    */
   function setGroupId(creq) {
     return securityGroup
-      .createDeployment(creq.projectId, creq.deployment)
+      .createDeployment(creq.projectId, creq.deployment)()
       .then((groupId) => {
         creq.groupId = groupId;
         return creq;
@@ -174,7 +174,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
         // fail over
         .fail(() => undefined))
       .then(() => securityGroup
-        .destroyDeployment(projectId, deployment)
+        .destroyDeployment(projectId, deployment)()
         // fail over
         .fail(() => undefined));
   }
