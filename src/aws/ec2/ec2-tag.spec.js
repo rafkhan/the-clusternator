@@ -43,8 +43,8 @@ describe('AWS: EC2: Tag', () => {
       expect(() => ec2.tag(aws, 'test', [])).to.throw(TypeError);
     });
 
-    it('should call ec2.createTags', (done) => {
-      ec2.tag(aws, [], [])
+    it('should return a function that calls ec2.createTags', (done) => {
+      ec2.tag(aws, [], [])()
         .then((r) => C
           .check(done, () => expect(r).to.equal(true)), C.getFail(done));
     });
