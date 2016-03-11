@@ -11,19 +11,6 @@ describe('utility functions', () => {
     expect(util.quote('booya')).equal('"booya"');
   });
 
-  it('clone should return a copy of an object', () => {
-    const testObj = {
-        a: 5,
-        b: {
-          ba: 10
-        }
-      };
-    const copy = util.clone(testObj);
-    expect(copy).to.not.equal(testObj);
-    expect(copy.b).to.not.equal(testObj.b);
-    expect(copy.b.ba).to.equal(testObj.b.ba);
-  });
-
   it('getCidrPrefixFromIPString should return the first two classes of an ' +
     ' ip address', () => {
       expect(util.getCidrPrefixFromIPString('1.2.3.4')).to.equal('1.2');
@@ -149,6 +136,126 @@ describe('utility functions', () => {
     it('should partially apply arrays of variables', () => {
       const test = util.partial((a, b) => a + b, [5, 5]);
       expect(test() === 10).to.be.ok;
+    });
+
+    it('should work without parameters', () => {
+      const test = util.partial((a) => a);
+      expect(test(5) === 5).to.be.ok;
+    });
+  });
+
+  describe('makeRetryPromise function', () => {
+    it('should resolve resolving promises', (done) => {
+      const d = Q.defer();
+      util.makeRetryPromise(() => d.promise)
+        .then((r) => C.check(done, () => expect(r).to.equal(true)),
+          C.getFail(done));
+      d.resolve(true);
+    });
+
+    it('should handle a one time failure', (done) => {
+      // setup
+      const limit = 1;
+      let tries = 0;
+      const pReturn = () => {
+        const d = Q.defer();
+        if (tries >= limit) {
+          tries += 1;
+          d.resolve(true);
+        } else {
+          tries += 1;
+          d.reject(new Error('test error'));
+        }
+        return d.promise;
+      };
+      // test
+      util.makeRetryPromise(pReturn, 2)
+        .then((r) => C.check(done, () => expect(r).to.equal(true)),
+          C.getFail(done));
+    });
+
+    it('should fail when retries are exceeded', (done) => {
+      // setup
+      const limit = 3;
+      let tries = 0;
+      const pReturn = () => {
+        const d = Q.defer();
+        if (tries >= limit) {
+          tries += 1;
+          d.resolve(true);
+        } else {
+          tries += 1;
+          d.reject(new Error('test error'));
+        }
+        return d.promise;
+      };
+      // test
+      util.makeRetryPromise(pReturn, 2)
+        .then(C.getFail(done), (err) => C
+          .check(done, () => expect(err instanceof Error).to.be.ok));
+    });
+
+    it('should fail when expected errors are encountered', (done) => {
+      // setup
+      const limit = 3;
+      let tries = 0;
+      const pReturn = () => {
+        const d = Q.defer();
+        if (tries >= limit) {
+          tries += 1;
+          d.resolve(true);
+        } else {
+          tries += 1;
+          d.reject(new RangeError('test error'));
+        }
+        return d.promise;
+      };
+      // test
+      util.makeRetryPromise(pReturn, 2, 100, 1, () => true, 'word')
+        .then(C.getFail(done), (err) => C
+          .check(done, () => expect(err instanceof Error).to.be.ok));
+    });
+
+  });
+
+  describe('safeParse function', () => {
+    it('should parse *valid* JSON', () => {
+      expect(util.safeParse('{ "a": 1 }')).to.be.ok;
+    });
+
+    it('should return null on invalid JSON', () => {
+      expect(util.safeParse('blahablba')).not.to.be.ok;
+    });
+  });
+
+  describe('deepFreeze function', () => {
+    it('should return its input if not given an object', () => {
+      expect(util.deepFreeze(7)).to.equal(7);
+    });
+
+    it('should freeze nested objects', () => {
+      const t = util.deepFreeze({ a: 7, b: { c: 76 }});
+      expect(() => t.b.c = 7).to.throw(Error);
+    });
+
+  });
+
+  describe('dirty clone function', () => {
+    it('clone should return a copy of an object', () => {
+      const testObj = {
+        a: 5,
+        b: {
+          ba: 10
+        }
+      };
+      const copy = util.clone(testObj);
+      expect(copy).to.not.equal(testObj);
+      expect(copy.b).to.not.equal(testObj.b);
+      expect(copy.b.ba).to.equal(testObj.b.ba);
+    });
+
+    it('should return null if given an object that trips up JSON', () => {
+      expect(util.clone()).to.equal(null);
     });
   });
 
