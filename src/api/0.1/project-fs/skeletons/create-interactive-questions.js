@@ -166,7 +166,7 @@ function projectInit(defaults) {
     {
       type: 'list',
       name: 'backend',
-      choices: ['static', 'node'],
+      choices: ['static', 'node (long-term-support)', 'node (stable)'],
       message: 'Choose a backend'
     },
     {

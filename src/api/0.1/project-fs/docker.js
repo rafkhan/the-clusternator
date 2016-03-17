@@ -6,8 +6,9 @@
  * @module api/'0.1'/projectFs/docker
  */
 const DOCKERFILE = 'Dockerfile';
-const DOCKERFILE_NODE_LATEST = 'Dockerfile-node-latest';
-const DOCKERFILE_STATIC_LATEST = 'dockerfile-nginx-latest';
+const DOCKERFILE_NODE_LTS_LATEST = 'Dockerfile-node-4-latest';
+const DOCKERFILE_NODE_STABLE_LATEST = 'Dockerfile-node-5-latest';
+const DOCKERFILE_STATIC_LATEST = 'dockerfile-static-latest';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 const EXTERNAL_PORT = /\$EXTERNAL_PORT/g;
 
@@ -34,8 +35,12 @@ module.exports = {
  */
 function initializeDockerFile(clustDir, dockerType, port) {
   /** @todo do not overwrite existing Dockerfile */
-  const template = dockerType === 'static' ?
-    DOCKERFILE_STATIC_LATEST : DOCKERFILE_NODE_LATEST;
+  const templateMap = {
+    'static': DOCKERFILE_STATIC_LATEST,
+    'node (long-term-support)': DOCKERFILE_NODE_LTS_LATEST,
+    'node (stable)': DOCKERFILE_NODE_STABLE_LATEST
+  };
+  const template = templateMap[dockerType || 'static'];
   return fs
     .findProjectRoot()
     .then((root) => fs.getSkeleton(template)
@@ -90,4 +95,3 @@ function dockerBuild(name, passphrase) {
       });
   });
 }
-
