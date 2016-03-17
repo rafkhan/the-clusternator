@@ -21,7 +21,7 @@ module.exports = Object.freeze({
   RESOURCE_RECORD_SET: {
     'Name': '', // Subdomain Name
     'Type': '', // SOA | A | TXT | NS | CNAME | MX | PTR | SRV | SPF | AAAA
-    'TTL': 300,
+    'TTL': 30,
     'ResourceRecords': []
   },
   ALIAS_TARGET: {
