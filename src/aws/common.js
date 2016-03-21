@@ -433,7 +433,7 @@ function createTask(task, creq) {
  */
 function registerEc2ToElb(elb, creq) {
   return elb.registerInstances(creq.elbId,
-    [findIdFromEc2Describe(creq.ec2Info)])
+    [findIdFromEc2Describe(creq.ec2Info)])()
     .then(() => creq);
 }
 

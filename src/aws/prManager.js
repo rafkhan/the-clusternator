@@ -54,7 +54,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   function createElb(creq) {
     return elb.createPr(creq.projectId, creq.pr, creq.subnetId,
-      creq.groupId, awsConstants.AWS_SSL_ID);
+      creq.groupId, awsConstants.AWS_SSL_ID)();
   }
 
   function setUrl(creq) {
@@ -137,7 +137,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request|Promise.<T>}
    */
   function destroyRoutes(projectId, pr) {
-    return elb.describePr(projectId, pr)
+    return elb.describePr(projectId, pr)()
       .then((result) => route53
         .destroyPRCNameRecord(projectId, pr, result.dns));
   }
@@ -148,7 +148,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Q.Promise}
    */
   function destroyElb(projectId, pr) {
-    return elb.destroyPr(projectId, pr)
+    return elb.destroyPr(projectId, pr)()
       //fail over
       .fail((err) => util.warn(err));
   }

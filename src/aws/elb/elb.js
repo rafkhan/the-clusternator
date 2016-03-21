@@ -41,7 +41,7 @@ module.exports = {
  * @param {string=} target
  * @param {number=} timeout
  * @param {number=} interval
- * @returns {*}
+ * @returns {function(): Promise}
  */
 function configureHealthCheck(aws, loadBalancerId, healthyThresh,
                               unhealthyThresh, target, timeout, interval) {
@@ -51,16 +51,24 @@ function configureHealthCheck(aws, loadBalancerId, healthyThresh,
   timeout = timeout || interval - 10;
   unhealthyThresh = unhealthyThresh || 5;
   healthyThresh = healthyThresh || 2;
-  return aws.elb.configureHealthCheck({
-    LoadBalancerName: loadBalancerId,
-    HealthCheck: {
-      HealthyThreshold: healthyThresh,
-      Interval: interval,
-      Target: target,
-      Timeout: timeout,
-      UnhealthyThreshold: unhealthyThresh
-    }
-  });
+
+  /**
+   * @returns {Promise}
+   */
+  function promiseToConfigureHealthCheck() {
+    return aws.elb.configureHealthCheck({
+      LoadBalancerName: loadBalancerId,
+      HealthCheck: {
+        HealthyThreshold: healthyThresh,
+        Interval: interval,
+        Target: target,
+        Timeout: timeout,
+        UnhealthyThreshold: unhealthyThresh
+      }
+    });
+  }
+  
+  return promiseToConfigureHealthCheck;
 }
 
 /**
@@ -116,7 +124,7 @@ function defaultListeners(certId, useInternalSSL) {
  * @param {string} securityGroup
  * @param {string} certId
  * @param {boolean=} useInternalSSL defaults to false
- * @returns {Q.Promise}
+ * @returns {function(): Promise.<{ dns: string, id: string}>}
  */
 function createDeployment(aws, projectId, deployment, subnet, securityGroup,
                           certId, useInternalSSL) {
@@ -143,7 +151,7 @@ function createDeployment(aws, projectId, deployment, subnet, securityGroup,
  * @param {string} securityGroup
  * @param {string} certId
  * @param {boolean=} useInternalSSL defaults to false
- * @returns {Q.Promise}
+ * @returns {function(): Promise.<{ dns: string, id: string}>}
  */
 function createPr(aws, projectId, pr, subnet, securityGroup, certId,
                   useInternalSSL) {
@@ -167,35 +175,44 @@ function createPr(aws, projectId, pr, subnet, securityGroup, certId,
  * @param {string[]} securityGroups
  * @param {string} loadBalancerId
  * @param {Array.<ElbTag>=}tags
- * @returns {Promise}
+ * @returns {function(): Promise.<{ dns: string, id: string}>}
  */
 function create(aws, listeners, subnets, securityGroups, loadBalancerId, tags) {
   tags = Array.isArray(tags) ? tags : [];
-  return aws.elb.createLoadBalancer({
-      Listeners: listeners,
-      LoadBalancerName: loadBalancerId,
-      SecurityGroups: securityGroups,
-      Subnets: subnets,
-      Tags: [tag.create(constants.CLUSTERNATOR_TAG, true)].concat(tags) })
-    .then((results) => {
-      return {
-        dns: results.DNSName,
-        id: loadBalancerId
-      };
-    });
+
+  /**
+   * @return {Promise.<{ dns: string, id: string}>}
+   */
+  function promiseToCreate() {
+    return aws.elb.createLoadBalancer({
+        Listeners: listeners,
+        LoadBalancerName: loadBalancerId,
+        SecurityGroups: securityGroups,
+        Subnets: subnets,
+        Tags: [tag.create(constants.CLUSTERNATOR_TAG, true)].concat(tags) })
+      .then((results) => {
+        return {
+          dns: results.DNSName,
+          id: loadBalancerId
+        };
+      });
+  }
+  return promiseToCreate;
 }
 
 /**
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} pr
- * @returns {Q.Promise}
+ * @returns {function(): Promise}
+ * @throws {TypeError}
  */
 function destroyPr(aws, projectId, pr) {
   if (!projectId || !pr) {
     throw new TypeError('destroyPr requires a projectId and pr number');
   }
   const id = elbPrId(projectId, pr);
+
   return destroy(aws, id);
 }
 
@@ -203,7 +220,8 @@ function destroyPr(aws, projectId, pr) {
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} deployment
- * @returns {Q.Promise}
+ * @returns {function(): Promise}
+ * @throws {TypeError}
  */
 function destroyDeployment(aws, projectId, deployment) {
   if (!projectId || !deployment) {
@@ -216,41 +234,72 @@ function destroyDeployment(aws, projectId, deployment) {
 /**
  * @param {AwsWrapper} aws
  * @param {string} loadBalancerId
- * @return {Q.Promise}
+ * @return {function(): Promise}
+ * @throws {TypeError}
  */
 function destroy(aws, loadBalancerId) {
   if (!loadBalancerId) {
     throw new TypeError('destroyLoadBalancer requires a loadBalancerId');
   }
-  return aws.elb.deleteLoadBalancer({
-    LoadBalancerName: loadBalancerId
-  });
-}
 
-function describeAll(aws) {
-  return aws.elb.describeLoadBalancers();
-}
-
-function describeById(aws, id) {
-  return aws.elb
-    .describeLoadBalancers({
-      LoadBalancerNames: [
-        id
-      ]})
-    .then((results) => {
-      if (!results.LoadBalancerDescriptions.length) {
-        throw new Error(`describeDeployment: no deployment found: ${id}`);
-      }
-      return {
-        dns: results.LoadBalancerDescriptions[0].DNSName
-      };
+  /**
+   * @returns {Promise}
+   */
+  function promiseToDestroy() {
+    return aws.elb.deleteLoadBalancer({
+      LoadBalancerName: loadBalancerId
     });
+  }
+  return promiseToDestroy;
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @returns {function(): Promise}
+ */
+function describeAll(aws) {
+  /**
+   * @return {Promise}
+   */
+  function promiseToDescribeAll() {
+    return aws.elb.describeLoadBalancers();
+  }
+  return promiseToDescribeAll;
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} id
+ * @returns {function(): Promise.<{ dns: string }>}
+ */
+function describeById(aws, id) {
+  /**
+   * @returns {Promise.<{ dns: string }>}
+   */
+  function promiseToDescribeById(){
+    return aws.elb
+      .describeLoadBalancers({
+        LoadBalancerNames: [
+          id
+        ]})
+      .then((results) => {
+        if (!results.LoadBalancerDescriptions.length) {
+          throw new Error(`describeDeployment: no deployment found: ${id}`);
+        }
+        return {
+          dns: results.LoadBalancerDescriptions[0].DNSName
+        };
+      });
+  }
+  return promiseToDescribeById;
 }
 
 /**
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} deployment
+ * @return {function(): Promise.<{ dns: string }>}
+ * @throws {TypeError}
  */
 function describeDeployment(aws, projectId, deployment) {
   if (!projectId || !deployment) {
@@ -265,6 +314,8 @@ function describeDeployment(aws, projectId, deployment) {
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} pr
+ * @return {function(): Promise.<{ dns: string }>}
+ * @throws {TypeError}
  */
 function describePr(aws, projectId, pr) {
   if (!projectId || !pr) {

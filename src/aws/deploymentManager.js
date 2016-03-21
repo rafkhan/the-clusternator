@@ -52,7 +52,7 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   function createElb(creq) {
     return elb.createDeployment(creq.projectId, creq.deployment, creq.subnetId,
-      creq.groupId, awsConstants.AWS_SSL_ID, creq.useInternalSSL);
+      creq.groupId, awsConstants.AWS_SSL_ID, creq.useInternalSSL)();
   }
 
   function setUrl(creq) {
@@ -138,13 +138,13 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request|Promise.<T>}
    */
   function destroyRoutes(projectId, deployment) {
-    return elb.describeDeployment(projectId, deployment)
+    return elb.describeDeployment(projectId, deployment)()
       .then((result) => route53
         .destroyDeploymentCNameRecord(projectId, deployment, result.dns));
   }
 
   function destroyElb(projectId, deployment) {
-    return elb.destroyDeployment(projectId, deployment)
+    return elb.destroyDeployment(projectId, deployment)()
       //fail over
       .fail((err) => util.warn(err));
   }
