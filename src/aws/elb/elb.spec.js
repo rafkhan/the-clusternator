@@ -16,7 +16,8 @@ function initData() {
     describeLoadBalancers: () => Q.resolve({ LoadBalancerDescriptions: [
       { DNSName: 'test' }
     ]}),
-    registerInstancesWithLoadBalancer: () => Q.resolve(true)
+    registerInstancesWithLoadBalancer: () => Q.resolve(true),
+    deregisterInstancesFromLoadBalancer: () => Q.resolve(true)
   };
 }
 
@@ -201,9 +202,28 @@ describe('AWS: ELB', () => {
     it('should throw without an instances array', () => {
       expect(() => elb.registerInstances(aws, 'test', 5)).to.throw(TypeError);
     });
+    
+    it('should throw without an instance name', () => {
+      expect(() => elb.registerInstances(aws)).to.throw(TypeError);
+    });
 
     it('should resolve if its ec2 call resolves', (done) => {
       elb.registerInstances(aws, 'test', [{ InstanceId: 'test' }])
+        .then((r) => C.check(done, () => expect(r).to.be.ok), C.getFail(done));
+    });
+  });
+  
+  describe('deRegisterInstances function', () => {
+    it('should throw without an instances array', () => {
+      expect(() => elb.deRegisterInstances(aws, 'test', 5)).to.throw(TypeError);
+    });
+
+    it('should throw without an instance name', () => {
+      expect(() => elb.deRegisterInstances(aws)).to.throw(TypeError);
+    });
+
+    it('should resolve if its ec2 call resolves', (done) => {
+      elb.deRegisterInstances(aws, 'test', [{ InstanceId: 'test' }])
         .then((r) => C.check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });

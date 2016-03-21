@@ -23,6 +23,7 @@ module.exports = {
   describePr,
   describeAll,
   configureHealthCheck,
+  deRegisterInstances,
   registerInstances,
   helpers: {
     defaultListeners,
@@ -274,24 +275,57 @@ function describePr(aws, projectId, pr) {
 }
 
 /**
- * @param {AwsWrapper} aws
- * @param {string} loadBalancerId
- * @param {string[]} instances
- * @returns {Promise}
+ * @param {Array.<string>} instances
+ * @returns {Array.<{ InstanceId: string }>}
  */
-function registerInstances(aws, loadBalancerId, instances) {
+function mapInstances(instances) {
   if (!Array.isArray(instances)) {
     throw new TypeError('registerInstances expects instances to be an array ' +
       'of strings');
   }
-  const mappedInstances = instances.map((id) => {
+  return instances.map((id) => {
     return {
       InstanceId: id
     };
   });
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} loadBalancerId
+ * @param {string[]} instances
+ * @returns {Promise}
+ * @throws {TypeError}
+ */
+function registerInstances(aws, loadBalancerId, instances) {
+  if (!loadBalancerId) {
+    throw new TypeError('registerInstances requires a loadBalancerId');
+  }
+  
+  const mappedInstances = mapInstances(instances);
+  
   return aws.elb.registerInstancesWithLoadBalancer({
     Instances: mappedInstances,
     LoadBalancerName: loadBalancerId
   });
 }
 
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} loadBalancerId
+ * @param {string[]} instances
+ * @returns {Promise}
+ * @throws {TypeError}
+ */
+function deRegisterInstances(aws, loadBalancerId, instances) {
+  if (!loadBalancerId) {
+    throw new TypeError('deRegisterInstances requires a loadBalancerId');
+  }
+  
+  const mappedInstances = mapInstances(instances);
+  
+  return aws.elb.deregisterInstancesFromLoadBalancer({
+    Instances: mappedInstances,
+    LoadBalancerName: loadBalancerId
+  });
+}
