@@ -8,6 +8,7 @@
 const filter = require('./ec2-filter');
 const tag = require('./ec2-tag');
 const constants = require('../../constants');
+const awsConstants = require('../aws-constants');
 const rid = require('../../resource-identifier');
 const util = require('../../util');
 
@@ -34,7 +35,8 @@ module.exports = {
   authorizeIngress,
   helpers: {
     getDeploymentTags,
-    getPrTags
+    getPrTags,
+    tagPrOrDeployment
   }
 };
 
@@ -146,6 +148,46 @@ function createPrName(projectId, pr) {
 /**
  * @param {AwsWrapper} aws
  * @param {string} projectId
+ * @param {string} id
+ * @param {string} typeId
+ * @param {function(string, string): Array} getTagFunction
+ * @returns {function(): Promise.<string>}
+ */
+function tagPrOrDeployment(aws, projectId, id, typeId, getTagFunction) {
+  /**
+   * @returns {Promise.<string>}
+   */
+  function promiseToTag() {
+    return tag.tag(aws, [id], getTagFunction(projectId, typeId))()
+      .then(() => authorizeIngress(aws, id, [
+        ipPerms.create(-1, 1, 65534, [ipRange.create('0.0.0.0/0')])
+      ])())
+      .then(() => id);
+  }
+  return promiseToTag;
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
+ * @param {string} id
+ * @param {string} pr
+ * @returns {function(): Promise.<string>}
+ */
+function tagPr(aws, projectId, id, pr) {
+  const tagFn = tagPrOrDeployment(aws, projectId, id, pr, getPrTags);
+  
+  return util.makeRetryPromiseFunction(tagFn, 
+    awsConstants.AWS_RETRY_LIMIT, 
+    awsConstants.AWS_RETRY_DELAY, 
+    awsConstants.AWS_RETRY_MULTIPLIER, 
+    null, // @todo sometimes we might actually want to hard fail
+    'Tag PR');
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
  * @param {string} pr
  * @returns {function(): Promise<string>}
  */
@@ -156,12 +198,7 @@ function createPr(aws, projectId, pr) {
     return listPr(aws, projectId, pr)()
       .then((r) => r.length ? r[0] : create(
         aws, id, `Created by The Clusternator For ${projectId} PR #${pr}`)()
-        .then((id) => tag
-          .tag(aws, [id], getPrTags(projectId, pr))()
-          .then(() => authorizeIngress(aws, id, [
-            ipPerms.create(-1, 1, 65534, [ipRange.create('0.0.0.0/0')])
-          ])())
-          .then(() => id)));
+        .then((id) => tagPr(aws, projectId, id, pr)()));
   }
 
   return promiseToCreatePr;
@@ -195,6 +232,25 @@ function createDeploymentName(projectId, deployment) {
 /**
  * @param {AwsWrapper} aws
  * @param {string} projectId
+ * @param {string} id
+ * @param {string} deployment
+ * @returns {function(): Promise.<string>}
+ */
+function tagDeployment(aws, projectId, id, deployment) {
+  const tagFn =  tagPrOrDeployment(
+    aws, projectId, id, deployment, getDeploymentTags);
+  
+  return util.makeRetryPromiseFunction(tagFn,
+    awsConstants.AWS_RETRY_LIMIT,
+    awsConstants.AWS_RETRY_DELAY,
+    awsConstants.AWS_RETRY_MULTIPLIER,
+    null, // @todo sometimes we might actually want to hard fail
+    'Tag Deployment');
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string} projectId
  * @param {string} deployment
  * @returns {function(): Promise<string>}
  */
@@ -206,12 +262,7 @@ function createDeployment(aws, projectId, deployment) {
       .then((r) => r.length ? r[0] : create(
         aws, id, `Created by The Clusternator For ${projectId} deployment ` +
         deployment)()
-        .then((id) => tag
-          .tag(aws, [id], getDeploymentTags(projectId, deployment))()
-          .then(() => authorizeIngress(aws, id, [
-            ipPerms.create(-1, 1, 65534, [ipRange.create('0.0.0.0/0')])
-          ])())
-          .then(() => id)));
+        .then((id) => tagDeployment(aws, projectId, id, deployment)()));
   }
 
   return promiseToCreateDeployment;

@@ -144,10 +144,10 @@ describe('utility functions', () => {
     });
   });
 
-  describe('makeRetryPromise function', () => {
+  describe('makeRetryPromiseFunction function', () => {
     it('should resolve resolving promises', (done) => {
       const d = Q.defer();
-      util.makeRetryPromise(() => d.promise)
+      util.makeRetryPromiseFunction(() => d.promise)()
         .then((r) => C.check(done, () => expect(r).to.equal(true)),
           C.getFail(done));
       d.resolve(true);
@@ -169,7 +169,7 @@ describe('utility functions', () => {
         return d.promise;
       };
       // test
-      util.makeRetryPromise(pReturn, 2)
+      util.makeRetryPromiseFunction(pReturn, 2)()
         .then((r) => C.check(done, () => expect(r).to.equal(true)),
           C.getFail(done));
     });
@@ -190,7 +190,7 @@ describe('utility functions', () => {
         return d.promise;
       };
       // test
-      util.makeRetryPromise(pReturn, 2)
+      util.makeRetryPromiseFunction(pReturn, 2)()
         .then(C.getFail(done), (err) => C
           .check(done, () => expect(err instanceof Error).to.be.ok));
     });
@@ -211,7 +211,7 @@ describe('utility functions', () => {
         return d.promise;
       };
       // test
-      util.makeRetryPromise(pReturn, 2, 100, 1, () => true, 'word')
+      util.makeRetryPromiseFunction(pReturn, 2, 100, 1, () => true, 'word')()
         .then(C.getFail(done), (err) => C
           .check(done, () => expect(err instanceof Error).to.be.ok));
     });

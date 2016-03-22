@@ -225,4 +225,19 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
+
+  describe('tagPrOrDeployment function', () => {
+    it('should return a function', () => {
+      expect(typeof sg.helpers
+        .tagPrOrDeployment(aws, 'project', 'id', 'prOrDeployment', () => {}))
+        .to.equal('function');
+    });
+    
+    it('should return a function that returns a promise', () => {
+      expect(typeof sg.helpers
+        .tagPrOrDeployment(
+          aws, 'project', 'id', 'prOrDeployment', () => [])().then)
+        .to.equal('function');
+    });
+  });
 });
