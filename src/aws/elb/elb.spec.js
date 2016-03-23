@@ -16,7 +16,8 @@ function initData() {
     describeLoadBalancers: () => Q.resolve({ LoadBalancerDescriptions: [
       { DNSName: 'test' }
     ]}),
-    registerInstancesWithLoadBalancer: () => Q.resolve(true)
+    registerInstancesWithLoadBalancer: () => Q.resolve(true),
+    deregisterInstancesFromLoadBalancer: () => Q.resolve(true)
   };
 }
 
@@ -26,13 +27,16 @@ describe('AWS: ELB', () => {
   beforeEach(initData);
 
   describe('configureHealthCheckFunction', () => {
+    it('should return a function', () => {
+      expect(typeof elb.configureHealthCheck(aws)).to.equal('function');
+    });
     it('should resolve if ec2 call resolves', (done) => {
-      elb.configureHealthCheck(aws)
+      elb.configureHealthCheck(aws)()
         .then((r) => C.check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
     it('should reject if ec2 call rejects', (done) => {
       aws.elb.configureHealthCheck = () => Q.reject(new Error('test'));
-      elb.configureHealthCheck(aws)
+      elb.configureHealthCheck(aws)()
         .then(C.getFail(done), (e) => C
           .check(done, () => expect(e instanceof Error).to.be.ok));
     });
@@ -70,7 +74,7 @@ describe('AWS: ELB', () => {
 
   describe('create function', () => {
     it('should resolve a promise', (done) => {
-      elb.create(aws).then((r) => C
+      elb.create(aws)().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
@@ -85,7 +89,7 @@ describe('AWS: ELB', () => {
     });
 
     it('should resolve a promise', (done) => {
-      elb.createDeployment(aws, 'test', 'master').then((r) => C
+      elb.createDeployment(aws, 'test', 'master')().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
@@ -100,7 +104,7 @@ describe('AWS: ELB', () => {
     });
 
     it('should resolve a promise', (done) => {
-      elb.createPr(aws, 'test', '76').then((r) => C
+      elb.createPr(aws, 'test', '76')().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
@@ -111,7 +115,7 @@ describe('AWS: ELB', () => {
     });
 
     it('should resolve a promise', (done) => {
-      elb.destroy(aws, 'test').then((r) => C
+      elb.destroy(aws, 'test')().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
@@ -126,7 +130,7 @@ describe('AWS: ELB', () => {
     });
 
     it('should resolve a promise', (done) => {
-      elb.destroyPr(aws, 'test', '1').then((r) => C
+      elb.destroyPr(aws, 'test', '1')().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
@@ -141,28 +145,36 @@ describe('AWS: ELB', () => {
     });
 
     it('should resolve a promise', (done) => {
-      elb.destroyDeployment(aws, 'test', 'master').then((r) => C
+      elb.destroyDeployment(aws, 'test', 'master')().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
 
   describe('describeAll function', () => {
+    it('should return a function', () => {
+      expect(typeof elb.describeAll(aws)).to.equal('function');
+    });
+    
     it('should resolve a promise', (done) => {
-      elb.describeAll(aws).then((r) => C
+      elb.describeAll(aws)().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
 
   describe('describeById function', () => {
+    it('should return a function', () => {
+      expect(typeof elb.helpers.describeById(aws)).to.equal('function');
+    });
+    
     it('should resolve a promise if it has a result set', (done) => {
-      elb.helpers.describeById(aws).then((r) => C
+      elb.helpers.describeById(aws)().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
 
     it('should reject a promise if it has no result set', (done) => {
       aws.elb.describeLoadBalancers = () => Q.resolve({
         LoadBalancerDescriptions: [] });
-      elb.helpers.describeById(aws).then(C.getFail(done), (e) => C
+      elb.helpers.describeById(aws)().then(C.getFail(done), (e) => C
         .check(done, () => expect(e instanceof Error).to.be.ok));
     });
   });
@@ -177,7 +189,7 @@ describe('AWS: ELB', () => {
     });
 
     it('should resolve a promise', (done) => {
-      elb.describeDeployment(aws, 'test', 'master').then((r) => C
+      elb.describeDeployment(aws, 'test', 'master')().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
@@ -192,7 +204,7 @@ describe('AWS: ELB', () => {
     });
 
     it('should resolve a promise', (done) => {
-      elb.describePr(aws, 'test', '1').then((r) => C
+      elb.describePr(aws, 'test', '1')().then((r) => C
         .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
@@ -201,9 +213,28 @@ describe('AWS: ELB', () => {
     it('should throw without an instances array', () => {
       expect(() => elb.registerInstances(aws, 'test', 5)).to.throw(TypeError);
     });
+    
+    it('should throw without an instance name', () => {
+      expect(() => elb.registerInstances(aws)).to.throw(TypeError);
+    });
 
     it('should resolve if its ec2 call resolves', (done) => {
-      elb.registerInstances(aws, 'test', [{ InstanceId: 'test' }])
+      elb.registerInstances(aws, 'test', [{ InstanceId: 'test' }])()
+        .then((r) => C.check(done, () => expect(r).to.be.ok), C.getFail(done));
+    });
+  });
+  
+  describe('deRegisterInstances function', () => {
+    it('should throw without an instances array', () => {
+      expect(() => elb.deRegisterInstances(aws, 'test', 5)).to.throw(TypeError);
+    });
+
+    it('should throw without an instance name', () => {
+      expect(() => elb.deRegisterInstances(aws)).to.throw(TypeError);
+    });
+
+    it('should resolve if its ec2 call resolves', (done) => {
+      elb.deRegisterInstances(aws, 'test', [{ InstanceId: 'test' }])()
         .then((r) => C.check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });

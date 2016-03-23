@@ -428,12 +428,12 @@ function createTask(task, creq) {
 
 /**
  * @param {Object} elb
- * @param {Object} creq
+ * @param {{ elbId: string, ec2Info: Object }} creq
  * @returns {Q.Promise<Object>}
  */
 function registerEc2ToElb(elb, creq) {
   return elb.registerInstances(creq.elbId,
-    [findIdFromEc2Describe(creq.ec2Info)])
+    [findIdFromEc2Describe(creq.ec2Info)])()
     .then(() => creq);
 }
 

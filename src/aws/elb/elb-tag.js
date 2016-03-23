@@ -10,6 +10,8 @@ module.exports = {
 };
 
 /**
+ * @todo this is identical to the ec2 tag lets generalize these at some point
+ * 
  * @param {string} key
  * @param {string} value
  * @constructor

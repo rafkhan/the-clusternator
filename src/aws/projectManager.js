@@ -21,12 +21,12 @@ const util = require('../util');
 const Q = require('q');
 const R = require('ramda');
 const DEFAULT_REGION = 'us-east-1';
+const elbLib = require('./elb/elb');
 
-const getTagsFromInstances = R.map((inst) => R
-  .reduce((memo, t) => {
-    memo[t.Key] = t.Value;
-    return memo;
-  }, {}, inst.Tags));
+const getTagsFromInstance = (instance) => instance.Tags; 
+const flattenInstances = (arr) => R.flatten(arr
+  .map((i) => i.Instances ? i.Instances : []));
+const matchTag = (key, value) => (t) => t.Key === key && t.Value === value;
 
 let Vpc = require('./vpcManager');
 
@@ -143,14 +143,13 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
         .then(() => prExists(projectId, pr)
           .then((exists) => {
             if (!exists) {
-              return;
+              return s.pullRequest
+                .create(projectId, pr, appDef, sshData);
             }
-            return destroyPR(projectId, pr);
-          }))
-      .then(() => {
-        return s.pullRequest
-          .create(projectId, pr, appDef, sshData);
-      }));
+            return s.pullRequest
+              .update(projectId, pr, appDef, sshData, 
+                elbLib.helpers.elbPrId(projectId, pr), exists);
+          })));
   }
 
   /**
@@ -200,24 +199,20 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    * @param {string} dep
    * @param {Object} appDef
    * @param {Object=} sshData
-   * @param {boolean=} force if false (default) will fail if deployment exists
    * @returns {Q.Promise}
    */
-  function createDeployment(projectId, dep, appDef, sshData, force) {
+  function createDeployment(projectId, dep, appDef, sshData) {
     return state()
       .then((s) => findOrCreateProject(projectId)
         .then(() => deploymentExists(projectId, dep)
           .then((exists) => {
             if (!exists) {
-              return;
+              return s
+                .deployment.create(projectId, dep, appDef, sshData );
             }
-            if (force) {
-              return destroyDeployment(projectId, dep);
-            }
-            throw new Error(`Deployment ${dep} exists`);
-          }))
-        .then(() => s
-          .deployment.create(projectId, dep, appDef, sshData )));
+            return s.deployment.update(projectId, dep, appDef, sshData, 
+              elbLib.helpers.elbDeploymentId(projectId, dep), exists);
+          })));
   }
 
   /**
@@ -276,40 +271,50 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   /**
    * @param {string} projectId
    * @param {string} pr
-   * @returns {Promise<boolean>}
+   * @returns {Promise<Array.<string>>}
    */
   function prExists(projectId, pr) {
-
     return listDeployments(projectId)
       .then((prs) => {
-        const getInstances = R.compose(R.flatten, R.map((d) => {
-          return getTagsFromInstances(d.Instances);
-        }));
+        prs = flattenInstances(prs);
+        const prIds = prs.map((i) => {
+          const tags = getTagsFromInstance(i);
+          const prNums = tags.filter(matchTag(constants.PR_TAG, pr)); 
 
-        const insts = getInstances(prs);
-        prs = R.map(R.prop(constants.PR_TAG), insts);
-
-        return R.contains(pr, prs);
+          if (prNums.length) {
+            return i.InstanceId;
+          } else {
+            return null;
+          }
+        }).filter((i) => i);
+        
+        return prIds.length ? prIds : null;
       });
   }
 
   /**
    * @param {string} projectId
    * @param {string} name
-   * @returns {Promise<boolean>}
+   * @returns {Promise<Array.<string>>}
    */
   function deploymentExists(projectId, name) {
 
     return listDeployments(projectId)
       .then((deployments) => {
-        const getInstances = R.compose(R.flatten, R.map((d) => {
-          return getTagsFromInstances(d.Instances);
-        }));
+        deployments = flattenInstances(deployments);
+        const depIds = deployments.map((i) => {
+          const tags = getTagsFromInstance(i);
+          const depNames = tags
+            .filter(matchTag(constants.DEPLOYMENT_TAG, name));
 
-        const insts = getInstances(deployments);
-        deployments = R.map(R.prop(constants.DEPLOYMENT_TAG), insts);
+          if (depNames.length) {
+            return i.InstanceId;
+          } else {
+            return null;
+          }
+        }).filter((i) => i);
 
-        return R.contains(name, deployments);
+        return depIds.length ? depIds : null;
       });
   }
 
@@ -417,11 +422,12 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
     destroyPR,
     hashTable: ht,
     iam,
+    listDeployments,
     listProjects,
     listSSHAbleInstances,
+    prExists,
     updateDeployment,
-    writeGitHubKey,
-    listDeployments
+    writeGitHubKey
   };
 }
 

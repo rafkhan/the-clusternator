@@ -21,7 +21,7 @@ module.exports = {
  * @param {AwsWrapper} aws
  * @param {string[]} resources
  * @param {Ec2Tag[]} tags
- * @returns {Promise}
+ * @returns {function(): Promise}
  * @throws {TypeError}
  */
 function tag(aws, resources, tags) {
@@ -31,10 +31,15 @@ function tag(aws, resources, tags) {
   if (!Array.isArray(tags)) {
     throw new TypeError('tag expects a tags array');
   }
-  return aws.ec2.createTags({
-    Resources: resources,
-    Tags: tags
-  });
+
+  function promiseToCreateTags() {
+    return aws.ec2.createTags({
+      Resources: resources,
+      Tags: tags
+    });
+  }
+
+  return promiseToCreateTags;
 }
 
 /**

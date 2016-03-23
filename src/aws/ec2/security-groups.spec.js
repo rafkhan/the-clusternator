@@ -34,7 +34,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
     });
     
     it('should call ec2.authorozieSecurityGroupIngress', (done) => {
-      sg.authorizeIngress(aws, 't', [])
+      sg.authorizeIngress(aws, 't', [])()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -46,7 +46,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
     });
 
     it('should call ec2.authorozieSecurityGroupEgress', (done) => {
-      sg.authorizeEgress(aws, 't', [])
+      sg.authorizeEgress(aws, 't', [])()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -54,7 +54,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('create function', () => {
     it('should call ec2.createSecurityGroup', (done) => {
-      sg.create(aws, 'group', 'desc')
+      sg.create(aws, 'group', 'desc')()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -62,14 +62,14 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('createPr function', () => {
     it('should resolve existing security groups first', (done) => {
-      sg.createPr(aws, 'project', '23')
+      sg.createPr(aws, 'project', '23')()
         .then((r) => C
           .check(done, () => expect(r).to.equal('groupId')), C.getFail(done));
     });
 
     it('should create new groups if they don\'t exist', (done) => {
       aws.ec2.describeSecurityGroups = () => Q.resolve({ SecurityGroups: [] });
-      sg.createPr(aws, 'project', '23')
+      sg.createPr(aws, 'project', '23')()
         .then((r) => C
           .check(done, () => expect(r).to.equal('groupId-sg')),
           C.getFail(done));
@@ -78,14 +78,14 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('createDeployment function', () => {
     it('should resolve existing security groups first', (done) => {
-      sg.createDeployment(aws, 'project', 'betta')
+      sg.createDeployment(aws, 'project', 'betta')()
         .then((r) => C
           .check(done, () => expect(r).to.equal('groupId')), C.getFail(done));
     });
 
     it('should create new groups if they don\'t exist', (done) => {
       aws.ec2.describeSecurityGroups = () => Q.resolve({ SecurityGroups: [] });
-      sg.createDeployment(aws, 'project', 'beta')
+      sg.createDeployment(aws, 'project', 'beta')()
         .then((r) => C
           .check(done, () => expect(r).to.equal('groupId-sg')),
           C.getFail(done));
@@ -94,7 +94,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('destroy function', () => {
     it('should call ec2.deleteSecurityGroup', (done) => {
-      sg.destroy(aws, 'group')
+      sg.destroy(aws, 'group')()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -103,7 +103,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
   describe('destroyPr function', () => {
     it('should call ec2.deleteSecurityGroup if the deployment exists',
       (done) => {
-        sg.destroyPr(aws, 'projectId', 'pr')
+        sg.destroyPr(aws, 'projectId', 'pr')()
           .then((r) => C
             .check(done, () => expect(r).to.be.ok), C.getFail(done));
       });
@@ -111,7 +111,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
     it('should not call ec2.deleteSecurityGroup if the deployment is already ' +
       'deleted', (done) => {
         aws.ec2.describeSecurityGroups = () => Q.resolve({ SecurityGroups: []});
-        sg.destroyPr(aws, 'projectId', 'pr')
+        sg.destroyPr(aws, 'projectId', 'pr')()
           .then((r) => C
             .check(done, () => expect(r).to.be.ok), C.getFail(done));
       });
@@ -120,7 +120,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
   describe('destroyDeployment function', () => {
     it('should call ec2.deleteSecurityGroup if the deployment exists',
       (done) => {
-        sg.destroyDeployment(aws, 'projectId', 'master')
+        sg.destroyDeployment(aws, 'projectId', 'master')()
           .then((r) => C
             .check(done, () => expect(r).to.be.ok), C.getFail(done));
       });
@@ -128,7 +128,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
     it('should not call ec2.deleteSecurityGroup if the deployment is already ' +
       'deleted', (done) => {
       aws.ec2.describeSecurityGroups = () => Q.resolve({ SecurityGroups: []});
-      sg.destroyDeployment(aws, 'projectId', 'beta')
+      sg.destroyDeployment(aws, 'projectId', 'beta')()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -137,7 +137,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('describe function', () => {
     it('should call ec2.describeSecurityGroups', (done) => {
-      sg.describe(aws)
+      sg.describe(aws)()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -145,7 +145,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('describe project function', () => {
     it('should call ec2.describeSecurityGroups', (done) => {
-      sg.describeProject(aws, 'id')
+      sg.describeProject(aws, 'id')()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -153,7 +153,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('describe pr function', () => {
     it('should call ec2.describeSecurityGroups', (done) => {
-      sg.describePr(aws, 'id', 'pr #')
+      sg.describePr(aws, 'id', 'pr #')()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -161,7 +161,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('describe deployment function', () => {
     it('should call ec2.describeSecurityGroups', (done) => {
-      sg.describeDeployment(aws, 'id', 'master')
+      sg.describeDeployment(aws, 'id', 'master')()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
@@ -169,7 +169,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('list function', () => {
     it('resolve an array of strings', (done) => {
-      sg.list(aws)
+      sg.list(aws)()
         .then((r) => C
           .check(done, () => expect(typeof r[0]).to.equal('string')),
           C.getFail(done));
@@ -178,7 +178,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('list project function', () => {
     it('resolve an array of strings', (done) => {
-      sg.listProject(aws, 'id')
+      sg.listProject(aws, 'id')()
         .then((r) => C
           .check(done, () => expect(typeof r[0]).to.equal('string')),
           C.getFail(done));
@@ -187,7 +187,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('list pr function', () => {
     it('resolve an array of strings', (done) => {
-      sg.listPr(aws, 'id', 'pr #')
+      sg.listPr(aws, 'id', 'pr #')()
         .then((r) => C
           .check(done, () => expect(typeof r[0]).to.equal('string')),
           C.getFail(done));
@@ -196,7 +196,7 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
 
   describe('list deployment function', () => {
     it('resolve an array of strings', (done) => {
-      sg.listDeployment(aws, 'id', 'master')
+      sg.listDeployment(aws, 'id', 'master')()
         .then((r) => C
           .check(done, () => expect(typeof r[0]).to.equal('string')),
           C.getFail(done));
@@ -220,9 +220,24 @@ describe('AWS: EC2: Security Group IP Permissions', () => {
   describe('bindAws function', () => {
     it('should return a copy of the api bound with an aws object', (done) => {
       const s = sg.bindAws(aws);
-      s.list()
+      s.list()()
         .then((r) => C
           .check(done, () => expect(r).to.be.ok), C.getFail(done));
+    });
+  });
+
+  describe('tagPrOrDeployment function', () => {
+    it('should return a function', () => {
+      expect(typeof sg.helpers
+        .tagPrOrDeployment(aws, 'project', 'id', 'prOrDeployment', () => {}))
+        .to.equal('function');
+    });
+    
+    it('should return a function that returns a promise', () => {
+      expect(typeof sg.helpers
+        .tagPrOrDeployment(
+          aws, 'project', 'id', 'prOrDeployment', () => [])().then)
+        .to.equal('function');
     });
   });
 });

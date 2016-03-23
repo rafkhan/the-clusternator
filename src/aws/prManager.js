@@ -54,7 +54,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
 
   function createElb(creq) {
     return elb.createPr(creq.projectId, creq.pr, creq.subnetId,
-      creq.groupId, awsConstants.AWS_SSL_ID);
+      creq.groupId, awsConstants.AWS_SSL_ID)();
   }
 
   function setUrl(creq) {
@@ -72,7 +72,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    */
   function setGroupId(creq) {
     return securityGroup
-      .createPr(creq.projectId, creq.pr)
+      .createPr(creq.projectId, creq.pr)()
       .then((groupId) => {
         creq.groupId = groupId;
         return creq;
@@ -110,6 +110,71 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   }
 
   /**
+   * @param {{ elbId: string, instanceIds: Array.<string>, pr: string, 
+   name: string, projectId: string }} creq
+   * @returns {Promise.<Promise.<Object>>}
+   */
+  function updateDestroy(creq) {
+    return elb.deRegisterInstances(creq.elbId, creq.instanceIds)()
+      .then(() =>
+        destroyEc2(creq.projectId, creq.pr, creq.name)
+          .then((r) => task
+            .destroy(creq.name)
+            .fail((err) => {
+              util.info(`PR Problem Destroying Task: ${err.message}`);
+              return r;
+            }))
+          /**
+           * @todo we don't have to destroy this cluster, there is a better way,
+           * this is a temporary solution.  @rafkhan knows the cluster update 
+           * story best and also knows its issues at the moment
+           */
+          .then(() => cluster
+            .destroy(creq.name)
+            .fail(() => undefined)));
+  }
+
+  /**
+   * @param {string} projectId
+   * @param {string} pr
+   * @param {Object} appDef
+   * @param {string[]|string} sshKeys
+   * @param {string} elbId
+   * @param {string[]} instanceIds
+   * @returns {Promise}
+   */
+  function update(projectId, pr, appDef, sshKeys, elbId, instanceIds) {
+    const creq = {
+      appDef,
+      elbId,
+      sshPath: sshKeys || '',
+      instanceIds,
+      name: rid.generateRID({ pid: projectId, pr }),
+      pr: pr + '',
+      projectId
+    };
+    
+    return updateDestroy(creq)
+      .then(() => common
+      .setSubnet(subnet, creq)
+      .then(() => Q
+        .all([
+          setGroupId(creq),
+          cluster.create(creq.name) 
+        ])
+        .then(() => creq))
+      .then(() => createEc2(creq)
+        .then((results) => creq.ec2Info = results))
+      .then(() => common.createTask(task, creq))
+      .then(() => common.registerEc2ToElb(elb, creq))
+      .then(() => { 
+        creq.url = route53.generatePRDomain(projectId, pr); 
+        return creq;
+      })
+      .then((creq) => common.qualifyUrl(Config(), creq.url)));
+  }
+
+  /**
    * @param {string} projectId
    * @param {string} pr
    * @param {string} clusterName
@@ -137,7 +202,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Request|Promise.<T>}
    */
   function destroyRoutes(projectId, pr) {
-    return elb.describePr(projectId, pr)
+    return elb.describePr(projectId, pr)()
       .then((result) => route53
         .destroyPRCNameRecord(projectId, pr, result.dns));
   }
@@ -148,7 +213,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
    * @returns {Q.Promise}
    */
   function destroyElb(projectId, pr) {
-    return elb.destroyPr(projectId, pr)
+    return elb.destroyPr(projectId, pr)()
       //fail over
       .fail((err) => util.warn(err));
   }
@@ -177,12 +242,13 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
         .destroy(clusterName)
         .fail(() => undefined))
       .then(() => securityGroup
-        .destroyPr(projectId, pr));
+        .destroyPr(projectId, pr)());
   }
 
   return {
-    create: create,
-    destroy: destroy
+    create,
+    destroy,
+    update
   };
 }
 

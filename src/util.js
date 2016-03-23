@@ -23,7 +23,7 @@ module.exports = {
   getCidrPrefixFromIPString,
   waitFor,
   makePromiseApi,
-  makeRetryPromise,
+  makeRetryPromiseFunction,
   clone,
   info,
   debug,
@@ -332,7 +332,7 @@ function prefixError(err, prefix) {
  * @param {string=} label
  * @return {Promise}
  */
-function makeRetryPromise(promiseReturningFunction, retryCount, delay,
+function makeRetryPromiseFunction(promiseReturningFunction, retryCount, delay,
                           multiplier, failOn, label) {
   // Validate parameters
   retryCount = +retryCount >= 1 ? +retryCount : 1;
@@ -341,30 +341,36 @@ function makeRetryPromise(promiseReturningFunction, retryCount, delay,
   label = label ? label + ' ' : '';
   failOn = typeof failOn === 'function' ? failOn : () => false;
 
-  // Call the function
-  return promiseReturningFunction()
-    .fail((err) => {
-      // Fail if it's failing for an expected reason
-      if (failOn(err)) {
+  /**
+   * @return {Promise}
+   */
+  function promiseToRetry() {
+    // Call the function
+    return promiseReturningFunction()
+      .fail((err) => {
+        // Fail if it's failing for an expected reason
+        if (failOn(err)) {
+          prefixError(err, label);
+          throw err;
+        }
+
+        // if there is a retry value retry
+        if (retryCount > 1) {
+          let d = Q.defer();
+
+          // delay retries
+          setTimeout(() => makeRetryPromiseFunction(
+            promiseReturningFunction, retryCount - 1, delay * multiplier,
+            multiplier, failOn, label)()
+            .then(d.resolve, d.reject), delay);
+          return d.promise;
+        }
+
+        // out of retries, throw
         prefixError(err, label);
         throw err;
-      }
-
-      // if there is a retry value retry
-      if (retryCount > 1) {
-        let d = Q.defer();
-
-        // delay retries
-        setTimeout(() => makeRetryPromise(
-          promiseReturningFunction, retryCount - 1, delay * multiplier,
-          multiplier, failOn, label)
-          .then(d.resolve, d.reject), delay);
-        return d.promise;
-      }
-
-      // out of retries, throw
-      prefixError(err, label);
-      throw err;
-    });
+      });
+  }
+  return promiseToRetry;
 }
 
