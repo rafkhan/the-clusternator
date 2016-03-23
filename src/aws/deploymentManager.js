@@ -111,6 +111,71 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
   }
 
   /**
+   * @param {{ elbId: string, instanceIds: Array.<string>, deployment: string, 
+   name: string, projectId: string }} creq
+   * @returns {Promise.<Promise.<Object>>}
+   */
+  function updateDestroy(creq) {
+    return elb.deRegisterInstances(creq.elbId, creq.instanceIds)()
+      .then(() =>
+        destroyEc2(creq.projectId, creq.deployment, creq.name)
+          .then((r) => task
+            .destroy(creq.name)
+            .fail((err) => {
+              util.info(`PR Problem Destroying Task: ${err.message}`);
+              return r;
+            }))
+          /**
+           * @todo we don't have to destroy this cluster, there is a better way,
+           * this is a temporary solution.  @rafkhan knows the cluster update
+           * story best and also knows its issues at the moment
+           */
+          .then(() => cluster
+            .destroy(creq.name)
+            .fail(() => undefined)));
+  }
+
+  /**
+   * @param {string} projectId
+   * @param {string} deployment
+   * @param {Object} appDef
+   * @param {string[]|string} sshKeys
+   * @param {string} elbId
+   * @param {string[]} instanceIds
+   * @returns {Promise}
+   */
+  function update(projectId, deployment, appDef, sshKeys, elbId, instanceIds) {
+    const creq = {
+      appDef,
+      elbId,
+      sshPath: sshKeys || '',
+      instanceIds,
+      name: rid.generateRID({ pid: projectId, deployment }),
+      deployment,
+      projectId
+    };
+
+    return updateDestroy(creq)
+      .then(() => common
+        .setSubnet(subnet, creq)
+        .then(() => Q
+          .all([
+            setGroupId(creq),
+            cluster.create(creq.name)
+          ])
+          .then(() => creq))
+        .then(() => createEc2(creq)
+          .then((results) => creq.ec2Info = results))
+        .then(() => common.createTask(task, creq))
+        .then(() => common.registerEc2ToElb(elb, creq))
+        .then(() => {
+          creq.url = route53.generateDeploymentDomain(projectId, deployment);
+          return creq;
+        })
+        .then((creq) => common.qualifyUrl(Config(), creq.url)));
+  }
+  
+  /**
    * @param {string} projectId
    * @param {string} deployment
    * @param {string} clusterName
@@ -179,28 +244,11 @@ function getDeploymentManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
         .fail(() => undefined));
   }
 
-  function update(projectId, deployment, appdef) {
-    const clusterName = rid.generateRID({
-      pid: projectId,
-      deployment
-    });
-
-    return task
-      .destroy(clusterName)
-
-      .then(() => {
-        // poll for draining
-      }, Q.reject)
-
-      .then(() => {
-        return task.create(clusterName, clusterName, appdef);
-      }, Q.reject);
-  }
 
   return {
-    create: create,
-    destroy: destroy,
-    update: update
+    create,
+    destroy,
+    update
   };
 }
 

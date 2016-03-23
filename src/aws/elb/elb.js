@@ -345,7 +345,7 @@ function mapInstances(instances) {
  * @param {AwsWrapper} aws
  * @param {string} loadBalancerId
  * @param {string[]} instances
- * @returns {Promise}
+ * @returns {function(): Promise}
  * @throws {TypeError}
  */
 function registerInstances(aws, loadBalancerId, instances) {
@@ -355,17 +355,20 @@ function registerInstances(aws, loadBalancerId, instances) {
   
   const mappedInstances = mapInstances(instances);
   
-  return aws.elb.registerInstancesWithLoadBalancer({
-    Instances: mappedInstances,
-    LoadBalancerName: loadBalancerId
-  });
+  function promiseToRegister() {
+    return aws.elb.registerInstancesWithLoadBalancer({
+      Instances: mappedInstances,
+      LoadBalancerName: loadBalancerId
+    });
+  }
+  return promiseToRegister;
 }
 
 /**
  * @param {AwsWrapper} aws
  * @param {string} loadBalancerId
  * @param {string[]} instances
- * @returns {Promise}
+ * @returns {function(): Promise}
  * @throws {TypeError}
  */
 function deRegisterInstances(aws, loadBalancerId, instances) {
@@ -375,8 +378,11 @@ function deRegisterInstances(aws, loadBalancerId, instances) {
   
   const mappedInstances = mapInstances(instances);
   
-  return aws.elb.deregisterInstancesFromLoadBalancer({
-    Instances: mappedInstances,
-    LoadBalancerName: loadBalancerId
-  });
+  function promiseToDeRegister() {
+    return aws.elb.deregisterInstancesFromLoadBalancer({
+      Instances: mappedInstances,
+      LoadBalancerName: loadBalancerId
+    });
+  }
+  return promiseToDeRegister;
 }

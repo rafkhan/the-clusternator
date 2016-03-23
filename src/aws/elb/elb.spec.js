@@ -219,7 +219,7 @@ describe('AWS: ELB', () => {
     });
 
     it('should resolve if its ec2 call resolves', (done) => {
-      elb.registerInstances(aws, 'test', [{ InstanceId: 'test' }])
+      elb.registerInstances(aws, 'test', [{ InstanceId: 'test' }])()
         .then((r) => C.check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });
@@ -234,7 +234,7 @@ describe('AWS: ELB', () => {
     });
 
     it('should resolve if its ec2 call resolves', (done) => {
-      elb.deRegisterInstances(aws, 'test', [{ InstanceId: 'test' }])
+      elb.deRegisterInstances(aws, 'test', [{ InstanceId: 'test' }])()
         .then((r) => C.check(done, () => expect(r).to.be.ok), C.getFail(done));
     });
   });

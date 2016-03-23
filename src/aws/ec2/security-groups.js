@@ -294,10 +294,17 @@ function destroyDeployment(aws, projectId, deployment) {
 
   function promiseToDestroyDeployment() {
     return listDeployment(aws, projectId, deployment)()
-      .then((r) => r.length ? destroy(aws, r[0]) : 'already deleted');
+      .then((r) => r.length ? destroy(aws, r[0])() : 'already deleted');
   }
 
-  return promiseToDestroyDeployment;
+  return util.makeRetryPromiseFunction(
+    promiseToDestroyDeployment, 
+    awsConstants.AWS_RETRY_LIMIT, 
+    awsConstants.AWS_RETRY_DELAY, 
+    awsConstants.AWS_RETRY_MULTIPLIER, 
+    null, 
+    'Security Group PR Destroy'
+  );
 }
 
 /**
@@ -310,10 +317,17 @@ function destroyPr(aws, projectId, pr) {
 
   function promiseToDestroyPr() {
     return listPr(aws, projectId, pr)()
-      .then((r) => r.length ? destroy(aws, r[0]) : 'already deleted');
+      .then((r) => r.length ? destroy(aws, r[0])() : 'already deleted');
   }
 
-  return promiseToDestroyPr;
+  return util.makeRetryPromiseFunction(
+    promiseToDestroyPr,
+    awsConstants.AWS_RETRY_LIMIT,
+    awsConstants.AWS_RETRY_DELAY,
+    awsConstants.AWS_RETRY_MULTIPLIER,
+    null,
+    'Security Group PR Destroy'
+  );
 }
 
 /**

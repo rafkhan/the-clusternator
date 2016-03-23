@@ -380,6 +380,8 @@ return {
   destroyDeploymentARecord,
   destroyDeploymentCNameRecord,
   findId,
+  generatePRDomain: rid.generatePRSubdomain,
+  generateDeploymentDomain,
   helpers: {
     createRecordParams,
     createChange,
