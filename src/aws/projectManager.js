@@ -223,8 +223,9 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   function destroyDeployment(projectId, dep) {
     return state()
       .then((s) => findOrCreateProject(projectId)
-        .then((snDesc) => s
-          .deployment.destroy( projectId, dep)));
+        .then((snDesc) => {
+          return s.deployment.destroy(projectId, dep);
+        }));
   }
 
   /**

@@ -6,8 +6,12 @@
  */
 
 const Q = require('q');
+const cmn = require('./common');
+const util = require('../util');
 const constants = require('../constants');
 const makePostRequest = require('./common').makePostRequest;
+const deploymentsREST = require('../api/0.1/common').src('clusternator',
+                                                         'deployments');
 
 module.exports = getProjectManager;
 
@@ -54,16 +58,17 @@ function createPR() {
 
 }
 
-function createDeployment() {
-
+function createDeployment(projectId, name, deploymentDesc, sshData, force) {
+  return deploymentsREST.create(projectId, name, deploymentDesc,
+                                sshData, force);
 }
 
 function destroy() {
 
 }
 
-function destroyDeployment() {
-
+function destroyDeployment(projectId, name) {
+  return deploymentsREST.destroy(projectId, name);
 }
 
 function describeProject() {

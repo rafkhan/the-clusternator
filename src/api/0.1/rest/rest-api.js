@@ -337,11 +337,29 @@ function pmCreateDeployment(body) {
 }
 
 function pmDestroyDeployment(body) {
-  return Q.resolve();
-  /** @todo sanitiize body, and run this function */
-    //return state()
-    //  .then((s) => s
-    //    .pm.destroyDeployment());
+  return state()
+    .then((s) => {
+      const d = Q.defer(); // For early async resolution (see below)
+      const deployment = body.deployment + '';
+      const projectId = body.repo;
+
+      s.db(projectId)()
+        .then((project) => {
+          d.resolve();
+          return s
+            .pm.destroyDeployment(projectId, deployment)
+            .then(() => {
+              util.info(projectId + ':' + deployment + ' destroyed');
+            })
+            .fail((err) => {
+              util.error(err);
+              slack.message(`Destroy: ${projectId} deployment ${deployment} ` +
+                `failed: ${err.message}`, project.channel);
+              throw err;
+            });
+        }).fail(d.reject);
+      return d.promise;
+    });
 }
 
 function prCreate(body) {

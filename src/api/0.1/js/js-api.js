@@ -20,7 +20,7 @@ const authoritiesREST = cmn.src('clusternator', 'authorities');
 const projectREST = cmn.src('clusternator', 'project-data');
 const cnProjectManager = cmn.src('clusternator', 'projectManager');
 const awsProjectManager = cmn.src('aws', 'project-init');
-
+const deploymentsREST = cmn.src('clusternator','deployments');
 
 module.exports = {
   awsProjectManager,
@@ -182,12 +182,8 @@ function deploymentExists(projectId) {
  * @return {Promise}
  */
 function deploy(name, projectId, deploymentDesc, sshData, force) {
-  const pm = getProjectAPI();
-  return deploy_(pm, projectId, deploymentDesc, name, sshData, force)
-    .fail((err) => {
-      util.info('Clusternator: Error creating deployment: ' + err.message);
-      util.info(err.stack);
-    });
+  return getProjectAPI()
+    .createDeployment(projectId, name, deploymentDesc, sshData, force);
 }
 
 /**

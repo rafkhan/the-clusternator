@@ -34,10 +34,16 @@ function deploy(name, force, update) {
     .then((cJson) => {
       const dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
       const pid = cJson.projectId;
+      const fullName = cJson.projectId + ':' + name;
       return fs
         .read(dPath, 'utf8')
         .fail(getAppDefNotFound(dPath))
-        .then((results) => cn.deploy(name, pid, results, null, force));
+        .then((results) => cn.deploy(name, pid, results, null, force))
+        .then((response) => {
+          util.info('Successfully deployed ' + fullName , response);
+        }, (err) => {
+          util.error('Failed to deploy ' + fullName, err.stack);
+        });
     });
 }
 
@@ -71,8 +77,11 @@ function stop(name) {
       util.info('Stopping Deployment...: ', cJson.projectId, ': ', name);
       return cn.stop(name, cJson.projectId);
     })
-    .fail((err) => util
-      .error(`Failed to stop deployment: ${err.message}`));
+    .then((response) => {
+      util.info('Successfully stopped deployment', response);
+    }, (err) => {
+      util.error(`Failed to stop deployment: ${err.message}`);
+    });
 }
 
 /**
