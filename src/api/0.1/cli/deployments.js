@@ -43,7 +43,7 @@ function deploy(name, force, update) {
           util.info('Successfully deployed ' + fullName , response);
         }, (err) => {
           util.error('Failed to deploy ' + fullName, err.stack);
-        })
+        });
     });
 }
 
@@ -78,10 +78,10 @@ function stop(name) {
       return cn.stop(name, cJson.projectId);
     })
     .then((response) => {
-      util.info('Successfully stopped deployment ' + fullName , response);
+      util.info('Successfully stopped deployment', response);
     }, (err) => {
-      util .error(`Failed to stop deployment: ${err.message}`
-    }));
+      util.error(`Failed to stop deployment: ${err.message}`);
+    });
 }
 
 /**
