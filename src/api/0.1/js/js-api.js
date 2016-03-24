@@ -113,6 +113,7 @@ function login(username, password) {
 
 /**
  * @param {string} username
+ * @param {string} password
  * @param {string} confirm
  * @param {number=} authority
  * @returns {Promise}
