@@ -64,46 +64,40 @@ function createData(channel) {
     .then((results) => {
       logCreateData(results);
       return privateFs.writeClusternatorCreds(results.authToken);
-    })
-    .fail((err) => logError('creating Project Data', err.message));
+    });
 }
 
 function resetAuth() {
   return getProjectId()
     .then((projectId) => cn
       .resetProjectAuth(projectId))
-    .then(log)
-    .fail((err) => logError('resetting auth token', err.message));
+    .then(log);
 }
 
 function resetShared() {
   return getProjectId()
     .then((projectId) => cn
       .resetProjectShared(projectId))
-    .then(log)
-    .fail((err) => logError('resetting shared key', err.message));
+    .then(log);
 }
 
 function resetGitHub() {
   return getProjectId()
     .then((projectId) => cn
       .resetProjectGitHub(projectId))
-    .then(log)
-    .fail((err) => logError('resetting GitHub key', err.message));
+    .then(log);
 }
 
 function getShared() {
   return getProjectId()
     .then((projectId) => cn
       .getProjectShared(projectId))
-    .then(log)
-    .fail((err) => logError('getting shared key', err.message));
+    .then(log);
 }
 
 function getGitHub() {
   return getProjectId()
     .then((projectId) => cn
       .getProjectGitHub(projectId))
-    .then(log)
-    .fail((err) => logError('getting GitHub key', err.message));
+    .then(log);
 }
