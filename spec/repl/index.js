@@ -26,6 +26,7 @@ module.exports = {
   ddb: require('./ddb.spec'),
   deployment: require('./deployment.spec'),
   ec2: require('./ec2.spec'),
+  ec2Ecs: require('./ec2-ecs.spec'),
   ecr: require('./ecr.spec'),
   elb: require('./elb.spec'),
   pr: require('./pr.spec'),

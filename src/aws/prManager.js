@@ -6,8 +6,8 @@
  */
 const Q = require('q');
 const Subnet = require('./subnetManager');
-const SG = require('./ec2/security-groups');
-const Ec2 = require('./ec2Manager');
+const SG = require('./ec2/security-groups/security-groups');
+const ec2Fns = require('./ec2/vm/vm-ecs');
 const rid = require('./../resource-identifier');
 const Cluster = require('./clusterManager');
 const Route53 = require('./route53Manager');
@@ -18,43 +18,51 @@ const constants = require('../constants');
 const awsConstants = require('./aws-constants');
 const util = require('../util');
 const elbFns = require('./elb/elb');
-const R = require('ramda');
 const Config = require('../config');
 
 function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
+  const AWS = {
+    ec2: util.makePromiseApi(ec2),
+    elb: util.makePromiseApi(awsElb),
+    vpcId 
+  };
   let subnet = Subnet(ec2, vpcId);
-  let securityGroup = SG.bindAws({ ec2: util.makePromiseApi(ec2), vpcId });
+  let securityGroup = SG.bindAws(AWS);
   let cluster = Cluster(ecs);
   let route53 = Route53(r53, zoneId);
-  let ec2mgr = Ec2(ec2, vpcId);
+  let ec2mgr = ec2Fns.bindAws(AWS);
   let task = Task(ecs);
   let config = require('../config')();
-  let elb = R.mapObjIndexed(elbAwsPartial, elbFns);
+  const elb = elbFns.bindAws(AWS);
 
-  function elbAwsPartial(fn) {
-    if (typeof fn !== 'function') {
-      return () => {};
-    }
-    return R.partial(fn, { elb: util.makePromiseApi(awsElb) });
-  }
-
+  /**
+   * @param {Object} creq
+   * @returns {Promise.<{ instances: Array.<string> }>}
+   */
   function createEc2(creq) {
     return ec2mgr
-      .createPr({
-        clusterName: creq.name,
-        pid: creq.projectId,
-        pr: creq.pr,
-        sgId: creq.groupId,
-        subnetId: creq.subnetId,
-        sshPath: creq.sshData || path.join('.private',
-          constants.SSH_PUBLIC_PATH),
-        apiConfig: {}
+      .createPr(
+        creq.name,
+        creq.projectId,
+        creq.pr,
+        creq.groupId,
+        creq.subnetId,
+        creq.sshData
+      )()
+      .then((instances) => {
+        creq.instances = instances;
+        return creq;
       });
   }
 
   function createElb(creq) {
     return elb.createPr(creq.projectId, creq.pr, creq.subnetId,
-      creq.groupId, awsConstants.AWS_SSL_ID)();
+      creq.groupId, awsConstants.AWS_SSL_ID)()
+      .then((results) => {
+        creq.dns = results.dns;
+        creq.elbId = results.id;
+        return setUrl(creq);
+      });
   }
 
   function setUrl(creq) {
@@ -105,7 +113,6 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
       .then(() => common.createElbEc2(createElb, createEc2, creq))
       .then(() => common.createTask(task, creq))
       .then(() => common.registerEc2ToElb(elb, creq))
-      .then(setUrl)
       .then((creq) => common.qualifyUrl(Config(), creq.url));
   }
 
@@ -163,12 +170,11 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
           cluster.create(creq.name) 
         ])
         .then(() => creq))
-      .then(() => createEc2(creq)
-        .then((results) => creq.ec2Info = results))
-      .then(() => common.createTask(task, creq))
-      .then(() => common.registerEc2ToElb(elb, creq))
-      .then(() => { 
-        creq.url = route53.generatePRDomain(projectId, pr); 
+        .then(() => createEc2(creq))
+        .then(() => common.createTask(task, creq))
+        .then(() => common.registerEc2ToElb(elb, creq))
+        .then(() => {
+          creq.url = route53.generatePRDomain(projectId, pr); 
         return creq;
       })
       .then((creq) => common.qualifyUrl(Config(), creq.url)));
@@ -189,7 +195,7 @@ function getPRManager(ec2, ecs, r53, awsElb, vpcId, zoneId) {
       .then((result) => Q
         .all(result.map(common.getDeregisterClusterFn(cluster, clusterName)))
         .then(() => ec2mgr
-          .destroyPr(projectId, pr)
+          .destroyPr(projectId, pr)()
           .fail((err) => util
             .info(`PR Destruction Problem Destroying Ec2: ${err.message}`))
         )

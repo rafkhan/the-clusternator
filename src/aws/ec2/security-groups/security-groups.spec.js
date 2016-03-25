@@ -4,7 +4,7 @@ const Q = require('q');
 const rewire = require('rewire');
 
 const sg = rewire('./security-groups');
-const C = require('../../chai');
+const C = require('../../../chai');
 
 const aws = {};
 

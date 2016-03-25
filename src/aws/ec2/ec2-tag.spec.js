@@ -10,7 +10,8 @@ const aws = {};
 
 function initData() {
   aws.ec2 = {
-    createTags: () => Q.resolve(true)
+    createTags: () => Q.resolve(true),
+    deleteTags: () => Q.resolve(true)
   };
 }
 
@@ -49,6 +50,22 @@ describe('AWS: EC2: Tag', () => {
           .check(done, () => expect(r).to.equal(true)), C.getFail(done));
     });
   });
+  
+  describe('unTag function', () => {
+    it('should throw without a tags array', () => {
+      expect(() => ec2.unTag(aws, [], 'me')).to.throw(TypeError);
+    });
+
+    it('should throw without a resources array', () => {
+      expect(() => ec2.unTag(aws, 'test', [])).to.throw(TypeError);
+    });
+
+    it('should return a function that calls ec2.deleteTags', (done) => {
+      ec2.unTag(aws, [], [])()
+        .then((r) => C
+          .check(done, () => expect(r).to.equal(true)), C.getFail(done));
+    });
+  });
 
 
   describe('createClusternator function', () => {
@@ -66,6 +83,13 @@ describe('AWS: EC2: Tag', () => {
   describe('createProject function', () => {
     it('should return an Ec2Tag', () => {
       expect(ec2.createProject('test') instanceof ec2.Ec2Tag).to.be.ok;
+    });
+  });
+  
+  describe('createName function', () => {
+    it('should return an Ec2Tag', () => {
+      expect(ec2.createName('test') instanceof ec2.Ec2Tag).to.be.ok;
+      expect(ec2.createName('test').Key).to.equal('Name');
     });
   });
 

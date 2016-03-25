@@ -12,8 +12,6 @@ const PROJECT_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project';
 const PROJECT_USER_TAG = CLUSTERNATOR_PREFIX + DELIM + 'project' + DELIM;
 const PR_TAG = CLUSTERNATOR_PREFIX + DELIM + 'pr';
 const SSH_PUBLIC_PATH = 'ssh-public';
-const AWS_APIS = Object.freeze();
-
 
 const constants = Object.freeze({
   PROJECT_USER_TAG,

@@ -239,4 +239,22 @@ describe('AWS: ELB', () => {
     });
   });
 
+  describe('bindAws function', () => {
+    it('should return a copy of the api', () => {
+      expect(elb.bindAws(aws)).to.be.ok;
+    });
+  });
+
+  describe('mapInstances function', () => {
+    it('should throw if given a non string, non-array', () => {
+      expect(() => elb.helpers.mapInstances({})).to.throw(TypeError);
+    });
+    
+    it('should map strings to instanceId object properties', () => {
+      expect(elb.helpers.mapInstances('hello')).to.deep.equal([{ 
+        InstanceId: 'hello'
+      }]);
+    });
+  });
+
 });

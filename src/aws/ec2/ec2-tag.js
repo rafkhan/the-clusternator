@@ -10,11 +10,13 @@ const constants = require('../../constants');
 module.exports = {
   create: Ec2Tag,
   createClusternator,
-  createProject,
   createDeployment,
+  createName,
   createPr,
+  createProject,
   Ec2Tag,
-  tag
+  tag,
+  unTag
 };
 
 /**
@@ -40,6 +42,31 @@ function tag(aws, resources, tags) {
   }
 
   return promiseToCreateTags;
+}
+
+/**
+ * @param {AwsWrapper} aws
+ * @param {string[]} resources
+ * @param {Ec2Tag[]} tags
+ * @returns {function(): Promise}
+ * @throws {TypeError}
+ */
+function unTag(aws, resources, tags) {
+  if (!Array.isArray(resources)) {
+    throw new TypeError('tag expects a resources array');
+  }
+  if (!Array.isArray(tags)) {
+    throw new TypeError('tag expects a tags array');
+  }
+
+  function promiseToRemoveTags() {
+    return aws.ec2.deleteTags({
+      Resources: resources,
+      Tags: tags
+    });
+  }
+
+  return promiseToRemoveTags;
 }
 
 /**
@@ -89,4 +116,12 @@ function createPr(prNum) {
  */
 function createDeployment(deployment) {
   return Ec2Tag(constants.DEPLOYMENT_TAG, deployment);
+}
+
+/**
+ * @param {string} name
+ * @returns {Ec2Tag}
+ */
+function createName(name) {
+  return Ec2Tag('Name', name);
 }

@@ -3,7 +3,7 @@
 const rewire = require('rewire');
 
 const sg = rewire('./security-group-ip-range');
-const C = require('../../chai');
+const C = require('../../../chai');
 
 function initData() {
 }

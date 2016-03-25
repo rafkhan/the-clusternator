@@ -14,7 +14,7 @@ const Route53 = require('./route53Manager');
 const Acl = require('./aclManager');
 const Cluster = require('./clusterManager');
 const Pr = require('./prManager');
-const Ec2 = require('./ec2Manager');
+const Ec2 = require('./ec2/vm/vm');
 const Deployment = require('./deploymentManager');
 const constants = require('../constants');
 const util = require('../util');
@@ -22,11 +22,6 @@ const Q = require('q');
 const R = require('ramda');
 const DEFAULT_REGION = 'us-east-1';
 const elbLib = require('./elb/elb');
-
-const getTagsFromInstance = (instance) => instance.Tags; 
-const flattenInstances = (arr) => R.flatten(arr
-  .map((i) => i.Instances ? i.Instances : []));
-const matchTag = (key, value) => (t) => t.Key === key && t.Value === value;
 
 let Vpc = require('./vpcManager');
 
@@ -186,7 +181,7 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
         v[constants.PR_TAG]]));
 
     return state()
-      .then((s) => s.ec2Mgr.describe().then((d) => {
+      .then((s) => s.ec2Mgr.describe()().then((d) => {
         const keys = extractKeys(d);
         const deadPRs = extractDeadPRs(keys);
 
@@ -275,22 +270,10 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    * @returns {Promise<Array.<string>>}
    */
   function prExists(projectId, pr) {
-    return listDeployments(projectId)
-      .then((prs) => {
-        prs = flattenInstances(prs);
-        const prIds = prs.map((i) => {
-          const tags = getTagsFromInstance(i);
-          const prNums = tags.filter(matchTag(constants.PR_TAG, pr)); 
-
-          if (prNums.length) {
-            return i.InstanceId;
-          } else {
-            return null;
-          }
-        }).filter((i) => i);
-        
-        return prIds.length ? prIds : null;
-      });
+    return state()
+      .then((s) => s
+        .ec2Mgr.listPr(projectId, pr)()
+        .then((list) => list.length ? list : null));
   }
 
   /**
@@ -300,23 +283,10 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
    */
   function deploymentExists(projectId, name) {
 
-    return listDeployments(projectId)
-      .then((deployments) => {
-        deployments = flattenInstances(deployments);
-        const depIds = deployments.map((i) => {
-          const tags = getTagsFromInstance(i);
-          const depNames = tags
-            .filter(matchTag(constants.DEPLOYMENT_TAG, name));
-
-          if (depNames.length) {
-            return i.InstanceId;
-          } else {
-            return null;
-          }
-        }).filter((i) => i);
-
-        return depIds.length ? depIds : null;
-      });
+    return state()
+      .then((s) => s
+        .ec2Mgr.listDeployment(projectId, name)()
+        .then((list) => list.length ? list : null));
   }
 
 
@@ -378,15 +348,16 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
   function listSSHAbleInstances(projectId) {
     return state()
       .then((s) => s
-        .ec2Mgr.describeProject(projectId)
-        .then((instances) => instances
+        .ec2Mgr.describeProject(projectId)()
+        /** @todo flatten this */
+        .then((result) => result.Reservations
           .map(mapEc2ProjectDetails)));
   }
 
   function listDeployments(projectId) {
     return state()
       .then((s) => s
-        .ec2Mgr.describeProject(projectId));
+        .ec2Mgr.listProject(projectId)());
   }
 
   function initState() {
@@ -401,7 +372,9 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
       state.route = Route(ec2, state.vpcId);
       state.subnet = Subnet(ec2, state.vpcId);
       state.acl = Acl(ec2, state.vpcId);
-      state.ec2Mgr = Ec2(ec2, state.vpcId);
+      state.ec2Mgr = Ec2.bindAws({ 
+        ec2: util.makePromiseApi(ec2), vpcId: state.vpcId 
+      });
       state.pullRequest = Pr(ec2, ecs, awsRoute53, elb, state.vpcId,
         state.zoneId);
       state.deployment = Deployment(ec2, ecs, awsRoute53, elb, state.vpcId,

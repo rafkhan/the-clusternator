@@ -5,7 +5,10 @@
  * @module aws/elb
  */
 
+const util = require('../../util');
 const constants = require('../../constants');
+const awsUtil = require('../aws-util');
+const awsConstants = require('../aws-constants');
 const tag = require('./elb-tag.js');
 const pListeners = require('./port-listener');
 const TCP = 'TCP';
@@ -13,6 +16,7 @@ const SSL = 'SSL';
 const RX_ALPHA_NUM = /[^a-z0-9]/gi;
 
 module.exports = {
+  bindAws,
   create,
   createDeployment,
   createPr,
@@ -29,9 +33,18 @@ module.exports = {
     defaultListeners,
     describeById,
     elbDeploymentId,
-    elbPrId
+    elbPrId,
+    mapInstances
   }
 };
+
+/**
+ * @param {AwsWrapper} aws
+ * @returns {Object} this API bound to
+ */
+function bindAws(aws) {
+  return awsUtil.bindAws(aws, module.exports);
+}
 
 /**
  * @param {AwsWrapper} aws
@@ -139,7 +152,21 @@ function createDeployment(aws, projectId, deployment, subnet, securityGroup,
     tag.create(constants.DEPLOYMENT_TAG, deployment)
   ];
   const id = elbDeploymentId(projectId, deployment);
-  return create(aws, listeners, [subnet], [securityGroup], id, tags);
+  const createFn = create(aws, listeners, [subnet], [securityGroup], id, tags);
+  const safeCreate = util.makeRetryPromiseFunction(
+    createFn,
+    awsConstants.AWS_RETRY_LIMIT,
+    awsConstants.AWS_RETRY_DELAY,
+    awsConstants.AWS_RETRY_MULTIPLIER,
+    null,
+    'elb: create-deployment'
+  );
+  
+  function promiseToCreateDeployment() {
+    return describeById(aws, id)()
+      .fail(() => safeCreate());
+  }
+  return promiseToCreateDeployment;
 }
 
 
@@ -165,7 +192,21 @@ function createPr(aws, projectId, pr, subnet, securityGroup, certId,
     tag.create(constants.PR_TAG, pr)
   ];
   const id = elbPrId(projectId, pr);
-  return create(aws, listeners, [subnet], [securityGroup], id, tags);
+  const createFn = create(aws, listeners, [subnet], [securityGroup], id, tags);
+  const safeCreate = util.makeRetryPromiseFunction(
+    createFn,
+    awsConstants.AWS_RETRY_LIMIT,
+    awsConstants.AWS_RETRY_DELAY,
+    awsConstants.AWS_RETRY_MULTIPLIER,
+    null,
+    'elb: create-pr'
+  );
+  
+  function promiseToCreatePr() {
+    return describeById(aws, id)()
+      .fail(() => safeCreate());
+  }
+  return promiseToCreatePr;
 }
 
 /**
@@ -270,7 +311,7 @@ function describeAll(aws) {
 /**
  * @param {AwsWrapper} aws
  * @param {string} id
- * @returns {function(): Promise.<{ dns: string }>}
+ * @returns {function(): Promise.<{ dns: string, id: string }>}
  */
 function describeById(aws, id) {
   /**
@@ -287,7 +328,8 @@ function describeById(aws, id) {
           throw new Error(`describeDeployment: no deployment found: ${id}`);
         }
         return {
-          dns: results.LoadBalancerDescriptions[0].DNSName
+          dns: results.LoadBalancerDescriptions[0].DNSName,
+          id
         };
       });
   }
@@ -314,7 +356,7 @@ function describeDeployment(aws, projectId, deployment) {
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} pr
- * @return {function(): Promise.<{ dns: string }>}
+ * @return {function(): Promise.<{ dns: string, id: string }>}
  * @throws {TypeError}
  */
 function describePr(aws, projectId, pr) {
@@ -326,13 +368,17 @@ function describePr(aws, projectId, pr) {
 }
 
 /**
- * @param {Array.<string>} instances
+ * @param {string|Array.<string>} instances
  * @returns {Array.<{ InstanceId: string }>}
+ * @throws {TypeError}
  */
 function mapInstances(instances) {
+  if (instances && typeof instances === 'string') {
+    instances = [instances];
+  }
   if (!Array.isArray(instances)) {
     throw new TypeError('registerInstances expects instances to be an array ' +
-      'of strings');
+      'of strings, given ' + typeof instances, '.');
   }
   return instances.map((id) => {
     return {

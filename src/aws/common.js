@@ -4,8 +4,10 @@
  *
  * @module aws/common
  */
+const awsConstants = require('./aws-constants');
 const constants = require('../constants');
 const rid = require('../resource-identifier');
+const util = require('../util');
 const Q = require('q');
 
 /**
@@ -398,7 +400,7 @@ function getDeploymentFilter(projectId, deployment) {
  * @param {function(...):Q.Promise} createElb
  * @param {function(...):Q.Promise} createEc2
  * @param {Object} creq
- * @returns {Q.Promise<{{ dns: string, elbId: string, ec2Info: Object }}>}
+ * @returns {Promise<{ dns: string, elbId: string, instances: string[] }>}
  */
 function createElbEc2(createElb, createEc2, creq) {
   return Q
@@ -407,15 +409,12 @@ function createElbEc2(createElb, createEc2, creq) {
       createElb(creq)
     ])
     .then((results) => {
-      creq.dns = results[1].dns;
-      creq.elbId = results[1].id;
-      creq.ec2Info = results[0];
       return creq;
     });
 }
 
 /**
- * @param {Objecet} task
+ * @param {Object} task
  * @param {Object} creq
  * @returns {Q.Promise<Object>}
  */
@@ -428,12 +427,23 @@ function createTask(task, creq) {
 
 /**
  * @param {Object} elb
- * @param {{ elbId: string, ec2Info: Object }} creq
+ * @param {{ elbId: string, instances: Array.<string> }} creq
  * @returns {Q.Promise<Object>}
  */
 function registerEc2ToElb(elb, creq) {
-  return elb.registerInstances(creq.elbId,
-    [findIdFromEc2Describe(creq.ec2Info)])()
+  util.debug('registerEc2ToElb instances: ', creq.instances);
+  
+  const registerFn = elb.registerInstances(creq.elbId,
+    creq.instances);
+  const safeRegister = util.makeRetryPromiseFunction(
+    registerFn,
+    awsConstants.AWS_RETRY_LIMIT,
+    awsConstants.AWS_RETRY_DELAY,
+    awsConstants.AWS_RETRY_MULTIPLIER,
+    null,
+    'register-ec2-to-elb'
+  );
+  return safeRegister()
     .then(() => creq);
 }
 

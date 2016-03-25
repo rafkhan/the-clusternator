@@ -6,10 +6,12 @@
  */
 
 const common = require('../common');
+const awsUtil = require('../aws-util');
 const util = require('../../util');
 const rid = require('../../resource-identifier');
 
 module.exports = {
+  bindAws,
   create,
   destroy,
   describe,
@@ -17,6 +19,13 @@ module.exports = {
   arn
 };
 
+/**
+ * @param {AwsWrapper} aws
+ * @returns {Object} this API bound to
+ */
+function bindAws(aws) {
+  return awsUtil.bindAws(aws, module.exports);
+}
 
 /**
  * @param {AwsWrapper} aws

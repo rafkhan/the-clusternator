@@ -3,6 +3,7 @@
 var gulp = require('gulp');
 var babel = require('gulp-babel');
 var eslint = require('gulp-eslint');
+var exit = require('gulp-exit');
 var mocha = require('gulp-mocha');
 var plumber = require('gulp-plumber');
 var istanbul = require('gulp-istanbul');
@@ -125,7 +126,8 @@ gulp.task('test-unit', ['lint', 'pre-test-unit'], function testUnit() {
         statements: 70,
         branches: 45
       }
-    } }));
+    } }))
+    .pipe(exit());
 });
 
 /**

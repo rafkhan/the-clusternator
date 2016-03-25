@@ -1,4 +1,11 @@
-var setup = require('./setup'),
-EC2 = require(setup.path('aws', 'ec2Manager.js'));
+'use strict';
 
-module.exports = EC2(setup.getEc2(), setup.testVPC);
+const setup = require('./setup');
+const util = require(setup.path('util'));
+const elb = require(setup.path('aws', 'ec2', 'vm', 'vm.js'));
+
+module.exports = elb.bindAws({
+  ec2: util.makePromiseApi(setup.getEc2()),
+  vpcId: setup.testVPC
+});
+
