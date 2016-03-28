@@ -65,34 +65,13 @@ function remoteFn(logFn) {
 }
 
 function sshShell() {
-  return remoteFn(ssh.shell)
-    .fail(logFail)
-    .done();
-}
-
-/**
- * @param {Error} err
- */
-function logFail(err) {
-  const code = +err.code;
-  if (code === 1) {
-    console.log('');
-    console.log('Error: Can connect to host, but cannot find Docker ' +
-      'container:');
-    console.log('Try manually debugging using "clusternator ssh"');
-  }  else {
-    console.log(`stdio Error: ${err.message}`);
-  }
+  return remoteFn(ssh.shell);
 }
 
 function logApp() {
-  return remoteFn(logRemote.logApp)
-    .fail(logFail)
-    .done();
+  return remoteFn(logRemote.logApp);
 }
 
 function logEcs() {
-  return remoteFn(logRemote.logEcs)
-    .fail(logFail)
-    .done();
+  return remoteFn(logRemote.logEcs);
 }
