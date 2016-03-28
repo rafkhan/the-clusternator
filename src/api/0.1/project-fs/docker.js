@@ -6,8 +6,8 @@
  * @module api/'0.1'/projectFs/docker
  */
 const DOCKERFILE = 'Dockerfile';
-const DOCKERFILE_NODE_LTS_LATEST = 'Dockerfile-node-4-latest';
-const DOCKERFILE_NODE_STABLE_LATEST = 'Dockerfile-node-5-latest';
+const DOCKERFILE_NODE_LTS_LATEST = 'Dockerfile-node-lts-latest';
+const DOCKERFILE_NODE_STABLE_LATEST = 'Dockerfile-node-stable-latest';
 const DOCKERFILE_STATIC_LATEST = 'dockerfile-static-latest';
 const CLUSTERNATOR_DIR = /\$CLUSTERNATOR_DIR/g;
 const EXTERNAL_PORT = /\$EXTERNAL_PORT/g;

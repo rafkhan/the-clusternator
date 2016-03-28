@@ -26,11 +26,4 @@ describe('CLI Authorities Middleware', () => {
   it('listAuthorities should resolve if clusternator API resolves', (done) => {
     C.checkResolve(a.list, done);
   });
-
-  it('listAuthorities should swallow rejections if clusternator API rejects ' +
-    '(CLI Endpoint)', (done) => {
-    authorities = new Error('test');
-    C.checkResolve(a.list, done);
-  });
-
 });

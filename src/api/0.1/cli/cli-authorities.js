@@ -45,8 +45,5 @@ function logObject(obj, prefix) {
 function list() {
   return cn
     .listAuthorities()
-    .then(logObject)
-    .fail((err) => {
-      console.log(`Error listing authorities: ${err.message}`);
-    });
+    .then(logObject);
 }

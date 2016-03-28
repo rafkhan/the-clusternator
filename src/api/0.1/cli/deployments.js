@@ -61,9 +61,7 @@ function update(name) {
         .fail(getAppDefNotFound(dPath))
         .then((results) => cn
           .update(name, cJson.projectId, results));
-    })
-    .fail((err) => util
-      .error(`Failed to update deployment: ${err.message}`));
+    });
 }
 
 /**
@@ -94,4 +92,3 @@ function getAppDefNotFound(dPath) {
     throw err;
   };
 }
-
