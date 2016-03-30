@@ -15,10 +15,10 @@ else
   cd $DIR
   cd ../../
   rm -f ./clusternator.tar.gz.asc
-  clusternator make-private -p $CLUSTERNATOR_PASS
+  clusternator make-private -p $(clusternator project shared-key)
   clusternator private-checksum
   git add ./clusternator.tar.gz.asc
-  # note adding .private-checksum to .clusternator litarally
+  # note adding .private-checksum to .clusternator literally
   # is _not_ good practice as .clusternator is "configurable"
   git add ./.clusternator/.private-checksum
 

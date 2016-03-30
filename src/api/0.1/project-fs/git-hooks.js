@@ -6,7 +6,6 @@
  */
 
 const NEWLINE = '\n';
-const CLUSTERNATOR_PASS = /\$CLUSTERNATOR_PASS/g;
 const SHEBANG = '#!/usr/bin/env bash' + NEWLINE;
 const HOOK_FILES = ['post-commit', 'pre-commit', 'post-merge'];
 const SHELL_DIR = 'DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"';
@@ -61,23 +60,20 @@ function chmodExec(root, hook, perms) {
 /**
  * @param {string} root
  * @param {string} hook
- * @param {string} passphrase
  * @returns {Q.Promise}
  */
-function installExecutable(root, hook, passphrase) {
-  return getHookSkeleton(hook, passphrase)
+function installExecutable(root, hook) {
+  return getHookSkeleton(hook)
   .then((text) => writeFile(root, clusternateHook(hook), text)
     .then(() => chmodExec(root, clusternateHook(hook))));
 }
 
 /**
  * @param {string} hook
- * @param {string} passphrase
  * @returns {Q.Promise.<string>}
  */
-function getHookSkeleton(hook, passphrase) {
-  return fs.getSkeleton('git-' + hook)
-    .then((contents) => contents.replace(CLUSTERNATOR_PASS, passphrase));
+function getHookSkeleton(hook) {
+  return fs.getSkeleton('git-' + hook);
 }
 
 /**
@@ -208,13 +204,12 @@ function pruneHook(root, hook) {
 /**
  * @param {string} root
  * @param {string} hook
- * @param {string} passphrase
  * @returns {Q.Promise}
  */
-function installHook(root, hook, passphrase) {
+function installHook(root, hook) {
   return Q.all([
     updateMasterExecutable(root, hook),
-    installExecutable(root, hook, passphrase)
+    installExecutable(root, hook)
   ]);
 }
 
@@ -230,33 +225,20 @@ function pruneHooks(root) {
 
 /**
  * @param {string} root
- * @param {string} passphrase
  */
-function installHooks(root, passphrase) {
+function installHooks(root) {
   return Q
     .all(HOOK_FILES
-      .map((hook) => installHook(root, hook, passphrase)));
+      .map((hook) => installHook(root, hook)));
 }
 
 function install() {
-  return Q.all([
-      fs.findProjectRoot(),
-      clusternatorJson.get()
-        .then((cJson) =>
-          cn.getProjectShared(cJson.projectId)
-            .fail((err) => {
-              console.log('Unable to get projectShared key from clusternator ' +
-                'server.  Are you logged in?');
-              throw err;
-            }))])
-    .then((results) => installHooks.apply(null, results))
-    .fail((err) => console.log(`git hook install failed ${err.message}`));
+  return fs.findProjectRoot()
+    .then(installHooks);
 }
 
 
 function remove() {
-  //find root
   return fs.findProjectRoot()
-    .then(pruneHooks)
-    .fail((err) => console.log(`git hook remove failed ${err.message}`));
+    .then(pruneHooks);
 }
