@@ -24,12 +24,12 @@ live edits on `http://localhost:4000`
 
 ### Documentation Tasks
 
-- `npm run doc` will build JSDOC files first, then Jekyll will build those, and 
+- `npm run doc` will build JSDOC files first, then Jekyll will build those, and
 other guides into a complete site
-- `npm run doc-dev` runs a watcher and a Jekyll dev server.  This command will 
+- `npm run doc-dev` runs a watcher and a Jekyll dev server.  This command will
 rebuild JSDoc, and Jekyll on file system changes
-- `npm run doc-publish` will build, and publish a copy of the docs site. This 
-requires permissions to [the documentation repo][docRepo], jekyll, and a modest 
+- `npm run doc-publish` will build, and publish a copy of the docs site. This
+requires permissions to [the documentation repo][docRepo], jekyll, and a modest
 amount of room in your `/tmp`
 - `npm run doc-dev-serve` runs the Jekyll dev server, and is for _internal use_
 - `npm run doc-api` builds JSDoc only, and is for _internal use_
@@ -67,3 +67,24 @@ Code coverage can be found _after_ tests are run, and is located in the
 (generated) `coverage` folder.  Coverage includes lcov, json, and html.
 
 [theBoard]: https://waffle.io/rangle/the-clusternator "The Clusternator Board"
+
+### A note about Error Handling
+
+The main structure of the CLI starts with the `src/api/0.1/cli/cli-api.js`.
+This file has two responsibilities: argument parsing (with `yargs`) and results
+logging.
+
+It delegates to a bunch of promisified functions in other modules to do the
+actual work.  This means that errors in those functions should always 'bubble
+up' to `cli-api.js`, which should have a near-monopoly on the the use of `.fail`
+or `.catch`.
+
+`cli-api.js` will then use `utils.cliErr` to print a stack trace for unknown
+errors, or the correct error message for known errors.  It does this by supplying
+a map from `error.code` to an error string and desired process exit code.
+
+So:
+
+1. always associate a `.code` constant with any error you want handled, and
+2. only call `promise.fail` or `promise.catch` in `src/api/0.1/cli/cli-api.js`
+unless you have a good reason to do otherwise.
