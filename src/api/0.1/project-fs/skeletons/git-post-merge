@@ -6,4 +6,4 @@ set -e
 # Locate *this* file
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-clusternator read-private -p $CLUSTERNATOR_PASS
+clusternator read-private -p $(clusternator project shared-key)
