@@ -253,15 +253,17 @@ function getProjectManager(ec2, ecs, awsRoute53, dynamoDB, awsIam, awsEcr,
         .subnet.describe()
         .then((dBlock) => dBlock
           .map((block) => block.Tags ))
-        .then((tags) => tags
-          .map((tagGroup) => tagGroup
-            .reduce((prev, curr) => {
-              if (curr.Key === constants.PROJECT_TAG) {
-                return curr.Value;
-              }
-            }, null) ).filter((identity) => {
-            return identity;
-          })));
+        .then((tags) => {
+            return R.flatten(tags.map((t) => {
+              return t.map((v) => {
+                if(v.Key === constants.PROJECT_TAG) {
+                  return v.Value;
+                }
+
+                return null;
+              }).filter(R.compose(R.not, R.isNil));
+            }));
+          }));
   }
 
   /**

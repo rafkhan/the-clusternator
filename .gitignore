@@ -32,6 +32,7 @@ gpg-pass.txt
 
 # clusternator ignores
 clusternator.tar.gz
+bin/curl-post-json.sh
 
 # Jekyyl Site
 _site

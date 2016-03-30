@@ -29,6 +29,7 @@ function getProjectManager() {
 }
 
 function listProjects() {
+  return makePostRequest('/project/list', { projectId: 'the-clusternator' });
 }
 
 /**

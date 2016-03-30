@@ -47,7 +47,8 @@ const EXPORTS = {
     'change-slack-channel': changeSlackChannel,
     create: createProject,
     'list-ssh-instances': listSSHAbleInstances,
-    destroy: pmDestroy
+    destroy: pmDestroy,
+    list: listProjects
   },
   pr: {
     create: prCreate,
@@ -72,6 +73,17 @@ function sanitizePr(pr) {
   pr = pr !== pr ? 0 : pr;
   return pr + '';
 }
+
+/**
+ * @param {{ projectId: string }} body
+ * @returns {Q.Promise<string[]>}
+ */
+function listProjects(body) {
+  return state()
+    .then((s) => s
+      .pm.listProjects());
+}
+
 
 /**
  * @param {{ projectId: string }} body
