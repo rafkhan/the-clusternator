@@ -331,7 +331,7 @@ function prefixError(err, prefix) {
  * @param {number=} multiplier each failure will multiply the delay by this
  * @param {function(Error):boolean=} failOn if true fails instead of retrying
  * @param {string=} label
- * @return {Promise}
+ * @return {function(): Promise}
  */
 function makeRetryPromiseFunction(promiseReturningFunction, retryCount, delay,
                           multiplier, failOn, label) {
@@ -360,10 +360,15 @@ function makeRetryPromiseFunction(promiseReturningFunction, retryCount, delay,
           let d = Q.defer();
 
           // delay retries
-          setTimeout(() => makeRetryPromiseFunction(
-            promiseReturningFunction, retryCount - 1, delay * multiplier,
-            multiplier, failOn, label)()
-            .then(d.resolve, d.reject), delay);
+          setTimeout(() => {
+            debug(`makeRetryPromiseFunction: retrying ${label} ${retryCount} ` +
+              `more times with a delay of ${delay} x ${multiplier}, error: ` +
+              err.message);
+            makeRetryPromiseFunction(
+              promiseReturningFunction, retryCount - 1, delay * multiplier,
+              multiplier, failOn, label)()
+              .then(d.resolve, d.reject);
+          }, delay);
           return d.promise;
         }
 

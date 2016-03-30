@@ -13,6 +13,8 @@ const EXPORTS = {
     route53: '2013-04-01'
   },
   AWS_DEFAULT_AZ: 'us-east-1a',
+  AWS_DEFAULT_EC2_AMI: 'ami-e7acf78d',
+  AWS_DEFAULT_EC2_TYPE: 't2.micro',
   AWS_EC2_POLL_INTERVAL: 15000, // ms to wait between polling EC2 statuses
   AWS_EC2_POLL_MAX: 40, // times to retry EC2 polls (create/terminate)
   AWS_FILTER_CTAG: [{

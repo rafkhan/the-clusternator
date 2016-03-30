@@ -6,6 +6,7 @@ const MAX_LISTED_RESULTS = 100;
 
 const Q = require('q');
 const util = require('../../util');
+const awsUtil = require('../aws-util');
 
 const clusternatePrefixString = require('../../resource-identifier')
   .clusternatePrefixString;
@@ -35,16 +36,7 @@ module.exports = EXPORTS;
  * @returns {Object.<function(...)>}
  */
 function bindAws(aws) {
-  const bound = {};
-  Object.keys(EXPORTS).map((attr) => {
-    if (attr === 'bindAws') {
-      return;
-    }
-    if (typeof EXPORTS[attr] === 'function') {
-      bound[attr] = util.partial(EXPORTS[attr], [aws]);
-    }
-  });
-  return bound;
+  return awsUtil.bindAws(aws, EXPORTS);
 }
 
 /**

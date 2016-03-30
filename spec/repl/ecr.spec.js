@@ -1,15 +1,9 @@
 'use strict';
 
-const R = require('ramda');
+const setup = require('./setup');
+const util = require(setup.path('util'));
+const ecr = require(setup.path('aws', 'ecr', 'ecr.js'));
 
-var setup = require('./setup');
-var util = require(setup.path('util'));
-var ecr = require(setup.path('aws', 'ecr', 'ecr.js'));
-
-const partialedIam = R.mapObjIndexed(iamAwsPartial, ecr);
-
-function iamAwsPartial(fn) {
-  return R.partial(fn, { ecr: util.makePromiseApi(setup.getEcr()) });
-}
-
-module.exports = partialedIam;
+module.exports = ecr.bindAws({
+  ecr: util.makePromiseApi(setup.getEcr()) 
+});

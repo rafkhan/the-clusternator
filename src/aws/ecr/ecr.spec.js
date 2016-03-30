@@ -89,4 +89,10 @@ describe('AWS: ECR', () => {
           C.getFail(done));
     });
   });
+  
+  describe('bindAws function', () => {
+    it('should return a copy of the api', () => {
+      expect(ecr.bindAws(aws)).to.be.ok;
+    });
+  });
 });

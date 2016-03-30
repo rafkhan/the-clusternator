@@ -5,12 +5,13 @@
  * @module aws/ec2/sg/groups
  */
 
-const filter = require('./ec2-filter');
-const tag = require('./ec2-tag');
-const constants = require('../../constants');
-const awsConstants = require('../aws-constants');
-const rid = require('../../resource-identifier');
-const util = require('../../util');
+const filter = require('./../ec2-filter');
+const tag = require('./../ec2-tag');
+const constants = require('../../../constants');
+const awsConstants = require('../../aws-constants');
+const rid = require('../../../resource-identifier');
+const util = require('../../../util');
+const awsUtil = require('../../aws-util');
 
 const ipPerms = require('./security-groups-ip-permissions');
 const ipRange = require('./security-group-ip-range');
@@ -45,13 +46,7 @@ module.exports = {
  * @returns {Object} this API bound to
  */
 function bindAws(aws) {
-  const securityGroups = {};
-  Object.keys(module.exports).forEach((fnName) => {
-    if (typeof module.exports[fnName] === 'function') {
-      securityGroups[fnName] = util.partial(module.exports[fnName], [ aws ]);
-    }
-  });
-  return securityGroups;
+  return awsUtil.bindAws(aws, module.exports);
 }
 
 
@@ -299,7 +294,7 @@ function destroyDeployment(aws, projectId, deployment) {
 
   return util.makeRetryPromiseFunction(
     promiseToDestroyDeployment, 
-    awsConstants.AWS_RETRY_LIMIT, 
+    awsConstants.AWS_RETRY_LIMIT + 2,  // security groups are stubborn
     awsConstants.AWS_RETRY_DELAY, 
     awsConstants.AWS_RETRY_MULTIPLIER, 
     null, 
@@ -322,7 +317,7 @@ function destroyPr(aws, projectId, pr) {
 
   return util.makeRetryPromiseFunction(
     promiseToDestroyPr,
-    awsConstants.AWS_RETRY_LIMIT,
+    awsConstants.AWS_RETRY_LIMIT + 2, // security groups are stubborn
     awsConstants.AWS_RETRY_DELAY,
     awsConstants.AWS_RETRY_MULTIPLIER,
     null,
@@ -332,7 +327,7 @@ function destroyPr(aws, projectId, pr) {
 
 /**
  * @param {AwsWrapper} aws
- * @returns {function(): Promise}
+ * @returns {function(): Promise.<{ SecurityGroups: Array }>}
  */
 function describe(aws) {
 
@@ -351,7 +346,7 @@ function describe(aws) {
 /**
  * @param {AwsWrapper} aws
  * @param {string} projectId
- * @returns {function(): Promise}
+ * @returns {function(): Promise.<{ SecurityGroups: Array }> }
  */
 function describeProject(aws, projectId) {
 
@@ -372,7 +367,7 @@ function describeProject(aws, projectId) {
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} pr
- * @returns {function(): Promise}
+ * @returns {function(): Promise.<{ SecurityGroups: Array }> }
  */
 function describePr(aws, projectId, pr) {
 
@@ -391,7 +386,7 @@ function describePr(aws, projectId, pr) {
  * @param {AwsWrapper} aws
  * @param {string} projectId
  * @param {string} deployment
- * @returns {function(): Promise}
+ * @returns {function(): Promise.<{ SecurityGroups: Array }> }
  */
 function describeDeployment(aws, projectId, deployment) {
 
