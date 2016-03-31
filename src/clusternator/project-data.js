@@ -6,6 +6,7 @@
  */
 
 const MISSING_PROJ = 'missing projectId';
+const MISSING_CHANNEL = 'missing slack channel name';
 
 const makePostRequest = require('./common').makePostRequest;
 const Q = require('q');
@@ -16,7 +17,8 @@ module.exports = {
   resetShared,
   resetGitHub,
   getShared,
-  getGitHub
+  getGitHub,
+  changeSlackChannel
 };
 
 /**
@@ -101,4 +103,23 @@ function getShared(projectId) {
   return makePostRequest('/project/shared-key', {
     projectId
   }).then((data) => data.data);
+}
+
+/**
+ * @param {string} projectId
+ * @param {string} channel
+ * @returns {Q.Promise<string>}
+ */
+function changeSlackChannel(projectId, channel) {
+  if (!projectId) {
+    return Q.reject(new Error(MISSING_PROJ));
+  }
+  if (!channel) {
+    return Q.reject(new Error(MISSING_CHANNEL));
+  }
+  return makePostRequest('/project/change-slack-channel', {
+    projectId,
+    channel
+  }).then((data) => data.data);
+
 }

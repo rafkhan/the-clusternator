@@ -27,6 +27,7 @@
       "list": 2,
       "describe": 1,
       "destroy": 1,
+      "change-slack-channel": 2,
       "list-ssh-instances": 2,
       "create-data": 1,
       "reset-auth-token": 1,
