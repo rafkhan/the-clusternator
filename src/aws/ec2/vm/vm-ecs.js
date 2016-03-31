@@ -21,6 +21,7 @@ module.exports = {
   createPr,
   describeDeployment: vm.describeDeployment,
   describePr: vm.describePr,
+  destroy: vm.destroy,
   destroyDeployment: vm.destroyDeployment,
   destroyPr: vm.destroyPr,
   listDeployment: vm.listDeployment,
@@ -33,36 +34,32 @@ module.exports = {
 
 /**
  * @param {AwsWrapper} aws
- * @param {string} projectId
  * @param {string} deployment
+ * @param {Array.<string>} instanceIds
  * @returns {function(): Promise}
  */
-function stageDeployment(aws, projectId, deployment) {
-  const list = vm.listDeployment(aws, projectId, deployment);
+function stageDeployment(aws, deployment, instanceIds) {
   
   function promiseToStageDeployment() {
-    return list()
-      .then((instances) => addTags(aws, instances, [
-        tag.createDeployment(deployment)
-      ])());
+    return addTags(aws, instanceIds, [
+      tag.createDeployment(deployment)
+    ])();
   }
   return promiseToStageDeployment;
 }
 
 /**
  * @param {AwsWrapper} aws
- * @param {string} projectId
  * @param {string} pr
+ * @param {Array.<string>} instanceIds
  * @returns {function(): Promise}
  */
-function stagePr(aws, projectId, pr) {
-  const list = vm.listPr(aws, projectId, pr);
+function stagePr(aws, pr, instanceIds) {
 
   function promiseToStagePr() {
-    return list()
-      .then((instances) => addTags(aws, instances, [
-        tag.createPr(pr)
-      ])());
+    return addTags(aws, instanceIds, [
+      tag.createPr(pr)
+    ])();
   }
   return promiseToStagePr;
 }

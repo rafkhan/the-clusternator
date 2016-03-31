@@ -28,8 +28,8 @@ const EXPORTS = {
     'arn:aws:iam::731670193630:server-certificate/clusternator-wildcard',
   AWS_RETRY_DELAY: 1500,
   AWS_RETRY_LIMIT: 3,
-  AWS_RETRY_MULTIPLIER: 3
-
+  AWS_RETRY_MULTIPLIER: 3,
+  ALT_TAG: '-alt'
 };
 
 module.exports = util.deepFreeze(EXPORTS);

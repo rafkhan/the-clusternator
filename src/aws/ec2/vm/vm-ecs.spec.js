@@ -185,12 +185,12 @@ describe('AWS: EC2: VM-ECS (ec2 virtual machines for ECS hosting)', () => {
 
   describe('stageDeployment', () => {
     it('should return a function', () => {
-      expect(typeof vme.stageDeployment(aws, 'project', 'master'))
+      expect(typeof vme.stageDeployment(aws, 'deployment', ['instanceId']))
         .to.equal('function');
     });
     
     it('s result function should return a promise', () => {
-      const p = vme.stageDeployment(aws, 'project', 'master')();
+      const p = vme.stageDeployment(aws, 'deployment', ['instanceId'])();
       expect(typeof p.then).to.equal('function');
     });
   });
@@ -209,12 +209,12 @@ describe('AWS: EC2: VM-ECS (ec2 virtual machines for ECS hosting)', () => {
   
   describe('stagePr', () => {
     it('should return a function', () => {
-      expect(typeof vme.stagePr(aws, 'project', '555'))
+      expect(typeof vme.stagePr(aws, '555', ['instanceId']))
         .to.equal('function');
     });
     
     it('s result function should return a promise', () => {
-      const p = vme.stagePr(aws, 'project', '555')();
+      const p = vme.stagePr(aws, '555', ['instanceId'])();
       expect(typeof p.then).to.equal('function');
     });
   });

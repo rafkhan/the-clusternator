@@ -310,6 +310,19 @@ function getDeregisterClusterFn(cluster, clusterName) {
   };
 }
 
+/**
+ * @param {Object} ec2mgr
+ * @param {Object} ec2mgr
+ * @param {string} clusterName
+ * @param {Array.<string>} instanceIds
+ * @returns {*|Request|Promise.<*>}
+ */
+function destroyEc2Manual(ec2mgr, cluster, clusterName, instanceIds) {
+  return Q.all(instanceIds
+    .map(getDeregisterClusterFn(cluster, clusterName)))
+    .then(() => ec2mgr.destroy(instanceIds)());
+}
+
 
 /**
  * @param {string} arn
@@ -408,9 +421,7 @@ function createElbEc2(createElb, createEc2, creq) {
       createEc2(creq),
       createElb(creq)
     ])
-    .then((results) => {
-      return creq;
-    });
+    .then(() => creq);
 }
 
 /**
@@ -420,7 +431,7 @@ function createElbEc2(createElb, createEc2, creq) {
  */
 function createTask(task, creq) {
   return task
-    .create(creq.name, creq.name, creq.appDef)
+    .create(creq.clusterNameNew, creq.clusterNameNew, creq.appDef)
     .then(() => creq);
 }
 
@@ -460,13 +471,125 @@ function qualifyUrl(config, url) {
   return url + tld;
 }
 
+/**
+ * @param {string} name
+ * @return {function(): boolean}
+ */
+function filterClusterListForName(name) {
+  return (element) => {
+    const splits = element.split('/');
+    return splits[splits.length - 1] === name;
+  };
+}
+
+/**
+ * @param {string} name
+ * @returns {function(): { clusterNameExisting: string, clusterNameNew: string}}
+ */
+function processZduClusterResults(name) {
+  return (results) => {
+    if (!results[0].length && !results[1].length) {
+      throw new Error('processZduCluster: no existing tasks');
+    }
+    if (!results[2].length && !results[3].length) {
+      throw new Error('processZduCluster: no existing clusters');
+    }
+    if (results[0].length && results[1].length) {
+      throw new Error('processZduCluster: task and alt task exist');
+    }
+    if (results[2].length && results[3].length) {
+      throw new Error('processZduCluster: cluster and alt cluster exist');
+    }
+    if (results[0].length && !results[2].length) {
+      throw new Error('processZduCluster: task exists but cluster does not');
+    }
+    if (!results[0].length && results[2].length) {
+      throw new Error('processZduCluster: task does not exists but cluster ' +
+        'does');
+    }
+    if (results[0].length && results[2].length) {
+      return {
+        clusterNameExisting: name,
+        clusterNameNew: makeAltName(name)
+      };
+    }
+    return {
+      clusterNameExisting: makeAltName(name),
+      clusterNameNew: name
+    };
+  };
+}
+
+/**
+ * @param {string} name
+ * @returns {string}
+ */
+function makeAltName(name) {
+  return name + awsConstants.ALT_TAG;
+}
+
+/**
+ * @param cluster
+ * @param task
+ * @param name
+ * @return {function(): Promise.<
+ { clusterNameExisting: string, clusterNameNew: string}>}
+ */
+function zduClusterNames(cluster, task, name) {
+
+  // clusterNameExisting,
+  // clusterNameNew,
+  function promiseToGetNames() {
+    return Q.all([
+      task.list(name) // this throws if cluster not found
+        .then((results) => results.serviceArns)
+        .fail(() => []),
+      task.list(makeAltName(name))
+        .then((results) => results.serviceArns)
+        .fail(() => []),
+      cluster.list()
+        .then((results) => results
+          .filter(filterClusterListForName(name))),
+      cluster.list()
+        .then((results) => results
+          .filter(filterClusterListForName(makeAltName(name))))
+    ]).then(processZduClusterResults(name));
+  } 
+  return promiseToGetNames;
+}
+
+/**
+ * @param {Object} creq
+ * @param {Object} cluster
+ * @param {Object} task
+ * @param {string} name
+ * @returns {Promise.<Object>}
+ */
+function zduClusterNamesCreq(creq, cluster, task, name) {
+  return zduClusterNames(cluster, task, name)()
+    .then((result) => {
+      creq.clusterNameExisting = result.clusterNameExisting;
+      creq.clusterNameNew = result.clusterNameNew;
+      return creq;
+    });
+}
+
 module.exports = {
   areTagsPidPrValid,
   areTagsPidValid,
-  throwInvalidPidTag,
-  throwInvalidPidPrTag,
-  throwInvalidPidDeploymentTag,
   awsTagEc2,
+  createElbEc2,
+  createTask,
+  destroyEc2Manual,
+  filterClusterListForName,
+  filterValidArns,
+  findFromEc2Describe,
+  findIdFromEc2Describe,
+  findIpFromEc2Describe,
+  getDeploymentFilter,
+  getDeregisterClusterFn,
+  getPrFilter,
+  getProjectIdFilter,
   makeProjectFilter,
   makePrFilter,
   makeAWSVPCFilter,
@@ -476,17 +599,13 @@ module.exports = {
   makeEc2DescribeProjectFn,
   makeEc2DescribePrFn,
   makeEc2DescribeDeployment,
-  findFromEc2Describe,
-  findIdFromEc2Describe,
-  findIpFromEc2Describe,
-  getDeregisterClusterFn,
-  filterValidArns,
-  getProjectIdFilter,
-  getPrFilter,
-  getDeploymentFilter,
   setSubnet,
-  createElbEc2,
-  createTask,
+  processZduClusterResults,
+  qualifyUrl,
   registerEc2ToElb,
-  qualifyUrl
+  throwInvalidPidTag,
+  throwInvalidPidPrTag,
+  throwInvalidPidDeploymentTag,
+  zduClusterNames,
+  zduClusterNamesCreq
 };
