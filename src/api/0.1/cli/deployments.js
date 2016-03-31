@@ -18,11 +18,38 @@ const constants = require('../../../constants');
 
 const clusternatorJson = require('../project-fs/clusternator-json');
 
+
+
 module.exports = {
   deploy,
   update,
   stop
 };
+
+
+
+/**
+ * The following is duplicate code
+ */
+const Q = require('q');
+const nfs = require('fs');
+const path = require('path');
+const ls = Q.nbind(nfs.readdir, nfs);
+const readFile = Q.nbind(nfs.readFile, nfs);
+const UTF8 = 'utf8';
+/**
+ * Loads _all_ the contents of a given path, it assumes they're public keys
+ * @param {string} keyPath
+ * @returns {Promise<string[]>}
+ */
+function loadUserPublicKeys(keyPath) {
+  return ls(keyPath).then((keyFiles) => {
+    return Q.all(keyFiles.map((fileName) => {
+      return readFile(path.join(keyPath, fileName), UTF8);
+    }));
+  });
+}
+
 
 /**
  * @param {string} name
@@ -35,10 +62,19 @@ function deploy(name, force, update) {
       const dPath = fs.path.join(cJson.deploymentsDir, name + '.json');
       const pid = cJson.projectId;
       const fullName = cJson.projectId + ':' + name;
-      return fs
-        .read(dPath, 'utf8')
+      const sshPath = cJson.private + '/ssh-public';
+
+      let appDef = null;
+
+      return fs.read(dPath, 'utf8')
         .fail(getAppDefNotFound(dPath))
-        .then((results) => cn.deploy(name, pid, results, null, force))
+        .then((results) => {
+          appDef = results;
+          return loadUserPublicKeys(sshPath);
+        })
+        .then((keys) => {
+          return cn.deploy(name, pid, appDef, keys, force);
+        })
         .then((response) => {
           util.info('Successfully deployed ' + fullName , response);
         }, (err) => {
