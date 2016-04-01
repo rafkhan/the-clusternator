@@ -20,7 +20,7 @@ function getTaskServiceManager(ecs) {
 
   function listServices(clusterArn) {
     if (!clusterArn) {
-      throw 'Requires cluster ARN';
+      throw new Error('Requires cluster ARN');
     }
 
     const params = {
@@ -216,8 +216,9 @@ function getTaskServiceManager(ecs) {
   }
 
   return {
+    create: createTasksAndServicesOnCluster,
     destroy: deleteAllServicesOnCluster,
-    create: createTasksAndServicesOnCluster
+    list: listServices
   };
 }
 
