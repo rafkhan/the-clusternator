@@ -113,7 +113,8 @@ function projectCommands(yargs) {
         project_sharedKey,
         project_resetAuthToken,
         project_resetGitHubKey,
-        project_resetSharedKey);
+        project_resetSharedKey,
+        project_changeSlackChannel);
 
       const argv = applySubCommands(y)
         .usage('Usage: $0 project <command> [opts]')
@@ -173,6 +174,22 @@ function project_resetSharedKey(yargs) {
     () => projectDb.resetShared()
       .fail(util.cliErr('Failed to reset shared key.'))
       .done());
+}
+
+function project_changeSlackChannel(yargs) {
+  return yargs.command(
+    'change-slack-channel',
+    'Change slack channel',
+    (y) => {
+      y.demand('c')
+        .alias('c', 'channel')
+        .describe('c', 'Slack channel name');
+
+      projectDb.changeSlackChannel(y.argv.c)
+        .fail(util.cliErr('Failed to change slack channel.'))
+        .done();
+    });
+
 }
 
 function config(yargs) {

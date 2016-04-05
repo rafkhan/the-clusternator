@@ -20,7 +20,8 @@ module.exports = {
   resetGitHub,
   getShared,
   getGitHub,
-  logCreateData
+  logCreateData,
+  changeSlackChannel
 };
 
 /**
@@ -99,5 +100,12 @@ function getGitHub() {
   return getProjectId()
     .then((projectId) => cn
       .getProjectGitHub(projectId))
+    .then(log);
+}
+
+function changeSlackChannel(channel) {
+  return getProjectId()
+    .then((projectId) => cn
+      .changeSlackChannel(projectId, channel))
     .then(log);
 }
