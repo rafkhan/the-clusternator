@@ -20,12 +20,34 @@ describe('utility functions', () => {
     expect(util.plog(2)).to.equal(2);
   });
 
-  it('errLog should return a broken promsie', (done) => {
-    const output = 'hahhahah';
+  it('errLog should return a broken promise', (done) => {
+    const output = 'hahhahaha';
     util.errLog(output).then(C.getFail(done), (err) => {
       C.check(done, () => {
         expect(err.message).to.equal(output);
       });
+    });
+  });
+
+  describe('validSlackChannel regex test', () => {
+    it('should allow valid slack channels', () => {
+      const channelName = 'the-clusternator';
+      expect(util.validSlackChannel(channelName)).to.be.true;
+    });
+
+    it('shouldn\'t allow capital letters', () => {
+      const channelName = 'THE-CLUSTERNATOR';
+      expect(util.validSlackChannel(channelName)).to.be.false;
+    });
+
+    it('shouldn\'t allow channels longer than 21 characters', () => {
+      const channelName = '1234567890123456789022';
+      expect(util.validSlackChannel(channelName)).to.be.false;
+    });
+
+    it('shouldn\'t allow invalid characters', () => {
+      const channelName = ' .@$%^&*';
+      expect(util.validSlackChannel(channelName)).to.be.false;
     });
   });
 

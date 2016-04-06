@@ -47,7 +47,8 @@ module.exports = {
   resetProjectShared,
   resetProjectGitHub,
   getProjectShared,
-  getProjectGitHub
+  getProjectGitHub,
+  changeSlackChannel
 };
 
 function createProjectData(projectId, channel) {
@@ -72,6 +73,10 @@ function getProjectShared(projectId) {
 
 function getProjectGitHub(projectId) {
   return projectREST.getGitHub(projectId);
+}
+
+function changeSlackChannel(projectId, channel) {
+  return projectREST.changeSlackChannel(projectId, channel);
 }
 
 /**

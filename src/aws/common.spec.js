@@ -298,4 +298,94 @@ describe('common AWS functions', () => {
     expect(common.qualifyUrl({ tld: 'org' }, 'hello') === 'hello.org')
       .to.be.ok;
   });
+
+  describe('filterClusterListForName function', () => {
+    it('should return a function', () => {
+      expect(typeof common.filterClusterListForName('hi')).to.equal('function');
+    }); 
+    
+    it('s returned function should match name if last string after / in ' +
+      'given list matches name', () => {
+      const filter = common.filterClusterListForName('hello');
+      expect(filter('something/something/hello')).to.equal(true);
+    });
+  });
+
+  describe('processZduClusterResults function', () => {
+    it('should return a function', () => {
+      expect(typeof common.processZduClusterResults('name'))
+        .to.equal('function');
+    }); 
+    
+    it('s returned function should throw if results[0]/[1] are both empty ' +
+      'arrays', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(() => fn([[], []])).to.throw(Error);
+    });
+    
+    it('s returned function should throw if results[2]/[3] are both empty ' +
+      'arrays', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(() => fn([['1'], [], [], []])).to.throw(Error);
+    });
+    
+    it('s returned function should throw if results[0]/[1] are both full ' +
+      'arrays', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(() => fn([['1'], ['1'], ['1'], []])).to.throw(Error);
+    });
+    
+    it('s returned function should throw if results[2]/[3] are both full ' +
+      'arrays', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(() => fn([['1'], [], ['1'], ['1']])).to.throw(Error);
+    });
+    
+    it('s returned function should throw if result[0] exists and result[2] ' +
+      'does not', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(() => fn([['1'], [], [], ['1']])).to.throw(Error);
+      
+    });
+    
+    it('s returned function should throw if result[0] does not exist and ' +
+      'result[2] exists', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(() => fn([[], ['1'], ['1'], []])).to.throw(Error);
+    });
+    
+    it('s returned function should throw if result[1] exists and result[3] ' +
+      'does not', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(() => fn([[], ['1'], ['1'], []])).to.throw(Error);
+    });
+    
+    it('s returned function should throw if result[1] does not exist and ' +
+      'result[3] exists', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(() => fn([['1'], [], [], ['1']])).to.throw(Error);
+    });
+    
+    it('should return the alt name if the original name exists', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(fn([['1'], [], ['1'], []])).to.deep.equal({ 
+        clusterNameExisting: 'name',
+        clusterNameNew: 'name-alt'
+      });
+    });
+    
+    it('should return the original name if the alt name exists', () => {
+      const fn = common.processZduClusterResults('name');
+      expect(fn([[], ['1'], [], ['1']])).to.deep.equal({
+        clusterNameExisting: 'name-alt',
+        clusterNameNew: 'name'
+      });
+    });
+  });
+
+  describe('zduClusterNames function', () => {
+    it('should return a function', () => {
+      expect(typeof common.zduClusterNames()).to.equal('function');
+    }); 
+  });
 });

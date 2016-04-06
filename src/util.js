@@ -27,6 +27,7 @@ module.exports = {
   clone,
   info,
   debug,
+  validSlackChannel,
   verbose,
   warn,
   error,
@@ -120,6 +121,15 @@ function plog() {
 */
 function quote(str) {
   return '"' + str + '"';
+}
+
+/**
+ * @param {string} channel
+ * @returns {boolean}
+ */
+function validSlackChannel(channel) {
+  const expression = /^[a-z0-9-_]{1,21}$/;
+  return expression.test(channel);
 }
 
 /**

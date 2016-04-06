@@ -7,6 +7,7 @@
 
 const inspect = require('util').inspect;
 const Q = require('q');
+const R = require('ramda');
 const cn = require('../js/js-api');
 const cmn = require('../common');
 
@@ -26,6 +27,9 @@ const STATE = {
   db: null
 };
 
+const INVALID_CHANNEL_NAME = 'Channel names must be 21 characters or fewer,' 
++ 'lower case, and cannot contain spaces or periods.';
+
 module.exports = getCommands;
 
 const EXPORTS = {
@@ -40,6 +44,7 @@ const EXPORTS = {
     'reset-git-hub-key': resetGitHubKey,
     'shared-key': sharedKey,
     'git-hub-key': gitHubKey,
+    'change-slack-channel': changeSlackChannel,
     create: createProject,
     'list-ssh-instances': listSSHAbleInstances,
     destroy: pmDestroy
@@ -113,7 +118,7 @@ function createIfNotFound(s, projectId, repoName) {
     id: projectId,
     repo: repoName
   };
-  return  Q.all([
+  return Q.all([
       newProjectToken(projectId),
       newKey(details, 'gitHubKey'),
       newKey(details, 'sharedKey'),
@@ -124,6 +129,30 @@ function createIfNotFound(s, projectId, repoName) {
       return s.db(projectId, details)()
         .then(() => results);
     });
+}
+
+/**
+ * @param {{ projectId: string }} body
+ * @param {{ channel: string }} body
+ * @returns {Q.Promise<{ data: string }>}
+ */
+function changeSlackChannel(body) {
+  if (!util.validSlackChannel(body.channel)){
+    return Q.reject(new Error(INVALID_CHANNEL_NAME));
+  }
+
+  return state()
+    .then((s) => s
+      .db(body.projectId)()
+      .then((details) => {
+        return s.db(body.projectId,
+          R.merge(details, {channel: body.channel}))()
+        .then(() => {
+          return {
+            data: `Successfully changed ${body.projectId}'s slack channel to `
+            + `${body.channel}`};
+        });
+      }));
 }
 
 /**
