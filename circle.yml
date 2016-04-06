@@ -12,3 +12,15 @@ dependencies:
     - cp ./.clusternator/config.json ./.private/config.local.json
     - cp ./.clusternator/credentials.json ./.private/credentials.local.json
     - cp ./.clusternator/.clusternator-config.json ~/
+
+
+deployment:
+  hub:
+    branch: master
+    commands:
+      - npm run build
+      - docker build -t $IMAGE:master
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - docker push $IMAGE:master
+      - npm install -g clusternator
+      - clusternator deploy -d master
