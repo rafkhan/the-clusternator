@@ -6,6 +6,7 @@
  * @module server/'api-0.1'
  */
 
+const util = require('../../util');
 const constants = require('../../constants');
 const API = constants.DEFAULT_API_VERSION;
 
@@ -116,6 +117,15 @@ function executeCommand(commands) {
   };
 }
 
+function authHeaderHandler(req, res, next) {
+  passport.authenticate(['auth-header'], (err) => {
+    if(err) {
+      util.error('auth-header strategy:', err.message);
+      res.status(401).send('Unauthorized');
+    }
+  })(req, res, next);
+}
+
 function init(app, projectDb) {
   const config = Config();
   logger.debug(`API ${API} Initializing`);
@@ -124,7 +134,7 @@ function init(app, projectDb) {
   logger.debug(`API ${API} Got CommandObjects`);
 
   app.post(`/${API}/:namespace/:command`, [
-    passport.authenticate(['auth-header']),
+    authHeaderHandler,
     authorizeCommand(config),
     executeCommand(commands)
   ]);
