@@ -121,7 +121,7 @@ function authHeaderHandler(req, res, next) {
   passport.authenticate(['auth-header'], (err) => {
     if(err) {
       util.error('auth-header strategy:', err.message);
-      res.status(401).send('Unauthorized');
+      res.status(401).send();
     }
   })(req, res, next);
 }
