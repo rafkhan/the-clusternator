@@ -299,7 +299,11 @@ function listProjects(yargs) {
     'list-projects',
     'List projects with clusternator resources',
     (y) => aws.listProjects()
-      .then((projectNames) => projectNames.forEach(console.log))
+      .then((projectNames) => {
+        projectNames.forEach((p) => {
+          console.log(p);
+        });
+      })
       .fail(util.cliErr('Error listing projects.'))
       .done());
 }
