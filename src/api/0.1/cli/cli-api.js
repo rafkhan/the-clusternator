@@ -68,7 +68,6 @@ module.exports = {
     serve,
     listAuthorities,
     listProjects,
-    describeServices,
     build,
     deploy,
     stop,
@@ -305,15 +304,6 @@ function listProjects(yargs) {
         });
       })
       .fail(util.cliErr('Error listing projects.'))
-      .done());
-}
-
-function describeServices(yargs) {
-  return yargs.command(
-    'describe-services',
-    'Describe project services',
-    () => aws.describeServices()
-      .fail(util.cliErr(`Error describing services`))
       .done());
 }
 
