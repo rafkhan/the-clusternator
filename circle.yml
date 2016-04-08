@@ -12,3 +12,10 @@ dependencies:
     - cp ./.clusternator/config.json ./.private/config.local.json
     - cp ./.clusternator/credentials.json ./.private/credentials.local.json
     - cp ./.clusternator/.clusternator-config.json ~/
+
+
+deployment:
+  hub:
+    branch: master
+    commands:
+      - node .clusternator/docker-build.js
