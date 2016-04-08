@@ -127,7 +127,7 @@ function getCredentials(privatePath, region) {
   const fileName = 'aws-project-credentials';
   const creds = safeReq(path.join(privatePath, fileName + '.json'), fileName);
   creds.region = region;
-  creds.apiVersin = API_VERSION;
+  creds.apiVersion = API_VERSION;
   return creds;
 }
 
