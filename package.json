@@ -60,7 +60,6 @@
     "inquirer": "^0.11.0",
     "media-typer": "^0.3.0",
     "mkdirp": "^0.5.1",
-    "npm": "^3.7.5",
     "parse-git-config": "^0.3.1",
     "passport": "^0.3.2",
     "passport-http-header-token": "^1.0.0",
