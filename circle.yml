@@ -19,5 +19,5 @@ deployment:
     branch: master
     commands:
       - npm run build
-      - ./bin/clusternator read-private -p $CLUSTERNATOR_GPG_KEY
+      - ./bin/clusternator.sh read-private -p $CLUSTERNATOR_GPG_KEY
       - node .clusternator/docker-build.js
