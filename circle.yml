@@ -18,9 +18,4 @@ deployment:
   hub:
     branch: master
     commands:
-      - npm run build
-      - docker build -t $IMAGE:master
-      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASSWORD
-      - docker push $IMAGE:master
-      - npm install -g clusternator
-      - clusternator deploy -d master
+      - node .clusternator/docker-build.js
