@@ -4,7 +4,6 @@ const rewire = require('rewire');
 const Q = require('q');
 const constants = require('../constants');
 const common = require('./common');
-const VpcMock = require('./vpc-mock');
 const ec2Mock = require('./ec2-mock');
 
 const Subnet = rewire('./subnetManager');
@@ -22,10 +21,13 @@ describe('subnetManager', () => {
       CidrBlock: '1.2.0.4'
     }];
   let origVPC;
+  const Vpc = {};
 
   beforeEach(() => {
+    Vpc.bindAws = () => Vpc;
+    Vpc.findVpc = () => () => Q.resolve({ CidrBlock: '192.168.1.0' });
     origVPC = Subnet.__get__('Vpc');
-    Subnet.__set__('Vpc', VpcMock);
+    Subnet.__set__('Vpc', Vpc);
     subnet = Subnet(ec2Mock, 'vpc-id');
   });
 
@@ -35,20 +37,23 @@ describe('subnetManager', () => {
 
   describe('async describe with valid list', () => {
     let oldDesc;
+    let oldEc2Desc;
     beforeEach(() => {
+      const subnets = [{
+        CidrBlock: '192.168.0.0'
+      }];
+      const describeFn = () => Q.resolve(subnets);
+
+      oldEc2Desc = ec2Mock.describeSubnets;
+      ec2Mock.describeSubnets = (p, cb) => cb(null, { Subnets: subnets });
       oldDesc = common.makeEc2DescribeFn;
-      common.makeEc2DescribeFn = () => {
-        return () => {
-          return Q.resolve([{
-            CidrBlock: '192.168.0.0'
-          }]);
-        };
-      };
+      common.makeEc2DescribeFn = () => describeFn;
       Subnet.__set__('common', common);
       subnet = Subnet(ec2Mock, 'vpc-id');
     });
 
     afterEach(() => {
+      ec2Mock.describeSubnets = oldEc2Desc;
       common.makeEc2DescribeFn = oldDesc;
       Subnet.__set__('common', common);
     });

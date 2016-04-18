@@ -10,7 +10,7 @@ const util = require('../util');
 const constants = require('../constants');
 const awsConstants = require('./aws-constants');
 
-let Vpc = require('./vpcManager');
+let Vpc = require('./ec2/vpc');
 let common = require('./common');
 
 /**
@@ -20,19 +20,28 @@ let common = require('./common');
 function getSubnetManager(ec2, vpcId) {
   ec2 = util.makePromiseApi(ec2);
 
-  const vpc = Vpc(ec2);
+  const vpc = Vpc.bindAws({ ec2, vpcId });
   const baseFilters = awsConstants.AWS_FILTER_CTAG.concat(
     common.makeAWSVPCFilter(vpcId));
   const describe = common.makeEc2DescribeFn(
     ec2, 'describeSubnets', 'Subnets', baseFilters);
   const describeProject = common.makeEc2DescribeProjectFn(describe);
+  
+  function describeAll() {
+    return ec2.describeSubnets({
+      Filters: common.makeAWSVPCFilter(vpcId)
+    }).then((results) => results.Subnets ); 
+  }
 
   /**
-  @param {string} pid
   @return {Q.Promise}
   */
-  function getCidrPrefix(pid) {
-    return vpc.findProject(pid).then(function(v) {
+  function getCidrPrefix() {
+    /** 
+     * @todo this cidr function should be injected from elsewhere instead of
+     * determined by this module.  Subnets is due for its upgrade.
+     */
+    return vpc.findVpc()().then(function(v) {
       return util.getCidrPrefixFromIPString(v.CidrBlock);
     });
   }
@@ -73,7 +82,7 @@ function getSubnetManager(ec2, vpcId) {
     @return {Q.Promise<string>}
   */
   function getCidrPostfix() {
-    return describe().then(incrementHighestCidr);
+    return describeAll().then(incrementHighestCidr);
   }
 
   /**
@@ -85,12 +94,11 @@ function getSubnetManager(ec2, vpcId) {
   }
 
   /**
-    @param {string} pid
     @return {Q.Promise<string>}
   */
-  function getNextSubnet(pid) {
+  function getNextSubnet() {
     return Q.all([
-      getCidrPrefix(pid),
+      getCidrPrefix(),
       getCidrPostfix()
     ]).then(concatSubnetComponents);
   }
@@ -333,7 +341,7 @@ function getSubnetManager(ec2, vpcId) {
       if (result) {
         return result;
       }
-      return getNextSubnet(pid).then(function(cidr) {
+      return getNextSubnet().then(function(cidr) {
         return {
           VpcId: vpcId,
           CidrBlock: cidr,
