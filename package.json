@@ -65,7 +65,7 @@
     "passport-http-header-token": "^1.0.0",
     "passport-local": "^1.0.0",
     "q": "^1.4.1",
-    "ramda": "^0.17.1",
+    "ramda": "^0.21.0",
     "request": "^2.70.0",
     "rimraf": "^2.4.3",
     "superagent": "^1.4.0",
