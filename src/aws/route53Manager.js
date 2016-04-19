@@ -143,7 +143,7 @@ function getRoute53(route53, zoneId) {
     @param {Object=} config
   */
   function createRecordParams(domainName, ip, tld, type, config) {
-    return changeRecordParams('CREATE', domainName, ip, tld, type, config);
+    return changeRecordParams('UPSERT', domainName, ip, tld, type, config);
   }
 
   /**
