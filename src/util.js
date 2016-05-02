@@ -230,12 +230,20 @@ function clone(obj) {
  * @returns {Promise}
  */
 function inquirerPrompt(qs, onEachAnswer, onEachError, onComplete) {
+  const defer = Q.defer();
+
   if (typeof onEachAnswer === 'function') {
-    return inquirer.prompt(qs).process
-      .subscribe(onEachAnswer, onEachError, onComplete);
+    inquirer.prompt(qs).process
+      .subscribe(onEachAnswer, onEachError, onComplete)
+      .then(defer.resolve)
+      .catch(defer.reject);
   } else {
-    return inquirer.prompt(qs);
+    inquirer.prompt(qs)
+      .then(defer.resolve)
+      .catch(defer.reject);
   }
+
+  return defer.promise;
 }
 
 /**
