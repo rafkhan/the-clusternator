@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "gulp transpile",
-    "dev": "NODE_ENV=debug; concurrent \"nodemon ./server-init.js\" \"npm run watch\"",
+    "dev": "NODE_ENV=debug; DEBUG=express:*; concurrent \"nodemon ./server-init.js\" \"npm run watch\"",
     "doc": "npm run doc-api; jekyll build -s ./docs -d ./docs/_site",
     "doc-api": "jsdoc -c ./js-doc.json",
     "doc-dev": "concurrent \"npm run doc-dev-serve\" \"npm run watch\"",
@@ -48,7 +48,7 @@
   "dependencies": {
     "aws-sdk": "^2.3.11",
     "base64url": "^1.0.5",
-    "body-parser": "^1.15.1",
+    "body-parser": "^1.14.2",
     "body-parser-rawbody": "^1.13.2",
     "compression": "^1.6.2",
     "connect-ensure-login": "^0.1.1",

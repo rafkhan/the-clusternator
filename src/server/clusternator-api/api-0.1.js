@@ -70,9 +70,12 @@ function noAuthority(res) {
 }
 
 function authorizeCommand(config) {
+  console.log('authorizeCommand config', config);
   const cmdP = curryPrivFromNamespace(config);
 
+  console.log('authorizeCommand returning...');
   return (req, res, next) => {
+    console.log('authorize command running');
     const ns = req.params.namespace;
     const cmd = req.params.command;
     const requiredAuth = cmdP(ns, cmd);
@@ -118,11 +121,14 @@ function executeCommand(commands) {
 }
 
 function authHeaderHandler(req, res, next) {
+  console.log('authHeaderHandler');
   passport.authenticate(['auth-header'], (err) => {
     if(err) {
+      console.log('authHeaderHandler error');
       util.error('auth-header strategy:', err.message);
       res.status(401).send();
     }
+    console.log('authHeaderHandler done', next, '...', err);
   })(req, res, next);
 }
 
@@ -133,9 +139,13 @@ function init(app, projectDb) {
   const commands = getCommands(config, projectDb);
   logger.debug(`API ${API} Got CommandObjects`);
 
+  const authC = authorizeCommand(config);
+
+  console.log('authC is a function?', typeof authC, authC);
+
   app.post(`/${API}/:namespace/:command`, [
-    authHeaderHandler,
-    authorizeCommand(config),
+    passport.authenticate(['auth-header']),
+    authC,
     executeCommand(commands)
   ]);
 }
