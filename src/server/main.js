@@ -59,6 +59,7 @@ function initExpress(app) {
 
   app.use(bodyParser.json());
   app.use(loggers.request);
+  app.use(loggers.error);
 }
 
 function createDbAccessors(pm, config) {
