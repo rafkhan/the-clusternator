@@ -59,6 +59,7 @@ function initExpress(app) {
 
   app.use(bodyParser.json());
   app.use(loggers.request);
+  app.use(loggers.error);
 }
 
 function createDbAccessors(pm, config) {
@@ -143,8 +144,6 @@ function bindRoutes(app, pm, dbs) {
     ghMiddleware,
     curriedGHHandler
   ]);
-
-  app.use(loggers.error);
 }
 
 function exposeUser(req, res, next) {

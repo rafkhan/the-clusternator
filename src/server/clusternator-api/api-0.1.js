@@ -133,9 +133,11 @@ function init(app, projectDb) {
   const commands = getCommands(config, projectDb);
   logger.debug(`API ${API} Got CommandObjects`);
 
+  const authC = authorizeCommand(config);
+
   app.post(`/${API}/:namespace/:command`, [
-    authHeaderHandler,
-    authorizeCommand(config),
+    passport.authenticate(['auth-header']),
+    authC,
     executeCommand(commands)
   ]);
 }

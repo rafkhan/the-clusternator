@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "gulp transpile",
-    "dev": "NODE_ENV=debug; concurrent \"nodemon ./server-init.js\" \"npm run watch\"",
+    "dev": "NODE_ENV=debug; DEBUG=express:*; concurrent \"nodemon ./server-init.js\" \"npm run watch\"",
     "doc": "npm run doc-api; jekyll build -s ./docs -d ./docs/_site",
     "doc-api": "jsdoc -c ./js-doc.json",
     "doc-dev": "concurrent \"npm run doc-dev-serve\" \"npm run watch\"",
