@@ -349,7 +349,16 @@ function pmCreateDeployment(body) {
     .then((s) => {
       const d = Q.defer(); // For early async resolution (see below)
       const deployment = body.deployment + '';
-      const appDef = JSON.parse(body.appDef);
+
+      // XXX: this is here because the CLI and CI clients are sending
+      // different data types for the appdef.
+      let appDef;
+      if(typeof body.appDef === 'object') {
+        appDef = body.appDef;
+      } else {
+        appDef = JSON.parse(body.appDef);
+      }
+
       const projectId = body.repo;
       const sshData = body.sshKeys;
 
