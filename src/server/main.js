@@ -57,24 +57,6 @@ function initExpress(app) {
     path.join(__dirname, '..', 'www'))
   );
 
-  //app.use((req, res, next) => {
-    //req.rawBody = '';
-
-    //req.on('data', function(chunk) { 
-      //req.rawBody += chunk;
-    //});
-
-    //req.on('end', function() {
-      //next();
-    //});
-  //});
-
-  //app.use((req, res, next) => {
-    //var x = JSON.parse(req.rawBody);
-    //req.body = x;
-    //next();
-  //});
-
   app.use(bodyParser.json());
   app.use(loggers.request);
   app.use(loggers.error);
