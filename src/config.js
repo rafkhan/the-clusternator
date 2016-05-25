@@ -7,6 +7,7 @@ a "local server".
 
 const AWS_ENV_KEY = 'AWS_ACCESS_KEY_ID';
 const AWS_ENV_SECRET = 'AWS_SECRET_ACCESS_KEY';
+const AWS_ENV_REGION = 'AWS_DEFAULT_REGION';
 const DEFAULT_VERSION = require('./constants').DEFAULT_API_VERSION;
 
 const Q = require('q');
@@ -71,6 +72,7 @@ function getAwsCredsFromProc() {
     return {
       accessKeyId: process.env[AWS_ENV_KEY],
       secretAccessKey: process.env[AWS_ENV_SECRET],
+      region: process.env[AWS_ENV_REGION]
     };
   }
   return null;

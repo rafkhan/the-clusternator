@@ -209,6 +209,10 @@ function getTaskServiceManager(ecs) {
         .then(createServiceFromTaskAndStart, q.reject);
     }
 
+    if(typeof appDef === 'string') {
+      appDef = JSON.parse(appDef);
+    }
+
     const taskDefPromises = R.map(createTaskAndService,
       appDef.tasks);
 
