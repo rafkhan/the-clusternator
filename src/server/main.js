@@ -19,6 +19,8 @@ const Q = require('q');
 const os = require('os');
 const path = require('path');
 const express = require('express');
+const yargs = require('yargs');
+
 const Config = require('../config');
 const loggers = require('./loggers');
 const dbs = require('./db');
@@ -46,6 +48,8 @@ function hostInfo() {
 }
 
 function initExpress(app) {
+  util.cliLogger(yargs);
+
   /**
    *  @todo the authentication package could work with a "mount", or another
    *  mechanism that is better encapsulated
