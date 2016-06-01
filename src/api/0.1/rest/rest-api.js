@@ -340,6 +340,19 @@ function gitHubKey(body) {
   return getKey(body, 'gitHubKey');
 }
 
+
+// XXX: this is here because the CLI and CI clients are sending
+// different data types for the appdef.
+function readAppDefHack(appDef) {
+  if(typeof appDef === 'string') {
+    return JSON.parse(appDef);
+  } else if(typeof appDef === 'object') {
+    return appDef;
+  } else {
+    throw 'Invalid appdef';
+  }
+}
+
 /**
  * @param {Object} body
  * @returns {Q.Promise}
@@ -350,17 +363,10 @@ function pmCreateDeployment(body) {
       const d = Q.defer(); // For early async resolution (see below)
       const deployment = body.deployment + '';
 
-      // XXX: this is here because the CLI and CI clients are sending
-      // different data types for the appdef.
-      let appDef;
-      if(typeof body.appDef === 'object') {
-        appDef = body.appDef;
-      } else {
-        appDef = JSON.parse(body.appDef);
-      }
-
       const projectId = body.repo;
       const sshData = body.sshKeys;
+      const appDef = readAppDefHack(body.appDef);
+
 
       s.db(projectId)()
         .then((project) => {
@@ -418,7 +424,7 @@ function prCreate(body) {
       const d = Q.defer(); // For early async resolution (see below)
       const pr = sanitizePr(body.pr);
       const build = sanitizePr(body.build);
-      const appDef = JSON.parse(body.appDef);
+      const appDef = readAppDefHack(body.appDef);
       const projectId = body.repo;
       const sshData = body.sshKeys;
 
