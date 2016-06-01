@@ -3,20 +3,22 @@ machine:
     version: $NODE_FULL_VERSION
   services:
     - docker
-
 dependencies:
-  pre:
-    - npm install aws-sdk
-  post:
-    - ./$CLUSTERNATOR_DIR/decrypt.sh
-
+    pre:
+      - 'sudo apt-get install gnupg'
+      - 'npm install aws-sdk'
+      - 'npm install -g clusternator the-clusternator-runtime-aws'
+    post:
+      # SWITCH TO `clusternator read-private -p`
+      - 'gpg --no-use-agent --yes --quiet --passphrase $CLUSTERNATOR_SHARED_KEY --output clusternator.tar.gz --decrypt clusternator.tar.gz.asc'
+      - 'tar xvf clusternator.tar.gz; rm clusternator.tar.gz;'
 deployment:
-  pr:
-    branch: /^(?!master$).*/
-    commands:
-      - 'node ./.clusternator/docker-build.js pr'
-  deploy:
-    branch: master
-    owner: $OWNER
-    commands:
-      - 'node ./.clusternator/docker-build.js deploy master'
+    pr:
+        branch: '/^(?!master$).*/'
+        commands:
+          - 'clusternator-runtime-aws ./ $CLUSTERNATOR_HOST pr'
+    deploy:
+        branch: master
+        owner: $OWNER
+        commands:
+          - 'clusternator-runtime-aws ./ $CLUSTERNATOR_HOST deploy master'
