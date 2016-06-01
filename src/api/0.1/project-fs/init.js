@@ -4,11 +4,14 @@
  *
  * @module api/'0.1'/projectFs/init
  */
+const runtimeAwsPackage = 'the-clusternator-runtime-aws';
+
 const Q = require('q');
 
 const deploymentsFs = require('./deployments');
 const scriptsFs = require('./clusternator-scripts');
 const dockerFs = require('./docker');
+const npm = require('../../../cli-wrappers/npm');
 
 const cmn = require('../common');
 const util = cmn.src('util');
@@ -34,7 +37,9 @@ function initProject(root, options, skipNetwork) {
       deploymentsFs.init(dDir, projectId, options.ports),
       scriptsFs.init(cDir, options.tld),
       scriptsFs.initOptional(options, root),
-      dockerFs.init(cDir, dockerType, options.ports[0].portInternal)])
+      dockerFs.init(cDir, dockerType, options.ports[0].portInternal),
+      npm.saveDev(runtimeAwsPackage)
+    ])
     .then(() => {
       if (skipNetwork) {
         util.info('Network Resources *NOT* Checked');

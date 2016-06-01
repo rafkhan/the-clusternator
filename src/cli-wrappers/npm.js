@@ -9,6 +9,7 @@ const COMMAND = 'npm';
 const FLAG_INSTALL = 'install';
 const FLAG_RUN = 'run';
 const FLAG_BUILD = 'build';
+const FLAG_SAVE_DEV = '--save-dev';
 
 const util = require('../util');
 
@@ -32,7 +33,14 @@ function build() {
     });
 }
 
+function saveDev(pkg) {
+  return cproc.stream(COMMAND, [FLAG_INSTALL, FLAG_SAVE_DEV, pkg], {
+      env: process.env
+    });
+}
+
 module.exports = {
   install,
-  build
+  build,
+  saveDev
 };
