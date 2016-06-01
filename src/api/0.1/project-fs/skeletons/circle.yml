@@ -6,10 +6,7 @@ machine:
 dependencies:
     pre:
       - 'sudo apt-get install gnupg'
-      - 'npm install aws-sdk'
-      - 'npm install -g clusternator the-clusternator-runtime-aws'
     post:
-      # SWITCH TO `clusternator read-private -p`
       - 'gpg --no-use-agent --yes --quiet --passphrase $CLUSTERNATOR_SHARED_KEY --output clusternator.tar.gz --decrypt clusternator.tar.gz.asc'
       - 'tar xvf clusternator.tar.gz; rm clusternator.tar.gz;'
 deployment:
