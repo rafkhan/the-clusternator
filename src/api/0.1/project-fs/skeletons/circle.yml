@@ -15,9 +15,9 @@ deployment:
     pr:
         branch: '/^(?!master$).*/'
         commands:
-          - 'clusternator-runtime-aws ./ $CLUSTERNATOR_HOST pr'
+          - 'clusternator-runtime-aws ./ pr'
     deploy:
         branch: master
         owner: $OWNER
         commands:
-          - 'clusternator-runtime-aws ./ $CLUSTERNATOR_HOST deploy master'
+          - 'clusternator-runtime-aws ./ deploy master'
